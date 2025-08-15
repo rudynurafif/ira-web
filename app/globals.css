@@ -1,10 +1,25 @@
 @import "tailwindcss";
 
 :root {
+  --font-be-vietnam: "Be Vietnam Pro", sans-serif;
   --background: #ffffff;
   --foreground: #171717;
   --primary: #005fb8;
-  --dark-primary: #003d76;
+  --dark-primary: #001d47;
+  --dark-primary-2: #003d76;
+  --red-primary: #ff0000;
+  --green-primary: #1faf38;
+  --nokia-blue: #0168ff;
+  --primary-spectrum: #f7f9fd;
+  --button: #005fb8;
+  --gray-border: #d5d5d5;
+  --primary-text: #353535;
+  --secondary: #666666;
+}
+
+/* Terapkan ke semua Steps */
+.ant-steps {
+  font-family: var(--font-be-vietnam) !important;
 }
 
 @theme inline {
@@ -12,6 +27,15 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-dark-primary: var(--dark-primary);
+  --color-dark-primary-2: var(--dark-primary-2);
+  --color-red-primary: var(--red-primary);
+  --color-green-primary: var(--green-primary);
+  --color-nokia-blue: var(--nokia-blue);
+  --color-primary-spectrum: var(--primary-spectrum);
+  --color-button: var(--button);
+  --color-gray-border: var(--gray-border);
+  --color-primary-text: var(--primary-text);
+  --color-secondary: var(--secondary);
 }
 
 /* @media (prefers-color-scheme: dark) {

@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro } from "next/font/google";
+import { Be_Vietnam_Pro, Figtree } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin"], // Gunakan subset latin
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"], // Pilih bobot font (opsional)
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"], // Pilih bobot  font (opsional)
   variable: "--font-be-vietnam", // Variabel CSS untuk font (opsional)
+});
+
+const figtree = Figtree({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"], // Pilih bobot sesuai kebutuhan
+  variable: "--font-figtree",
 });
 
 export const metadata: Metadata = {
