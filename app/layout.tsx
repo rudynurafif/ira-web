@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Figtree } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import Header from "./_components/layout/Header";
+import Footer from "./_components/layout/Footer";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin"], // Gunakan subset latin
@@ -28,7 +30,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${beVietnamPro.className} antialiased`}>
+        <Header />
         {children}
+        <Footer />
         <Toaster position="top-right" />
       </body>
     </html>
