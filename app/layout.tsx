@@ -28,10 +28,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${beVietnamPro.className} antialiased`}>
+    <html lang="en" className="h-full">
+      <body
+        className={`${beVietnamPro.className} antialiased min-h-screen flex flex-col`}
+      >
         <Header />
-        {children}
+        <main className="flex-1">{children}</main>
         <Footer />
         <Toaster position="top-right" />
       </body>

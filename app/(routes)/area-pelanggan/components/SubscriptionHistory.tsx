@@ -1,8 +1,8 @@
 import React from "react";
-import starIcon from "@/app/assets/Icons/icon-star.svg";
+import starIcon from "@/public/assets/Icons/icon-star.svg";
 import Image from "next/image";
-import redAlert from "@/app/assets/Icons/carbon_warning-filled.svg";
-import greenCheck from "@/app/assets/Icons/mdi_tick-circle.svg";
+import redAlert from "@/public/assets/Icons/carbon_warning-filled.svg";
+import greenCheck from "@/public/assets/Icons/mdi_tick-circle.svg";
 
 type Props = {
   paid: boolean;
@@ -24,30 +24,32 @@ const SubscriptionHistoryCard = ({
   buttonText,
 }: Props) => {
   return (
-    <div className="flex-1 bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] px-8 py-5 flex justify-between items-center">
+    <div className="flex-1 bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] px-8 py-5 max-sm:p-4 flex justify-between items-center">
       <div className="flex items-center gap-2">
-        <div className="py-4 pr-2">
+        <div className="py-4 pr-2 max-sm:hidden">
           <Image src={starIcon} alt="star-icon" height={40} width={40} />
         </div>
         <div className="flex flex-col gap-1">
           <p
             className={`${
               paid ? "text-green-primary" : "text-red-primary"
-            }  text-sm font-semibold flex gap-1`}
+            }  text-sm max-sm:text-[10px] font-semibold items-center flex gap-1`}
           >
-            <Image src={icon} alt="alert" />
+            <Image src={icon} className="max-sm:hidden" alt="alert" />
+            <Image src={icon} className="sm:hidden" height={12} width={12} alt="alert" />
             {mainTitle}
           </p>
-          <p className="text-xl font-bold">{packageInfo}</p>
-          <p className=" text-xs">{subTitle}</p>
+          <p className="text-xl max-sm:text-sm font-bold text-dark-primary-2">{packageInfo}</p>
+          <p className="max-sm:block text-sm font-medium">{price}</p>
+          <p className=" text-xs max-sm:text-[10px]">{subTitle}</p>
         </div>
       </div>
       <div className="flex-col text-right">
-        <p className="font-semibold text-xl mb-2">{price}</p>
+        <p className="font-semibold text-xl max-sm:hidden mb-2">{price}</p>
         <button
           className={`${
             paid ? "bg-dark-primary-2" : "bg-red-primary"
-          } text-white px-4 py-2 rounded text-sm`}
+          } text-white whitespace-nowrap px-4 py-2 max-sm:p-2 rounded text-sm max-sm:text-[10px]`}
         >
           {buttonText}
         </button>

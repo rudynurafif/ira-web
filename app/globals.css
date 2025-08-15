@@ -3,6 +3,7 @@
 :root {
   --font-be-vietnam: "Be Vietnam Pro", sans-serif;
   --background: #ffffff;
+  --background-customer: #F5F5F5;
   --foreground: #171717;
   --primary: #005fb8;
   --dark-primary: #001d47;
@@ -15,6 +16,7 @@
   --gray-border: #d5d5d5;
   --primary-text: #353535;
   --secondary: #666666;
+  --ads-platform-dark: #2C2C2C;
 }
 
 /* Terapkan ke semua Steps */
@@ -24,6 +26,7 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-customer: var(--background-customer);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-dark-primary: var(--dark-primary);
@@ -36,6 +39,7 @@
   --color-gray-border: var(--gray-border);
   --color-primary-text: var(--primary-text);
   --color-secondary: var(--secondary);
+  --color-ads-platform-dark: var(--ads-platform-dark);
 }
 
 /* @media (prefers-color-scheme: dark) {

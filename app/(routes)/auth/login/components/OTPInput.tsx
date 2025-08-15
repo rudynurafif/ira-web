@@ -78,7 +78,7 @@ const OtpInput = ({ length = 6, onChange }: Props) => {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       {values.map((d, i) => (
         <div key={i} className="flex items-center">
           <input

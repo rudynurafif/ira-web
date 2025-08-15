@@ -26,6 +26,7 @@ function Header() {
             : "text-dark-primary"
         }
       >
+        
         <div
           className={`container mx-auto px-5 py-3 ${
             pathname === "/" ? " bg-transparent" : "bg-white"

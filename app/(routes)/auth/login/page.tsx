@@ -25,7 +25,7 @@ const Page = () => {
 
   return (
     <div className="">
-      <main className="flex w-full items-center justify-center">
+      <main className="flex w-full items-start justify-center px-10">
         <div className="w-full max-w-[543px] pt-16">
           <h1 className="mb-8 text-center text-dark-primary font-extrabold text-[32px]">
             Login Starlite
