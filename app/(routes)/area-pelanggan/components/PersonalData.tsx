@@ -1,4 +1,6 @@
-import React from "react";
+import { getProfileInfo } from "@/app/_api/CustomerArea";
+import { ProfileInfo } from "@/app/_shared/types/customer-area";
+import React, { useEffect, useState } from "react";
 
 export const ProfileLabel = ({
   label,
@@ -16,17 +18,40 @@ export const ProfileLabel = ({
 };
 
 const PersonalData = () => {
+  const [profileInfo, setprofileInfo] = useState<ProfileInfo>();
+  const [isLoading, setIsloading] = useState(false);
+
+  const fetchData = async () => {
+    setIsloading(true);
+
+    try {
+      const resProfile = await getProfileInfo({});
+
+      setprofileInfo(resProfile);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
     <div>
       <div className="bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] max-sm:py-2 max-sm:px-0 px-3 py-5">
-        <ProfileLabel label="Nama Lengkap" data="Sugeng Prasetyo" />
-        <ProfileLabel label="Nomor Handphone" data="0821234889012" />
-        <ProfileLabel label="Email" data="sugengpresetio@mail.com" />
         <ProfileLabel
-          label="Alamat"
-          data="BINONG KAMPUNG CILENGR GANG GURU LILI NO 178,
-          CURUG 004/03 KAB TANGERANG 15810"
+          label="Nama Lengkap"
+          data={profileInfo?.fullName || "-"}
         />
+        <ProfileLabel
+          label="Nomor Handphone"
+          data={profileInfo?.phoneNumber || "-"}
+        />
+        <ProfileLabel label="Email" data={profileInfo?.email || "-"} />
+        <ProfileLabel label="Alamat" data={profileInfo?.address || "-"} />
       </div>
     </div>
   );

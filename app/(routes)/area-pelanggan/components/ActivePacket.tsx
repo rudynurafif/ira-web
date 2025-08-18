@@ -1,12 +1,45 @@
+"use client";
+
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import checkGreenIcon from "@/public/assets/Icons/mdi_tick-circle.svg";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
 import editIcon from "@/public/assets/Icons/icon-edit.svg";
 import exitIcon from "@/public/assets/Icons/icon-exit.svg";
+import redAlert from "@/public/assets/Icons/carbon_warning-filled.svg";
 import { ProfileLabel } from "./PersonalData";
+import { getActivePacket, getProfileInfo } from "@/app/_api/CustomerArea";
+import {
+  ActivePacketData,
+  ProfileInfo,
+} from "@/app/_shared/types/customer-area";
 
 const ActivePacket = () => {
+  const [isLoading, setisLoading] = useState(false);
+
+  const [activePacketData, setActivePacketData] = useState<ActivePacketData>();
+  const [profileInfo, setprofileInfo] = useState<ProfileInfo>();
+
+  const fetchData = async () => {
+    setisLoading(true);
+
+    try {
+      const resPacket = await getActivePacket({});
+      const resProfile = await getProfileInfo({});
+
+      setActivePacketData(resPacket);
+      setprofileInfo(resProfile);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setisLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
     <div className="flex flex-col gap-10 mb-10">
       <div className="bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] p-8 max-sm:p-4">
@@ -17,27 +50,42 @@ const ActivePacket = () => {
             </h3>
             <div className="flex items-center space-x-1">
               <Image
-                src={checkGreenIcon}
+                src={activePacketData?.isPaid ? checkGreenIcon : redAlert}
                 alt="check-green"
                 width={20}
                 height={20}
               />
-              <p className="text-sm max-sm:text-[10px] text-green-primary font-medium">
-                Tagihan Lunas
+              <p
+                className={`text-sm max-sm:text-[10px] ${
+                  activePacketData?.isPaid
+                    ? "text-green-primary"
+                    : "text-red-primary"
+                }  font-medium`}
+              >
+                {activePacketData?.isPaid
+                  ? "Tagihan Lunas"
+                  : "Tagihan Belum Lunas"}
               </p>
             </div>
           </div>
           <p className="font-bold text-dark-primary-2 text-xl max-sm:text-sm">
-            Paket Starlite Ngebut Up To 500 Mbps
+            {activePacketData?.packageInfo || "Info Paket Tidak Tersedia"}
           </p>
           <p className="text-[16px] max-sm:text-[12px] text-black mt-2">
-            250.000/Bulan
+            {activePacketData?.packagePrice || "Harga Paket Tidak Tersedia"}
           </p>
           <div className="flex justify-between items-center">
             <p className="text-sm max-sm:text-[12px] text-green-primary">
-              Jatuh tempo: 30 Januari 2025
+              Jatuh tempo:{" "}
+              {activePacketData?.dueDate || "Tanggal Tidak Tersedia"}
             </p>
-            <button className="bg-gray-border max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white">
+            <button
+              className={`${
+                activePacketData?.isPaid
+                  ? "bg-gray-border cursor-not-allowed"
+                  : "bg-dark-primary-2 hover:bg-dark-primary cursor-pointer"
+              } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
+            >
               Bayar tagihan
             </button>
           </div>
@@ -100,9 +148,15 @@ const ActivePacket = () => {
           <Image src={starIcon} alt="star-icon" height={40} width={40} />
           <h3 className="text-2xl font-bold max-sm:text-[16px]">Akun Anda</h3>
         </div>
-        <ProfileLabel label="Nama Lengkap" data="Sugeng Prasetyo" />
+        <ProfileLabel
+          label="Nama Lengkap"
+          data={profileInfo?.fullName || "-"}
+        />
         <div className="flex items-center justify-between mr-4">
-          <ProfileLabel label="Nomor Handphone" data="08212348889012" />
+          <ProfileLabel
+            label="Nomor Handphone"
+            data={profileInfo?.phoneNumber || "-"}
+          />
           <p
             onClick={() => {}}
             className="max-sm:text-xs text-xl text-dark-primary-2 font-bold cursor-pointer"
@@ -110,11 +164,8 @@ const ActivePacket = () => {
             Verifikasi
           </p>
         </div>
-        <ProfileLabel label="Email" data="sugengpresetio@mail.com" />
-        <ProfileLabel
-          label="Alamat"
-          data="BINONG KAMPUNG CIJENGIR GANG GURU LILI NO 178 CURUG 00403 KAB TANGERANG 15810"
-        />
+        <ProfileLabel label="Email" data={profileInfo?.email || "-"} />
+        <ProfileLabel label="Alamat" data={profileInfo?.address || "-"} />
 
         <div className="flex max-sm:flex-col max-sm:gap-2 gap-6 justify-between p-4">
           <div className="flex max-sm:text-xs text-lg items-center gap-2 cursor-pointer">
