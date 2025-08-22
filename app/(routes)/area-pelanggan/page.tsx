@@ -58,9 +58,9 @@ export default function AreaPelanggan() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 whitespace-nowrap max-sm:text-xs text-xl cursor-pointer ${
+              className={`pb-2 underline-animation whitespace-nowrap max-sm:text-xs text-xl cursor-pointer ${
                 activeTab === tab
-                  ? "border-b-2 border-nokia-blue text-dark-primary font-bold"
+                  ? "text-dark-primary font-bold"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >

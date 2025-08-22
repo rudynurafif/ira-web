@@ -13,9 +13,11 @@ import {
   ActivePacketData,
   ProfileInfo,
 } from "@/app/_shared/types/customer-area";
+import ModalEditProfile from "./ModalEditProfile";
 
 const ActivePacket = () => {
   const [isLoading, setisLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
 
   const [activePacketData, setActivePacketData] = useState<ActivePacketData>();
   const [profileInfo, setprofileInfo] = useState<ProfileInfo>();
@@ -168,10 +170,30 @@ const ActivePacket = () => {
         <ProfileLabel label="Alamat" data={profileInfo?.address || "-"} />
 
         <div className="flex max-sm:flex-col max-sm:gap-2 gap-6 justify-between p-4">
-          <div className="flex max-sm:text-xs text-lg items-center gap-2 cursor-pointer">
-            <Image src={editIcon} alt="edit-icon" />
-            <p>Edit Profil</p>
-          </div>
+          <>
+            <div
+              onClick={() => setOpenModal(true)}
+              className="flex max-sm:text-xs text-lg items-center gap-2 cursor-pointer"
+            >
+              <Image src={editIcon} alt="edit-icon" />
+              <p>Edit Profil</p>
+            </div>
+
+            <ModalEditProfile
+              open={openModal}
+              onClose={() => setOpenModal(false)}
+              initial={{
+                fullName: "Sugeng Prasetio",
+                phone: "0821234889012",
+                email: "sugengpresetio@mail.com",
+                address:
+                  "BINONG KAMPUNG CILENGR GANG GURU LILI NO 178 CURUG 004/03 KAB TANGERANG 15810",
+              }}
+              onSendOtp={(phone) => console.log("kirim OTP ke", phone)}
+              onSubmit={(v) => console.log("submit", v)}
+            />
+          </>
+
           <div className="flex max-sm:text-xs text-lg text-red-primary items-center gap-2 cursor-pointer">
             <Image src={exitIcon} alt="edit-icon" />
             <p>Keluar</p>
