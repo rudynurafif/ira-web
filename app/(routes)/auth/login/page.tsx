@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import OtpInput from "./components/OTPInput";
 import { Figtree } from "next/font/google";
+import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
+import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
+import Link from "next/link";
 
 const figtree = Figtree({
   subsets: ["latin"],
@@ -10,8 +13,8 @@ const figtree = Figtree({
 });
 
 const Page = () => {
-  const [phone, setPhone] = useState("081234889012");
-  const [otp, setOtp] = useState("");
+  const [phone, setPhone] = useState<string>("");
+  const [otp, setOtp] = useState<string>("");
 
   const sendOtp = async () => {
     // TODO: sambungkan ke API kirim OTP via WhatsApp
@@ -33,7 +36,7 @@ const Page = () => {
 
           {/* Phone input + Send OTP */}
           <div className="flex flex-col gap-7">
-            <div>
+            {/* <div>
               <p className={`${figtree.className} text-secondary text-sm`}>
                 Nomor Handphone*
               </p>
@@ -51,16 +54,41 @@ const Page = () => {
                   Kirim OTP
                 </button>
               </div>
+            </div> */}
+
+            <div>
+              <PhoneOTPForm
+                label="Nomor Handphone"
+                name="phone"
+                isImportant
+                value={phone}
+                onChange={(value: string) => {
+                  setPhone(value);
+                }}
+                placeholder="Masukkan nomor handphone yang terdaftar"
+                // error={errors.phone}
+              />
             </div>
 
             {/* OTP */}
-            <div>
+            {/* <div>
               <p className={`${figtree.className} text-sm text-gray-500`}>
                 Masukkan OTP yang dikirim via Whatsapp
               </p>
               <div className="mt-2">
                 <OtpInput length={6} onChange={setOtp} />
               </div>
+            </div> */}
+
+            <div className="col-span-1">
+              <GroupedOTP
+                label="Masukkan OTP yang dikirim via Whatsapp"
+                isImportant
+                name="otp"
+                onChange={(value: string) => {
+                  setOtp(value);
+                }}
+              />
             </div>
 
             {/* Login */}
@@ -75,12 +103,12 @@ const Page = () => {
 
             <p className="text-center text-md text-primary-text">
               Belum punya akun Starlite?{" "}
-              <a
-                href="#"
-                className="font-semibold text-dark-primary hover:underline"
+              <Link
+                href="/auth/register"
+                className="underline-animation-register font-semibold text-dark-primary"
               >
                 Register
-              </a>
+              </Link>
             </p>
           </div>
         </div>

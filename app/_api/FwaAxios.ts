@@ -2,15 +2,15 @@
 import axios from "axios";
 import { getCookie } from "cookies-next";
 
-const FtthAxios = axios.create({
+const FwaAxios = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
-    "x-api-key": "280999!FTTH",
+    // "x-api-key": "280999!FTTH",
     // "ngrok-skip-browser-warning": "6024",
   },
 });
 
-FtthAxios.interceptors.request.use(async (req) => {
+FwaAxios.interceptors.request.use(async (req) => {
   // const token = await localStorage.getItem("access_token");
   const token = getCookie("token");
   if (token) {
@@ -20,7 +20,7 @@ FtthAxios.interceptors.request.use(async (req) => {
   return req;
 });
 
-FtthAxios.interceptors.response.use(
+FwaAxios.interceptors.response.use(
   async (res) => {
     return res;
   },
@@ -30,4 +30,4 @@ FtthAxios.interceptors.response.use(
   }
 );
 
-export default FtthAxios;
+export default FwaAxios;

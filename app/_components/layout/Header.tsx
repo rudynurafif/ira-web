@@ -22,11 +22,10 @@ function Header() {
       <div
         className={
           pathname === "/"
-            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white`
-            : "text-dark-primary"
+            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white bg-[rgba(0,61,118,0.5)]`
+            : "text-dark-primary bg-white"
         }
       >
-        
         <div
           className={`container mx-auto px-5 py-3 ${
             pathname === "/" ? " bg-transparent" : "bg-white"
@@ -34,29 +33,31 @@ function Header() {
         >
           <div className="flex justify-between items-center">
             {pathname === "/" ? (
-              <div className="flex gap-5">
+              <Link href="/" className="flex gap-5 cursor-pointer">
                 <Image
                   src={starliteWhiteIcon}
                   alt="starlite"
                   className="w-[125px]"
                 />
                 <Image src={weaveWhiteIcon} alt="weave" className="w-[125px]" />
-              </div>
+              </Link>
             ) : (
-              <div className="flex gap-5">
+              <Link href="/" className="flex gap-5 cursor-pointer">
                 <Image
                   src={starliteIcon}
                   alt="starlite"
                   className="w-[125px]"
                 />
                 <Image src={weaveIcon} alt="weave" className="w-[125px]" />
-              </div>
+              </Link>
             )}
             <div className="hidden lg:flex gap-10 items-center ">
               <Link
                 href="/"
                 className={`underline-animation ${
-                  pathname === "/" && "font-bold"
+                  pathname === "/"
+                    ? "font-bold underline-animation"
+                    : "underline-animation-register"
                 }`}
               >
                 Starlite FWA
@@ -65,7 +66,9 @@ function Header() {
               <Link
                 href="/check-coverage"
                 className={`underline-animation ${
-                  pathname === "/check-coverage" && "font-bold"
+                  pathname === "/"
+                    ? "font-bold underline-animation"
+                    : "underline-animation-register"
                 }`}
               >
                 Cek Jangkauan
@@ -74,20 +77,23 @@ function Header() {
               <Link
                 href="/payment"
                 className={`underline-animation ${
-                  pathname === "/payment" && "font-bold"
+                  pathname === "/"
+                    ? "font-bold underline-animation"
+                    : "underline-animation-register"
                 }`}
               >
                 Bayar Tagihan
               </Link>
-              <button
+              <Link
+                href={"/auth/login"}
                 type="button"
                 className={`flex gap-1 items-center ${
                   pathname === "/" ? "bg-button-login" : "bg-primary"
-                } rounded-full px-5 py-2.5 font-bold cursor-pointer text-white`}
+                } rounded-full px-5 py-2.5 font-bold cursor-pointer text-white  shadow-sm shadow-white`}
               >
                 <FaRegUser />
                 Login/Register
-              </button>
+              </Link>
             </div>
             <div className="block lg:hidden">
               <button
@@ -135,7 +141,8 @@ function Header() {
               Bayar Tagihan
             </Link>
             <div>
-              <button
+              <Link
+                href={"/auth/login"}
                 type="button"
                 className={`flex gap-1 items-center ${
                   pathname === "/" ? "bg-button-login" : "bg-primary"
@@ -143,7 +150,7 @@ function Header() {
               >
                 <FaRegUser />
                 Login/Register
-              </button>
+              </Link>
             </div>
           </div>
         </div>

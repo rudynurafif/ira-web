@@ -22,6 +22,10 @@
 /* Terapkan ke semua Steps */
 .ant-steps {
   font-family: var(--font-be-vietnam) !important;
+  --dark-primary: #003d76;
+  --primary-spectrum: #f7f9fd;
+  --mute: #666666;
+  --primary-text: #353535;
 }
 
 @theme inline {
@@ -40,6 +44,11 @@
   --color-primary-text: var(--primary-text);
   --color-secondary: var(--secondary);
   --color-ads-platform-dark: var(--ads-platform-dark);
+  --color-primary-spectrum: var(--primary-spectrum);
+  --color-muted: var(--mute);
+  --color-primary-text: var(--primary-text);
+
+  --text-shadow-title-main-page: 0 4px 10px var(--dark-primary);
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -109,4 +118,179 @@ body {
 .underline-animation:hover::before {
   transform-origin: bottom left;
   transform: scaleX(1);
+}
+
+.title-starlite {
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 4px 10px #003d76;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: #003d76;
+  font-size: 60px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 117.7%; /* 58.85px */
+}
+
+.slick-track {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.background-card-register {
+  border: 1px solid #949aa3;
+  background: linear-gradient(
+    183deg,
+    #fff -2.94%,
+    #fdfefe 45.46%,
+    #f6fafb 57.71%,
+    #9fc9e3 118.06%
+  );
+}
+
+.underline-animation-register {
+  position: relative;
+}
+
+.underline-animation-register::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--dark-primary);
+  transform-origin: bottom right;
+  transform: scaleX(0);
+  transition: transform 0.5s ease;
+}
+
+.underline-animation-register:hover::before {
+  transform-origin: bottom left;
+  transform: scaleX(1);
+}
+
+.bg-faq {
+  background: linear-gradient(
+    221deg,
+    #fff -2.94%,
+    #fdfefe 45.46%,
+    #f6fafb 63.61%,
+    #eaf4f6 75.71%,
+    #d9ebef 86.6%,
+    #d4e8ee 92.65%,
+    #cce7ff 97.49%,
+    #99ceff 102.33%,
+    #71bafe 107.17%,
+    #67b6fe 111.15%,
+    #43a4fe 115.64%,
+    #0285fe 118.06%
+  );
+}
+
+.loading {
+  border: 3px solid rgba(0, 95, 184, 0.2);
+  border-top-color: #005fb8;
+  border-radius: 50%;
+  /* width: 3em;
+  height: 3em; */
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.box-shadow-checkout-payment {
+  box-shadow: 0 -3px 20px 0 rgba(0, 0, 0, 0.12);
+}
+
+.box-shadow-choose-payment {
+  box-shadow: 0 1px 12px 0 rgba(0, 0, 0, 0.25);
+}
+
+.gradient-box {
+  background: linear-gradient(0deg, #61f0ff 23%, #489fff 100%);
+}
+
+.custom-click,
+.custom-click:focus {
+  transform: translate(0, -3px);
+  transition: 0.2s;
+  transition-timing-function: linear;
+  /* border-bottom: 5px solid rgb(50, 50, 50); */
+  /* background-image: linear-gradient(rgb(214, 202, 254), rgb(158, 129, 254)); */
+  /* border: 2px solid rgb(50, 50, 50); */
+  box-shadow: 0px 3px 10px 0px rgb(50, 50, 50);
+}
+
+.custom-click:active {
+  transform: translate(0, 0);
+  border-bottom: 2px solid rgb(50, 50, 50);
+}
+
+.bg-subs-new {
+  background: linear-gradient(173deg, #3b59e3 -12.78%, #033683 91.2%);
+  box-shadow: inset 0px 0px 13.567px rgba(192, 243, 255, 0.75);
+  filter: drop-shadow(0px 0px 21.349px #40e9ff);
+}
+
+.custom-bg-animation:after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 100%;
+  z-index: 1;
+  transform: skew(-30deg);
+  background: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 10%,
+    rgba(255, 255, 255, 0.35) 40%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-out;
+  animation-name: sweep;
+}
+
+@keyframes gradient-sweep {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: -200% 0%;
+  }
+}
+
+@keyframes sweep {
+  0% {
+    left: -15px;
+  }
+
+  60% {
+    /* left: 180px; */
+    left: 100%;
+  }
+
+  100% {
+    /* left: 180px; */
+    left: 100%;
+  }
+}
+
+.fancy-background {
+  background: linear-gradient(
+    180deg,
+    #93ffec -78.1%,
+    rgba(143, 223, 255, 0) 101.42%
+  );
+}
+
+.bg-opacity-black-10 {
+  background: rgba(255, 255, 255, 0.1);
 }
