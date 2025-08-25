@@ -1,7 +1,12 @@
 import React from "react";
+import ModemActivationsOptions from "./_components/ModemActivationsOptions";
 
 function Page() {
-  return <div>Page</div>;
+  return (
+    <div>
+      <ModemActivationsOptions />
+    </div>
+  );
 }
 
 export default Page;
