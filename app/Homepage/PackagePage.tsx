@@ -12,7 +12,7 @@ function PackagePage() {
       <div className="grid grid-cols-3 gap-5 mt-[72px]">
         {packageList.map((item: any, index: number) => {
           return (
-            <div className="p-2.5 bg-[#a4b6e8]/20 rounded-xl">
+            <div className="p-2.5 bg-[#a4b6e8]/20 rounded-xl" key={index}>
               <div
                 className={`shadow-[0_3px_14px_0_rgba(45,47,51,0.12)] bg-linear-[320deg] from-[${item.color}] from-[-103.13%] to-[#FFF] to-[100%] rounded-xl w-full py-8 px-5 relative`}
               >
