@@ -12,11 +12,12 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.1",
-    "antd": "^5.27.0",
     "@react-google-maps/api": "^2.20.7",
     "@vis.gl/react-google-maps": "^1.5.5",
+    "antd": "^5.27.0",
     "axios": "^1.11.0",
     "cookies-next": "^6.1.0",
+    "framer-motion": "^12.23.12",
     "input-otp": "^1.4.2",
     "jquery": "^3.7.1",
     "next": "15.4.6",
@@ -27,7 +28,8 @@
     "react-icons": "^5.5.0",
     "react-select": "^5.10.2",
     "react-slick": "^0.31.0",
-    "slick-carousel": "^1.8.1"
+    "slick-carousel": "^1.8.1",
+    "sweetalert2": "^11.22.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

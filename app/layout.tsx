@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro, Figtree } from "next/font/google";
+import { Be_Vietnam_Pro, Figtree, Raleway } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Header from "./_components/layout/Header";
@@ -17,6 +17,12 @@ const figtree = Figtree({
   variable: "--font-figtree",
 });
 
+const raleway = Raleway({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"], // Pilih bobot sesuai kebutuhan
+  variable: "--font-raleway",
+});
+
 export const metadata: Metadata = {
   title: "FWA",
   description: "FWA Web",
@@ -30,7 +36,17 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body
-        className={`${beVietnamPro.className} antialiased min-h-screen flex flex-col`}
+        suppressHydrationWarning
+        className={[
+          beVietnamPro.variable,
+          figtree.variable,
+          raleway.variable,
+          "antialiased",
+          "min-h-screen",
+          "flex",
+          "flex-col",
+          "font-primary",
+        ].join(" ")}
       >
         <Header />
         <main className="flex-1">{children}</main>
