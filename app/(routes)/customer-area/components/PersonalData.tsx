@@ -1,6 +1,11 @@
 import { getProfileInfo } from "@/app/_api/CustomerArea";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
 import React, { useEffect, useState } from "react";
+import ModalEditProfile from "./ModalEditProfile";
+import editIcon from "@/public/assets/Icons/icon-edit-white.svg";
+import exitIcon from "@/public/assets/Icons/icon-exit.svg";
+
+import Image from "next/image";
 
 export const ProfileLabel = ({
   label,
@@ -20,6 +25,7 @@ export const ProfileLabel = ({
 const PersonalData = () => {
   const [profileInfo, setprofileInfo] = useState<ProfileInfo>();
   const [isLoading, setIsloading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
 
   const fetchData = async () => {
     setIsloading(true);
@@ -52,6 +58,37 @@ const PersonalData = () => {
         />
         <ProfileLabel label="Email" data={profileInfo?.email || "-"} />
         <ProfileLabel label="Alamat" data={profileInfo?.address || "-"} />
+
+        <div className="flex max-sm:gap-2 gap-6 justify-between p-4">
+          <>
+            <button
+              onClick={() => setOpenModal(true)}
+              className="flex bg-button py-2 px-5 rounded-lg max-sm:text-xs items-center gap-2 cursor-pointer text-white"
+            >
+              Edit
+              <Image src={editIcon} alt="edit-icon" className="text-white" />
+            </button>
+
+            <ModalEditProfile
+              open={openModal}
+              onClose={() => setOpenModal(false)}
+              initial={{
+                fullName: "Sugeng Prasetio",
+                phone: "0821234889012",
+                email: "sugengpresetio@mail.com",
+                address:
+                  "BINONG KAMPUNG CILENGR GANG GURU LILI NO 178 CURUG 004/03 KAB TANGERANG 15810",
+              }}
+              onSendOtp={(phone) => console.log("kirim OTP ke", phone)}
+              onSubmit={(v) => console.log("submit", v)}
+            />
+          </>
+
+          {/* <div className="flex max-sm:text-xs text-lg text-red-primary items-center gap-2 cursor-pointer">
+            <Image src={exitIcon} alt="edit-icon" />
+            <p>Keluar</p>
+          </div> */}
+        </div>
       </div>
     </div>
   );

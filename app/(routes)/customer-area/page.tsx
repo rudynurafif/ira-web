@@ -10,7 +10,12 @@ import DeliveryTracking from "./components/DeliveryTracking";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
 import SubscriptionHistory from "./components/SubscriptionHistory";
 
-const tabs = ["Paket Aktif", "Data Pribadi", "Tracking Pengiriman", "Riwayat"];
+const tabs = [
+  "Paket Aktif",
+  "Data Pribadi",
+  // "Tracking Pengiriman",
+  "Riwayat Berlangganan",
+];
 
 export default function AreaPelanggan() {
   const [activeTab, setActiveTab] = useState("Paket Aktif");
@@ -58,7 +63,7 @@ export default function AreaPelanggan() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 underline-animation whitespace-nowrap max-sm:text-xs text-xl cursor-pointer ${
+              className={`pb-2 underline-animation-register whitespace-nowrap max-sm:text-xs text-xl cursor-pointer ${
                 activeTab === tab
                   ? "text-dark-primary font-bold"
                   : "text-gray-500 hover:text-gray-700"
@@ -76,9 +81,9 @@ export default function AreaPelanggan() {
 
         {activeTab === "Data Pribadi" && <PersonalData />}
 
-        {activeTab === "Tracking Pengiriman" && <DeliveryTracking />}
+        {/* {activeTab === "Tracking Pengiriman" && <DeliveryTracking />} */}
 
-        {activeTab === "Riwayat" && <SubscriptionHistory />}
+        {activeTab === "Riwayat Berlangganan" && <SubscriptionHistory />}
       </div>
     </div>
   );

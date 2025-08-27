@@ -1,5 +1,6 @@
 export type ActivePacketData = {
   isPaid: boolean;
+  isActive: boolean;
   packageInfo: string;
   packagePrice: string;
   dueDate: string;

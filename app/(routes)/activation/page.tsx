@@ -6,7 +6,7 @@ function Page() {
   return (
     <div>
       <ModemActivationsOptions />
-      {/* <SignalChecking /> */}
+      <SignalChecking />
     </div>
   );
 }

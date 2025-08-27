@@ -72,6 +72,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
 }) => {
   const [isScanning, setIsScanning] = useState(mode === "auto");
   const [resultLevel, setResultLevel] = useState<Level>(level ?? 0);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     if (!isScanning) return;
@@ -91,8 +92,6 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
     setIsScanning(true);
     onRetry?.();
   };
-
-  const [showPopup, setShowPopup] = useState(false);
 
   const closePopup = () => {
     console.log("selesai");
@@ -120,13 +119,13 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
     <div className="min-h-[80vh] w-full grid place-items-center">
       <div className="w-full max-w-2xl rounded-2xl bg-white p-8">
         {/* Header */}
-        <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center">
-          <div className="col-start-2 text-[32px] font-bold text-dark-primary">
+        <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          <div className="col-start-2 text-center text-[32px] font-bold text-dark-primary">
             Cek Kekuatan Sinyal
           </div>
-          <span className="col-start-3 justify-self-end text-sm text-gray-500">
+          {/* <span className="col-start-3 justify-self-end text-sm text-gray-500">
             {isScanning ? "Memindai..." : "Hasil"}
-          </span>
+          </span> */}
         </div>
 
         {/* Ilustrasi Rumah + Bars */}
@@ -200,14 +199,14 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
 
             {showPopup && (
               <motion.div
-                className="fixed inset-0 z-50 grid place-items-center bg-black/50"
+                className="fixed p-6 inset-0 z-50 grid place-items-center bg-black/50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={closePopup}
               >
                 <motion.div
-                  className="w-[480px] rounded-2xl bg-white p-6 relative"
+                  className="rounded-2xl bg-white py-6 px-15 max-[480px]:px-6 relative"
                   initial={{ scale: 0.96, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.98, opacity: 0 }}
@@ -226,7 +225,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                   <h3 className="text-center text-dark-primary font-bold text-lg">
                     CPE Anda berhasil teraktivasi!
                   </h3>
-                  <p className="mt-2 text-center font-medium text-sm text-black">
+                  <p className="mt-5 text-center font-medium text-sm text-black">
                     Apakah penempatan modem Anda sudah optimal?
                     <br />
                     Cek kekuatan sinyal modem di sini!

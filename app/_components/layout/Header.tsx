@@ -1,6 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
 // image
@@ -9,13 +9,18 @@ import weaveWhiteIcon from "@/public/assets/Icons/icon-weave-white.svg";
 import starliteIcon from "@/public/assets/Icons/icon-starlite.svg";
 import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
 import Link from "next/link";
-import { FaRegUser } from "react-icons/fa";
+import { FaRegUser, FaUser } from "react-icons/fa";
 import { IoMenu } from "react-icons/io5";
 
 function Header() {
   const pathname = usePathname();
 
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (pathname === "/customer-area") setIsLoggedIn(true);
+  }, []);
 
   return (
     <div className="relative">
@@ -89,10 +94,10 @@ function Header() {
                 type="button"
                 className={`flex gap-1 items-center ${
                   pathname === "/" ? "bg-button-login" : "bg-primary"
-                } rounded-full px-5 py-2.5 font-bold cursor-pointer text-white  shadow-sm shadow-white`}
+                } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white  shadow-sm shadow-white`}
               >
                 <FaRegUser />
-                Login/Register
+                {isLoggedIn ? "Area Pelanggan" : "Login/Register"}
               </Link>
             </div>
             <div className="block lg:hidden">

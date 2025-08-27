@@ -44,7 +44,7 @@ const SubscriptionHistoryCard = ({
           <p className="text-xl max-sm:text-sm font-bold text-dark-primary-2">
             {packageInfo}
           </p>
-          <p className="max-sm:block text-sm font-medium">{price}</p>
+          <p className="max-sm:block hidden text-sm font-medium">{price}</p>
           <p className=" text-xs max-sm:text-[10px]">{subTitle}</p>
         </div>
       </div>
@@ -55,7 +55,7 @@ const SubscriptionHistoryCard = ({
             paid
               ? "bg-dark-primary-2 hover:bg-dark-primary"
               : "bg-red-primary hover:bg-red-700"
-          } text-white cursor-pointer whitespace-nowrap px-4 py-2 max-sm:p-2 rounded text-sm max-sm:text-[10px]`}
+          } text-white cursor-pointer whitespace-nowrap px-5 py-2 max-sm:p-2 rounded-lg text-sm max-sm:text-[10px]`}
         >
           {paid ? "Unduh Tagihan" : "Bayar Tagihan"}
         </button>

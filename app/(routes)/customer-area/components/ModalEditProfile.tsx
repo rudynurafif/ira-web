@@ -96,7 +96,7 @@ export default function ModalEditProfile({
       {/* Card */}
       <form
         onSubmit={handleSubmit}
-        className="relative w-full max-w-4xl rounded-2xl bg-white shadow-[0_10px_40px_rgba(0,0,0,0.25)]"
+        className="relative w-full max-w-2xl rounded-2xl bg-white shadow-[0_10px_40px_rgba(0,0,0,0.25)]"
       >
         {/* Header */}
         <div className="relative flex items-center justify-center my-6">
@@ -130,7 +130,7 @@ export default function ModalEditProfile({
               }}
               className={`${
                 figtree.className
-              } w-full bg-primary-spectrum rounded-lg border px-5 py-3 text-[16px] outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 ${
+              } w-full bg-primary-spectrum rounded-lg font-medium border px-5 py-3 text-[16px] outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 ${
                 errors.fullName ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Nama lengkap"
@@ -160,7 +160,7 @@ export default function ModalEditProfile({
                 inputMode="numeric"
                 className={`${
                   figtree.className
-                } w-full bg-primary-spectrum rounded-lg border px-5 py-3 text-[16px] outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 ${
+                } w-full bg-primary-spectrum rounded-lg border px-5 py-3 text-[16px] outline-none font-medium focus:border-blue-600 focus:ring-2 focus:ring-blue-100 ${
                   errors.phone ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="08xxxxxxxxxx"
@@ -194,7 +194,7 @@ export default function ModalEditProfile({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`${figtree.className} w-full bg-primary-spectrum rounded-lg border border-gray-300 px-5 py-3 text-[16px] outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100`}
+              className={`${figtree.className} w-full bg-primary-spectrum rounded-lg border border-gray-300 px-5 py-3 text-[16px] outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 font-medium`}
               placeholder="email@domain.com"
             />
           </div>
@@ -208,7 +208,7 @@ export default function ModalEditProfile({
               disabled
               onChange={(e) => setAddress(e.target.value)}
               rows={3}
-              className={`${figtree.className} w-full bg-primary-spectrum resize-y rounded-lg border border-gray-300 px-5 py-3 text-[16px] outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-not-allowed`}
+              className={`${figtree.className} w-full bg-primary-spectrum resize-y rounded-lg border border-gray-300 px-5 py-3 text-[16px] outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-not-allowed font-medium`}
               placeholder="Alamat lengkap"
             />
           </div>

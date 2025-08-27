@@ -9,9 +9,10 @@ export const getActivePacket = async (params: any) => {
     // });
 
     const dummyData = {
-      isPaid: false,
-      packageInfo: "Paket Starlite Ngebut Up To 500 Mbps",
-      packagePrice: "Rp 250.000/Bulan",
+      isPaid: true,
+      isActive: false,
+      packageInfo: "Paket Free Trial Starlite FWA 30 Hari",
+      packagePrice: "100.000/Bulan",
       dueDate: "30 Januari 2025",
     };
 
@@ -55,14 +56,14 @@ export const getSubscriptionHistory = async (params: any) => {
       {
         paid: false,
         mainTitle: "Pembayaran sudah jatuh tempo",
-        packageInfo: "Paket 200Mbps Starlite",
+        packageInfo: "Paket Starlite FWA 30 Hari",
         subTitle: "Bayarkan tagihan Anda tanggal 10 Juli 2025",
         price: "Rp100.000/Bulan",
       },
       {
         paid: true,
         mainTitle: "Tagihan Lunas",
-        packageInfo: "Unlimited Package",
+        packageInfo: "Paket Starlite FWA 30 Hari",
         subTitle: "Aktif sampai 10 Juni 2025",
         price: "Rp0/Bulan",
       },
@@ -73,5 +74,3 @@ export const getSubscriptionHistory = async (params: any) => {
     throw error;
   }
 };
-
-
