@@ -2,6 +2,7 @@ import React from "react";
 
 function DynamicForm({
   label,
+  labelClass = "text-muted",
   name,
   type = "text",
   value,
@@ -11,6 +12,7 @@ function DynamicForm({
   ...props
 }: {
   label: string;
+  labelClass?: string;
   name: string;
   type?: string;
   value: string;
@@ -22,7 +24,7 @@ function DynamicForm({
   if (type === "textarea") {
     return (
       <div>
-        <label htmlFor={name} className="text-muted">
+        <label htmlFor={name} className={labelClass}>
           {label}
           {isImportant && <span>*</span>}
         </label>
@@ -41,7 +43,7 @@ function DynamicForm({
   } else {
     return (
       <div>
-        <label htmlFor={name}>
+        <label htmlFor={name} className={labelClass}>
           {label}
           {isImportant && <span>*</span>}
         </label>
