@@ -69,9 +69,9 @@ function Page() {
       </h1>
 
       <form onSubmit={submitForm} className="mt-7">
-        <div className="grid grid-cols-2 gap-7">
+        <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-7">
           {/* nama */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
               label="Nama Lengkap"
               isImportant
@@ -88,7 +88,7 @@ function Page() {
             />
           </div>
           {/* Email */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
               label="Email"
               isImportant
@@ -105,7 +105,7 @@ function Page() {
             />
           </div>
           {/* Nomor Handphone */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <PhoneOTPForm
               label="Nomor Handphone"
               name="phone"
@@ -122,7 +122,7 @@ function Page() {
             />
           </div>
           {/* OTP */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <GroupedOTP
               label="Masukkan OTP yang dikirim via Whatsapp"
               isImportant
@@ -130,7 +130,7 @@ function Page() {
             />
           </div>
           {/* Provinsi */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               label="Provinsi"
               name="province"
@@ -156,7 +156,7 @@ function Page() {
             />
           </div>
           {/* Kota */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               label="Kota"
               name="city"
@@ -182,7 +182,7 @@ function Page() {
             />
           </div>
           {/* Kecamatan */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               label="Kecamatan"
               name="district"
@@ -208,7 +208,7 @@ function Page() {
             />
           </div>
           {/* Kelurahan */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               label="Kelurahan"
               name="village"
@@ -234,7 +234,7 @@ function Page() {
             />
           </div>
           {/* Kode Pos */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               label="Kode Post"
               name="postal_code"
@@ -260,7 +260,7 @@ function Page() {
             />
           </div>
           {/* Patokan Alamat */}
-          <div className="col-span-1">
+          <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
               label="Patokan Alamat (Opsional)"
               isImportant={false}

@@ -17,7 +17,7 @@ export const packageList: any = [
   {
     id: 1,
     name: "Starlite 7 Hari [UNLIMITED]",
-    price: 29000,
+    price: 37500,
     period: 7,
     benefit: [
       "Kuota Unlimited",
@@ -30,7 +30,7 @@ export const packageList: any = [
   {
     id: 2,
     name: "Starlite 14 Hari [UNLIMITED]",
-    price: 49000,
+    price: 65000,
     period: 14,
     benefit: [
       "Kuota Unlimited",
@@ -43,7 +43,7 @@ export const packageList: any = [
   {
     id: 3,
     name: "Starlite 30 Hari [UNLIMITED]",
-    price: 79000,
+    price: 100000,
     period: 30,
     benefit: [
       "Kuota Unlimited",

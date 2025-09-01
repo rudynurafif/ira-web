@@ -61,7 +61,7 @@ function PhoneOTPForm({
           name={name}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`px-5 py-3 bg-primary-spectrum rounded-xl w-[80%] border ${
+          className={`px-5 py-3 bg-primary-spectrum rounded-xl w-[80%] max-sm:w-[70%] border ${
             error ? "border-red-500" : "border-[#D5D5D5]"
           }`}
           {...props}
@@ -69,7 +69,7 @@ function PhoneOTPForm({
         <button
           type="button"
           disabled={isLoading || timerReset > 0}
-          className={`w-[20%] text-white py-3 rounded-xl cursor-pointer ${
+          className={`w-[20%] max-sm:w-[30%] text-white py-3 rounded-xl cursor-pointer ${
             isLoading || timerReset > 0 ? "bg-gray-400" : "bg-primary"
           }`}
           onClick={SendOTP}

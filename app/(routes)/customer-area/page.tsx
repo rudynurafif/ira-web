@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import CustomerHeader from "./components/CustomerHeader";
+import CustomerHeader from "./_components/CustomerHeader";
 import CustomerBanner from "@/public/assets/banner-customer.svg";
 import Image from "next/image";
-import ActivePacket from "./components/ActivePacket";
-import PersonalData from "./components/PersonalData";
-import DeliveryTracking from "./components/DeliveryTracking";
+import ActivePacket from "./_components/ActivePacket";
+import PersonalData from "./_components/PersonalData";
+import DeliveryTracking from "./_components/DeliveryTracking";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
-import SubscriptionHistory from "./components/SubscriptionHistory";
+import SubscriptionHistory from "./_components/SubscriptionHistory";
 
 const tabs = [
   "Paket Aktif",

@@ -41,7 +41,7 @@ export default function FAQAccordion() {
             onClick={() => toggleAccordion(index)}
             className="w-full flex justify-between items-center py-5 text-slate-800 cursor-pointer"
           >
-            <span>{faq.question}</span>
+            <span className="font-semibold">{faq.question}</span>
             <span
               className={`transition-transform duration-300 ${
                 openIndex === index ? "rotate-180" : ""

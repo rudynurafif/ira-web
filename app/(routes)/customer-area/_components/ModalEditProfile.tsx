@@ -2,7 +2,7 @@
 
 import { Figtree } from "next/font/google";
 import { useEffect, useState } from "react";
-import OtpInput from "../../auth/login/components/OTPInput";
+import OtpInput from "../../auth/login/_components/OTPInput";
 
 type Props = {
   open: boolean;

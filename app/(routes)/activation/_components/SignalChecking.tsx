@@ -64,7 +64,7 @@ const levelAdvice: Record<Level, string> = {
 const SignalChecking: React.FC<SignalCheckingProps> = ({
   mode = "auto",
   level,
-  autoDurationMs = 2200,
+  autoDurationMs = 1500,
   onRetry,
   onNext,
   primaryLabel = "Selesai",

@@ -16,6 +16,7 @@
   --gray-border: #d5d5d5;
   --primary-text: #353535;
   --secondary: #666666;
+  --mute: #666666;
   --ads-platform-dark: #2c2c2c;
 }
 
@@ -310,7 +311,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #005FB8;
+  background-color: #005fb8;
   transform-origin: bottom right;
   transform: scaleX(0);
   transition: transform 0.5s ease;

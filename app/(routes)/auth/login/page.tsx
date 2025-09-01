@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import OtpInput from "./components/OTPInput";
+import OtpInput from "./_components/OTPInput";
 import { Figtree } from "next/font/google";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
@@ -95,7 +95,7 @@ const Page = () => {
             <div>
               <button
                 onClick={handleLogin}
-                className="w-full text-[22px] rounded-xl bg-primary py-3 font-semibold text-white shadow-soft transition hover:bg-primary-700"
+                className="w-full text-[22px] rounded-xl bg-primary py-3 font-medium text-white transition hover:bg-dark-primary-2 cursor-pointer"
               >
                 Login
               </button>

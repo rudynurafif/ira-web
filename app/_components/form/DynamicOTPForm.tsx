@@ -26,7 +26,7 @@ export default function GroupedOTP({
 
   return (
     <div>
-      <label htmlFor={name}>
+      <label htmlFor={name} className="text-muted">
         {label}
         {isImportant && <span>*</span>}
       </label>

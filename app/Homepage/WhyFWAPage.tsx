@@ -5,7 +5,6 @@ import desc2 from "@/public/assets/Images/main-desc-why-2.svg";
 import desc3 from "@/public/assets/Images/main-desc-why-3.svg";
 import Image, { StaticImageData } from "next/image";
 import RegisterNowCard from "../_components/homepage/RegisterNowCard";
-import imageCubmu from "@/public/assets/Images/cubmu.svg";
 
 interface descriptionListType {
   id: number;
@@ -37,30 +36,33 @@ function WhyFWAPage() {
   ];
 
   return (
-    <div className="container mx-auto px-5 text-black my-[153px]">
-      <h1 className="text-[32px] font-bold text-center">
-        Mengapa pilih Starlite FWA (Fixed Wireless Access) ?
+    <div className="container mx-auto px-5 text-black my-[72px] max-sm:my-[36px]">
+      <h1 className="text-[32px] max-sm:text-[24px] max-sm:flex max-sm:flex-col font-bold text-center">
+        Mengapa pilih Starlite FWA <span>(Fixed Wireless Access) ?</span>
       </h1>
 
-      <div className="mt-[72px]">
-        <div className="grid grid-cols-3 items-center">
+      <div className="mt-[72px] max-sm:mt-[48px]">
+        <div className="grid grid-cols-3 max-sm:flex max-sm:flex-col max-sm:gap-6">
           {description.map((item, index: number) => {
             return (
-              <div key={"desc-" + index} className="col-span-1 text-center">
+              <div
+                key={"desc-" + index}
+                className="col-span-1 text-center max-sm:flex justify-between"
+              >
                 <div
-                  className="inline-block p-[47px] rounded-full mx-auto"
+                  className="inline-block p-[47px] max-sm:p-[20px] rounded-full mx-auto "
                   style={{ backgroundColor: item.color }}
                 >
                   <div className="w-full h-full">
                     <Image
                       src={item.image}
                       alt={item.description}
-                      className="flex justify-center items-center w-[50px] h-[50px]"
+                      className="flex justify-center items-center w-[50px] h-[50px] max-sm:w-[30px] max-sm:h-[30px]"
                     />
                   </div>
                 </div>
                 <div className="w-3/4 mx-auto mt-6">
-                  <p className="text-center mx-auto text-xl font-medium">
+                  <p className="text-center max-sm:text-start mx-auto text-xl max-sm:text-sm font-medium">
                     {item.description}
                   </p>
                 </div>
@@ -70,12 +72,8 @@ function WhyFWAPage() {
         </div>
       </div>
 
-      <div className="mt-[150px]">
+      <div className="mt-[150px] max-sm:mt-[50px]">
         <RegisterNowCard />
-      </div>
-
-      <div className="mt-[221px]">
-        <Image alt="cubmu" src={imageCubmu} className="w-full" />
       </div>
     </div>
   );
