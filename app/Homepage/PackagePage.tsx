@@ -6,12 +6,12 @@ import imageCubmu from "@/public/assets/Images/cubmu.svg";
 
 function PackagePage() {
   return (
-    <div className="container mx-auto px-5 text-black my-16 pt-10">
+    <div className="container mx-auto px-5 text-black py-16">
       <h1 className="text-[32px] max-sm:text-[24px] font-bold text-center">
         Mau internetan? Pilih paket yang cocok buat kamu di sini
       </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 mt-[72px]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 mt-16">
         {packageList.map((item: any, index: number) => {
           return (
             <div

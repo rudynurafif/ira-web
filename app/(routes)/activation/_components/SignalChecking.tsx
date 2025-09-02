@@ -5,26 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import checkSignalHome from "@/public/assets/Images/check-signal-home.svg";
 import Swal from "sweetalert2";
+import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 
-/** ======================
- *  Types & Config
- * ====================== */
 type Level = 0 | 1 | 2 | 3 | 4 | 5;
 
 type SignalCheckingProps = {
-  /** auto = tampilkan animasi scanning lalu show result.
-   *  result = langsung tampilkan hasil (pakai prop level). */
   mode?: "auto" | "result";
-  /** level hasil (0..4). Jika mode=auto dan level tidak diberikan → random. */
   level?: Level;
-  /** durasi scanning (ms) bila mode=auto */
   autoDurationMs?: number;
-  /** handler tombol */
   onRetry?: () => void;
   onNext?: (finalLevel: Level) => void;
-  /** teks tombol primary */
   primaryLabel?: string;
-  /** teks tombol retry */
   retryLabel?: string;
 };
 
@@ -58,9 +49,6 @@ const levelAdvice: Record<Level, string> = {
   5: "Posisi modem sudah optimal untuk koneksi yang stabil.",
 };
 
-/** ======================
- *  Main Component
- * ====================== */
 const SignalChecking: React.FC<SignalCheckingProps> = ({
   mode = "auto",
   level,
@@ -197,7 +185,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
               </motion.div>
             )}
 
-            {showPopup && (
+            {/* {showPopup && (
               <motion.div
                 className="fixed p-6 inset-0 z-50 grid place-items-center bg-black/50"
                 initial={{ opacity: 0 }}
@@ -242,6 +230,33 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                   </div>
                 </motion.div>
               </motion.div>
+            )} */}
+
+            {showPopup && (
+              <ModalTemplate
+                key="activation-modal"
+                closeModal={closePopup}
+                classNameModal="p-6 max-w-lg w-full mx-4 text-center"
+              >
+                  <h3 className="text-dark-primary font-bold text-lg">
+                    CPE Anda berhasil teraktivasi!
+                  </h3>
+                  <p className="mt-5 font-medium text-sm text-black">
+                    Apakah penempatan modem Anda sudah optimal?
+                    <br />
+                    Cek kekuatan sinyal modem di sini!
+                  </p>
+
+                  <div className="mt-5 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={retryFromPopup}
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-button hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
+                    >
+                      Cek Ulang
+                    </button>
+                  </div>
+              </ModalTemplate>
             )}
           </AnimatePresence>
 
@@ -266,7 +281,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleRetry}
             disabled={isScanning}
-            className="h-10 rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50"
+            className="h-10 rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
           >
             {retryLabel}
           </button>
@@ -274,7 +289,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleNext}
             disabled={isScanning}
-            className="h-10 rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50"
+            className="h-10 rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50 cursor-pointer"
           >
             {primaryLabel}
           </button>

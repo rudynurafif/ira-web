@@ -19,7 +19,7 @@ function RegisterNowCard() {
         </Link>
       </div>
 
-      <div className="absolute bottom-0 right-10 max-sm:right-1">
+      <div className="absolute bottom-0 right-10 max-sm:-right-3">
         <Image
           alt="register"
           src={imageRegis}

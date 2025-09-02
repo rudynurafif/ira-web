@@ -31,7 +31,7 @@ function MainPage() {
           </div>
         </div>
         <div className="flex justify-center items-center">
-          <div className="w-1/4 max-sm:w-4/5">
+          <div className="w-1/3 max-sm:w-4/5">
             {/* <Slider {...settingsSlider}>
               <div className="text-center">
                 <Image src={modem} alt="modem" className="w-full" />
