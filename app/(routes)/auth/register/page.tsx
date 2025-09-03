@@ -11,8 +11,24 @@ import Link from "next/link";
 import React, { FormEvent, useState } from "react";
 import ModalRegister from "./_components/ModalRegister";
 
+interface FormType {
+  fullname: string;
+  email: string;
+  phone: string;
+  otp: string;
+  province: string;
+  city: string;
+  sub_district: string;
+  village: string;
+  postal_code: string;
+  address_note: string;
+  full_address: string;
+  nik: string;
+  nokk: string;
+}
+
 function Page() {
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<FormType>({
     fullname: "",
     email: "",
     phone: "",
@@ -24,6 +40,8 @@ function Page() {
     postal_code: "",
     address_note: "",
     full_address: "",
+    nik: "",
+    nokk: "",
   });
 
   const [agreement, setAgreement] = useState<boolean>(false);
@@ -60,6 +78,74 @@ function Page() {
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    setIsLoading(true);
+    const regexPhone = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
+    const regexEmail =
+      /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const errors: { [key: string]: string } = {};
+
+    if (!formData.fullname) {
+      errors.full_name = "Nama Lengkap harus diisi";
+    }
+
+    if (!formData.phone) {
+      errors.phone = "No handphone harus diisi";
+    } else if (!regexPhone.test(formData.phone)) {
+      errors.phone = "Nomor handphone tidak valid.";
+    }
+
+    if (!formData.email) {
+      errors.email = "Email harus diisi";
+    } else if (!regexEmail.test(formData.email)) {
+      errors.email = "Format email salah";
+    }
+
+    if (formData.otp.length !== 6) {
+      errors.otp = "Kode OTP harus 6 digit";
+    }
+
+    if (!formData.nik) {
+      errors.nik = "NIK harus diisi";
+    }
+
+    if (!formData.nokk) {
+      errors.nokk = "No KK harus diisi";
+    }
+
+    if (!formData.province) {
+      errors.province = "Provinsi harus diisi";
+    }
+
+    if (!formData.city) {
+      errors.city = "Kota harus diisi";
+    }
+
+    if (!formData.sub_district) {
+      errors.sub_district = "Kecamatan harus diisi";
+    }
+
+    if (!formData.village) {
+      errors.village = "Kelurahan harus diisi";
+    }
+
+    if (!formData.postal_code) {
+      errors.postal_code = "Kode Pos harus diisi";
+    }
+
+    if (!formData.full_address) {
+      errors.full_address = "Alamat Lengkap harus diisi";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+
+      setIsLoading(false);
+
+      return;
+    } else {
+      setErrors({});
+    }
   }
 
   return (
@@ -82,9 +168,10 @@ function Page() {
                   ...prevData,
                   fullname: value,
                 }));
+                setErrors({ ...errors, full_name: "" });
               }}
               placeholder="Masukkan Nama Lengkap"
-              error={errors.fullname}
+              error={errors.full_name}
             />
           </div>
           {/* Email */}
@@ -99,6 +186,7 @@ function Page() {
                   ...prevData,
                   email: value,
                 }));
+                setErrors({ ...errors, email: "" });
               }}
               placeholder="Masukkan Email"
               error={errors.email}
@@ -107,6 +195,8 @@ function Page() {
           {/* Nomor Handphone */}
           <div className="max-sm:col-span-2 col-span-1">
             <PhoneOTPForm
+              storageKey={`otp:register:phone`} // ✅ key unik per use-case
+              otpDurationSec={60}
               label="Nomor Handphone"
               name="phone"
               isImportant
@@ -116,6 +206,8 @@ function Page() {
                   ...prevData,
                   phone: value,
                 }));
+
+                setErrors({ ...errors, phone: "" });
               }}
               placeholder="Masukkan Nomor Handphone"
               error={errors.phone}
@@ -124,14 +216,66 @@ function Page() {
           {/* OTP */}
           <div className="max-sm:col-span-2 col-span-1">
             <GroupedOTP
+              isInvalid={!!errors.otp}
               label="Masukkan OTP yang dikirim via Whatsapp"
               isImportant
               name="otp"
+              onChange={(val) => {
+                // console.log(val);
+                if (val.length === 6) {
+                  setErrors({ ...errors, otp: "" });
+                }
+
+                setFormData((prevData: any) => ({
+                  ...prevData,
+                  otp: val,
+                }));
+              }}
+            />
+
+            {errors.otp && <p className="text-red-500 mt-1">{errors.otp}</p>}
+          </div>
+          {/* NIK */}
+          <div className="max-sm:col-span-2 col-span-1">
+            <DynamicForm
+              label="NIK"
+              isImportant
+              name="nik"
+              value={formData.nik}
+              onChange={(value: string) => {
+                setFormData((prevData: any) => ({
+                  ...prevData,
+                  nik: value,
+                }));
+                setErrors({ ...errors, nik: "" });
+              }}
+              placeholder="Masukkan NIK"
+              error={errors.nik}
+            />
+          </div>
+
+          {/* NOKK */}
+          <div className="max-sm:col-span-2 col-span-1">
+            <DynamicForm
+              label="No KK"
+              isImportant
+              name="nokk"
+              value={formData.nokk}
+              onChange={(value: string) => {
+                setFormData((prevData: any) => ({
+                  ...prevData,
+                  nokk: value,
+                }));
+                setErrors({ ...errors, nokk: "" });
+              }}
+              placeholder="Masukkan No KK"
+              error={errors.nokk}
             />
           </div>
           {/* Provinsi */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
+              menuPosition="fixed"
               label="Provinsi"
               name="province"
               isImportant
@@ -149,6 +293,7 @@ function Page() {
                     province: "",
                   }));
                 }
+                setErrors({ ...errors, province: "" });
               }}
               isClearable
               placeholder="Pilih Provinsi"
@@ -158,7 +303,8 @@ function Page() {
           {/* Kota */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
-              label="Kota"
+              menuPosition="fixed"
+              label="Kota/Kabupaten"
               name="city"
               isImportant
               options={dummySelect}
@@ -175,41 +321,45 @@ function Page() {
                     city: "",
                   }));
                 }
+                setErrors({ ...errors, city: "" });
               }}
               isClearable
-              placeholder="Pilih Kota"
+              placeholder="Pilih Kota/Kabupaten"
               error={errors.city}
             />
           </div>
           {/* Kecamatan */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
+              menuPosition="fixed"
               label="Kecamatan"
-              name="district"
+              name="sub_district"
               isImportant
               options={dummySelect}
-              value={formData.district}
+              value={formData.sub_district}
               onChange={(value: ReactSelectType | null) => {
                 if (value) {
                   setFormData((prevData: any) => ({
                     ...prevData,
-                    district: value.value,
+                    sub_district: value.value,
                   }));
                 } else {
                   setFormData((prevData: any) => ({
                     ...prevData,
-                    district: "",
+                    sub_district: "",
                   }));
                 }
+                setErrors({ ...errors, sub_district: "" });
               }}
               isClearable
               placeholder="Pilih Kecamatan"
-              error={errors.district}
+              error={errors.sub_district}
             />
           </div>
           {/* Kelurahan */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
+              menuPosition="fixed"
               label="Kelurahan"
               name="village"
               isImportant
@@ -227,6 +377,7 @@ function Page() {
                     village: "",
                   }));
                 }
+                setErrors({ ...errors, village: "" });
               }}
               isClearable
               placeholder="Pilih Kelurahan"
@@ -236,7 +387,8 @@ function Page() {
           {/* Kode Pos */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
-              label="Kode Post"
+              menuPosition="fixed"
+              label="Kode Pos"
               name="postal_code"
               isImportant
               options={dummySelect}
@@ -253,6 +405,7 @@ function Page() {
                     postal_code: "",
                   }));
                 }
+                setErrors({ ...errors, postal_code: "" });
               }}
               isClearable
               placeholder="Pilih Kode Pos"
@@ -272,7 +425,7 @@ function Page() {
                   address_note: value,
                 }));
               }}
-              isClearable
+              // isClearable
               placeholder="Masukkan Patokan Alamat"
               error={errors.address_note}
             />
@@ -283,8 +436,9 @@ function Page() {
               getAddress={(value: string) => {
                 setFormData((prevData: any) => ({
                   ...prevData,
-                  address: value,
+                  full_address: value,
                 }));
+                setErrors({ ...errors, full_address: "" });
               }}
             />
           </div>
@@ -296,16 +450,17 @@ function Page() {
               isImportant
               rows={4}
               name="address"
-              value={formData.address}
+              value={formData.full_address}
               onChange={(value: string) => {
                 setFormData((prevData: any) => ({
                   ...prevData,
-                  address: value,
+                  full_address: value,
                 }));
+                setErrors({ ...errors, full_address: "" });
               }}
-              isClearable
+              // isClearable
               placeholder="Masukkan Alamat Lengkap"
-              error={errors.address}
+              error={errors.full_address}
             />
           </div>
         </div>

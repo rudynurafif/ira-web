@@ -210,6 +210,24 @@ function MapInputForm({
     []
   );
 
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+
+          getLocation(latitude, longitude);
+          setLocationMap({ lat: latitude, lng: longitude });
+        },
+        (error) => {
+          console.error("Error getting current location:", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  }, []);
+
   return (
     <div className="relative">
       <div className="absolute top-1 z-1 w-[90%] left-[5%]">

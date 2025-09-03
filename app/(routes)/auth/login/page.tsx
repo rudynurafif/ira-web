@@ -58,6 +58,8 @@ const Page = () => {
 
             <div>
               <PhoneOTPForm
+                storageKey={`otp:login:phone`} // ✅ key unik per use-case
+                otpDurationSec={60}
                 label="Nomor Handphone"
                 name="phone"
                 isImportant

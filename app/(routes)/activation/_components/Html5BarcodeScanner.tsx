@@ -391,7 +391,7 @@ export default function Html5BarcodeScanner({
   return (
     <>
       <div className="max-w-[480px] mx-auto w-full text-center">
-        <h1 className="text-[28px] font-bold ">Scan Barcode</h1>
+        <h1 className="text-[24px] sm:text-[28px] font-bold ">Scan Barcode</h1>
 
         {!starting && (
           <div>
@@ -516,7 +516,7 @@ export default function Html5BarcodeScanner({
             onClick={() => {
               setActiveSection("input");
             }}
-            className="bg-[#005FB8] p-2 cursor-pointer text-white font-bold w-full rounded-[12px] "
+            className="bg-[#005FB8] hover:bg-[#014280] p-2 cursor-pointer text-white font-bold w-full rounded-[12px] "
             type="button"
           >
             Input Manual
