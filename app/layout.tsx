@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Header from "./_components/layout/Header";
 import Footer from "./_components/layout/Footer";
+import { Suspense } from "react";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin"], // Gunakan subset latin
@@ -48,10 +49,12 @@ export default function RootLayout({
           "font-primary",
         ].join(" ")}
       >
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <Toaster position="top-right" />
+        <Suspense>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <Toaster position="top-right" />
+        </Suspense>
       </body>
     </html>
   );
