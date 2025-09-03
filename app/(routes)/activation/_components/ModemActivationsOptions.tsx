@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import IconScan from "@/public/assets/Icons/icon-scan-camera.svg";
 import IconInput from "@/public/assets/Icons/icon-input-manual.svg";
 import Image from "next/image";
 
-function ModemActivationsOptions({
-  setActiveSection,
-}: {
-  setActiveSection: (val: string) => void;
-}) {
+import { addUrlParam } from "@/app/_shared/utils";
+
+function ModemActivationsOptions() {
   return (
     <div className="container mx-auto">
       <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center text-[#001D47]">
@@ -19,7 +17,8 @@ function ModemActivationsOptions({
           type="button"
           className="group cursor-pointer"
           onClick={() => {
-            setActiveSection("scan");
+            // setActiveSection("scan");
+            addUrlParam("section", "scan");
           }}
         >
           <div className="rounded-[20px] border group-hover:border-2 border-black w-fit mx-auto p-4 ">
@@ -38,7 +37,8 @@ function ModemActivationsOptions({
           type="button"
           className="group cursor-pointer"
           onClick={() => {
-            setActiveSection("input");
+            // setActiveSection("input");
+            addUrlParam("section", "input");
           }}
         >
           <div className="rounded-[20px] border group-hover:border-2 border-black w-fit mx-auto p-4 ">

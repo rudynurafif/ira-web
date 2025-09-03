@@ -1,12 +1,18 @@
 import DynamicForm from "@/app/_components/form/DynamicForm";
-import React, { FormEvent, useState } from "react";
+import { addUrlParam, resetUrlParam } from "@/app/_shared/utils";
+import { useSearchParams } from "next/navigation";
+import React, { FormEvent, useEffect, useState } from "react";
 
-function SettingModemForm({
-  setActiveSection,
-}: {
-  setActiveSection: (val: string) => void;
-}) {
-  const [formData, setFormData] = useState<any>({
+interface FormType {
+  ssid_24ghz: string;
+  password_24ghz: string;
+  ssid_5ghz: string;
+  password_5ghz: string;
+}
+
+function SettingModemForm() {
+  const params = useSearchParams();
+  const [formData, setFormData] = useState<FormType>({
     ssid_24ghz: "",
     password_24ghz: "",
     ssid_5ghz: "",
@@ -38,9 +44,48 @@ function SettingModemForm({
     } else {
       setErrors({});
 
-      setActiveSection("check-signal");
+      addUrlParam("section", "check_signal");
+      // addUrlParam("ssid_24", formData.ssid_24ghz);
+      // addUrlParam("password_24", formData.password_24ghz);
+      // addUrlParam("ssid_5", formData.ssid_5ghz);
+      // addUrlParam("password_5", formData.password_5ghz);
     }
   }
+
+  useEffect(() => {
+    const spSsid24 = params.get("ssid_24");
+    const spPassword24 = params.get("password_24");
+    const spSsid5 = params.get("ssid_5");
+    const spPassword5 = params.get("password_5");
+
+    if (spSsid24) {
+      setFormData((prevData: any) => ({
+        ...prevData,
+        ssid_24ghz: spSsid24 || "",
+      }));
+    }
+
+    if (spPassword24) {
+      setFormData((prevData: any) => ({
+        ...prevData,
+        password_24ghz: spPassword24 || "",
+      }));
+    }
+
+    if (spSsid5) {
+      setFormData((prevData: any) => ({
+        ...prevData,
+        ssid_5ghz: spSsid5 || "",
+      }));
+    }
+
+    if (spPassword5) {
+      setFormData((prevData: any) => ({
+        ...prevData,
+        password_5ghz: spPassword5 || "",
+      }));
+    }
+  }, []);
 
   return (
     <div className="container mx-auto max-w-[480px] max-sm:px-8">
@@ -64,6 +109,11 @@ function SettingModemForm({
                 ...prevData,
                 ssid_24ghz: value,
               }));
+              // if (value) {
+              //   addUrlParam("ssid_24", value);
+              // } else {
+              //   resetUrlParam("ssid_24");
+              // }
             }}
             placeholder="Masukkan SSID 2.4Ghz"
             error={errors.ssid_24ghz}
@@ -81,6 +131,11 @@ function SettingModemForm({
                   ...prevData,
                   password_24ghz: value,
                 }));
+                // if (value) {
+                //   addUrlParam("password_24", value);
+                // } else {
+                //   resetUrlParam("password_24");
+                // }
               }}
               placeholder="Masukkan kata sandi 2.4Ghz"
               error={errors.password_24ghz}
@@ -102,6 +157,12 @@ function SettingModemForm({
                 ...prevData,
                 ssid_5ghz: value,
               }));
+
+              // if (value) {
+              //   addUrlParam("ssid_5", value);
+              // } else {
+              //   resetUrlParam("ssid_5");
+              // }
             }}
             placeholder="Masukkan SSID 5Ghz"
             error={errors.ssid_5ghz}
@@ -119,6 +180,12 @@ function SettingModemForm({
                   ...prevData,
                   password_5ghz: value,
                 }));
+
+                // if (value) {
+                //   addUrlParam("password_5", value);
+                // } else {
+                //   resetUrlParam("password_5");
+                // }
               }}
               placeholder="Masukkan kata sandi 5Ghz"
               error={errors.password_5ghz}
@@ -149,7 +216,7 @@ function SettingModemForm({
             <div className="mx-auto flex justify-center pt-2">
               <button
                 onClick={() => {
-                  setActiveSection("check-signal");
+                  addUrlParam("section", "check_signal");
                 }}
                 type="button"
                 className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-[#005FB8] text-[#005FB8] shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-[12px]"

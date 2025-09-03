@@ -32,3 +32,17 @@ export const formatTimer = (seconds: number) => {
   const remainingSeconds = (seconds % 60).toString().padStart(2, "0"); // Pastikan detik selalu 2 digit
   return `${minutes}:${remainingSeconds}`;
 };
+
+export function addUrlParam(param: string, value: any) {
+  const url = new URL(window.location.href);
+
+  url.searchParams.set(param, value);
+  window.history.replaceState(null, "", url.toString());
+}
+
+export function resetUrlParam(param: string) {
+  const url = new URL(window.location.href);
+
+  url.searchParams.delete(param);
+  window.history.replaceState(null, "", url.toString());
+}

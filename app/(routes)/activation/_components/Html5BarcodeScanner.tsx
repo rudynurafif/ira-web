@@ -19,11 +19,10 @@ import { MdOutlineQrCodeScanner } from "react-icons/md";
 // 👉 MUI (Material UI) toggle
 import { FormControlLabel, Switch } from "@mui/material";
 import { QrDimensions } from "html5-qrcode/esm/core";
+import { addUrlParam } from "@/app/_shared/utils";
 
 type Props = {
-  setActiveSection: (val: string) => void;
-
-  onDetected: (text: string) => void;
+  onDetected?: (text: string) => void;
   onManual?: () => void;
 };
 
@@ -107,11 +106,7 @@ function pickByUserAgent(
   return cams[0];
 }
 
-export default function Html5BarcodeScanner({
-  onDetected,
-  onManual,
-  setActiveSection,
-}: Props) {
+export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
   const containerId = "reader-container";
   const qrRef = useRef<Html5Qrcode | null>(null);
 
@@ -367,11 +362,13 @@ export default function Html5BarcodeScanner({
   // aksi konfirmasi
   const confirmUse = async () => {
     if (!pending) return;
-    onDetected(pending); // ← baru dipanggil saat tombol diklik
+    // onDetected(pending); // ← baru dipanggil saat tombol diklik
     setPending(null); // lanjut scanning setelah diambil
     // Kalau ingin berhenti setelah ambil:
-    await stopSilently(qrRef.current);
-    setActiveSection("input");
+    // await stopSilently(qrRef.current);
+
+    addUrlParam("section", "input");
+    addUrlParam("serial_number", pending);
   };
   const rejectPending = () => {
     setPending(null); // buang hasil & lanjut cari lagi
@@ -514,7 +511,7 @@ export default function Html5BarcodeScanner({
         <div className="px-10 pt-3">
           <button
             onClick={() => {
-              setActiveSection("input");
+              addUrlParam("section", "input");
             }}
             className="bg-[#005FB8] hover:bg-[#014280] p-2 cursor-pointer text-white font-bold w-full rounded-[12px] "
             type="button"
