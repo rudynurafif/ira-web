@@ -1,15 +1,12 @@
 import DynamicForm from "@/app/_components/form/DynamicForm";
+import { addUrlParam } from "@/app/_shared/utils";
+import { useSearchParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 
-function InputManualForm({
-  setActiveSection,
-  serialNumberScan,
-}: {
-  serialNumberScan: string;
-  setActiveSection: (val: string) => void;
-}) {
-  const [serialNumber, setSerialNumber] = useState(
-    serialNumberScan ? serialNumberScan : ""
+function InputManualForm() {
+  const params = useSearchParams();
+  const [serialNumber, setSerialNumber] = useState<string | null>(
+    params.get("serial_number") ? params.get("serial_number") : ""
   );
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -28,7 +25,8 @@ function InputManualForm({
     } else {
       setErrors({});
 
-      setActiveSection("setting");
+      addUrlParam("section", "setting");
+      addUrlParam("serial_number", serialNumber);
     }
   }
 
@@ -45,9 +43,10 @@ function InputManualForm({
             label="Serial Number"
             isImportant
             name="serialNumber"
-            value={serialNumber}
+            value={serialNumber ? serialNumber : ""}
             onChange={(value: string) => {
               setSerialNumber(value.toUpperCase());
+              setErrors({ ...errors, serial_number: "" });
             }}
             placeholder="Masukkan Serial Number"
             error={errors.serial_number}
@@ -64,7 +63,7 @@ function InputManualForm({
             <div className="mx-auto flex justify-center">
               <button
                 onClick={() => {
-                  setActiveSection("scan");
+                  addUrlParam("section", "scan");
                 }}
                 type="button"
                 className="w-fit hover:font-bold underline-animation-activation cursor-pointer text-[#005FB8] font-semibold text-center pt-5"
