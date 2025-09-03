@@ -22,7 +22,7 @@ function MainPage() {
   };
 
   return (
-    <div className="bg-[url('/assets/Images/HERO.png')] bg-cover bg-center bg-no-repeat text-white">
+    <div className="bg-[url('/assets/Images/HERO.webp')] bg-cover bg-center bg-no-repeat text-white">
       <div className="container mx-auto px-5 py-30">
         <div className="text-center">
           <FaWifi size={50} color="white" className="mx-auto" />
