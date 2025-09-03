@@ -22,6 +22,8 @@ function DynamicSelectForm({
   [key: string]: any;
 }) {
   const selectStyles: StylesConfig = {
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+
     control: (styles) => ({
       ...styles,
       backgroundColor: "#F7F9FD",
@@ -52,6 +54,7 @@ function DynamicSelectForm({
         }}
         {...props}
       />
+      {error && <p className="text-red-500 p-0 m-0">{error}</p>}
     </div>
   );
 }

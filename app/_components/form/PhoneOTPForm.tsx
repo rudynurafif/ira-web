@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { formatTimer } from "@/app/_shared/utils";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 function PhoneOTPForm({
@@ -9,6 +10,9 @@ function PhoneOTPForm({
   isImportant,
   onChange,
   error,
+  // ✅ props baru untuk kustomisasi
+  storageKey, // mis: `otp:${name}` atau `otp:${userId}:${name}`
+  otpDurationSec = 60, // default 60 detik
   ...props
 }: {
   label: string;
@@ -18,36 +22,93 @@ function PhoneOTPForm({
   isImportant: boolean;
   onChange: (value: string) => void;
   error?: string;
+  storageKey?: string;
+  otpDurationSec?: number;
   [key: string]: any;
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
   const [timerReset, setTimerReset] = useState(0);
 
+  // ✅ key dinamis (fallback ke name)
+  const key = storageKey ?? `otp:${name}`;
+
+  // simpan ref interval agar aman dibersihkan
+  const intervalRef = useRef<number | null>(null);
+
+  // Restore timer dari localStorage saat mount / key berubah
   useEffect(() => {
-    if (timerReset > 0) {
-      setTimeout(() => {
-        setTimerReset(timerReset - 1);
-      }, 1000);
+    if (typeof window === "undefined") return;
+    const expiryTimestamp = localStorage.getItem(key);
+    if (!expiryTimestamp) return;
+
+    const expiry = parseInt(expiryTimestamp, 10);
+    const now = Date.now();
+    const timeLeft = Math.floor((expiry - now) / 1000);
+
+    if (timeLeft > 0) {
+      setTimerReset(timeLeft);
+    } else {
+      localStorage.removeItem(key);
+      setTimerReset(0);
     }
-  }, [timerReset]);
+  }, [key]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (timerReset <= 0) return;
+
+    intervalRef.current = window.setInterval(() => {
+      setTimerReset((prev) => {
+        if (prev <= 1) {
+          localStorage.removeItem(key);
+          if (intervalRef.current) window.clearInterval(intervalRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
+    };
+  }, [timerReset, key]);
+
+  // (Opsional) sync antar tab
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== key) return;
+      const expiry = Number(e.newValue ?? 0);
+      const now = Date.now();
+      const left = Math.max(0, Math.floor((expiry - now) / 1000));
+      setTimerReset(left);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [key]);
+
+  // Mulai timer
+  const startOtpTimer = (duration = otpDurationSec) => {
+    const expiry = Date.now() + duration * 1000;
+    localStorage.setItem(key, String(expiry));
+    setTimerReset(duration);
+  };
 
   async function SendOTP() {
     setIsLoading(true);
     try {
-      const body = {
-        phone_number: value,
-      };
-
+      const body = { phone_number: value };
       // const res_sendOTP = await SendDataOTP(body)
-
-      setTimerReset(60);
+      startOtpTimer(); // pakai durasi dari prop
     } catch (error) {
       toast.error("Terjadi kesalahan saat mengirim OTP");
     } finally {
       setIsLoading(false);
     }
   }
+
+  const isRunning = timerReset > 0;
+  const isFilled = value.length >= 7;
+
   return (
     <div>
       <label htmlFor={name} className="text-muted">
@@ -55,37 +116,46 @@ function PhoneOTPForm({
         {isImportant && <span>*</span>}
       </label>
 
-      <div className="flex gap-2 items-center mt-2">
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={`px-5 py-3 bg-primary-spectrum rounded-xl w-[80%] max-sm:w-[70%] border ${
-            error ? "border-red-500" : "border-[#D5D5D5]"
-          }`}
-          {...props}
-        />
-        <button
-          type="button"
-          disabled={isLoading || timerReset > 0}
-          className={`w-[20%] max-sm:w-[30%] text-white py-3 rounded-xl cursor-pointer ${
-            isLoading || timerReset > 0 ? "bg-gray-400" : "bg-primary"
-          }`}
-          onClick={SendOTP}
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-1">
-              <div className="loading w-[20px] h-[20px]"></div>
-              <span className="italic">Loading...</span>
-            </div>
-          ) : timerReset > 0 ? (
-            <span>{timerReset} detik kirim ulang OTP</span>
-          ) : (
-            <span>Kirim OTP</span>
-          )}
-        </button>
+      <div className="flex gap-2 items-center w-full mt-2">
+        <div className="grow">
+          <input
+            type={type}
+            name={name}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className={`px-5 py-3 bg-primary-spectrum rounded-xl w-full border ${
+              error ? "border-red-500" : "border-[#D5D5D5]"
+            }`}
+            {...props}
+          />
+        </div>
+
+        <div>
+          <button
+            type="button"
+            disabled={isLoading || isRunning || !isFilled}
+            className={`text-white py-3 px-2 rounded-xl  ${
+              isLoading || isRunning || !isFilled
+                ? "bg-slate-400 cursor-not-allowed"
+                : "bg-primary cursor-pointer"
+            }`}
+            onClick={SendOTP}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-1">
+                <div className="loading w-[20px] h-[20px]"></div>
+                <span className="italic">Loading...</span>
+              </div>
+            ) : isRunning ? (
+              <span className="font-bold p-2">{formatTimer(timerReset)}</span>
+            ) : (
+              <span className="whitespace-nowrap">Kirim OTP</span>
+            )}
+          </button>
+        </div>
       </div>
+
+      {error && <p className="text-red-500 p-0 m-0">{error}</p>}
     </div>
   );
 }
