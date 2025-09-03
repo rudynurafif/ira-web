@@ -320,8 +320,8 @@ function Page() {
             type="submit"
             disabled={isLoading || !agreement}
             className={`py-[15px] w-1/2 font-bold text-white ${
-              isLoading || !agreement ? "bg-slate-300" : "bg-primary"
-            } text-xl rounded-xl mx-auto cursor-pointer`}
+              isLoading || !agreement ? "bg-slate-400 cursor-not-allowed" : "bg-primary cursor-pointer"
+            } text-xl rounded-xl mx-auto `}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
