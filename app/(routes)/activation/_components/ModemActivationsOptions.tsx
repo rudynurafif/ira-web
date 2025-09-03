@@ -29,7 +29,7 @@ function ModemActivationsOptions({
               className="w-[50px] h-[50px] transition-all duration-300 ease-in-out group-hover:scale-110"
             />
           </div>
-          <span className="block pt-2 text-center group-hover:font-bold transition-all duration-300">
+          <span className="block max-sm:text-sm pt-2 text-center group-hover:font-bold transition-all duration-300">
             Scan Barcode
           </span>
         </button>
@@ -48,7 +48,7 @@ function ModemActivationsOptions({
               className="w-[50px] h-[50px] transition-all duration-300 ease-in-out group-hover:scale-110"
             />
           </div>
-          <span className="block pt-2 text-center group-hover:font-bold transition-all duration-300">
+          <span className="block max-sm:text-sm pt-2 text-center group-hover:font-bold transition-all duration-300">
             Input Manual
           </span>
         </button>
