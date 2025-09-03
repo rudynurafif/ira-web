@@ -26,10 +26,10 @@ function PackagePage() {
               >
                 {/* Nama Paket */}
                 <div>
-                  <h1 className="text-2xl max-sm:text-lg font-bold leading-tight">
+                  <h1 className="text-2xl max-sm:text-base font-bold leading-tight">
                     {item.name}
                   </h1>
-                  <p className="text-4xl max-sm:text-3xl font-bold mt-2">
+                  <p className="text-4xl max-sm:text-2xl font-bold mt-2">
                     {convertToCurrency(item.price)}
                   </p>
                   <p className="text-sm mt-2">Berlaku {item.period} Hari</p>
@@ -37,9 +37,9 @@ function PackagePage() {
 
                 {/* Speed Badge */}
                 <div className="absolute bottom-0 right-0 px-6 py-3 bg-dark-primary-2 text-white rounded-tl-xl rounded-br-xl">
-                  <p className="font-bold text-center text-sm">Speed Up to</p>
-                  <p className="text-3xl font-bold text-center">
-                    100 <span className="text-sm">Mbps</span>
+                  <p className="font-bold  text-sm max-sm:text-xs">Speed Up to</p>
+                  <p className="text-3xl max-sm:text-xl font-bold text-center">
+                    100 <span className="text-base max-sm:text-sm">Mbps</span>
                   </p>
                 </div>
               </div>

@@ -26,6 +26,9 @@ const Page = () => {
     alert(`Login dengan OTP: ${otp}`);
   };
 
+  const validOtp = otp.length === 6
+  const validPhoneNumber = phone.length >= 7
+
   return (
     <div className="flex w-full items-start justify-center px-5 my-22">
       <div className="w-full max-w-xl ">
@@ -37,8 +40,8 @@ const Page = () => {
         <div className="flex flex-col gap-7">
           <div>
             <PhoneOTPForm
-                storageKey={`otp:login:phone`} // ✅ key unik per use-case
-                otpDurationSec={60}
+              storageKey={`otp:login:phone`} // ✅ key unik per use-case
+              otpDurationSec={60}
               label="Nomor Handphone"
               name="phone"
               onChange={(value: string) => {
@@ -65,10 +68,10 @@ const Page = () => {
           {/* Login */}
           <div>
             <button
-              disabled={otp.length === 0}
+              disabled={!validOtp}
               onClick={handleLogin}
               className={`w-full text-[22px] rounded-xl bg-primary py-3 font-medium text-white transition  ${
-                otp.length === 0 || phone.length === 0
+                !validOtp || !validPhoneNumber
                   ? "cursor-not-allowed bg-slate-400"
                   : "cursor-pointer hover:bg-dark-primary-2"
               }`}

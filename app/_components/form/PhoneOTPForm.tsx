@@ -107,6 +107,7 @@ function PhoneOTPForm({
   }
 
   const isRunning = timerReset > 0;
+  const isFilled = value.length >= 7;
 
   return (
     <div>
@@ -132,9 +133,11 @@ function PhoneOTPForm({
         <div>
           <button
             type="button"
-            disabled={isLoading || isRunning}
-            className={`text-white py-3 px-1 rounded-xl cursor-pointer ${
-              isLoading || isRunning ? "bg-gray-400" : "bg-primary"
+            disabled={isLoading || isRunning || !isFilled}
+            className={`text-white py-3 px-2 rounded-xl  ${
+              isLoading || isRunning || !isFilled
+                ? "bg-slate-400 cursor-not-allowed"
+                : "bg-primary cursor-pointer"
             }`}
             onClick={SendOTP}
           >
@@ -146,7 +149,7 @@ function PhoneOTPForm({
             ) : isRunning ? (
               <span className="font-bold p-2">{formatTimer(timerReset)}</span>
             ) : (
-              <span>Kirim OTP</span>
+              <span className="whitespace-nowrap">Kirim OTP</span>
             )}
           </button>
         </div>
