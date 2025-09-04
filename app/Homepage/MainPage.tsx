@@ -52,7 +52,7 @@ function MainPage() {
           </div>
         </div>
         <div className="text-center mt-10">
-          <h1 className="text-6xl max-sm:text-3xl">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl">
             <span className="font-bold">Starlite Fixed Wireless Access -</span>{" "}
             Internet ngebut tanpa ribet pakai kabel.
           </h1>
@@ -72,13 +72,13 @@ function MainPage() {
           </button> */}
           <Link
             href="/auth/register"
-            className="flex gap-2 justify-center items-center mx-auto mt-10 w-1/3 max-sm:w-4/5 max-lg:w-1/2 h-[73px] gradient-box rounded-[58px] custom-click cursor-pointer"
+            className="inline-flex gap-2 justify-center items-center mt-10 py-2 px-0.5 gradient-box rounded-[58px] custom-click cursor-pointer"
             id="button-berlangganan-sekarang"
           >
-            <div className="w-[97%] relative flex justify-center px-[35px] gap-1 items-center bg-subs-new rounded-[58px] h-[62px] mt-[1px] overflow-hidden custom-bg-animation">
+            <div className="w-[97%] relative flex justify-center px-[15px] gap-1 items-center bg-subs-new rounded-[58px] h-[62px] mt-[1px] overflow-hidden custom-bg-animation">
               <div className=" absolute top-[6px] left-1/2 transform -translate-x-1/2 fancy-background w-[93%]  z-0 h-[30px] rounded-[58px]"></div>
 
-              <span className="text-white max-[340px]:text-sm text-lg font-bold text-nowrap whitespace-nowrap relative">
+              <span className="text-white text-base sm:text-lg md:text-2xl xl:text-3xl  font-bold text-nowrap whitespace-nowrap relative max-sm:px-2 px-8">
                 Coba GRATIS selama 7 hari
               </span>
             </div>

@@ -34,7 +34,7 @@ export default function AreaPelanggan() {
         {/* Avatar + Info */}
         <div className="flex flex-col items-center gap-6 md:flex-row md:items-end">
           {/* Avatar */}
-          <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
+          <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
             <Image
               src={customerData?.avatar}
               alt="Avatar"
