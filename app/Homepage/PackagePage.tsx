@@ -2,9 +2,12 @@ import React from "react";
 import { packageList } from "../_shared/data/data";
 import { convertToCurrency } from "../_shared/utils";
 import Image from "next/image";
-import imageCubmu from "@/public/assets/Images/cubmu.svg";
+import imageCubmu from "@/public/assets/Images/cubmu.webp";
+import { useRouter } from "next/navigation";
 
 function PackagePage() {
+  const router = useRouter();
+
   return (
     <div className="container mx-auto px-5 text-black py-16">
       <h1 className="text-[32px] max-sm:text-[24px] font-bold text-center">
@@ -16,7 +19,7 @@ function PackagePage() {
           return (
             <div
               key={index}
-              className="p-2.5 h-full bg-[#a4b6e8]/20 rounded-xl flex  flex-col"
+              className="p-2.5 h-full max-[350px]:min-h-[175px] bg-[#a4b6e8]/20 rounded-xl flex flex-col"
             >
               <div
                 style={{
@@ -37,7 +40,9 @@ function PackagePage() {
 
                 {/* Speed Badge */}
                 <div className="absolute bottom-0 right-0 px-6 py-3 bg-dark-primary-2 text-white rounded-tl-xl rounded-br-xl">
-                  <p className="font-bold  text-sm max-sm:text-xs">Speed Up to</p>
+                  <p className="font-bold  text-sm max-sm:text-xs">
+                    Speed Up to
+                  </p>
                   <p className="text-3xl max-sm:text-xl font-bold text-center">
                     100 <span className="text-base max-sm:text-sm">Mbps</span>
                   </p>
@@ -49,7 +54,10 @@ function PackagePage() {
       </div>
 
       <div className="mx-auto w-full max-w-4xl mt-16 max-lg:mt-10 max-sm:mt-7">
-        <button className="w-full px-4 bg-dark-primary-2 hover:bg-dark-primary cursor-pointer text-white py-4 rounded-xl text-xl max-sm:text-sm">
+        <button
+          onClick={() => router.push("/auth/register")}
+          className="w-full px-4 bg-dark-primary-2 hover:bg-dark-primary cursor-pointer text-white py-4 rounded-xl text-xl max-sm:text-sm"
+        >
           <span className="font-bold">Daftar Sekarang</span> - Dapatkan promo 1
           bulan GRATIS! 🎉
         </button>

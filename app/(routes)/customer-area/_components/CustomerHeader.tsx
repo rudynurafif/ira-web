@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React from "react";
-import bannerMobile from "@/public/assets/Images/banner-customer-mobile.svg";
-import banner from "@/public/assets/banner-customer.svg";
+import bannerMobile from "@/public/assets/Images/banner-customer-mobile.webp";
+import banner from "@/public/assets/Images/banner-customer.webp";
 
 const CustomerHeader = () => {
   return (

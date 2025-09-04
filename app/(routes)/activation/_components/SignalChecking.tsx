@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import checkSignalHome from "@/public/assets/Images/check-signal-home.svg";
+import checkSignalHome from "@/public/assets/Images/check-signal-home.webp";
 import Swal from "sweetalert2";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 
