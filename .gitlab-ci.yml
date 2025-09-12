@@ -1,36 +1,19 @@
 # FTTH Project
 variables:
-  DEV_APPS_PATH: "/root/ftth/website"
-  STAGE_APPS_PATH: "/root/ftth/website"
-  IMG_NAME: "ftth_website"
-  
-  CONT_PORT: "9500:9500"
-  IMG_VER: "1.0"
-  PROD_VER: "prod"
-  
-  
-  
-  STAGE_SSH_CON: "root@110.239.66.202"
-  PROD_SSH_CON: "root@110.239.68.249"
-  DB_HOST: "UNIQUE_NAME_DB_HOST=172.17.0.1"
-  ENV_DEV: "dev-ftth-api.codifytechnology.com"
-  ENV_STAGE: "stage-ftth-api.codifytechnology.com"
-  ENV_PROD: "api.codifytechnology.com"
-  ENV_BACK_DEV: "ftth-dev.codifytechnology.com"
-  ENV_BACK_STAGE: "stage-ftth-web.codifytechnology.com"
-  ENV_BACK_PROD: "starliteindonesia.com"
-
   DEV_SSH_CON: "root@114.119.190.115"
+  STAGE_SSH_CON: "root@"
+  PROD_SSH_CON: "root@"
   CONT_NAME: "fwa_website_app"
   REGISTRY_URL: "registry.gitlab.com/macroad-dev/ije-fwa_20072025/fe_web_ije-fwa_22072025"
   REPO_URL: "git@gitlab.com:macroad-dev/ije-fwa_20072025/fe_web_ije-fwa_22072025.git"
   DEV_VER: "devel"
   ENV_FILE: "/apps/fwa_website.env"
   CONT_PATH: "/app"
-
   COMPOSE_FILE: "/apps/docker-compose.yml"
   COMPOSE_SVC: "fwa-website"
-
+  DEV_VER: "devel"
+  STAGE_VER: "stage"
+  PROD_VER: "prod"
 
 stages:          # List of stages for jobs, and their order of execution
   - Release
@@ -88,6 +71,7 @@ devel-job:       # This job runs in the build stage, which runs first.
         echo 'Development - Container $CONT_NAME is already running.'; \
         docker exec $CONT_NAME apt update; \
         docker exec $CONT_NAME apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
+        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
@@ -103,10 +87,10 @@ devel-job:       # This job runs in the build stage, which runs first.
         echo 'Development - Image $REGISTRY_URL:$DEV_VER not found, start building...'; \
         docker stop $CONT_NAME; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SVC; \
-        docker rmi $REGISTRY_URL:$DEV_VER; \
         docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SVC; \
         docker cp $ENV_FILE $CONT_NAME:$CONT_PATH/.env; \ 
         docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
+        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
@@ -146,14 +130,7 @@ staging-job:       # This job runs in the build stage, which runs first.
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $STAGE_SSH_CON \
-      "echo 'Staging - Reset and clean the repository to avoid stale changes'; \
-      cd $STAGE_APPS_PATH; \
-      git reset --hard; \
-      git clean -fd; \
-      echo 'Staging - Fetch and reset to match the remote branch'; \
-      git fetch --all; \
-      git reset --hard origin/stage; \
-      echo 'Staging - Reset and clean the repository to avoid stale changes in container'; \
+      "echo 'Staging - Reset and clean the repository to avoid stale changes in container'; \
       docker exec $CONT_NAME git reset --hard; \
       docker exec $CONT_NAME git clean -fd; \
       echo 'Staging - Fetch and reset to match the remote branch'; \
@@ -168,18 +145,12 @@ staging-job:       # This job runs in the build stage, which runs first.
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $STAGE_SSH_CON \
-      "cd $STAGE_APPS_PATH; \
-      echo 'Staging - Updating the apps from the repository...'; \
-      apt update; \
-      git branch --set-upstream-to=origin/stage stage; \
-      git pull origin stage; \
-      npm install; \
-      NODE_OPTIONS="--max_old_space_size=1024" npm run build --prod; \
-      docker ps --filter 'name=$CONT_NAME' --format '{{.Names}}' | grep -w $CONT_NAME > /dev/null; \
+      "docker ps --filter 'name=$CONT_NAME' --format '{{.Names}}' | grep -w $CONT_NAME > /dev/null; \
       if [ \$? -eq 0 ]; then \
         echo 'Staging - Container $CONT_NAME is already running.'; \
         docker exec $CONT_NAME apt update; \
-        docker exec $CONT_NAME apt install -y curl vim git; \
+        docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
+        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
@@ -193,15 +164,13 @@ staging-job:       # This job runs in the build stage, which runs first.
         echo 'Staging - Docker Deployment Completed.'; \
         exit 0; \
       else \
-        echo 'Staging - Image $REGISTRY_URL:$IMG_VER not found, start building...'; \
+        echo 'Staging - Image $REGISTRY_URL:$STAGE_VER not found, start building...'; \
         docker stop $CONT_NAME; \
-        docker rm $CONT_NAME; \
-        docker image rm $REGISTRY_URL:$IMG_VER; \
-        docker image rm $IMG_NAME:$IMG_VER; \
-        docker build -t $IMG_NAME:$IMG_VER .; \
-        docker tag $IMG_NAME:$IMG_VER $REGISTRY_URL:$IMG_VER; \
-        docker run --name $CONT_NAME -d -p $PROD_PORT --restart=always -e $DB_HOST -it -v ~/.ssh:/root/.ssh:ro $REGISTRY_URL:$IMG_VER; \
-        docker exec $CONT_NAME apt update && apt install -y curl vim git; \
+        docker compose -f $COMPOSE_FILE down $COMPOSE_SVC; \
+        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SVC; \
+        docker cp $ENV_FILE $CONT_NAME:$CONT_PATH/.env; \ 
+        docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
+        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
@@ -283,14 +252,7 @@ deploy-production:
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $PROD_SSH_CON \
-      "echo 'Production - Reset and clean the repository to avoid stale changes'; \
-      cd $PROD_APPS_PATH; \
-      git reset --hard; \
-      git clean -fd; \
-      echo 'Production - Fetch and reset to match the remote branch'; \
-      git fetch --all; \
-      git reset --hard origin/main; \
-      echo 'Production - Reset and clean the repository to avoid stale changes in container'; \
+      "echo 'Production - Reset and clean the repository to avoid stale changes in container'; \
       docker exec $CONT_NAME git reset --hard; \
       docker exec $CONT_NAME git clean -fd; \
       echo 'Production - Fetch and reset to match the remote branch'; \
@@ -305,13 +267,13 @@ deploy-production:
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $PROD_SSH_CON \
-      "cd $PROD_APPS_PATH; \
-      echo 'Production - Updating the apps from the repository...'; \
+      "echo 'Production - Updating the apps from the repository...'; \
       docker ps --filter 'name=$CONT_NAME' --format '{{.Names}}' | grep -w $CONT_NAME > /dev/null; \
       if [ \$? -eq 0 ]; then \
         echo 'Production - Container $CONT_NAME is already running.'; \
         docker exec $CONT_NAME apt update; \
-        docker exec $CONT_NAME apt install -y curl vim git; \
+        docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
+        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
@@ -326,8 +288,12 @@ deploy-production:
         exit 0; \
       else \
         echo 'Production - Image $REGISTRY_URL:$PROD_VER not found, starting a container...'; \
-        docker run --name $CONT_NAME -d -p $PROD_PORT --restart=always -e $DB_HOST -it -v ~/.ssh:/root/.ssh:ro $REGISTRY_URL:$PROD_VER; \
-        docker exec $CONT_NAME apt update && apt install -y curl vim git; \
+        docker stop $CONT_NAME; \
+        docker compose -f $COMPOSE_FILE down $COMPOSE_SVC; \
+        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SVC; \
+        docker cp $ENV_FILE $CONT_NAME:$CONT_PATH/.env; \ 
+        docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
+        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
