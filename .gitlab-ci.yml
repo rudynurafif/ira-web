@@ -1,4 +1,4 @@
-# FTTH Project
+# FWA Project
 variables:
   DEV_SSH_CON: "root@114.119.190.115"
   STAGE_SSH_CON: "root@"
@@ -38,9 +38,9 @@ devel-job:       # This job runs in the build stage, which runs first.
         - .env.stage
         - .env.prod
         - .gitlab-ci.yml
-      when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
+      when: never   # Pipeline will not running if the files are in the list was 'changes'.
     - if: '$CI_COMMIT_BRANCH == "development"'
-      when: always # Pipeline akan berjalan jika file ada perubahan.
+      when: always # Pipeline will running if the files are not in the list was 'changes'.
   before_script:
     - apt update && apt install -y git
     - apt install -y vim
@@ -117,9 +117,9 @@ staging-job:       # This job runs in the build stage, which runs first.
         - .env.stage
         - .env.prod
         - .gitlab-ci.yml
-      when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
+      when: never   # Pipeline will not running if the files are in the list was 'changes'.
     - if: '$CI_COMMIT_BRANCH == "stage"'
-      when: always # Pipeline akan berjalan jika file ada perubahan.
+      when: always # Pipeline will running if the files are in the list was 'changes'.
   before_script:
     - apt update && apt install -y git
     - apt install -y vim
@@ -187,50 +187,6 @@ staging-job:       # This job runs in the build stage, which runs first.
     paths:
       - build/
 
-#snyk-test:
-#  stage: Test
-#  rules:
-#    - if: '$CI_COMMIT_BRANCH == "stage"'
-#      changes:
-#        - Dockerfile
-#        - .env.devel
-#        - .env.stage
-#        - .env.prod
-#        - .gitlab-ci.yml
-#      when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
-#    - if: '$CI_COMMIT_BRANCH == "stage"'
-#      when: always # Pipeline akan berjalan jika file ada perubahan.
-#    #Use npm audit to generate a JSON report for security vulnerabilities, and then convert it to HTML using snyk-to-html.
-#  script:
-#    - echo "Test all the code with SNYK tools"
-#     - npm install -g npm@latest
-#     - npm install -g snyk
-#     - npm install snyk-to-html -g
-#     # Run snyk help, snyk auth, snyk monitor, snyk test to break build and out report
-#     - snyk auth ${SNYK_API_TOKEN}
-#     - snyk monitor --project-name=$CI_PROJECT_NAME
-#     - snyk test --json > snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.json || true
-#     - snyk-to-html -i snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.json -o snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html
-#   # Save report to artifacts
-#   artifacts:
-#     when: always
-#     paths:
-#       - snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.json
-#       - snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html
-  # rules:
-  #   - if: '$CI_COMMIT_BRANCH == "main"'
-# npm-audit:
-#   stage: Test
-#   script:
-#   - npm install -g npm-audit-html@beta
-#   - npm i --package-lock-only
-#   - npm audit --json | npm-audit-html --output npm_audit_report-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html --fatal-exit-code || true
-
-#   artifacts:
-#     paths:
-#       - npm_audit_report-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html
-#     when: always
-
 deploy-production:
   stage: Deploy
   rules:
@@ -241,9 +197,9 @@ deploy-production:
         - .env.stage
         - .env.prod
         - .gitlab-ci.yml
-      when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
+      when: never   # Pipeline will not running if the files are in the list was 'changes'.
     - if: '$CI_COMMIT_BRANCH == "main"'
-      when: always # Pipeline akan berjalan jika file ada perubahan.
+      when: always # Pipeline will running if the files are in the list was 'changes'.
   before_script:
     - apt update && apt install -y git && apt install -y vim
     - mkdir -p ~/.ssh
