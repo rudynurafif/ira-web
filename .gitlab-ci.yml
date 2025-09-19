@@ -46,7 +46,7 @@ devel-job:       # This job runs in the build stage, which runs first.
     - apt install -y vim
     - apt install -y openssh-client
     - mkdir -p ~/.ssh
-    - echo "$FTTH_DEV_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
+    - echo "$FWA_DEV_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
@@ -61,7 +61,7 @@ devel-job:       # This job runs in the build stage, which runs first.
   script:
     - mkdir -p ~/.ssh
     - echo "Development - Compiling and update the Code..."
-    - echo "$FTTH_DEV_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
+    - echo "$FWA_DEV_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
@@ -125,7 +125,7 @@ staging-job:       # This job runs in the build stage, which runs first.
     - apt install -y vim
     - apt install -y openssh-client
     - mkdir -p ~/.ssh
-    - echo "$FTTH_STAGE_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
+    - echo "$FWA_STAGE_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
@@ -140,7 +140,7 @@ staging-job:       # This job runs in the build stage, which runs first.
   script:
     - echo "Staging - Compiling and update the Code in Docker..."
     - mkdir -p ~/.ssh
-    - echo "$FTTH_STAGE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - echo "$FWA_STAGE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
@@ -203,7 +203,7 @@ deploy-production:
   before_script:
     - apt update && apt install -y git && apt install -y vim
     - mkdir -p ~/.ssh
-    - echo "$FTTH_PROD_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
+    - echo "$FWA_PROD_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
@@ -218,7 +218,7 @@ deploy-production:
   script:
     - echo "Production - Deployment starting..."
     - mkdir -p ~/.ssh
-    - echo "$FTTH_PROD_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - echo "$FWA_PROD_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
@@ -277,7 +277,7 @@ deploy-production:
 #     - mkdir -p ~/.ssh
 #   script:
 #     - echo "Deployment starting..."
-#   #   - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+#   #   - echo "$FWA_PROD_KEY" | tr -d '\r' > ~/.ssh/id_rsa
 #   #   - chmod 600 ~/.ssh/id_rsa
 #   #   - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
 #   #   - echo "Deploying to production server..."
