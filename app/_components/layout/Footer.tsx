@@ -19,18 +19,18 @@ function Footer() {
             <h5 className="font-bold mb-[10px]">Address</h5>
             <p className="font-semibold">PT. Integrasi Jaringan Ekosistem</p>
             <p>
-              Ruko Fatmawati Mas Blok III Kav. 328 -329, Jl. RS Fatmawati No.
+              Ruko Fatmawati Mas Blok III Kav. 328 - 329, Jl. RS Fatmawati No.
               20, Cilandak Barat, Cilandak, Jakarta Selatan, Indonesia
             </p>
           </div>
           <div className="col-span-1">
             <h5 className="font-bold mb-[10px]">Business Phone Number</h5>
             <Link
-              href={"https://wa.me/6282217659229"}
-              className="font-semibold"
+              href={"https://wa.me/6281188011388"}
+              className="hover:underline"
               target="_blank"
             >
-              +62217659229
+              +6281188011388
             </Link>
           </div>
           <div className="col-span-1">
@@ -63,7 +63,7 @@ function Footer() {
         </div>
       </div>
 
-      <div className="text-center text-[10px] mt-5">ver. 1.4309.007</div>
+      <div className="text-center text-[10px] mt-5">ver. 1.2509.008</div>
     </div>
     // </div>
   );
