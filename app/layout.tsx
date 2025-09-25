@@ -25,7 +25,7 @@ const raleway = Raleway({
 });
 
 export const metadata: Metadata = {
-  title: "FWA",
+  title: "Starlite FWA",
   description: "FWA Web",
 };
 

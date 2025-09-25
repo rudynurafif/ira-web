@@ -25,7 +25,7 @@ function InputManualForm() {
     } else {
       setErrors({});
 
-      addUrlParam("section", "setting");
+      addUrlParam("section", "connect");
       addUrlParam("serial_number", serialNumber);
     }
   }
