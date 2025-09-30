@@ -11,14 +11,20 @@ import {
 import { debounce } from "@/app/_shared/utils";
 import { GetListGeocode } from "@/app/_api/Maps/Maps";
 import { Libraries, useJsApiLoader } from "@react-google-maps/api";
-// import { GetListGeocode } from "@/app/_api/Maps/Maps";
 
 const libs: Libraries = ["places", "geocoding"];
 
 function MapInputForm({
   getAddress,
+  onPlaceChange,
 }: {
   getAddress: (address: string) => void;
+  onPlaceChange?: (payload: {
+    address: string;
+    raw_result: any;
+    latitude: number;
+    longitude: number;
+  }) => void;
 }) {
   const placeAutoCompleteRef = useRef<HTMLInputElement | null>(null);
 
@@ -134,6 +140,15 @@ function MapInputForm({
           setLatitude(place.geometry?.location?.lat());
           setLongitude(place.geometry?.location?.lng());
           setRawData(place);
+
+          onPlaceChange?.({
+            address: place?.name + ", " + place?.formatted_address || "",
+            raw_result: place,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+            latitude: place.geometry?.location?.lat()!,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+            longitude: place.geometry?.location?.lng()!,
+          });
           // setFormData((prevData: any) => ({
           //   ...prevData,
           //   long: place.geometry?.location?.lng(),
@@ -177,6 +192,13 @@ function MapInputForm({
     setLatitude(lat);
     setLongitude(long);
     setRawData(map);
+
+    onPlaceChange?.({
+      address: map.formatted_address,
+      raw_result: map,
+      latitude: lat,
+      longitude: long,
+    });
     // setFormData((prevData: any) => ({
     //   ...prevData,
     //   long: long,
@@ -233,7 +255,7 @@ function MapInputForm({
       <div className="absolute top-1 z-1 w-[90%] left-[5%]">
         <div className="relative">
           <input
-            placeholder="Alamat"
+            placeholder="Masukkan Alamat"
             ref={placeAutoCompleteRef}
             className="w-full py-2 pl-2 pr-10 border border-[#ccc] bg-white text-black max-sm:text-sm rounded shadow-sm"
           />
@@ -290,7 +312,7 @@ function MapInputForm({
           <Maps
             {...cameraProps}
             onCameraChanged={handleCameraChange}
-            className="w-full h-[250px] rounded-[12px] border border-[#D5D5D5] overflow-hidden"
+            className="w-full h-[400px] rounded-[12px] border border-[#D5D5D5] overflow-hidden"
             mapTypeControl={false}
             fullscreenControl={false}
             streetViewControl={false}

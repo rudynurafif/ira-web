@@ -1,3 +1,4 @@
+import { sendOtp } from "@/app/_api/Auth/Auth";
 import { formatTimer } from "@/app/_shared/utils";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -97,17 +98,23 @@ function PhoneOTPForm({
     setIsLoading(true);
     try {
       const body = { phone_number: value };
-      // const res_sendOTP = await SendDataOTP(body)
-      startOtpTimer(); // pakai durasi dari prop
-    } catch (error) {
-      toast.error("Terjadi kesalahan saat mengirim OTP");
+      const res_sendOTP = await sendOtp(body);
+      toast.success("OTP telah dikirim!");
+      startOtpTimer();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ??
+          error.message ??
+          "Terjadi kesalahan saat mengirim OTP"
+      );
     } finally {
       setIsLoading(false);
     }
   }
 
   const isRunning = timerReset > 0;
-  const isFilled = value.length >= 7;
+  const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
+  const isFilled = PHONE_REGEX.test(value);
 
   return (
     <div>
@@ -116,7 +123,7 @@ function PhoneOTPForm({
         {isImportant && <span>*</span>}
       </label>
 
-      <div className="flex gap-2 items-center w-full mt-2">
+      <div className="flex gap-2  w-full mt-2">
         <div className="grow">
           <input
             type={type}
@@ -128,13 +135,16 @@ function PhoneOTPForm({
             }`}
             {...props}
           />
+          <span className="text-xs text-muted">
+            *Pastikan nomor HP Anda tidak salah
+          </span>
         </div>
 
         <div>
           <button
             type="button"
             disabled={isLoading || isRunning || !isFilled}
-            className={`text-white py-3 px-2 rounded-xl  ${
+            className={`text-white py-3 px-3 rounded-xl  ${
               isLoading || isRunning || !isFilled
                 ? "bg-slate-400 cursor-not-allowed"
                 : "bg-primary cursor-pointer"

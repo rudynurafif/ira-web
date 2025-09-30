@@ -5,7 +5,7 @@ import { getCookie } from "cookies-next";
 const FwaAxios = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
-    // "x-api-key": "280999!FTTH",
+    "x-api-key": "280999!FTTH",
     // "ngrok-skip-browser-warning": "6024",
   },
 });

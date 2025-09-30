@@ -8,73 +8,231 @@ import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { ReactSelectType } from "@/app/_shared/types/form";
 import Link from "next/link";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import ModalRegister from "./_components/ModalRegister";
+import { registerUser, verifyOtp } from "@/app/_api/Auth/Auth";
+import {
+  getCity,
+  getDistrict,
+  getProvince,
+  getSubDistrict,
+} from "@/app/_api/Location/Location";
+import { normalizeAddressForBackend } from "@/app/_shared/utils/address";
+import toast from "react-hot-toast";
+import { setCookie } from "cookies-next";
 
 interface FormType {
   fullname: string;
   email: string;
   phone: string;
   otp: string;
+  nik: string;
+  nokk: string;
   province: string;
   city: string;
+  district: string;
   sub_district: string;
-  village: string;
   postal_code: string;
   address_note: string;
   full_address: string;
-  nik: string;
-  nokk: string;
+  address_gmaps?: any;
+  lat?: string;
+  lng?: string;
 }
 
+const initialFormData: FormType = {
+  fullname: "",
+  email: "",
+  phone: "",
+  otp: "",
+  nik: "",
+  nokk: "",
+  province: "",
+  city: "",
+  district: "",
+  sub_district: "",
+  postal_code: "",
+  full_address: "",
+  address_note: "",
+  address_gmaps: undefined,
+  lat: undefined,
+  lng: undefined,
+};
+
 function Page() {
-  const [formData, setFormData] = useState<FormType>({
-    fullname: "",
-    email: "",
-    phone: "",
-    otp: "",
-    province: "",
-    city: "",
-    sub_district: "",
-    village: "",
-    postal_code: "",
-    address_note: "",
-    full_address: "",
-    nik: "",
-    nokk: "",
-  });
+  const [formData, setFormData] = useState<FormType>(initialFormData);
+  const [formKey, setFormKey] = useState(0);
+
+  const [provinceOptions, setProvinceOptions] = useState<ReactSelectType[]>([]);
+  const [cityOptions, setCityOptions] = useState<ReactSelectType[]>([]);
+  const [districtOptions, setDistrictOptions] = useState<ReactSelectType[]>([]);
+  const [subdistrictOptions, setSubdistrictOptions] = useState<
+    ReactSelectType[]
+  >([]);
 
   const [agreement, setAgreement] = useState<boolean>(false);
-
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
   const [isLoading, setIsLoading] = useState<boolean>();
-
   const [isModalRegisterSuccess, setIsModalRegisterSuccess] =
     useState<boolean>(false);
+  const [otpStatus, setOtpStatus] = useState<
+    "idle" | "verifying" | "valid" | "invalid"
+  >("idle");
 
-  const dummySelect: ReactSelectType[] = [
-    {
-      label: "Dummy 1",
-      value: "dummy1",
-    },
-    {
-      label: "Dummy 2",
-      value: "dummy2",
-    },
-    {
-      label: "Dummy 3",
-      value: "dummy3",
-    },
-    {
-      label: "Dummy 4",
-      value: "dummy4",
-    },
-    {
-      label: "Dummy 5",
-      value: "dummy5",
-    },
-  ];
+  useEffect(() => {
+    const loadProvince = async () => {
+      try {
+        const res = await getProvince();
+        const options: ReactSelectType[] = res.data.data.map((item: any) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+        setProvinceOptions(options);
+      } catch (error) {
+        console.error("Gagal muat provinsi:", error);
+      }
+    };
+    loadProvince();
+  }, []);
+
+  // Load City berdasarkan Province
+  useEffect(() => {
+    if (!formData.province) {
+      setCityOptions([]);
+      setFormData((prev) => ({
+        ...prev,
+        city: "",
+        district: "",
+        sub_district: "",
+        postal_code: "",
+      }));
+      return;
+    }
+
+    const loadCity = async () => {
+      try {
+        const res = await getCity({ province_id: formData.province });
+        const options: ReactSelectType[] = res.data.data.map((item: any) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+        setCityOptions(options);
+        setFormData((prev) => ({
+          ...prev,
+          city: "",
+          district: "",
+          sub_district: "",
+          postal_code: "",
+        }));
+        setDistrictOptions([]);
+        setSubdistrictOptions([]);
+      } catch (error) {
+        console.error("Gagal muat kota:", error);
+        setCityOptions([]);
+      }
+    };
+
+    loadCity();
+  }, [formData.province]);
+
+  // Load District (Kecamatan) berdasarkan City
+  useEffect(() => {
+    if (!formData.city) {
+      setDistrictOptions([]);
+      setFormData((prev) => ({
+        ...prev,
+        district: "",
+        sub_district: "",
+        postal_code: "",
+      }));
+      return;
+    }
+
+    const loadDistrict = async () => {
+      try {
+        const res = await getDistrict({ city_id: formData.city });
+        const options: ReactSelectType[] = res.data.data.map((item: any) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+        setDistrictOptions(options);
+        setFormData((prev) => ({
+          ...prev,
+          district: "",
+          sub_district: "",
+          postal_code: "",
+        }));
+        // setSubdistrictOptions([]);
+      } catch (error) {
+        console.error("Gagal muat kecamatan:", error);
+        setDistrictOptions([]);
+      }
+    };
+
+    loadDistrict();
+  }, [formData.city]);
+
+  // Load SubDistrict (Kelurahan) berdasarkan District (Kecamatan)
+  useEffect(() => {
+    if (!formData.district) {
+      setSubdistrictOptions([]);
+      setFormData((prev) => ({ ...prev, sub_district: "", postal_code: "" }));
+      return;
+    }
+
+    const loadSubDistrict = async () => {
+      try {
+        const res = await getSubDistrict({ district_id: formData.district });
+        const options: ReactSelectType[] = res.data.data.map((item: any) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+        setSubdistrictOptions(options);
+        setFormData((prev) => ({ ...prev, sub_district: "", postal_code: "" }));
+      } catch (error) {
+        console.error("Gagal muat kelurahan:", error);
+        setSubdistrictOptions([]);
+      }
+    };
+
+    loadSubDistrict();
+  }, [formData.district]);
+
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
+
+  async function handleVerifyOtp(val: string) {
+    if (!formData.phone) {
+      setErrors((e) => ({
+        ...e,
+        phone: "Isi nomor handphone terlebih dahulu",
+      }));
+      toast.error("Nomor handphone wajib diisi sebelum verifikasi OTP");
+      return;
+    }
+
+    try {
+      setOtpStatus("verifying");
+      // payload register
+      const payload = { phone_number: formData.phone, otp: val, type: null };
+      const res = await verifyOtp(payload);
+
+      // kalau backend punya flag/status, cek di sini
+      // misal: if (res?.data?.statusCode === 200)
+      toast.success(res.data.message);
+      setOtpStatus("valid");
+      setErrors((e) => ({ ...e, otp: "" }));
+      toast.success("OTP terverifikasi ✔");
+    } catch (err: any) {
+      setOtpStatus("invalid");
+      setErrors((e) => ({
+        ...e,
+        otp: "Kode OTP tidak valid atau sudah kedaluwarsa",
+      }));
+      toast.error(err?.response?.data?.message || "Verifikasi OTP gagal");
+    }
+  }
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -86,7 +244,7 @@ function Page() {
     const errors: { [key: string]: string } = {};
 
     if (!formData.fullname) {
-      errors.full_name = "Nama Lengkap harus diisi";
+      errors.fullname = "Nama Lengkap harus diisi";
     }
 
     if (!formData.phone) {
@@ -121,31 +279,77 @@ function Page() {
       errors.city = "Kota harus diisi";
     }
 
-    if (!formData.sub_district) {
+    if (!formData.district) {
       errors.sub_district = "Kecamatan harus diisi";
     }
 
-    if (!formData.village) {
-      errors.village = "Kelurahan harus diisi";
+    if (!formData.sub_district) {
+      errors.sub_district = "Kelurahan harus diisi";
     }
 
-    if (!formData.postal_code) {
-      errors.postal_code = "Kode Pos harus diisi";
-    }
+    // if (!formData.postal_code) {
+    //   errors.postal_code = "Kode Pos harus diisi";
+    // }
 
     if (!formData.full_address) {
-      errors.full_address = "Alamat Lengkap harus diisi";
+      errors.address = "Alamat Lengkap harus diisi";
+    }
+
+    if (otpStatus !== "valid") {
+      errors.otp = "OTP belum terverifikasi";
     }
 
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
-
+      toast.error("Lengkapi data Anda terlebih dahulu");
       setIsLoading(false);
-
       return;
     } else {
-      setErrors({});
+      console.log("masuk");
+      try {
+        const addressArray = formData.address_gmaps
+          ? [normalizeAddressForBackend(formData.address_gmaps)]
+          : [];
+
+        const body: any = {
+          phone_number: formData.phone,
+          name: formData.fullname,
+          email: formData.email,
+          province_id: formData.province,
+          city_id: formData.city,
+          district_id: formData.district,
+          sub_district_id: formData.sub_district,
+          nik: formData.nik,
+          no_kk: formData.nokk,
+          address: addressArray,
+        };
+
+        const res = await registerUser(body);
+        const token = res.data.data;
+        setCookie("token", token);
+        setIsModalRegisterSuccess(true);
+        resetForm();
+        setOtpStatus("idle");
+      } catch (error: any) {
+        toast.error(
+          error?.response?.data?.message || "Gagal melakukan registrasi"
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
+  }
+
+  function resetForm() {
+    setFormData(initialFormData);
+    setErrors({});
+    setAgreement(false);
+    setIsLoading(false);
+    setFormKey((k) => k + 1);
+    setOtpStatus("idle");
+
+    if (typeof window !== "undefined")
+      window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
@@ -156,7 +360,7 @@ function Page() {
 
       <form onSubmit={submitForm} className="mt-7">
         <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-7">
-          {/* nama */}
+          {/* Nama */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
               label="Nama Lengkap"
@@ -168,12 +372,13 @@ function Page() {
                   ...prevData,
                   fullname: value,
                 }));
-                setErrors({ ...errors, full_name: "" });
+                setErrors({ ...errors, fullname: "" });
               }}
               placeholder="Masukkan Nama Lengkap"
-              error={errors.full_name}
+              error={errors.fullname}
             />
           </div>
+
           {/* Email */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
@@ -192,6 +397,7 @@ function Page() {
               error={errors.email}
             />
           </div>
+
           {/* Nomor Handphone */}
           <div className="max-sm:col-span-2 col-span-1">
             <PhoneOTPForm
@@ -213,28 +419,32 @@ function Page() {
               error={errors.phone}
             />
           </div>
+
           {/* OTP */}
           <div className="max-sm:col-span-2 col-span-1">
             <GroupedOTP
-              isInvalid={!!errors.otp}
-              label="Masukkan OTP yang dikirim via Whatsapp"
+              isInvalid={!!errors.otp || otpStatus === "invalid"}
+              label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
               isImportant
               name="otp"
               onChange={(val) => {
-                // console.log(val);
-                if (val.length === 6) {
-                  setErrors({ ...errors, otp: "" });
-                }
-
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  otp: val,
-                }));
+                setFormData((prev) => ({ ...prev, otp: val }));
+                if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
+                if (val.length === 6) handleVerifyOtp(val);
+                else if (otpStatus !== "idle") setOtpStatus("idle");
+              }}
+              onComplete={(val) => {
+                handleVerifyOtp(val);
               }}
             />
-
+            {otpStatus === "verifying" && (
+              <p className="text-primary mt-1 text-sm italic">
+                Memverifikasi OTP...
+              </p>
+            )}
             {errors.otp && <p className="text-red-500 mt-1">{errors.otp}</p>}
           </div>
+
           {/* NIK */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
@@ -272,6 +482,7 @@ function Page() {
               error={errors.nokk}
             />
           </div>
+
           {/* Provinsi */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
@@ -279,7 +490,8 @@ function Page() {
               label="Provinsi"
               name="province"
               isImportant
-              options={dummySelect}
+              autocomplete="off"
+              options={provinceOptions}
               value={formData.province}
               onChange={(value: ReactSelectType | null) => {
                 if (value) {
@@ -300,6 +512,7 @@ function Page() {
               error={errors.province}
             />
           </div>
+
           {/* Kota */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
@@ -307,7 +520,8 @@ function Page() {
               label="Kota/Kabupaten"
               name="city"
               isImportant
-              options={dummySelect}
+              isDisabled={!formData.province}
+              options={cityOptions}
               value={formData.city}
               onChange={(value: ReactSelectType | null) => {
                 if (value) {
@@ -328,14 +542,46 @@ function Page() {
               error={errors.city}
             />
           </div>
+
           {/* Kecamatan */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kecamatan"
+              name="district"
+              isImportant
+              isDisabled={!formData.city}
+              options={districtOptions}
+              value={formData.district}
+              onChange={(value: ReactSelectType | null) => {
+                if (value) {
+                  setFormData((prevData: any) => ({
+                    ...prevData,
+                    district: value.value,
+                  }));
+                } else {
+                  setFormData((prevData: any) => ({
+                    ...prevData,
+                    district: "",
+                  }));
+                }
+                setErrors({ ...errors, district: "" });
+              }}
+              isClearable
+              placeholder="Pilih Kecamatan"
+              error={errors.district}
+            />
+          </div>
+
+          {/* Kelurahan */}
+          <div className="max-sm:col-span-2 col-span-1">
+            <DynamicSelectForm
+              menuPosition="fixed"
+              label="Kelurahan"
               name="sub_district"
               isImportant
-              options={dummySelect}
+              isDisabled={!formData.district}
+              options={subdistrictOptions}
               value={formData.sub_district}
               onChange={(value: ReactSelectType | null) => {
                 if (value) {
@@ -352,40 +598,13 @@ function Page() {
                 setErrors({ ...errors, sub_district: "" });
               }}
               isClearable
-              placeholder="Pilih Kecamatan"
+              placeholder="Pilih Kelurahan"
               error={errors.sub_district}
             />
           </div>
-          {/* Kelurahan */}
-          <div className="max-sm:col-span-2 col-span-1">
-            <DynamicSelectForm
-              menuPosition="fixed"
-              label="Kelurahan"
-              name="village"
-              isImportant
-              options={dummySelect}
-              value={formData.village}
-              onChange={(value: ReactSelectType | null) => {
-                if (value) {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
-                    village: value.value,
-                  }));
-                } else {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
-                    village: "",
-                  }));
-                }
-                setErrors({ ...errors, village: "" });
-              }}
-              isClearable
-              placeholder="Pilih Kelurahan"
-              error={errors.village}
-            />
-          </div>
+
           {/* Kode Pos */}
-          <div className="max-sm:col-span-2 col-span-1">
+          {/* <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kode Pos"
@@ -411,9 +630,10 @@ function Page() {
               placeholder="Pilih Kode Pos"
               error={errors.postal_code}
             />
-          </div>
+          </div> */}
+
           {/* Patokan Alamat */}
-          <div className="max-sm:col-span-2 col-span-1">
+          {/* <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
               label="Patokan Alamat (Opsional)"
               isImportant={false}
@@ -426,10 +646,11 @@ function Page() {
                 }));
               }}
               // isClearable
-              placeholder="Masukkan Patokan Alamat"
+              placeholder="Masukkan Patokan Alamat (jika ada)"
               error={errors.address_note}
             />
-          </div>
+          </div> */}
+
           {/* Map */}
           <div className="col-span-2">
             <MapInputForm
@@ -440,8 +661,18 @@ function Page() {
                 }));
                 setErrors({ ...errors, full_address: "" });
               }}
+              onPlaceChange={(p) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  full_address: p.address,
+                  address_gmaps: p.raw_result,
+                  lat: String(p.latitude),
+                  lng: String(p.longitude),
+                }));
+              }}
             />
           </div>
+
           {/* Alamat Lengkap */}
           <div className="col-span-2">
             <DynamicForm
@@ -449,7 +680,7 @@ function Page() {
               type="textarea"
               isImportant
               rows={4}
-              name="address"
+              name="full_address"
               value={formData.full_address}
               onChange={(value: string) => {
                 setFormData((prevData: any) => ({
@@ -464,30 +695,36 @@ function Page() {
             />
           </div>
         </div>
+
+        {/* Agreement */}
         <div className="mt-7">
           <CheckboxAgreeForm
             value={agreement}
             onChange={() => setAgreement(!agreement)}
           />
         </div>
+
         <div className="mt-7 flex justify-center">
           <button
             type="submit"
-            disabled={isLoading || !agreement}
+            disabled={isLoading || !agreement || otpStatus !== "valid"}
             className={`py-[15px] w-1/2 font-bold text-white ${
-              isLoading || !agreement ? "bg-slate-400 cursor-not-allowed" : "bg-primary cursor-pointer"
+              isLoading || !agreement
+                ? "bg-slate-400 cursor-not-allowed"
+                : "bg-primary cursor-pointer"
             } text-xl rounded-xl mx-auto `}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="loading w-[20px] h-[20px]"></div>
-                <span className="italic text-primary">Loading...</span>
+                <span className="italic text-white">Loading...</span>
               </div>
             ) : (
               "Registrasi"
             )}
           </button>
         </div>
+
         <div className="mt-7 text-center">
           <p className="text-primary-text">
             Sudah punya akun Starlite?{" "}

@@ -46,3 +46,5 @@ export function resetUrlParam(param: string) {
   url.searchParams.delete(param);
   window.history.replaceState(null, "", url.toString());
 }
+
+
