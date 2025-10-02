@@ -1,4 +1,5 @@
-import { formatTimer } from "@/app/_shared/utils";
+import { sendOtpLogin, sendOtpRegister } from "@/app/_api/Auth/Auth";
+import { formatTimer, PHONE_REGEX } from "@/app/_shared/utils";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -6,6 +7,7 @@ function PhoneOTPForm({
   label,
   name,
   type = "text",
+  mode,
   value,
   isImportant,
   onChange,
@@ -13,17 +15,24 @@ function PhoneOTPForm({
   // ✅ props baru untuk kustomisasi
   storageKey, // mis: `otp:${name}` atau `otp:${userId}:${name}`
   otpDurationSec = 60, // default 60 detik
+  onSendOTP,
+  hint = false,
+  externalExpiry,
   ...props
 }: {
   label: string;
   name: string;
   type?: string;
+  mode: string;
   value: string;
   isImportant: boolean;
   onChange: (value: string) => void;
   error?: string;
   storageKey?: string;
   otpDurationSec?: number;
+  onSendOTP?: () => void;
+  hint?: boolean;
+  externalExpiry?: number | null;
   [key: string]: any;
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -34,6 +43,15 @@ function PhoneOTPForm({
 
   // simpan ref interval agar aman dibersihkan
   const intervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!externalExpiry) return;
+    const now = Date.now();
+    const left = Math.max(0, Math.floor((externalExpiry - now) / 1000));
+    // tulis ulang ke localStorage (supaya konsisten antar tab)
+    localStorage.setItem(key, String(externalExpiry));
+    setTimerReset(left);
+  }, [externalExpiry, key]);
 
   // Restore timer dari localStorage saat mount / key berubah
   useEffect(() => {
@@ -96,18 +114,44 @@ function PhoneOTPForm({
   async function SendOTP() {
     setIsLoading(true);
     try {
+      // ✅ Jika parent menyediakan onSendOTP, delegasikan ke parent dan keluar.
+      if (onSendOTP) {
+        await Promise.resolve(onSendOTP()); // biar support async
+        return; // parent yang ngatur timer lewat localStorage
+      }
+
+      // === Fallback: child kirim OTP sendiri jika tidak ada onSendOTP ===
       const body = { phone_number: value };
-      // const res_sendOTP = await SendDataOTP(body)
-      startOtpTimer(); // pakai durasi dari prop
-    } catch (error) {
-      toast.error("Terjadi kesalahan saat mengirim OTP");
+      const res_sendOTP =
+        mode === "login"
+          ? await sendOtpLogin(body)
+          : await sendOtpRegister(body);
+
+      toast.success(res_sendOTP.data.message ?? "OTP telah dikirim!");
+      startOtpTimer(); // default 60 detik
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message;
+
+      // ✅ Robust: tangkap "dalam 1161 detik" atau "in 1161 seconds"
+      const match =
+        typeof errorMessage === "string"
+          ? errorMessage.match(/(?:dalam|in)\s+(\d+)\s*(?:detik|seconds?)/i)
+          : null;
+
+      if (match?.[1]) {
+        const seconds = parseInt(match[1], 10);
+        toast.error(errorMessage);
+        startOtpTimer(seconds); // set cooldown sesuai server
+      } else {
+        toast.error(errorMessage ?? "Terjadi kesalahan saat mengirim OTP");
+      }
     } finally {
       setIsLoading(false);
     }
   }
 
   const isRunning = timerReset > 0;
-  const isFilled = value.length >= 7;
+  const isFilled = PHONE_REGEX.test(value);
 
   return (
     <div>
@@ -116,7 +160,7 @@ function PhoneOTPForm({
         {isImportant && <span>*</span>}
       </label>
 
-      <div className="flex gap-2 items-center w-full mt-2">
+      <div className="flex gap-2  w-full mt-2">
         <div className="grow">
           <input
             type={type}
@@ -134,7 +178,7 @@ function PhoneOTPForm({
           <button
             type="button"
             disabled={isLoading || isRunning || !isFilled}
-            className={`text-white py-3 px-2 rounded-xl  ${
+            className={`text-white py-3 px-3 rounded-xl  ${
               isLoading || isRunning || !isFilled
                 ? "bg-slate-400 cursor-not-allowed"
                 : "bg-primary cursor-pointer"
@@ -154,6 +198,15 @@ function PhoneOTPForm({
           </button>
         </div>
       </div>
+      {hint && (
+        <p className="text-xs md:text-sm mt-1">
+          <span className="text-red-500">*</span>Gunakan{" "}
+          <span className="font-bold">
+            nomor handphone yang sudah terdaftar.
+          </span>{" "}
+          Jika belum punya akun, klik Register.
+        </p>
+      )}
 
       {error && <p className="text-red-500 p-0 m-0">{error}</p>}
     </div>

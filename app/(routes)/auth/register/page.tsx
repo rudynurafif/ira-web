@@ -8,96 +8,496 @@ import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { ReactSelectType } from "@/app/_shared/types/form";
 import Link from "next/link";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import ModalRegister from "./_components/ModalRegister";
+import { registerUser, verifyOtp } from "@/app/_api/Auth/Auth";
+import {
+  getCity,
+  getDistrict,
+  getPostalCode,
+  getProvince,
+  getSubDistrict,
+} from "@/app/_api/Location/Location";
+import { normalizeAddressForBackend } from "@/app/_shared/utils/address";
+import toast from "react-hot-toast";
+import { setCookie } from "cookies-next";
+import { PHONE_REGEX, regexEmail } from "@/app/_shared/utils";
+import { useRouter } from "next/navigation";
 
 interface FormType {
   fullname: string;
   email: string;
   phone: string;
   otp: string;
-  province: string;
-  city: string;
-  sub_district: string;
-  village: string;
-  postal_code: string;
-  address_note: string;
-  full_address: string;
   nik: string;
   nokk: string;
+  province: string;
+  city: string;
+  district: string;
+  sub_district: string;
+  postal_code: string;
+  notes: string;
+  full_address: string;
+  address_gmaps?: any;
+  lat?: string;
+  lng?: string;
 }
 
+const initialFormData: FormType = {
+  fullname: "",
+  email: "",
+  phone: "",
+  otp: "",
+  nik: "",
+  nokk: "",
+  province: "",
+  city: "",
+  district: "",
+  sub_district: "",
+  postal_code: "",
+  full_address: "",
+  notes: "",
+  address_gmaps: undefined,
+  lat: undefined,
+  lng: undefined,
+};
+
 function Page() {
-  const [formData, setFormData] = useState<FormType>({
-    fullname: "",
-    email: "",
-    phone: "",
-    otp: "",
-    province: "",
-    city: "",
-    sub_district: "",
-    village: "",
-    postal_code: "",
-    address_note: "",
-    full_address: "",
-    nik: "",
-    nokk: "",
-  });
+  const [formData, setFormData] = useState<FormType>(initialFormData);
+
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+
+  const [provinceOptions, setProvinceOptions] = useState<ReactSelectType[]>([]);
+  const [cityOptions, setCityOptions] = useState<ReactSelectType[]>([]);
+  const [districtOptions, setDistrictOptions] = useState<ReactSelectType[]>([]);
+  const [subdistrictOptions, setSubdistrictOptions] = useState<
+    ReactSelectType[]
+  >([]);
+  const [postalCodeOptions, setPostalCodeOptions] = useState<ReactSelectType[]>(
+    []
+  );
 
   const [agreement, setAgreement] = useState<boolean>(false);
-
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
   const [isLoading, setIsLoading] = useState<boolean>();
-
   const [isModalRegisterSuccess, setIsModalRegisterSuccess] =
     useState<boolean>(false);
+  const [otpStatus, setOtpStatus] = useState<
+    "idle" | "verifying" | "valid" | "invalid"
+  >("idle");
 
-  const dummySelect: ReactSelectType[] = [
-    {
-      label: "Dummy 1",
-      value: "dummy1",
-    },
-    {
-      label: "Dummy 2",
-      value: "dummy2",
-    },
-    {
-      label: "Dummy 3",
-      value: "dummy3",
-    },
-    {
-      label: "Dummy 4",
-      value: "dummy4",
-    },
-    {
-      label: "Dummy 5",
-      value: "dummy5",
-    },
-  ];
+  const router = useRouter();
+
+  // --- helpers kecil untuk normalisasi nama
+  function norm(s?: string) {
+    return (s || "")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[^\w\s.-]/g, "") // buang aksen/simbol
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // hapus awalan umum di Indonesia
+  function stripPrefix(s: string) {
+    let x = s;
+    x = x.replace(/^kota\s+/i, "");
+    x = x.replace(/^kabupaten\s+/i, "");
+    x = x.replace(/^kab\.\s+/i, "");
+    x = x.replace(/^kec(?:amatan)?\s+/i, "");
+    x = x.replace(/^kel(?:urahan)?\s+/i, "");
+    x = x.replace(/^desa\s+/i, "");
+    return x.trim();
+  }
+
+  // ambil komponen tertentu dari address_components
+  function componentByType(components: any[], type: string) {
+    return components.find((c: any) => c.types?.includes(type));
+  }
+
+  // ekstrak nama admin dari raw_result Google
+  function extractIndoAdmin(raw: any) {
+    const comps = raw?.address_components || [];
+
+    // Google sering pakai:
+    // administrative_area_level_1: Provinsi
+    // administrative_area_level_2: Kota/Kabupaten
+    // administrative_area_level_3: Kecamatan
+    // administrative_area_level_4: Kelurahan/Desa (kadang level_4 atau locality/sublocality)
+    const prov =
+      componentByType(comps, "administrative_area_level_1")?.long_name || "";
+    // DKI kadang "Jakarta" → level_2 = "Kota Jakarta Selatan" dll
+    const city =
+      componentByType(comps, "administrative_area_level_2")?.long_name ||
+      componentByType(comps, "locality")?.long_name ||
+      "";
+    const district =
+      componentByType(comps, "administrative_area_level_3")?.long_name ||
+      componentByType(comps, "sublocality_level_1")?.long_name ||
+      "";
+    const subdistrict =
+      componentByType(comps, "administrative_area_level_4")?.long_name ||
+      componentByType(comps, "sublocality_level_2")?.long_name ||
+      componentByType(comps, "neighborhood")?.long_name ||
+      "";
+    const postal = componentByType(comps, "postal_code")?.long_name || "";
+
+    return {
+      provinceName: prov,
+      cityName: city,
+      districtName: district,
+      subDistrictName: subdistrict,
+      postalCode: postal,
+    };
+  }
+
+  async function resolveAndFillLocationFromGmaps(rawPlace: any) {
+    setIsAutoFilling(true); // ⬅️ aktifkan guard
+
+    const {
+      provinceName,
+      cityName,
+      districtName,
+      subDistrictName,
+      postalCode,
+    } = extractIndoAdmin(rawPlace);
+
+    console.log("Google extracted:", {
+      provinceName,
+      cityName,
+      districtName,
+      subDistrictName,
+      postalCode,
+    });
+
+    if (!provinceName) {
+      setIsAutoFilling(false);
+      return;
+    }
+
+    // 1) Province
+    let provinceId = "";
+    try {
+      const resProv = await getProvince();
+      const listProv = resProv.data.data as Array<{ id: string; name: string }>;
+
+      const targetProv = listProv.find((p) => {
+        const a = norm(stripPrefix(p.name));
+        const b = norm(stripPrefix(provinceName));
+        return a === b || a.includes(b) || b.includes(a);
+      });
+
+      if (!targetProv) {
+        setIsAutoFilling(false);
+        return;
+      }
+      provinceId = String(targetProv.id);
+
+      setProvinceOptions(
+        listProv.map((it) => ({ label: it.name, value: String(it.id) }))
+      );
+      setFormData((prev) => ({ ...prev, province: provinceId }));
+      setErrors((e) => ({ ...e, province: "" }));
+    } catch (e) {
+      console.error("resolve province failed", e);
+      setIsAutoFilling(false);
+      return;
+    }
+
+    // 2) City
+    let cityId = "";
+    try {
+      const resCity = await getCity({ province_id: provinceId });
+      const listCity = resCity.data.data as Array<{ id: string; name: string }>;
+
+      const targetCity = listCity.find((c) => {
+        const a = norm(stripPrefix(c.name));
+        const b = norm(stripPrefix(cityName || provinceName)); // fallback kalau city kosong
+        return a === b || a.includes(b) || b.includes(a);
+      });
+
+      if (!targetCity) {
+        setIsAutoFilling(false);
+        return;
+      }
+      cityId = String(targetCity.id);
+
+      setCityOptions(
+        listCity.map((it) => ({ label: it.name, value: String(it.id) }))
+      );
+      setFormData((prev) => ({ ...prev, city: cityId }));
+      setErrors((e) => ({ ...e, city: "" }));
+    } catch (e) {
+      console.error("resolve city failed", e);
+      setIsAutoFilling(false);
+      return;
+    }
+
+    // 3) District
+    let districtId = "";
+    try {
+      const resDistrict = await getDistrict({ city_id: cityId });
+      const listDistrict = resDistrict.data.data as Array<{
+        id: string;
+        name: string;
+      }>;
+
+      const targetDistrict = listDistrict.find((d) => {
+        const a = norm(stripPrefix(d.name));
+        const raw = districtName || "";
+        const b = norm(stripPrefix(raw));
+        return a === b || a.includes(b) || b.includes(a);
+      });
+
+      if (!targetDistrict) {
+        setIsAutoFilling(false);
+        return;
+      }
+      districtId = String(targetDistrict.id);
+
+      setDistrictOptions(
+        listDistrict.map((it) => ({ label: it.name, value: String(it.id) }))
+      );
+      setFormData((prev) => ({ ...prev, district: districtId }));
+      setErrors((e) => ({ ...e, district: "" }));
+    } catch (e) {
+      console.error("resolve district failed", e);
+      setIsAutoFilling(false);
+      return;
+    }
+
+    // 4) Subdistrict
+    try {
+      const resSub = await getSubDistrict({ district_id: districtId });
+      const listSub = resSub.data.data as Array<{ id: string; name: string }>;
+
+      const targetSub = listSub.find((s) => {
+        const a = norm(stripPrefix(s.name));
+        const raw = subDistrictName || "";
+        const b = norm(stripPrefix(raw));
+        return a === b || a.includes(b) || b.includes(a);
+      });
+
+      if (!targetSub) {
+        setIsAutoFilling(false);
+        return;
+      }
+
+      setSubdistrictOptions(
+        listSub.map((it) => ({ label: it.name, value: String(it.id) }))
+      );
+
+      const subId = String(targetSub.id);
+      setFormData((prev) => ({
+        ...prev,
+        sub_district: subId,
+      }));
+      setErrors((e) => ({ ...e, sub_district: "" }));
+
+      // 5) Postal Code (berdasarkan sub_district_id)
+      try {
+        const resPostal = await getPostalCode({ sub_district_id: subId });
+        const listPostal = resPostal.data.data as Array<{
+          id: string;
+          name?: string; // backend kamu pakai "name" untuk kode pos
+          code?: string;
+        }>;
+
+        const postalOptions: ReactSelectType[] = (listPostal || [])
+          .map((p) => {
+            const codeStr = String(p.code ?? p.name ?? "");
+            return codeStr ? { label: codeStr, value: String(p.id) } : null;
+          })
+          .filter(Boolean) as ReactSelectType[];
+
+        setPostalCodeOptions(postalOptions);
+
+        let defaultPostalId = postalOptions[0]?.value ?? "";
+
+        if (postalCode) {
+          const matched = postalOptions.find((opt) => opt.label === postalCode);
+          if (matched) defaultPostalId = matched.value;
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          postal_code: String(defaultPostalId),
+        }));
+
+        setErrors((e) => ({ ...e, postal_code: "" }));
+      } catch (e) {
+        console.error("resolve postal code failed", e);
+      }
+    } catch (e) {
+      console.error("resolve sub-district failed", e);
+      setIsAutoFilling(false);
+      return;
+    }
+
+    setIsAutoFilling(false);
+  }
+
+  useEffect(() => {
+    const loadProvince = async () => {
+      try {
+        const res = await getProvince();
+        const options: ReactSelectType[] = res.data.data.map((item: any) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+        setProvinceOptions(options);
+      } catch (error) {
+        console.error("Gagal muat provinsi:", error);
+      }
+    };
+    loadProvince();
+  }, []);
+
+  // Province -> load City options (NO reset)
+  useEffect(() => {
+    if (!formData.province) {
+      setCityOptions([]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await getCity({ province_id: formData.province });
+        setCityOptions(
+          res.data.data.map((it: any) => ({
+            label: it.name,
+            value: String(it.id),
+          }))
+        );
+      } catch (e) {
+        console.error("Gagal muat kota:", e);
+        setCityOptions([]);
+      }
+    })();
+  }, [formData.province]);
+
+  // City -> load District options (NO reset)
+  useEffect(() => {
+    if (!formData.city) {
+      setDistrictOptions([]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await getDistrict({ city_id: formData.city });
+        setDistrictOptions(
+          res.data.data.map((it: any) => ({
+            label: it.name,
+            value: String(it.id),
+          }))
+        );
+      } catch (e) {
+        console.error("Gagal muat kecamatan:", e);
+        setDistrictOptions([]);
+      }
+    })();
+  }, [formData.city]);
+
+  // District -> load Subdistrict options (NO reset)
+  useEffect(() => {
+    if (!formData.district) {
+      setSubdistrictOptions([]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await getSubDistrict({ district_id: formData.district });
+        setSubdistrictOptions(
+          res.data.data.map((it: any) => ({
+            label: it.name,
+            value: String(it.id),
+          }))
+        );
+      } catch (e) {
+        console.error("Gagal muat kelurahan:", e);
+        setSubdistrictOptions([]);
+      }
+    })();
+  }, [formData.district]);
+
+  // Subdistrict -> load Postal Code options (NO reset)
+  useEffect(() => {
+    if (!formData.sub_district) {
+      setPostalCodeOptions([]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await getPostalCode({
+          sub_district_id: formData.sub_district,
+        });
+        const options: ReactSelectType[] = (res.data.data || [])
+          .map((item: any) => {
+            const codeStr = String(item.code ?? item.name ?? "");
+            const idStr = String(item.id);
+            return codeStr && idStr ? { label: codeStr, value: idStr } : null;
+          })
+          .filter(Boolean) as ReactSelectType[];
+        setPostalCodeOptions(options);
+      } catch (e) {
+        console.error("Gagal muat kode pos:", e);
+        setPostalCodeOptions([]);
+      }
+    })();
+  }, [formData.sub_district]);
+
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
+
+  async function handleVerifyOtp(val: string) {
+    if (!formData.phone) {
+      setErrors((e) => ({
+        ...e,
+        phone: "Isi nomor handphone terlebih dahulu",
+      }));
+      toast.error("Nomor handphone wajib diisi sebelum verifikasi OTP");
+      return;
+    }
+
+    try {
+      setOtpStatus("verifying");
+      const payload = { phone_number: formData.phone, otp: val, type: null };
+      const res = await verifyOtp(payload);
+
+      if (res?.data?.statusCode === 200) {
+        toast.success(res.data.message ?? "OTP terverifikasi ✔");
+        setOtpStatus("valid");
+      }
+
+      setErrors((e) => ({ ...e, otp: "" }));
+    } catch (err: any) {
+      setOtpStatus("invalid");
+      setErrors((e) => ({
+        ...e,
+        otp: "Kode OTP tidak valid atau sudah kedaluwarsa",
+      }));
+      toast.error(err?.response?.data?.message || "Verifikasi OTP gagal");
+    }
+  }
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setIsLoading(true);
-    const regexPhone = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
-    const regexEmail =
-      /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
     const errors: { [key: string]: string } = {};
 
     if (!formData.fullname) {
-      errors.full_name = "Nama Lengkap harus diisi";
+      errors.fullname = "Nama Lengkap harus diisi";
     }
 
     if (!formData.phone) {
       errors.phone = "No handphone harus diisi";
-    } else if (!regexPhone.test(formData.phone)) {
+    } else if (!PHONE_REGEX.test(formData.phone)) {
       errors.phone = "Nomor handphone tidak valid.";
     }
 
-    if (!formData.email) {
-      errors.email = "Email harus diisi";
-    } else if (!regexEmail.test(formData.email)) {
+    if (formData.email && !regexEmail.test(formData.email)) {
       errors.email = "Format email salah";
     }
 
@@ -121,12 +521,12 @@ function Page() {
       errors.city = "Kota harus diisi";
     }
 
-    if (!formData.sub_district) {
-      errors.sub_district = "Kecamatan harus diisi";
+    if (!formData.district) {
+      errors.district = "Kecamatan harus diisi";
     }
 
-    if (!formData.village) {
-      errors.village = "Kelurahan harus diisi";
+    if (!formData.sub_district) {
+      errors.sub_district = "Kelurahan harus diisi";
     }
 
     if (!formData.postal_code) {
@@ -137,15 +537,72 @@ function Page() {
       errors.full_address = "Alamat Lengkap harus diisi";
     }
 
+    if (otpStatus !== "valid") {
+      errors.otp = "OTP belum terverifikasi";
+    }
+
+    if (!agreement) {
+      toast.error("Anda harus menyetujui syarat & ketentuan");
+      setIsLoading(false);
+      return;
+    }
+
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
-
+      toast.error("Lengkapi data Anda terlebih dahulu");
       setIsLoading(false);
-
       return;
     } else {
-      setErrors({});
+      console.log("masuk");
+      try {
+        const addressArray = formData.address_gmaps
+          ? [normalizeAddressForBackend(formData.address_gmaps)]
+          : [];
+
+        const body: any = {
+          phone_number: formData.phone,
+          name: formData.fullname,
+          email: formData.email,
+          province_id: formData.province,
+          city_id: formData.city,
+          district_id: formData.district,
+          sub_district_id: formData.sub_district,
+          nik: formData.nik,
+          no_kk: formData.nokk,
+          address: addressArray,
+          postal_code_id: formData.postal_code,
+          notes: formData.notes,
+        };
+
+        const res = await registerUser(body);
+        const token = res.data.data;
+        setCookie("token", token);
+        setIsModalRegisterSuccess(true);
+        resetForm();
+        setOtpStatus("idle");
+
+        setTimeout(() => {
+          router.push("/customer-area");
+        }, 3000);
+      } catch (error: any) {
+        toast.error(
+          error?.response?.data?.message || "Gagal melakukan registrasi"
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
+  }
+
+  function resetForm() {
+    setFormData(initialFormData);
+    setErrors({});
+    setAgreement(false);
+    setIsLoading(false);
+    setOtpStatus("idle");
+
+    if (typeof window !== "undefined")
+      window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
@@ -156,7 +613,7 @@ function Page() {
 
       <form onSubmit={submitForm} className="mt-7">
         <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-7">
-          {/* nama */}
+          {/* Nama */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
               label="Nama Lengkap"
@@ -168,17 +625,18 @@ function Page() {
                   ...prevData,
                   fullname: value,
                 }));
-                setErrors({ ...errors, full_name: "" });
+                setErrors({ ...errors, fullname: "" });
               }}
               placeholder="Masukkan Nama Lengkap"
-              error={errors.full_name}
+              error={errors.fullname}
             />
           </div>
+
           {/* Email */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
-              label="Email"
-              isImportant
+              label="Email (opsional)"
+              isImportant={false}
               name="email"
               value={formData.email}
               onChange={(value: string) => {
@@ -192,6 +650,7 @@ function Page() {
               error={errors.email}
             />
           </div>
+
           {/* Nomor Handphone */}
           <div className="max-sm:col-span-2 col-span-1">
             <PhoneOTPForm
@@ -199,6 +658,7 @@ function Page() {
               otpDurationSec={60}
               label="Nomor Handphone"
               name="phone"
+              mode="register"
               isImportant
               value={formData.phone}
               onChange={(value: string) => {
@@ -213,28 +673,31 @@ function Page() {
               error={errors.phone}
             />
           </div>
+
           {/* OTP */}
           <div className="max-sm:col-span-2 col-span-1">
             <GroupedOTP
-              isInvalid={!!errors.otp}
-              label="Masukkan OTP yang dikirim via Whatsapp"
+              isInvalid={!!errors.otp || otpStatus === "invalid"}
+              label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
               isImportant
               name="otp"
               onChange={(val) => {
-                // console.log(val);
-                if (val.length === 6) {
-                  setErrors({ ...errors, otp: "" });
-                }
-
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  otp: val,
-                }));
+                setFormData((prev) => ({ ...prev, otp: val }));
+                if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
+                else if (otpStatus !== "idle") setOtpStatus("idle");
+              }}
+              onComplete={(val) => {
+                handleVerifyOtp(val);
               }}
             />
-
+            {otpStatus === "verifying" && (
+              <p className="text-primary mt-1 text-sm italic">
+                Memverifikasi OTP...
+              </p>
+            )}
             {errors.otp && <p className="text-red-500 mt-1">{errors.otp}</p>}
           </div>
+
           {/* NIK */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
@@ -272,6 +735,31 @@ function Page() {
               error={errors.nokk}
             />
           </div>
+
+          {/* Map */}
+          <div className="col-span-2">
+            <MapInputForm
+              getAddress={(value: string) => {
+                setFormData((prevData: any) => ({
+                  ...prevData,
+                  full_address: value,
+                }));
+                setErrors({ ...errors, full_address: "" });
+              }}
+              onPlaceChange={async (p) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  full_address: p.address,
+                  address_gmaps: p.raw_result,
+                  lat: String(p.latitude),
+                  lng: String(p.longitude),
+                }));
+
+                await resolveAndFillLocationFromGmaps(p.raw_result);
+              }}
+            />
+          </div>
+
           {/* Provinsi */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
@@ -279,18 +767,27 @@ function Page() {
               label="Provinsi"
               name="province"
               isImportant
-              options={dummySelect}
+              autocomplete="off"
+              options={provinceOptions}
               value={formData.province}
-              onChange={(value: ReactSelectType | null) => {
+              onChange={(value) => {
                 if (value) {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
-                    province: value.value,
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    province: value.value, // set province
+                    city: "", // reset anak2 karena USER mengganti
+                    district: "",
+                    sub_district: "",
+                    postal_code: "",
                   }));
                 } else {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
+                  setFormData((prev) => ({
+                    ...prev,
                     province: "",
+                    city: "",
+                    district: "",
+                    sub_district: "",
+                    postal_code: "",
                   }));
                 }
                 setErrors({ ...errors, province: "" });
@@ -300,6 +797,7 @@ function Page() {
               error={errors.province}
             />
           </div>
+
           {/* Kota */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
@@ -307,18 +805,25 @@ function Page() {
               label="Kota/Kabupaten"
               name="city"
               isImportant
-              options={dummySelect}
+              isDisabled={!formData.province}
+              options={cityOptions}
               value={formData.city}
-              onChange={(value: ReactSelectType | null) => {
+              onChange={(value) => {
                 if (value) {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
+                  setFormData((prev: any) => ({
+                    ...prev,
                     city: value.value,
+                    district: "",
+                    sub_district: "",
+                    postal_code: "",
                   }));
                 } else {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
+                  setFormData((prev) => ({
+                    ...prev,
                     city: "",
+                    district: "",
+                    sub_district: "",
+                    postal_code: "",
                   }));
                 }
                 setErrors({ ...errors, city: "" });
@@ -328,62 +833,73 @@ function Page() {
               error={errors.city}
             />
           </div>
+
           {/* Kecamatan */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kecamatan"
-              name="sub_district"
+              name="district"
               isImportant
-              options={dummySelect}
-              value={formData.sub_district}
-              onChange={(value: ReactSelectType | null) => {
+              isDisabled={!formData.city}
+              options={districtOptions}
+              value={formData.district}
+              onChange={(value) => {
                 if (value) {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
-                    sub_district: value.value,
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    district: value.value,
+                    sub_district: "",
+                    postal_code: "",
                   }));
                 } else {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
+                  setFormData((prev) => ({
+                    ...prev,
+                    district: "",
                     sub_district: "",
+                    postal_code: "",
                   }));
                 }
-                setErrors({ ...errors, sub_district: "" });
+                setErrors({ ...errors, district: "" });
               }}
               isClearable
               placeholder="Pilih Kecamatan"
-              error={errors.sub_district}
+              error={errors.district}
             />
           </div>
+
           {/* Kelurahan */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kelurahan"
-              name="village"
+              name="sub_district"
               isImportant
-              options={dummySelect}
-              value={formData.village}
-              onChange={(value: ReactSelectType | null) => {
+              isDisabled={!formData.district}
+              options={subdistrictOptions}
+              value={formData.sub_district}
+              onChange={(value) => {
                 if (value) {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
-                    village: value.value,
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    sub_district: value.value,
+                    postal_code: "",
                   }));
                 } else {
-                  setFormData((prevData: any) => ({
-                    ...prevData,
-                    village: "",
+                  setFormData((prev) => ({
+                    ...prev,
+                    sub_district: "",
+                    postal_code: "",
                   }));
                 }
-                setErrors({ ...errors, village: "" });
+                setErrors({ ...errors, sub_district: "" });
               }}
               isClearable
               placeholder="Pilih Kelurahan"
-              error={errors.village}
+              error={errors.sub_district}
             />
           </div>
+
           {/* Kode Pos */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
@@ -391,7 +907,8 @@ function Page() {
               label="Kode Pos"
               name="postal_code"
               isImportant
-              options={dummySelect}
+              isDisabled={!formData.sub_district}
+              options={postalCodeOptions}
               value={formData.postal_code}
               onChange={(value: ReactSelectType | null) => {
                 if (value) {
@@ -412,36 +929,26 @@ function Page() {
               error={errors.postal_code}
             />
           </div>
+
           {/* Patokan Alamat */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
               label="Patokan Alamat (Opsional)"
               isImportant={false}
-              name="address_note"
-              value={formData.address_note}
+              name="notes"
+              value={formData.notes}
               onChange={(value: string) => {
                 setFormData((prevData: any) => ({
                   ...prevData,
-                  address_note: value,
+                  notes: value,
                 }));
               }}
               // isClearable
-              placeholder="Masukkan Patokan Alamat"
-              error={errors.address_note}
+              placeholder="Masukkan Patokan Alamat (jika ada)"
+              error={errors.notes}
             />
           </div>
-          {/* Map */}
-          <div className="col-span-2">
-            <MapInputForm
-              getAddress={(value: string) => {
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  full_address: value,
-                }));
-                setErrors({ ...errors, full_address: "" });
-              }}
-            />
-          </div>
+
           {/* Alamat Lengkap */}
           <div className="col-span-2">
             <DynamicForm
@@ -449,7 +956,7 @@ function Page() {
               type="textarea"
               isImportant
               rows={4}
-              name="address"
+              name="full_address"
               value={formData.full_address}
               onChange={(value: string) => {
                 setFormData((prevData: any) => ({
@@ -464,30 +971,36 @@ function Page() {
             />
           </div>
         </div>
+
+        {/* Agreement */}
         <div className="mt-7">
           <CheckboxAgreeForm
             value={agreement}
             onChange={() => setAgreement(!agreement)}
           />
         </div>
+
         <div className="mt-7 flex justify-center">
           <button
             type="submit"
             disabled={isLoading || !agreement}
             className={`py-[15px] w-1/2 font-bold text-white ${
-              isLoading || !agreement ? "bg-slate-400 cursor-not-allowed" : "bg-primary cursor-pointer"
+              isLoading || !agreement
+                ? "bg-slate-400 cursor-not-allowed"
+                : "bg-primary cursor-pointer"
             } text-xl rounded-xl mx-auto `}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="loading w-[20px] h-[20px]"></div>
-                <span className="italic text-primary">Loading...</span>
+                <span className="italic text-white">Loading...</span>
               </div>
             ) : (
               "Registrasi"
             )}
           </button>
         </div>
+
         <div className="mt-7 text-center">
           <p className="text-primary-text">
             Sudah punya akun Starlite?{" "}
