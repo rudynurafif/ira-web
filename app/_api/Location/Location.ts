@@ -51,3 +51,16 @@ export const getSubDistrict = async (params: any) => {
     throw error;
   }
 };
+
+export const getPostalCode = async (params: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/location/postal-code",
+      method: "GET",
+      params: params,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

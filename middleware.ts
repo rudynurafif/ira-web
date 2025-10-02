@@ -11,9 +11,9 @@ export function middleware(req: NextRequest) {
 
   // const token = getCookie("token");
   const token = req.cookies.get("token")?.value;
+  // console.log("token", token);
 
-  console.log("token", token);
-
+  // jika sudah login tapi ingin akses login atau reg arahkan ke customer area
   if (token && pathname.startsWith("/auth/")) {
     const url = req.nextUrl.clone();
     url.pathname = "/customer-area"; // atau "/" tergantung kebijakan
@@ -21,6 +21,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // jika belum login dan ingin mengakses url non public, arahkan ke login
   if (!isPublic && !token) {
     const url = req.nextUrl.clone();
     url.pathname = "/auth/login";

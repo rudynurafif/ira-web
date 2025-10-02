@@ -27,10 +27,36 @@ export const registerUser = async (body: any) => {
   }
 };
 
-export const sendOtp = async (body: any) => {
+export const sendOtpRegister = async (body: any) => {
   try {
     const data = await FwaAxios({
-      url: "/app/auth/send-otp",
+      url: "/app/auth/send-otp-register",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sendOtpLogin = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/send-otp-login",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sendOtpEmail = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/send-otp-email",
       method: "POST",
       data: body,
     });

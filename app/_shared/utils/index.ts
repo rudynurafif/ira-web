@@ -47,4 +47,6 @@ export function resetUrlParam(param: string) {
   window.history.replaceState(null, "", url.toString());
 }
 
-
+export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
+export const regexEmail =
+  /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

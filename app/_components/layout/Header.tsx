@@ -1,10 +1,11 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaRegUser, FaSignOutAlt, FaUser } from "react-icons/fa";
+import { IoMdArrowDropdown } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
 
 // Images
@@ -13,6 +14,7 @@ import weaveWhiteIcon from "@/public/assets/Icons/icon-weave-white.svg";
 import starliteIcon from "@/public/assets/Icons/icon-starlite.svg";
 import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
 import { deleteCookie, getCookie } from "cookies-next";
+import toast from "react-hot-toast";
 
 function Header() {
   const pathname = usePathname();
@@ -23,31 +25,58 @@ function Header() {
   useEffect(() => {
     const token = getCookie("token");
     setIsLoggedIn(!!token);
-  }, []);
+  }, [pathname]);
 
   const handleLogout = () => {
     deleteCookie("token");
 
+    if (typeof window !== "undefined") {
+      localStorage.clear();
+    }
+
     setIsLoggedIn(false);
+    toast.success("Berhasil logout");
 
     router.push("/auth/login");
   };
 
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    }
+
+    if (showDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDropdown]);
 
   const AuthButton = () => {
     if (isLoggedIn) {
       return (
-        <div className="relative flex items-center">
+        <div className="relative flex items-center" ref={dropdownRef}>
           {/* Trigger Dropdown */}
           <button
             type="button"
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex cursor-pointer items-center text-white gap-2 font-medium px-4 py-3 rounded-full bg-primary hover:bg-[#0a58a4] transition"
+            className="flex cursor-pointer items-center text-white gap-2 font-medium px-5 py-2.5 rounded-full bg-primary hover:bg-dark-primary-2 transition"
           >
             <FaRegUser />
             Area Pelanggan
-            <span className="text-xs ml-1">▼</span>
+            <span className="text-xs ml-1">
+              <IoMdArrowDropdown size={24} />
+            </span>
           </button>
 
           {/* Dropdown */}
@@ -56,7 +85,7 @@ function Header() {
               <Link
                 href="/customer-area"
                 onClick={() => setShowDropdown(false)}
-                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 border-b border-gray-100 transition"
+                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition"
               >
                 <FaRegUser />
                 <span>Area Pelanggan</span>

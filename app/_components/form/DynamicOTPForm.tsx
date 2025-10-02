@@ -11,6 +11,7 @@ interface GroupedOTPProps {
   onComplete?: (val: string) => void;
   onChange?: (val: string) => void;
   isInvalid?: boolean; // ← tambah ini
+  classNameStyle?: string
 }
 
 export default function GroupedOTP({
@@ -20,7 +21,8 @@ export default function GroupedOTP({
   length = 6,
   onComplete,
   onChange,
-  isInvalid = false, // default false
+  isInvalid = false, 
+  classNameStyle
 }: GroupedOTPProps) {
   const [otp, setOtp] = useState("");
 
@@ -30,45 +32,51 @@ export default function GroupedOTP({
         {label}
         {isImportant && <span>*</span>}
       </label>
-      <OTPInput
-        maxLength={length}
-        value={otp}
-        onChange={(val) => {
-          setOtp(val);
-          onChange?.(val);
-        }}
-        onPaste={(e) => {
-          const pasted = e.clipboardData
-            .getData("text")
-            .replace(/\s+/g, "")
-            .slice(0, length);
-          setOtp(pasted);
-          onChange?.(pasted);
-          if (pasted.length === length) {
-            onComplete?.(pasted);
-          }
-          e.preventDefault(); // mencegah perilaku default
-        }}
-        onComplete={(val) => onComplete?.(val)}
-        containerClassName="group flex items-center mt-2"
-        render={({ slots }) => (
-          <>
-            <div className="flex gap-1">
-              {slots.slice(0, length / 2).map((slot, idx) => (
-                <Slot key={idx} {...slot} isInvalid={isInvalid} />
-              ))}
-            </div>
+      <div className={`${classNameStyle}`}>
+        <OTPInput
+          maxLength={length}
+          value={otp}
+          onChange={(val) => {
+            setOtp(val);
+            onChange?.(val);
+          }}
+          onPaste={(e) => {
+            const pasted = e.clipboardData
+              .getData("text")
+              .replace(/\s+/g, "")
+              .slice(0, length);
+            setOtp(pasted);
+            onChange?.(pasted);
+            if (pasted.length === length) {
+              onComplete?.(pasted);
+            }
+            e.preventDefault(); // mencegah perilaku default
+          }}
+          onComplete={(val) => onComplete?.(val)}
+          containerClassName="group flex items-center mt-2"
+          render={({ slots }) => (
+            <>
+              <div className="flex gap-1">
+                {slots.slice(0, length / 2).map((slot, idx) => (
+                  <Slot key={idx} {...slot} isInvalid={isInvalid} />
+                ))}
+              </div>
 
-            <FakeDash />
+              <FakeDash />
 
-            <div className="flex gap-1">
-              {slots.slice(length / 2).map((slot, idx) => (
-                <Slot key={idx + length / 2} {...slot} isInvalid={isInvalid} />
-              ))}
-            </div>
-          </>
-        )}
-      />
+              <div className="flex gap-1">
+                {slots.slice(length / 2).map((slot, idx) => (
+                  <Slot
+                    key={idx + length / 2}
+                    {...slot}
+                    isInvalid={isInvalid}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        />
+      </div>
     </div>
   );
 }

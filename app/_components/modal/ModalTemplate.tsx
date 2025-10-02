@@ -22,7 +22,7 @@ function ModalTemplate({
           classNameModal
         }
       >
-        <div className="absolute top-5 right-10">
+        <div className="absolute top-5 right-5">
           <LiaTimesSolid
             size={24}
             onClick={closeModal}

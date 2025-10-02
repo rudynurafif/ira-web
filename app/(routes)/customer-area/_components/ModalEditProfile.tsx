@@ -149,6 +149,7 @@ export default function ModalEditProfile({
             {/* HP + Kirim OTP */}
             <div>
               <PhoneOTPForm
+                mode=""
                 storageKey={`otp:change-profile:phone`} // ✅ key unik per use-case
                 otpDurationSec={10}
                 label="Nomor Handphone"
@@ -166,7 +167,7 @@ export default function ModalEditProfile({
             {/* OTP */}
             <div>
               <GroupedOTP
-                label="Masukkan OTP yang dikirim via Whatsapp"
+                label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
                 isImportant
                 name="otp"
                 onChange={(value: string) => {
