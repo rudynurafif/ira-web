@@ -752,6 +752,11 @@ function Page() {
                   address_gmaps: p.raw_result,
                   lat: String(p.latitude),
                   lng: String(p.longitude),
+                  province: "",
+                  city: "",
+                  district: "",
+                  sub_district: "",
+                  postal_code: "",
                 }));
 
                 await resolveAndFillLocationFromGmaps(p.raw_result);
