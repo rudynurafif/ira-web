@@ -64,3 +64,21 @@ export const getPostalCode = async (params: any) => {
     throw error;
   }
 };
+
+export const getCheckCoverage =  (params: any) => {
+  try {
+    // const data = await FwaAxios({
+    //   url: "/app/coverage/check",
+    //   method: "GET",
+    //   params: params,
+    // });
+    return {
+      statusCode: 200,
+      result: {
+        inside_coverage: true,
+      },
+    };
+  } catch (error) {
+    throw error;
+  }
+};

@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 
 import FAQAccordion from "../_components/homepage/FAQAccordion";
-import faqImage from "@/public/assets/Images/faq-image.webp";
+import faqImage from "@/public/assets/Images/faq-image.png";
 
 function FAQPage() {
   return (

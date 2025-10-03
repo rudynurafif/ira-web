@@ -153,6 +153,18 @@ function PhoneOTPForm({
   const isRunning = timerReset > 0;
   const isFilled = PHONE_REGEX.test(value);
 
+  const ONLY_DIGITS = /[^\d]/g;
+  const handleNumericChange = (raw: string) => {
+    const digitsOnly = raw.replace(ONLY_DIGITS, "");
+    onChange(digitsOnly);
+  };
+  const handlePaste: React.ClipboardEventHandler<HTMLInputElement> = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text");
+    const digitsOnly = pasted.replace(ONLY_DIGITS, "");
+    onChange(digitsOnly);
+  };
+
   return (
     <div>
       <label htmlFor={name} className="text-muted">
@@ -166,7 +178,8 @@ function PhoneOTPForm({
             type={type}
             name={name}
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => handleNumericChange(e.target.value)}
+            onPaste={handlePaste}
             className={`px-5 py-3 bg-primary-spectrum rounded-xl w-full border ${
               error ? "border-red-500" : "border-[#D5D5D5]"
             }`}
