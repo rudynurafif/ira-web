@@ -19,12 +19,12 @@ function CheckboxAgreeForm({
       />
       <label htmlFor="agreement">
         Dengan ini saya setuju dengan{" "}
-        <a href="/terms-and-condition" target="_blank" className="font-bold text-dark-primary underline">
-          Syarat dan Ketentuan
-        </a>{" "}
-        dan{" "}
-        <a href="/terms-and-condition" target="_blank" className="font-bold text-dark-primary underline">
-          Kebijakan Privasi
+        <a
+          href="/terms-and-condition"
+          target="_blank"
+          className="font-bold text-dark-primary underline"
+        >
+          Syarat dan Ketentuan serta Kebijakan Privasi
         </a>{" "}
         yang berlaku
       </label>
