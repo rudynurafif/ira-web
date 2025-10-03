@@ -932,7 +932,7 @@ function Page() {
           {/* Patokan Alamat */}
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicForm
-              label="Patokan Alamat (Opsional)"
+              label="Patokan Alamat (opsional)"
               isImportant={false}
               name="notes"
               value={formData.notes}
