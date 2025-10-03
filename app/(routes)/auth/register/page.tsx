@@ -12,6 +12,7 @@ import React, { FormEvent, useEffect, useState } from "react";
 import ModalRegister from "./_components/ModalRegister";
 import { registerUser, verifyOtp } from "@/app/_api/Auth/Auth";
 import {
+  getCheckCoverage,
   getCity,
   getDistrict,
   getPostalCode,
@@ -23,6 +24,7 @@ import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
 import { PHONE_REGEX, regexEmail } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
+import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 
 interface FormType {
   fullname: string;
@@ -76,6 +78,7 @@ function Page() {
   const [postalCodeOptions, setPostalCodeOptions] = useState<ReactSelectType[]>(
     []
   );
+  const [isCovered, setIsCovered] = useState<boolean>(false);
 
   const [agreement, setAgreement] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -336,6 +339,13 @@ function Page() {
 
     setIsAutoFilling(false);
   }
+
+  useEffect(() => {
+    try {
+      const resCoverage = getCheckCoverage({});
+      setIsCovered(resCoverage.result.inside_coverage);
+    } catch (error) {}
+  }, []);
 
   useEffect(() => {
     const loadProvince = async () => {
@@ -763,6 +773,18 @@ function Page() {
                 await resolveAndFillLocationFromGmaps(p.raw_result);
               }}
             />
+            {isCovered ? (
+              <p className="mt-1 text-green-primary flex items-center gap-1">
+                <FaCircleCheck className="text-green-primary" />
+                Selamat! Alamat Anda berada di dalam jangkauan kami.
+              </p>
+            ) : (
+              <p className="mt-1 text-red-primary flex items-center gap-1">
+                <FaCircleExclamation className="text-red-primary" />
+                Lokasi Anda belum berada dijangkauan area kami, dan kami sedang
+                menuju ke daerah Anda.
+              </p>
+            )}
           </div>
 
           {/* Provinsi */}
