@@ -1,7 +1,6 @@
 # FWA Project
 variables:
   DEV_SSH_CON: "root@114.119.190.115"
-  #DEV_SSH_CON: "root@fwa-devel"
   STAGE_SSH_CON: "root@"
   PROD_SSH_CON: "root@"
   CONT_NAME: "fwa_website_app"
