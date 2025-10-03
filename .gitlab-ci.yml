@@ -47,7 +47,6 @@ devel-job:       # This job runs in the build stage, which runs first.
     - apt install -y openssh-client
     - mkdir -p ~/.ssh
     - echo "$FWA_DEV_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
-    - echo "$FWA_DEV_KEY"
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
