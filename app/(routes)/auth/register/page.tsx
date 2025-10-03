@@ -507,10 +507,14 @@ function Page() {
 
     if (!formData.nik) {
       errors.nik = "NIK harus diisi";
+    } else if (!/^\d{16}$/.test(formData.nik)) {
+      errors.nik = "NIK harus 16 digit angka";
     }
 
     if (!formData.nokk) {
       errors.nokk = "No KK harus diisi";
+    } else if (!/^\d{16}$/.test(formData.nokk)) {
+      errors.nokk = "No KK harus 16 digit angka";
     }
 
     if (!formData.province) {
@@ -529,9 +533,9 @@ function Page() {
       errors.sub_district = "Kelurahan harus diisi";
     }
 
-    if (!formData.postal_code) {
-      errors.postal_code = "Kode Pos harus diisi";
-    }
+    // if (!formData.postal_code) {
+    //   errors.postal_code = "Kode Pos harus diisi";
+    // }
 
     if (!formData.full_address) {
       errors.full_address = "Alamat Lengkap harus diisi";
@@ -621,10 +625,8 @@ function Page() {
               name="fullname"
               value={formData.fullname}
               onChange={(value: string) => {
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  fullname: value,
-                }));
+                const filtered = value.replace(/[^a-zA-Z\s.\-]/g, "");
+                setFormData((prev) => ({ ...prev, fullname: filtered }));
                 setErrors({ ...errors, fullname: "" });
               }}
               placeholder="Masukkan Nama Lengkap"
@@ -646,7 +648,7 @@ function Page() {
                 }));
                 setErrors({ ...errors, email: "" });
               }}
-              placeholder="Masukkan Email"
+              placeholder="contoh: nama@mail.com"
               error={errors.email}
             />
           </div>
@@ -659,6 +661,7 @@ function Page() {
               label="Nomor Handphone"
               name="phone"
               mode="register"
+              inputMode="numeric"
               isImportant
               value={formData.phone}
               onChange={(value: string) => {
@@ -669,7 +672,7 @@ function Page() {
 
                 setErrors({ ...errors, phone: "" });
               }}
-              placeholder="Masukkan Nomor Handphone"
+              placeholder="contoh: 08123456789"
               error={errors.phone}
             />
           </div>
@@ -706,10 +709,8 @@ function Page() {
               name="nik"
               value={formData.nik}
               onChange={(value: string) => {
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  nik: value,
-                }));
+                const digits = value.replace(/\D/g, "").slice(0, 16);
+                setFormData((prev) => ({ ...prev, nik: digits }));
                 setErrors({ ...errors, nik: "" });
               }}
               placeholder="Masukkan NIK"
@@ -725,10 +726,8 @@ function Page() {
               name="nokk"
               value={formData.nokk}
               onChange={(value: string) => {
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  nokk: value,
-                }));
+                const digits = value.replace(/\D/g, "").slice(0, 16);
+                setFormData((prev) => ({ ...prev, nokk: digits }));
                 setErrors({ ...errors, nokk: "" });
               }}
               placeholder="Masukkan No KK"
@@ -904,9 +903,9 @@ function Page() {
           <div className="max-sm:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
-              label="Kode Pos"
+              label="Kode Pos (opsional)"
               name="postal_code"
-              isImportant
+              isImportant={false}
               isDisabled={!formData.sub_district}
               options={postalCodeOptions}
               value={formData.postal_code}
