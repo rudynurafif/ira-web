@@ -85,7 +85,7 @@ function SettingModemForm() {
         password_5ghz: spPassword5 || "",
       }));
     }
-  }, []);
+  }, [params]);
 
   return (
     <div className="container mx-auto max-w-[480px] max-sm:px-8">

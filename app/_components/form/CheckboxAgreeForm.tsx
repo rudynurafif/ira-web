@@ -18,8 +18,15 @@ function CheckboxAgreeForm({
         onChange={onChange}
       />
       <label htmlFor="agreement">
-        Dengan ini saya setuju dengan <a href="">Syarat dan Ketentuan</a> dan{" "}
-        <a href="">Kebijakan Privasi</a> yang berlaku
+        Dengan ini saya setuju dengan{" "}
+        <a href="/terms-and-condition" target="_blank" className="font-bold text-dark-primary underline">
+          Syarat dan Ketentuan
+        </a>{" "}
+        dan{" "}
+        <a href="/terms-and-condition" target="_blank" className="font-bold text-dark-primary underline">
+          Kebijakan Privasi
+        </a>{" "}
+        yang berlaku
       </label>
     </div>
   );
