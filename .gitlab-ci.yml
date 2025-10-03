@@ -37,13 +37,13 @@ devel-job:       # This job runs in the build stage, which runs first.
         - .env.devel
         - .env.stage
         - .env.prod
-        # .gitlab-ci.yml
-      when: never   # Pipeline will not running if the files are in the list was 'changes'.
+        #- .gitlab-ci.yml
+      when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
     - if: '$CI_COMMIT_BRANCH == "development"'
-      when: always # Pipeline will running if the files are not in the list was 'changes'.
+      when: always # Pipeline akan berjalan jika file ada perubahan.
   before_script:
     - apt update && apt install -y git
-    - apt install -y vim
+    - apt install -y curl vim
     - apt install -y openssh-client
     - mkdir -p ~/.ssh
     - echo "$FWA_DEV_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
@@ -68,37 +68,32 @@ devel-job:       # This job runs in the build stage, which runs first.
       ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
       "docker ps --filter 'name=$CONT_NAME' --format '{{.Names}}' | grep -w $CONT_NAME > /dev/null; \
       if [ \$? -eq 0 ]; then \
-        echo 'Development - Container $CONT_NAME is already running.'; \
-        docker exec $CONT_NAME apt update; \
-        docker exec $CONT_NAME apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
-        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
+        docker exec $CONT_NAME apk update; \
+        docker exec $CONT_NAME apk add --no-cache curl vim git net-tools iputils-ping openssh-client; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
         docker exec $CONT_NAME git branch --set-upstream-to=origin/development development; \
         docker exec $CONT_NAME git pull origin development; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm i sharp; \
-        docker exec $CONT_NAME env NODE_OPTIONS="--max_old_space_size=1024" npm run build --prod; \
+        docker exec $CONT_NAME npm run build --prod; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Development - Docker Deployment Completed.'; \
       else \
         echo 'Development - Image $REGISTRY_URL:$DEV_VER not found, start building...'; \
-        docker stop $CONT_NAME; \
-        docker compose -f $COMPOSE_FILE down $COMPOSE_SVC; \
-        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SVC; \
-        docker cp $ENV_FILE $CONT_NAME:$CONT_PATH/.env; \ 
-        docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
-        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
+        docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
+        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
+        docker exec $CONT_NAME ssh-keyscan gitlab.com > ~/.ssh/known_hosts; \
+        docker exec $CONT_NAME apk update; \
+        docker exec $CONT_NAME apk add --no-cache curl vim git net-tools iputils-ping openssh-client; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
         docker exec $CONT_NAME git branch --set-upstream-to=origin/development development; \
         docker exec $CONT_NAME git pull origin development; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm i sharp; \
-        docker exec $CONT_NAME env NODE_OPTIONS="--max_old_space_size=1024" npm run build --prod; \
+        docker exec $CONT_NAME npm run build --prod; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Development - Docker Deployment Completed.'; \
@@ -117,9 +112,9 @@ staging-job:       # This job runs in the build stage, which runs first.
         - .env.stage
         - .env.prod
         - .gitlab-ci.yml
-      when: never   # Pipeline will not running if the files are in the list was 'changes'.
+      when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
     - if: '$CI_COMMIT_BRANCH == "stage"'
-      when: always # Pipeline will running if the files are in the list was 'changes'.
+      when: always # Pipeline akan berjalan jika file ada perubahan.
   before_script:
     - apt update && apt install -y git
     - apt install -y vim
@@ -148,37 +143,33 @@ staging-job:       # This job runs in the build stage, which runs first.
       "docker ps --filter 'name=$CONT_NAME' --format '{{.Names}}' | grep -w $CONT_NAME > /dev/null; \
       if [ \$? -eq 0 ]; then \
         echo 'Staging - Container $CONT_NAME is already running.'; \
-        docker exec $CONT_NAME apt update; \
-        docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
-        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
+        docker exec $CONT_NAME apk update; \
+        docker exec $CONT_NAME apk add --no-cache curl vim git net-tools iputils-ping openssh-client; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
         docker exec $CONT_NAME git branch --set-upstream-to=origin/stage stage; \
         docker exec $CONT_NAME git pull origin stage; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm i sharp; \
-        docker exec $CONT_NAME env NODE_OPTIONS="--max_old_space_size=1024" npm run build --prod; \
+        docker exec $CONT_NAME npm run build --prod; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Staging - Docker Deployment Completed.'; \
         exit 0; \
       else \
-        echo 'Staging - Image $REGISTRY_URL:$STAGE_VER not found, start building...'; \
-        docker stop $CONT_NAME; \
-        docker compose -f $COMPOSE_FILE down $COMPOSE_SVC; \
-        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SVC; \
-        docker cp $ENV_FILE $CONT_NAME:$CONT_PATH/.env; \ 
-        docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
-        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
+        echo 'Staging - Image $REGISTRY_URL:$IMG_VER not found, start building...'; \
+        docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
+        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
+        docker exec $CONT_NAME ssh-keyscan gitlab.com > ~/.ssh/known_hosts; \
+        docker exec $CONT_NAME apk update; \
+        docker exec $CONT_NAME apk add --no-cache curl vim git net-tools iputils-ping openssh-client; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
         docker exec $CONT_NAME git branch --set-upstream-to=origin/stage stage; \
         docker exec $CONT_NAME git pull origin stage; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm i sharp; \
-        docker exec $CONT_NAME env NODE_OPTIONS="--max_old_space_size=1024" npm run build --prod; \
+        docker exec $CONT_NAME npm run build --prod; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Staging - Docker Deployment Completed.'; \
@@ -186,6 +177,50 @@ staging-job:       # This job runs in the build stage, which runs first.
   artifacts:
     paths:
       - build/
+
+#snyk-test:
+#  stage: Test
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "stage"'
+#      changes:
+#        - Dockerfile
+#        - .env.devel
+#        - .env.stage
+#        - .env.prod
+#        - .gitlab-ci.yml
+#      when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
+#    - if: '$CI_COMMIT_BRANCH == "stage"'
+#      when: always # Pipeline akan berjalan jika file ada perubahan.
+#    #Use npm audit to generate a JSON report for security vulnerabilities, and then convert it to HTML using snyk-to-html.
+#  script:
+#    - echo "Test all the code with SNYK tools"
+#     - npm install -g npm@latest
+#     - npm install -g snyk
+#     - npm install snyk-to-html -g
+#     # Run snyk help, snyk auth, snyk monitor, snyk test to break build and out report
+#     - snyk auth ${SNYK_API_TOKEN}
+#     - snyk monitor --project-name=$CI_PROJECT_NAME
+#     - snyk test --json > snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.json || true
+#     - snyk-to-html -i snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.json -o snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html
+#   # Save report to artifacts
+#   artifacts:
+#     when: always
+#     paths:
+#       - snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.json
+#       - snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html
+  # rules:
+  #   - if: '$CI_COMMIT_BRANCH == "main"'
+# npm-audit:
+#   stage: Test
+#   script:
+#   - npm install -g npm-audit-html@beta
+#   - npm i --package-lock-only
+#   - npm audit --json | npm-audit-html --output npm_audit_report-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html --fatal-exit-code || true
+
+#   artifacts:
+#     paths:
+#       - npm_audit_report-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html
+#     when: always
 
 deploy-production:
   stage: Deploy
@@ -197,9 +232,9 @@ deploy-production:
         - .env.stage
         - .env.prod
         - .gitlab-ci.yml
-      when: never   # Pipeline will not running if the files are in the list was 'changes'.
+      when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
     - if: '$CI_COMMIT_BRANCH == "main"'
-      when: always # Pipeline will running if the files are in the list was 'changes'.
+      when: always # Pipeline akan berjalan jika file ada perubahan.
   before_script:
     - apt update && apt install -y git && apt install -y vim
     - mkdir -p ~/.ssh
@@ -223,41 +258,36 @@ deploy-production:
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $PROD_SSH_CON \
-      "echo 'Production - Updating the apps from the repository...'; \
-      docker ps --filter 'name=$CONT_NAME' --format '{{.Names}}' | grep -w $CONT_NAME > /dev/null; \
+      "docker ps --filter 'name=$CONT_NAME' --format '{{.Names}}' | grep -w $CONT_NAME > /dev/null; \
       if [ \$? -eq 0 ]; then \
         echo 'Production - Container $CONT_NAME is already running.'; \
         docker exec $CONT_NAME apt update; \
-        docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
-        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
+        docker exec $CONT_NAME apt install -y curl vim git net-tools iputils-ping openssh-client; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
         docker exec $CONT_NAME git branch --set-upstream-to=origin/main main; \
         docker exec $CONT_NAME git pull origin main; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm i sharp; \
-        docker exec $CONT_NAME env NODE_OPTIONS="--max_old_space_size=1024" npm run build --prod; \
+        docker exec $CONT_NAME npm run build --prod; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Production - Docker Deployment Completed.'; \
         exit 0; \
       else \
         echo 'Production - Image $REGISTRY_URL:$PROD_VER not found, starting a container...'; \
-        docker stop $CONT_NAME; \
-        docker compose -f $COMPOSE_FILE down $COMPOSE_SVC; \
-        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SVC; \
-        docker cp $ENV_FILE $CONT_NAME:$CONT_PATH/.env; \ 
-        docker exec $CONT_NAME apt update && apt install -y curl vim plocate iputils-ping net-tools openssh-client git; \
-        docker exec $CONT_NAME sh -c "ssh-keyscan -H github.com > ~/.ssh/known_hosts"; \
+        docker compose -f $PROD_COMPOSE_FILE down $COMPOSE_SRV; \
+        docker compose -f $PROD_COMPOSE_FILE up -d --build $COMPOSE_SRV; \
+        docker exec $CONT_NAME ssh-keyscan gitlab.com > ~/.ssh/known_hosts; \
+        docker exec $CONT_NAME apt update; \
+        docker exec $CONT_NAME apt install -y curl vim git net-tools iputils-ping openssh-client; \
         docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
         docker exec $CONT_NAME git config --global user.name 'rizal'; \
         docker exec $CONT_NAME git config --global credential.helper store; \
         docker exec $CONT_NAME git branch --set-upstream-to=origin/main main; \
         docker exec $CONT_NAME git pull origin main; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm i sharp; \
-        docker exec $CONT_NAME env NODE_OPTIONS="--max_old_space_size=1024" npm run build --prod; \
+        docker exec $CONT_NAME npm run build --prod; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Production - Docker Deployment Completed.'; \
@@ -267,24 +297,3 @@ deploy-production:
       - build/
   environment:
     name: production
-
-# image-push:
-#   stage: Push
-#   only:
-#     - stage
-#   before_script:
-#     - apt update && apt install -y git && apt install -y vim
-#     - mkdir -p ~/.ssh
-#   script:
-#     - echo "Deployment starting..."
-#   #   - echo "$FWA_PROD_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-#   #   - chmod 600 ~/.ssh/id_rsa
-#   #   - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
-#   #   - echo "Deploying to production server..."
-#   #   - |
-#   #     ssh -o StrictHostKeyChecking=no -p 9922 $SRC_SSH_CON \
-#   #     "echo 'Push docker image to GitLab registry...'; \
-#   #     docker push $REGISTRY_URL:$IMG_VER; \
-#   #     echo 'Pushing an docker image completed.'"
-#   environment:
-#      name: production
