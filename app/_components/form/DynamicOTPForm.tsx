@@ -11,7 +11,8 @@ interface GroupedOTPProps {
   onComplete?: (val: string) => void;
   onChange?: (val: string) => void;
   isInvalid?: boolean; // ← tambah ini
-  classNameStyle?: string
+  isDisabled?: boolean;
+  classNameStyle?: string;
 }
 
 export default function GroupedOTP({
@@ -21,8 +22,9 @@ export default function GroupedOTP({
   length = 6,
   onComplete,
   onChange,
-  isInvalid = false, 
-  classNameStyle
+  isInvalid = false,
+  isDisabled,
+  classNameStyle,
 }: GroupedOTPProps) {
   const [otp, setOtp] = useState("");
 
@@ -37,10 +39,12 @@ export default function GroupedOTP({
           maxLength={length}
           value={otp}
           onChange={(val) => {
+            if (isDisabled) return;
             setOtp(val);
             onChange?.(val);
           }}
           onPaste={(e) => {
+            if (isDisabled) return;
             const pasted = e.clipboardData
               .getData("text")
               .replace(/\s+/g, "")
@@ -52,13 +56,18 @@ export default function GroupedOTP({
             }
             e.preventDefault(); // mencegah perilaku default
           }}
-          onComplete={(val) => onComplete?.(val)}
+          onComplete={(val) => !isDisabled && onComplete?.(val)}
           containerClassName="group flex items-center mt-2"
           render={({ slots }) => (
             <>
-              <div className="flex gap-1">
+              <div className={`flex gap-1 `}>
                 {slots.slice(0, length / 2).map((slot, idx) => (
-                  <Slot key={idx} {...slot} isInvalid={isInvalid} />
+                  <Slot
+                    key={idx}
+                    {...slot}
+                    isInvalid={isInvalid}
+                    isDisabled={isDisabled}
+                  />
                 ))}
               </div>
 
@@ -70,6 +79,7 @@ export default function GroupedOTP({
                     key={idx + length / 2}
                     {...slot}
                     isInvalid={isInvalid}
+                    isDisabled={isDisabled}
                   />
                 ))}
               </div>
@@ -81,23 +91,28 @@ export default function GroupedOTP({
   );
 }
 
-function Slot(props: SlotProps & { isInvalid?: boolean }) {
+function Slot(
+  props: SlotProps & { isInvalid?: boolean; isDisabled?: boolean }
+) {
   return (
     <div
       className={`relative w-[50px] h-[50px] text-base flex items-center justify-center 
         transition-all duration-300 bg-[#F7F9FD]
         border rounded-[12px]
         ${props.isInvalid ? "border-red-500" : "border-gray-300"}
-        group-hover:border-gray-400 
-        group-focus-within:border-gray-400 
-        outlin-0  outline-blue-300 
+        ${
+          props.isDisabled
+            ? "cursor-not-allowed"
+            : "group-hover:border-gray-400 group-focus-within:border-gray-400"
+        }
+        outline-0 outline-blue-300 
         ${props.isActive ? "outline-2 outline-blue-500" : ""}
       `}
     >
       <div className="group-has-[input[data-input-otp-placeholder-shown]]:opacity-20">
         {props.char ?? props.placeholderChar}
       </div>
-      {props.hasFakeCaret && <FakeCaret />}
+      {props.hasFakeCaret && !props.isDisabled && <FakeCaret />}
     </div>
   );
 }

@@ -345,7 +345,7 @@ const Page = () => {
           Tidak menerima OTP?{" "}
           {resendLeft > 0 ? (
             <span className="inline-flex items-center gap-1 font-semibold">
-              ⏳ {formatTimer(resendLeft)}
+              Tunggu ⏳ {formatTimer(resendLeft)} untuk kirim ulang
             </span>
           ) : (
             <button
