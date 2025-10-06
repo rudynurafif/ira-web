@@ -15,16 +15,32 @@ import starliteIcon from "@/public/assets/Icons/icon-starlite.svg";
 import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
 import { deleteCookie, getCookie } from "cookies-next";
 import toast from "react-hot-toast";
+import { decodeJwt } from "@/app/_shared/utils";
+
+interface CustomerData {
+  customer_id: string;
+  exp: 1759809303;
+  iat: 1759722903;
+  id: string;
+  name: string;
+  phone_number: string;
+  email?: string;
+}
 
 function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [customerData, setCustomerData] = useState<CustomerData>();
 
   useEffect(() => {
     const token = getCookie("token");
     setIsLoggedIn(!!token);
+
+    const result_decode: any = decodeJwt(token as string);
+    console.log(result_decode);
+    setCustomerData(result_decode);
   }, [pathname]);
 
   const handleLogout = () => {
@@ -70,7 +86,9 @@ function Header() {
           <button
             type="button"
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex cursor-pointer items-center text-white gap-2 font-medium px-5 py-2.5 rounded-full bg-primary hover:bg-dark-primary-2 transition"
+            className={`flex gap-1 items-center ${
+              pathname === "/" ? "bg-button-login" : "bg-primary"
+            } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white  shadow-sm shadow-white`}
           >
             <FaRegUser />
             Area Pelanggan
@@ -88,7 +106,14 @@ function Header() {
                 className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition"
               >
                 <FaRegUser />
-                <span>Area Pelanggan</span>
+                <div className="flex-col">
+                  <div className="text-primary font-bold">
+                    {customerData?.name ?? "Nama Customer"}
+                  </div>
+                  <div className="text-muted text-xs">
+                    {customerData?.customer_id ?? "ID"}
+                  </div>
+                </div>
               </Link>
 
               <button

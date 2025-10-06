@@ -122,14 +122,8 @@ function Page() {
   function extractIndoAdmin(raw: any) {
     const comps = raw?.address_components || [];
 
-    // Google sering pakai:
-    // administrative_area_level_1: Provinsi
-    // administrative_area_level_2: Kota/Kabupaten
-    // administrative_area_level_3: Kecamatan
-    // administrative_area_level_4: Kelurahan/Desa (kadang level_4 atau locality/sublocality)
     const prov =
       componentByType(comps, "administrative_area_level_1")?.long_name || "";
-    // DKI kadang "Jakarta" → level_2 = "Kota Jakarta Selatan" dll
     const city =
       componentByType(comps, "administrative_area_level_2")?.long_name ||
       componentByType(comps, "locality")?.long_name ||
@@ -143,7 +137,6 @@ function Page() {
       componentByType(comps, "sublocality_level_2")?.long_name ||
       componentByType(comps, "neighborhood")?.long_name ||
       "";
-    // const postal = componentByType(comps, "postal_code")?.long_name || "";
 
     return {
       provinceName: prov,
@@ -695,21 +688,43 @@ function Page() {
               label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
               isImportant
               name="otp"
+              isDisabled={otpStatus === "valid"}
               onChange={(val) => {
                 setFormData((prev) => ({ ...prev, otp: val }));
                 if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
-                else if (otpStatus !== "idle") setOtpStatus("idle");
+                if (otpStatus !== "idle") setOtpStatus("idle");
               }}
               onComplete={(val) => {
                 handleVerifyOtp(val);
               }}
             />
+
             {otpStatus === "verifying" && (
               <p className="text-primary mt-1 text-sm italic">
                 Memverifikasi OTP...
               </p>
             )}
-            {errors.otp && <p className="text-red-500 mt-1">{errors.otp}</p>}
+
+            {otpStatus === "valid" && (
+              <p className="text-green-600 mt-1 text-sm flex items-center gap-1">
+                <FaCircleCheck className="text-green-600" />
+                OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
+              </p>
+            )}
+
+            {otpStatus === "invalid" && !errors.otp && (
+              <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
+                <FaCircleExclamation className="text-red-500" />
+                Kode OTP tidak valid atau sudah kedaluwarsa.
+              </p>
+            )}
+
+            {errors.otp && (
+              <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
+                <FaCircleExclamation className="text-red-500" />
+                {errors.otp}
+              </p>
+            )}
           </div>
 
           {/* NIK */}
@@ -929,6 +944,7 @@ function Page() {
 
           {/* Kode Pos */}
           <div className="max-sm:col-span-2 col-span-1">
+            {/* Versi dropdown */}
             {/* <DynamicSelectForm
               menuPosition="fixed"
               label="Kode Pos"
@@ -955,6 +971,8 @@ function Page() {
               placeholder="Pilih Kode Pos"
               error={errors.postal_code}
             /> */}
+
+            {/* Versi input number */}
             <DynamicForm
               label="Kode Pos"
               isImportant

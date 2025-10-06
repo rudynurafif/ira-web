@@ -1,3 +1,5 @@
+import { jwtDecode } from "jwt-decode";
+
 export function convertToCurrency(
   number: number,
   locale = "id-ID",
@@ -50,3 +52,13 @@ export function resetUrlParam(param: string) {
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
 export const regexEmail =
   /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+export function decodeJwt(token: string) {
+  try {
+    const decoded = jwtDecode(token);
+    return decoded;
+  } catch (e) {
+    console.error("Error decoding JWT:", e);
+    return null;
+  }
+}
