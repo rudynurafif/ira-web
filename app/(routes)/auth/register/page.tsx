@@ -18,6 +18,7 @@ import {
   getPostalCode,
   getProvince,
   getSubDistrict,
+  getUserLocation,
 } from "@/app/_api/Location/Location";
 import { normalizeAddressForBackend } from "@/app/_shared/utils/address";
 import toast from "react-hot-toast";
@@ -91,253 +92,63 @@ function Page() {
 
   const router = useRouter();
 
-  // --- helpers kecil untuk normalisasi nama
-  function norm(s?: string) {
-    return (s || "")
-      .toLowerCase()
-      .normalize("NFKD")
-      .replace(/[^\w\s.-]/g, "") // buang aksen/simbol
-      .replace(/\s+/g, " ")
-      .trim();
+  function toUserLocationPayload(rawGooglePlace: any) {
+    return { address: [rawGooglePlace] };
   }
 
-  // hapus awalan umum di Indonesia
-  function stripPrefix(s: string) {
-    let x = s;
-    x = x.replace(/^kota\s+/i, "");
-    x = x.replace(/^kabupaten\s+/i, "");
-    x = x.replace(/^kab\.\s+/i, "");
-    x = x.replace(/^kec(?:amatan)?\s+/i, "");
-    x = x.replace(/^kel(?:urahan)?\s+/i, "");
-    x = x.replace(/^desa\s+/i, "");
-    return x.trim();
-  }
-
-  // ambil komponen tertentu dari address_components
-  function componentByType(components: any[], type: string) {
-    return components.find((c: any) => c.types?.includes(type));
-  }
-
-  // ekstrak nama admin dari raw_result Google
-  function extractIndoAdmin(raw: any) {
-    const comps = raw?.address_components || [];
-
-    const prov =
-      componentByType(comps, "administrative_area_level_1")?.long_name || "";
-    const city =
-      componentByType(comps, "administrative_area_level_2")?.long_name ||
-      componentByType(comps, "locality")?.long_name ||
-      "";
-    const district =
-      componentByType(comps, "administrative_area_level_3")?.long_name ||
-      componentByType(comps, "sublocality_level_1")?.long_name ||
-      "";
-    const subdistrict =
-      componentByType(comps, "administrative_area_level_4")?.long_name ||
-      componentByType(comps, "sublocality_level_2")?.long_name ||
-      componentByType(comps, "neighborhood")?.long_name ||
-      "";
-
-    return {
-      provinceName: prov,
-      cityName: city,
-      districtName: district,
-      subDistrictName: subdistrict,
-      // postalCode: postal,
-    };
-  }
-
-  async function resolveAndFillLocationFromGmaps(rawPlace: any) {
-    setIsAutoFilling(true); // ⬅️ aktifkan guard
-
-    const {
-      provinceName,
-      cityName,
-      districtName,
-      subDistrictName,
-      // postalCode,
-    } = extractIndoAdmin(rawPlace);
-
-    console.log("Google extracted:", {
-      provinceName,
-      cityName,
-      districtName,
-      subDistrictName,
-      // postalCode,
-    });
-
-    if (!provinceName) {
-      setIsAutoFilling(false);
-      return;
-    }
-
-    // 1) Province
-    let provinceId = "";
+  async function autofillLocationViaApiWithRaw(rawGooglePlace: any) {
+    setIsAutoFilling(true);
     try {
-      const resProv = await getProvince();
-      const listProv = resProv.data.data as Array<{ id: string; name: string }>;
+      const resp = await getUserLocation(toUserLocationPayload(rawGooglePlace));
+      const payload = resp?.data;
 
-      const targetProv = listProv.find((p) => {
-        const a = norm(stripPrefix(p.name));
-        const b = norm(stripPrefix(provinceName));
-        return a === b || a.includes(b) || b.includes(a);
-      });
-
-      if (!targetProv) {
-        setIsAutoFilling(false);
-        return;
-      }
-      provinceId = String(targetProv.id);
-
-      setProvinceOptions(
-        listProv.map((it) => ({ label: it.name, value: String(it.id) }))
-      );
-      setFormData((prev) => ({ ...prev, province: provinceId }));
-      setErrors((e) => ({ ...e, province: "" }));
-    } catch (e) {
-      console.error("resolve province failed", e);
-      setIsAutoFilling(false);
-      return;
-    }
-
-    // 2) City
-    let cityId = "";
-    try {
-      const resCity = await getCity({ province_id: provinceId });
-      const listCity = resCity.data.data as Array<{ id: string; name: string }>;
-
-      const targetCity = listCity.find((c) => {
-        const a = norm(stripPrefix(c.name));
-        const b = norm(stripPrefix(cityName || provinceName)); // fallback kalau city kosong
-        return a === b || a.includes(b) || b.includes(a);
-      });
-
-      if (!targetCity) {
-        setIsAutoFilling(false);
-        return;
-      }
-      cityId = String(targetCity.id);
-
-      setCityOptions(
-        listCity.map((it) => ({ label: it.name, value: String(it.id) }))
-      );
-      setFormData((prev) => ({ ...prev, city: cityId }));
-      setErrors((e) => ({ ...e, city: "" }));
-    } catch (e) {
-      console.error("resolve city failed", e);
-      setIsAutoFilling(false);
-      return;
-    }
-
-    // 3) District
-    let districtId = "";
-    try {
-      const resDistrict = await getDistrict({ city_id: cityId });
-      const listDistrict = resDistrict.data.data as Array<{
-        id: string;
-        name: string;
-      }>;
-
-      const targetDistrict = listDistrict.find((d) => {
-        const a = norm(stripPrefix(d.name));
-        const raw = districtName || "";
-        const b = norm(stripPrefix(raw));
-        return a === b || a.includes(b) || b.includes(a);
-      });
-
-      if (!targetDistrict) {
-        setIsAutoFilling(false);
-        return;
-      }
-      districtId = String(targetDistrict.id);
-
-      setDistrictOptions(
-        listDistrict.map((it) => ({ label: it.name, value: String(it.id) }))
-      );
-      setFormData((prev) => ({ ...prev, district: districtId }));
-      setErrors((e) => ({ ...e, district: "" }));
-    } catch (e) {
-      console.error("resolve district failed", e);
-      setIsAutoFilling(false);
-      return;
-    }
-
-    // 4) Subdistrict
-    try {
-      const resSub = await getSubDistrict({ district_id: districtId });
-      const listSub = resSub.data.data as Array<{ id: string; name: string }>;
-
-      const targetSub = listSub.find((s) => {
-        const a = norm(stripPrefix(s.name));
-        const raw = subDistrictName || "";
-        const b = norm(stripPrefix(raw));
-        return a === b || a.includes(b) || b.includes(a);
-      });
-
-      if (!targetSub) {
-        setIsAutoFilling(false);
+      if (!payload || payload.statusCode !== 200) {
+        toast.error("Gagal mengenali lokasi dari API.");
         return;
       }
 
-      setSubdistrictOptions(
-        listSub.map((it) => ({ label: it.name, value: String(it.id) }))
-      );
+      const prov = payload.province;
+      const city = payload.city;
+      const dist = payload.district;
+      const subd = payload.sub_district;
+      const pcode = payload.postal_code; // bisa null
 
-      const subId = String(targetSub.id);
+      // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
       setFormData((prev) => ({
         ...prev,
-        sub_district: subId,
+        province: prov?.id ? String(prov.id) : "",
+        city: city?.id ? String(city.id) : "",
+        district: dist?.id ? String(dist.id) : "",
+        sub_district: subd?.id ? String(subd.id) : "",
+        postal_code: pcode ? String(pcode) : "",
       }));
-      setErrors((e) => ({ ...e, sub_district: "" }));
 
-      // 5) Postal Code (berdasarkan sub_district_id)
-      // try {
-      //   const resPostal = await getPostalCode({ sub_district_id: subId });
-      //   const listPostal = resPostal.data.data as Array<{
-      //     id: string;
-      //     name?: string; // backend kamu pakai "name" untuk kode pos
-      //     code?: string;
-      //   }>;
+      if (prov?.id && prov?.name) {
+        setProvinceOptions((opts) =>
+          opts.some((o) => String(o.value) === String(prov.id))
+            ? opts
+            : [{ label: prov.name, value: String(prov.id) }, ...opts]
+        );
+      }
 
-      //   const postalOptions: ReactSelectType[] = (listPostal || [])
-      //     .map((p) => {
-      //       const codeStr = String(p.code ?? p.name ?? "");
-      //       return codeStr ? { label: codeStr, value: String(p.id) } : null;
-      //     })
-      //     .filter(Boolean) as ReactSelectType[];
-
-      //   setPostalCodeOptions(postalOptions);
-
-      //   let defaultPostalId = postalOptions[0]?.value ?? "";
-
-      //   if (postalCode) {
-      //     const matched = postalOptions.find((opt) => opt.label === postalCode);
-      //     if (matched) defaultPostalId = matched.value;
-      //   }
-
-      //   setFormData((prev) => ({
-      //     ...prev,
-      //     postal_code: String(defaultPostalId),
-      //   }));
-
-      //   setErrors((e) => ({ ...e, postal_code: "" }));
-      // } catch (e) {
-      //   console.error("resolve postal code failed", e);
-      // }
-    } catch (e) {
-      console.error("resolve sub-district failed", e);
+      toast.success("Lokasi terisi otomatis ✔");
+    } catch (err: any) {
+      console.error("getUserLocation failed:", err);
+      toast.error(err?.response?.data?.message || "Autofill lokasi gagal");
+    } finally {
       setIsAutoFilling(false);
-      return;
     }
-
-    setIsAutoFilling(false);
   }
 
   useEffect(() => {
     try {
       const resCoverage = getCheckCoverage({});
       setIsCovered(resCoverage.result.inside_coverage);
-    } catch (error) {}
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Error mendapatkan informasi coverage"
+      );
+    }
   }, []);
 
   useEffect(() => {
@@ -667,6 +478,7 @@ function Page() {
               mode="register"
               inputMode="numeric"
               isImportant
+              isDisabled={otpStatus === "valid"}
               value={formData.phone}
               onChange={(value: string) => {
                 setFormData((prevData: any) => ({
@@ -785,7 +597,7 @@ function Page() {
                   postal_code: "",
                 }));
 
-                await resolveAndFillLocationFromGmaps(p.raw_result);
+                await autofillLocationViaApiWithRaw(p.raw_result);
               }}
             />
             {isCovered ? (
