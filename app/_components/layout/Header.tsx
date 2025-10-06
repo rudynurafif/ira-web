@@ -38,9 +38,11 @@ function Header() {
     const token = getCookie("token");
     setIsLoggedIn(!!token);
 
-    const result_decode: any = decodeJwt(token as string);
-    console.log(result_decode);
-    setCustomerData(result_decode);
+    if (token) {
+      const result_decode: any = decodeJwt(token as string);
+      console.log(result_decode);
+      setCustomerData(result_decode);
+    }
   }, [pathname]);
 
   const handleLogout = () => {

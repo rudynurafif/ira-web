@@ -18,6 +18,7 @@ function PhoneOTPForm({
   onSendOTP,
   hint = false,
   externalExpiry,
+  isDisabled,
   ...props
 }: {
   label: string;
@@ -33,6 +34,7 @@ function PhoneOTPForm({
   onSendOTP?: () => void;
   hint?: boolean;
   externalExpiry?: number | null;
+  isDisabled?: boolean;
   [key: string]: any;
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -178,6 +180,7 @@ function PhoneOTPForm({
             type={type}
             name={name}
             value={value}
+            disabled={isDisabled}
             onChange={(e) => handleNumericChange(e.target.value)}
             onPaste={handlePaste}
             className={`px-5 py-3 bg-primary-spectrum rounded-xl w-full border ${
@@ -190,9 +193,9 @@ function PhoneOTPForm({
         <div>
           <button
             type="button"
-            disabled={isLoading || isRunning || !isFilled}
+            disabled={isLoading || isRunning || !isFilled || isDisabled}
             className={`text-white py-3 px-3 rounded-xl  ${
-              isLoading || isRunning || !isFilled
+              isLoading || isRunning || !isFilled || isDisabled
                 ? "bg-slate-400 cursor-not-allowed"
                 : "bg-primary cursor-pointer"
             }`}

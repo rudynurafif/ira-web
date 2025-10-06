@@ -65,7 +65,21 @@ export const getPostalCode = async (params: any) => {
   }
 };
 
-export const getCheckCoverage =  (params: any) => {
+// _api/Location/Location.ts
+export const getUserLocation = async (addressPayload: { address: any[] }) => {
+  try {
+    const data = await FwaAxios({
+      url: "app/location/user-location",
+      method: "POST",
+      data: addressPayload,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getCheckCoverage = (params: any) => {
   try {
     // const data = await FwaAxios({
     //   url: "/app/coverage/check",
