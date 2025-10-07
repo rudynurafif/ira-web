@@ -1,5 +1,6 @@
 import FwaAxios from "../FwaAxios";
 
+// untuk perubahan / pergeseran map
 export const GetListGeocode = async (body: any) => {
   try {
     const data = await FwaAxios({

@@ -69,7 +69,7 @@ export const getPostalCode = async (params: any) => {
 export const getUserLocation = async (addressPayload: { address: any[] }) => {
   try {
     const data = await FwaAxios({
-      url: "app/location/user-location",
+      url: "/app/location/user-location",
       method: "POST",
       data: addressPayload,
     });
@@ -79,19 +79,14 @@ export const getUserLocation = async (addressPayload: { address: any[] }) => {
   }
 };
 
-export const getCheckCoverage = (params: any) => {
+export const getCheckCoverage = async (body: any) => {
   try {
-    // const data = await FwaAxios({
-    //   url: "/app/coverage/check",
-    //   method: "GET",
-    //   params: params,
-    // });
-    return {
-      statusCode: 200,
-      result: {
-        inside_coverage: true,
-      },
-    };
+    const data = await FwaAxios({
+      url: "app/coverage/check",
+      method: "POST",
+      data: body,
+    });
+    return data;
   } catch (error) {
     throw error;
   }
