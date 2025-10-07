@@ -52,6 +52,8 @@ devel-job:       # This job runs in the build stage, which runs first.
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
       "echo 'Development - Reset and clean the repository to avoid stale changes in container'; \
+      docker exec $CONT_NAME ssh-keyscan -H gitlab.com > ~/.ssh/known_hosts; \
+      docker exec $CONT_NAME chmod 0644 ~/.ssh/known_hosts; \
       docker exec $CONT_NAME git reset --hard; \
       docker exec $CONT_NAME git clean -fd; \
       echo 'Development - Fetch and reset to match the remote branch'; \
@@ -126,6 +128,8 @@ staging-job:       # This job runs in the build stage, which runs first.
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $STAGE_SSH_CON \
       "echo 'Staging - Reset and clean the repository to avoid stale changes in container'; \
+      docker exec $CONT_NAME ssh-keyscan -H gitlab.com > ~/.ssh/known_hosts; \
+      docker exec $CONT_NAME chmod 0644 ~/.ssh/known_hosts; \
       docker exec $CONT_NAME git reset --hard; \
       docker exec $CONT_NAME git clean -fd; \
       echo 'Staging - Fetch and reset to match the remote branch'; \
@@ -244,6 +248,8 @@ deploy-production:
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $PROD_SSH_CON \
       "echo 'Production - Reset and clean the repository to avoid stale changes in container'; \
+      docker exec $CONT_NAME ssh-keyscan -H gitlab.com > ~/.ssh/known_hosts; \
+      docker exec $CONT_NAME chmod 0644 ~/.ssh/known_hosts; \
       docker exec $CONT_NAME git reset --hard; \
       docker exec $CONT_NAME git clean -fd; \
       echo 'Production - Fetch and reset to match the remote branch'; \
