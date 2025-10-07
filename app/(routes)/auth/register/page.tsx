@@ -10,7 +10,7 @@ import { ReactSelectType } from "@/app/_shared/types/form";
 import Link from "next/link";
 import React, { FormEvent, useEffect, useState } from "react";
 import ModalRegister from "./_components/ModalRegister";
-import { registerUser, verifyOtp } from "@/app/_api/Auth/Auth";
+import { registerUser, requestCoverage, verifyOtp } from "@/app/_api/Auth/Auth";
 import {
   getCheckCoverage,
   getCity,
@@ -404,16 +404,25 @@ function Page() {
           notes: formData.notes ?? "",
         };
 
-        const res = await registerUser(body);
-        const token = res.data.data;
-        setCookie("token-fwa", token);
+        const res = isCovered
+          ? await registerUser(body)
+          : await requestCoverage({
+              ...body,
+              phone_number_verified: otpStatus === "valid" ? true : false,
+            });
+
         setIsModalRegisterSuccess(true);
         resetForm();
         setOtpStatus("idle");
 
-        setTimeout(() => {
-          router.push("/customer-area");
-        }, 3000);
+        const token = res.data.data;
+        if (token) {
+          setCookie("token-fwa", token);
+
+          setTimeout(() => {
+            router.push("/customer-area");
+          }, 3000);
+        }
       } catch (error: any) {
         toast.error(
           error?.response?.data?.message || "Gagal melakukan registrasi"
@@ -921,7 +930,7 @@ function Page() {
           closeModal={() => setIsModalRegisterSuccess(false)}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >
-          <ModalRegister />
+          <ModalRegister isCovered={isCovered}  />
         </ModalTemplate>
       )}
     </div>

@@ -3,7 +3,7 @@ import React from "react";
 
 import registerIcon from "@/public/assets/Icons/success-register.svg";
 
-function ModalRegister() {
+function ModalRegister({ isCovered }: { isCovered?: boolean }) {
   return (
     <div>
       <div className="flex justify-center">
@@ -14,13 +14,16 @@ function ModalRegister() {
           Terima kasih, pendaftaran Anda berhasil!
         </h1>
         <p className="text-sm w-[80%] mx-auto mt-3">
-          Tim Starlite akan segera menghubungi Anda & perangkat akan dikirim
-          dalam 1-2 hari kerja
+          {isCovered
+            ? "Tim Starlite akan segera menghubungi Anda & perangkat akan dikirim dalam 1-2 hari kerja"
+            : "Kami dalam proses pembangunan di daerah Anda. Kami akan menghubungi Anda dalam waktu dekat."}
         </p>
       </div>
-      <button className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer">
-        Pantau pengiriman di sini
-      </button>
+      {isCovered && (
+        <button className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer">
+          Pantau pengiriman di sini
+        </button>
+      )}
     </div>
   );
 }
