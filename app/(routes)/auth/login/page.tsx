@@ -211,7 +211,7 @@ const Page = () => {
       if (res?.data?.statusCode !== 200) throw new Error("OTP tidak valid");
 
       setSuccessVerifyMessage(res?.data?.message);
-      setCookie("token", res.data.data);
+      setCookie("token-fwa", res.data.data);
       setOtpStatus("valid");
       toast.success("OTP terverifikasi ✔");
 

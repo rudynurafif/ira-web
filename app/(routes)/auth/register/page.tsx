@@ -10,7 +10,7 @@ import { ReactSelectType } from "@/app/_shared/types/form";
 import Link from "next/link";
 import React, { FormEvent, useEffect, useState } from "react";
 import ModalRegister from "./_components/ModalRegister";
-import { registerUser, verifyOtp } from "@/app/_api/Auth/Auth";
+import { registerUser, requestCoverage, verifyOtp } from "@/app/_api/Auth/Auth";
 import {
   getCheckCoverage,
   getCity,
@@ -79,6 +79,7 @@ function Page() {
   const [postalCodeOptions, setPostalCodeOptions] = useState<ReactSelectType[]>(
     []
   );
+  const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
   const [isCovered, setIsCovered] = useState<boolean>(false);
 
   const [agreement, setAgreement] = useState<boolean>(false);
@@ -141,15 +142,29 @@ function Page() {
   }
 
   useEffect(() => {
-    try {
-      const resCoverage = getCheckCoverage({});
-      setIsCovered(resCoverage.result.inside_coverage);
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message || "Error mendapatkan informasi coverage"
-      );
-    }
-  }, []);
+    const checkCoverage = async () => {
+      if (!formData.lat || !formData.lng) {
+        setIsCovered(false);
+        return;
+      }
+
+      setIsCheckCoverage(true);
+      try {
+        const resCoverage = await getCheckCoverage({
+          latitude: formData.lat,
+          longitude: formData.lng,
+        });
+        setIsCovered(resCoverage.data?.result?.inside_coverage ?? false);
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message);
+        setIsCovered(false);
+      } finally {
+        setIsCheckCoverage(false);
+      }
+    };
+
+    checkCoverage();
+  }, [formData.lat, formData.lng]);
 
   useEffect(() => {
     const loadProvince = async () => {
@@ -389,16 +404,25 @@ function Page() {
           notes: formData.notes ?? "",
         };
 
-        const res = await registerUser(body);
-        const token = res.data.data;
-        setCookie("token", token);
+        const res = isCovered
+          ? await registerUser(body)
+          : await requestCoverage({
+              ...body,
+              phone_number_verified: otpStatus === "valid" ? true : false,
+            });
+
         setIsModalRegisterSuccess(true);
         resetForm();
         setOtpStatus("idle");
 
-        setTimeout(() => {
-          router.push("/customer-area");
-        }, 3000);
+        const token = res.data.data;
+        if (token) {
+          setCookie("token-fwa", token);
+
+          setTimeout(() => {
+            router.push("/customer-area");
+          }, 3000);
+        }
       } catch (error: any) {
         toast.error(
           error?.response?.data?.message || "Gagal melakukan registrasi"
@@ -600,13 +624,20 @@ function Page() {
                 await autofillLocationViaApiWithRaw(p.raw_result);
               }}
             />
-            {isCovered ? (
-              <p className="mt-1 text-green-primary flex items-center gap-1">
+            {isCheckCoverage && (
+              <p className="mt-1 text-gray-500 flex items-center gap-2 text-sm">
+                <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
+                Mengecek jangkauan...
+              </p>
+            )}
+            {isCovered && !isCheckCoverage && (
+              <p className="mt-1 text-green-primary flex items-center gap-1 text-sm">
                 <FaCircleCheck className="text-green-primary" />
                 Selamat! Alamat Anda berada di dalam jangkauan kami.
               </p>
-            ) : (
-              <p className="mt-1 text-red-primary flex items-center gap-1">
+            )}
+            {!isCovered && !isCheckCoverage && (
+              <p className="mt-1 text-red-primary flex items-center gap-1 text-sm">
                 <FaCircleExclamation className="text-red-primary" />
                 Lokasi Anda belum berada dijangkauan area kami, dan kami sedang
                 menuju ke daerah Anda.
@@ -899,7 +930,7 @@ function Page() {
           closeModal={() => setIsModalRegisterSuccess(false)}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >
-          <ModalRegister />
+          <ModalRegister isCovered={isCovered}  />
         </ModalTemplate>
       )}
     </div>

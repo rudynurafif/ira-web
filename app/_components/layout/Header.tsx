@@ -35,7 +35,7 @@ function Header() {
   const [customerData, setCustomerData] = useState<CustomerData>();
 
   useEffect(() => {
-    const token = getCookie("token");
+    const token = getCookie("token-fwa");
     setIsLoggedIn(!!token);
 
     if (token) {
@@ -46,7 +46,7 @@ function Header() {
   }, [pathname]);
 
   const handleLogout = () => {
-    deleteCookie("token");
+    deleteCookie("token-fwa");
 
     if (typeof window !== "undefined") {
       localStorage.clear();
