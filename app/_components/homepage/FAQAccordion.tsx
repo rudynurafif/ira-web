@@ -10,19 +10,29 @@ type FAQItem = {
 
 const faqs: FAQItem[] = [
   {
-    question: "What is Material Tailwind?",
+    question: "1. Apa itu Starlite FWA?",
     answer:
-      "Material Tailwind is a framework that enhances Tailwind CSS with additional styles and components.",
+      "Starlite FWA (Fixed Wireless Access) adalah layanan internet rumah dan bisnis yang menggunakan jaringan nirkabel tetap untuk menghadirkan koneksi cepat dan stabil tanpa perlu kabel fiber.",
   },
   {
-    question: "How to use Material Tailwind?",
+    question: "2. Bagaimana cara kerja FWA?",
     answer:
-      "You can use Material Tailwind by importing its components into your Tailwind CSS project.",
+      "Internet dikirim melalui sinyal radio dari menara pemancar ke antena penerima di rumah pelanggan, lalu diteruskan ke modem/router agar bisa digunakan di semua perangkat.",
   },
   {
-    question: "What can I do with Material Tailwind?",
+    question: "3. Apakah sinyal FWA stabil saat hujan?",
     answer:
-      "Material Tailwind allows you to quickly build modern, responsive websites with a focus on design.",
+      "Cuaca ekstrem seperti hujan lebat dapat sedikit memengaruhi kualitas sinyal, namun sistem jaringan Starlite dirancang agar tetap stabil dengan perangkat dan arah antena yang tepat.",
+  },
+  {
+    question: "4. Bagaimana cara mendaftar layanan FWA?",
+    answer:
+      "Cukup isi formulir di website atau hubungi tim kami. Tim teknis akan melakukan survei lokasi, pemasangan perangkat, dan aktivasi layanan.",
+  },
+  {
+    question: "5. Apakah tersedia berbagai pilihan paket?",
+    answer:
+      "Ya. Starlite menyediakan beberapa paket internet dengan kecepatan dan harga berbeda sesuai kebutuhan rumah atau bisnis Anda.",
   },
 ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CustomerHeader from "./_components/CustomerHeader";
 import CustomerBanner from "@/public/assets/banner-customer.svg";
 import Image from "next/image";
@@ -9,6 +9,9 @@ import PersonalData from "./_components/PersonalData";
 import DeliveryTracking from "./_components/DeliveryTracking";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
 import SubscriptionHistory from "./_components/SubscriptionHistory";
+import { getInitials } from "@/app/utils";
+import { ProfileInfo } from "@/app/_shared/types/customer-area";
+import { getProfileInfo } from "@/app/_api/CustomerArea";
 
 const tabs = [
   "Paket Aktif",
@@ -19,11 +22,26 @@ const tabs = [
 
 export default function AreaPelanggan() {
   const [activeTab, setActiveTab] = useState("Paket Aktif");
-  const [customerData, setCustomerData] = useState({
-    name: "Sugeng Presetio",
-    id: "STL10089766890",
-    avatar: starIcon,
-  });
+  const [profileInfo, setProfileInfo] = useState<ProfileInfo>();
+  const [isLoading, setIsloading] = useState(false);
+
+  const fetchData = async () => {
+    setIsloading(true);
+
+    try {
+      const resProfile = await getProfileInfo({});
+
+      setProfileInfo(resProfile);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -35,22 +53,18 @@ export default function AreaPelanggan() {
         <div className="flex flex-col items-center gap-6 md:flex-row md:items-end">
           {/* Avatar */}
           <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
-            <Image
-              src={customerData?.avatar}
-              alt="Avatar"
-              width={80}
-              height={80}
-              className="object-contain"
-            />
+            <span className="text-6xl max-sm:text-2xl font-bold">
+              {getInitials(profileInfo?.fullName ?? "-")}
+            </span>
           </div>
 
           {/* Info */}
           <div className="text-center md:text-left select-none">
             <p className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
-              {customerData?.name || "Nama Pelanggan"}
+              {profileInfo?.fullName ?? "Nama Pelanggan"}
             </p>
             <p className="text-xl max-sm:text-[16px] text-ads-platform-dark">
-              {customerData?.id || "STL00000000XXXX"}
+              {profileInfo?.id || "STL00000000XXXX"}
             </p>
           </div>
         </div>

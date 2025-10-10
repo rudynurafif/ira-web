@@ -1,4 +1,5 @@
 import FtthAxios from "./FwaAxios";
+import starIcon from "@/public/assets/Icons/icon-star.svg";
 
 export const getActivePacket = async (params: any) => {
   try {
@@ -31,11 +32,13 @@ export const getProfileInfo = async (params: any) => {
     // });
 
     const dummyData = {
+      id: "STL10089766890",
       fullName: "Sugeng Prasetyo",
       phoneNumber: "08212348889012",
       email: "sugengpresetio@mail.com",
       address:
         "BINONG KAMPUNG CIJENGIR GANG GURU LILI NO 178 CURUG 00403 KAB TANGERANG 15810",
+      avatar: starIcon,
     };
 
     return dummyData;
