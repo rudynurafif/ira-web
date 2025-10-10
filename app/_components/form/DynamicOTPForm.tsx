@@ -43,19 +43,19 @@ export default function GroupedOTP({
             setOtp(val);
             onChange?.(val);
           }}
-          onPaste={(e) => {
-            if (isDisabled) return;
-            const pasted = e.clipboardData
-              .getData("text")
-              .replace(/\s+/g, "")
-              .slice(0, length);
-            setOtp(pasted);
-            onChange?.(pasted);
-            if (pasted.length === length) {
-              onComplete?.(pasted);
-            }
-            e.preventDefault(); // mencegah perilaku default
-          }}
+          // onPaste={(e) => {
+          //   if (isDisabled) return;
+          //   const pasted = e.clipboardData
+          //     .getData("text")
+          //     .replace(/\s+/g, "")
+          //     .slice(0, length);
+          //   setOtp(pasted);
+          //   onChange?.(pasted);
+          //   if (pasted.length === length) {
+          //     onComplete?.(pasted);
+          //   }
+          //   e.preventDefault(); // mencegah perilaku default
+          // }}
           onComplete={(val) => !isDisabled && onComplete?.(val)}
           containerClassName="group flex items-center mt-2"
           render={({ slots }) => (

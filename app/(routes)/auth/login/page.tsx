@@ -1,4 +1,3 @@
-// app/auth/login/page.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -13,9 +12,7 @@ import { PHONE_REGEX, formatTimer } from "@/app/_shared/utils";
 import { IoMdArrowRoundBack } from "react-icons/io";
 
 type Step = "enterPhone" | "enterOtp" | "blocked";
-
-const RESEND_MAX = 3;
-const BLOCK_MINUTES = 30;
+const MAX_ATTEMPT = 4;
 
 const Page = () => {
   const router = useRouter();
@@ -27,6 +24,7 @@ const Page = () => {
   const [successVerifyMessage, setSuccessVerifyMessage] = useState<string>("");
   const [errorVerifyOtp, setErrorVerifyOtp] = useState<string>("");
   const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
+  const [apiCooldownSec, setApiCooldownSec] = useState<number | null>(null);
 
   const [step, setStep] = useState<Step>("enterPhone");
   const [requestCount, setRequestCount] = useState<number>(0);
@@ -82,7 +80,8 @@ const Page = () => {
     return () => clearInterval(id);
   }, [storageKeys.resendTimer]);
 
-  const startResendTimer = (durationSec = 60) => {
+  const startResendTimer = (durationSec: number) => {
+    if (!Number.isFinite(durationSec) || durationSec <= 0) return;
     const expiry = Date.now() + durationSec * 1000;
     localStorage.setItem(storageKeys.resendTimer, String(expiry));
     setResendLeft(durationSec);
@@ -104,11 +103,20 @@ const Page = () => {
 
   useEffect(() => {
     if (!blockUntil) return;
-    if (Date.now() >= blockUntil) {
-      localStorage.removeItem(storageKeys.blockUntil);
-      setBlockUntil(null);
-      if (step === "blocked") setStep("enterPhone");
-    }
+
+    const tick = () => {
+      const left = Math.max(0, Math.floor((blockUntil - Date.now()) / 1000));
+      setBlockLeft(left);
+      if (left === 0) {
+        localStorage.removeItem(storageKeys.blockUntil);
+        setBlockUntil(null);
+        if (step === "blocked") setStep("enterPhone");
+      }
+    };
+
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
   }, [blockUntil, step, storageKeys.blockUntil]);
 
   // Dipanggil setiap kali tombol Kirim OTP / Kirim Ulang OTP ditekan dari PhoneOTPForm.
@@ -118,6 +126,7 @@ const Page = () => {
       return;
     }
 
+    // jika masih ada blok dari API sebelumnya, jangan paksa kirim
     if (blockUntil && Date.now() < blockUntil) {
       setStep("blocked");
       return;
@@ -125,21 +134,34 @@ const Page = () => {
 
     try {
       const res = await sendOtpLogin({ phone_number: phone });
+
       if (res?.data?.statusCode !== 200) {
         throw new Error(res?.data?.message || "Gagal mengirim OTP");
       }
 
       const apiData = res.data.data || {};
       const attemptFromApi = Number(apiData.attempt ?? 0);
-
+      // simpan attempt dari API
       localStorage.setItem(storageKeys.reqCount, String(attemptFromApi));
       setRequestCount(attemptFromApi);
 
-      // default 60 detik saat sukses
-      startResendTimer(60);
+      // === Cooldown setelah sukses kirim (DINAMIS):
+      let cooldownSec: number | null = null;
+
+      if (Number.isFinite(apiData.cooldownSec)) {
+        cooldownSec = Number(apiData.cooldownSec);
+      } else {
+        const retryAfter =
+          res?.headers?.["retry-after"] || res?.headers?.["Retry-After"];
+        if (retryAfter && /^\d+$/.test(String(retryAfter))) {
+          cooldownSec = parseInt(String(retryAfter), 10);
+        }
+      }
+
+      setApiCooldownSec(cooldownSec ?? null);
+      if (cooldownSec) startResendTimer(cooldownSec);
 
       setStep("enterOtp");
-
       toast.success(res.data.message ?? "OTP terkirim");
     } catch (error: any) {
       const rawMsg =
@@ -147,7 +169,6 @@ const Page = () => {
         error?.message ||
         "Terjadi kesalahan. Gagal mengirim OTP";
 
-      // Tangkap pola "dalam 610 detik" / "in 610 seconds"
       const match =
         typeof rawMsg === "string"
           ? rawMsg.match(
@@ -155,24 +176,45 @@ const Page = () => {
             )
           : null;
 
-      // ✅ RULE BARU: berapapun detiknya, tampilkan renderBlocked
-      if (match?.[1]) {
-        const seconds = parseInt(match[1], 10);
-        const until =
-          Date.now() +
-          (Number.isFinite(seconds) ? seconds : BLOCK_MINUTES * 60) * 1000;
+      // Atau hormati header Retry-After di error
+      const retryAfterHeader =
+        error?.response?.headers?.["retry-after"] ||
+        error?.response?.headers?.["Retry-After"];
+      const retryAfterSec =
+        retryAfterHeader && /^\d+$/.test(String(retryAfterHeader))
+          ? parseInt(String(retryAfterHeader), 10)
+          : null;
 
-        // simpan blockUntil hanya untuk nomor ini (key sudah per-nomor)
-        localStorage.setItem(storageKeys.blockUntil, String(until));
-        setBlockUntil(until);
+      // === RULE: apapun durasinya dari API → ke "blocked" dgn countdown dinamis
+      const seconds =
+        match?.[1] != null
+          ? parseInt(match[1], 10)
+          : retryAfterSec != null
+          ? retryAfterSec
+          : null;
 
-        // ⛔️ JANGAN set resend timer tombol di sini
+      const lastAttempt = Number(
+        localStorage.getItem(storageKeys.reqCount) ?? requestCount ?? 0
+      );
+
+      if (lastAttempt >= MAX_ATTEMPT) {
+        // attempt sudah 4 → request berikutnya memicu tampilan blokir
+        if (Number.isFinite(seconds) && seconds! > 0) {
+          const until = Date.now() + seconds! * 1000;
+          localStorage.setItem(storageKeys.blockUntil, String(until));
+          setBlockUntil(until);
+        }
         setStep("blocked");
+        toast.error(rawMsg);
+        return;
+      } else {
+        if (Number.isFinite(seconds) && seconds! > 0) {
+          startResendTimer(seconds!);
+        }
         toast.error(rawMsg);
         return;
       }
 
-      // (opsional) Kalau 400 tapi tanpa teks "Terlalu sering", fallback biasa
       toast.error(rawMsg);
     }
   };
@@ -215,8 +257,8 @@ const Page = () => {
       setOtpStatus("valid");
       toast.success("OTP terverifikasi ✔");
 
-      // Auto-login (atau tampilkan tombol Login jika mau manual)
-      await handleLogin();
+      router.push("/customer-area");
+      toast.success("Login berhasil");
     } catch (err: any) {
       setOtpStatus("invalid");
       toast.error(
@@ -225,16 +267,6 @@ const Page = () => {
       setErrorVerifyOtp(
         err?.response?.data?.message ?? "Verifikasi OTP gagal. Coba lagi."
       );
-    }
-  }
-
-  async function handleLogin() {
-    try {
-      // const res = await loginUser({ phone_number: phone });
-      toast.success("Login berhasil");
-      router.push("/customer-area");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Login gagal");
     }
   }
 
@@ -305,7 +337,7 @@ const Page = () => {
 
         <div className="text-sm text-center  mb-2">
           Kode OTP sudah dikirim ke nomor <b>{phone}</b>. Anda dapat meminta
-          ulang OTP maksimal <b>3 kali</b>, apabila kode OTP ke SMS/WhatsApp
+          ulang OTP maksimal <b>3 kali</b>, apabila kode OTP ke WhatsApp/SMS
           tidak masuk.
         </div>
 
@@ -350,14 +382,13 @@ const Page = () => {
           ) : (
             <button
               onClick={handleAfterSendOtp}
-              className="text-dark-primary-2 underline-animation-activation cursor-pointer transition"
+              className="text-dark-primary-2 font-semibold underline-animation-activation cursor-pointer transition"
             >
-              Kirim Ulang OTP
+              Klik Kirim Ulang OTP
             </button>
           )}
           <div className="text-xs text-gray-500 mt-1">
-            Maksimal {RESEND_MAX} kali pengiriman ulang. (
-            {Math.min(requestCount, RESEND_MAX)}/{RESEND_MAX})
+            Maksimal 3 kali pengiriman ulang. ({Math.min(requestCount, 3)}/{3})
           </div>
         </div>
       </div>
