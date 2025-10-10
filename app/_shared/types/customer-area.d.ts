@@ -7,6 +7,7 @@ export type ActivePacketData = {
 };
 
 export type ProfileInfo = {
+  id: string,
   fullName: string;
   phoneNumber: string;
   email: string;

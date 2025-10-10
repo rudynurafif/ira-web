@@ -14,7 +14,7 @@ function FAQPage() {
           </div>
           <div className="col-span-1">
             <h1 className="text-3xl font-bold mb-8">
-              Frequently asked questions (FAQ)
+              Frequently Asked Questions (FAQ)
             </h1>
             <FAQAccordion />
           </div>
@@ -22,7 +22,7 @@ function FAQPage() {
 
         <div className="max-sm:flex sm:hidden flex-col gap-5">
           <h1 className="text-3xl font-bold mb-8 text-center">
-            Frequently asked questions (FAQ)
+            Frequently Asked Questions (FAQ)
           </h1>
           <Image src={faqImage} alt="faq" className="w-1/2 mx-auto" />
           <FAQAccordion />

@@ -91,10 +91,22 @@ function Page() {
     "idle" | "verifying" | "valid" | "invalid"
   >("idle");
 
+  const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
+
   const router = useRouter();
 
   function toUserLocationPayload(rawGooglePlace: any) {
     return { address: [rawGooglePlace] };
+  }
+
+  const STORAGE_KEY = `otp:register:phone`;
+
+  function startOtpTimerFromParent(seconds: number) {
+    if (!Number.isFinite(seconds) || seconds <= 0) return;
+    const expiry = Date.now() + seconds * 1000;
+    // optional: tulis juga ke localStorage agar sync antar tab
+    localStorage.setItem(STORAGE_KEY, String(expiry));
+    setOtpExpiry(expiry);
   }
 
   async function autofillLocationViaApiWithRaw(rawGooglePlace: any) {
@@ -495,8 +507,8 @@ function Page() {
           {/* Nomor Handphone */}
           <div className="max-sm:col-span-2 col-span-1">
             <PhoneOTPForm
-              storageKey={`otp:register:phone`} // ✅ key unik per use-case
-              otpDurationSec={60}
+              storageKey={`otp:register:phone`}
+              otpDurationSec={0}
               label="Nomor Handphone"
               name="phone"
               mode="register"
@@ -930,7 +942,7 @@ function Page() {
           closeModal={() => setIsModalRegisterSuccess(false)}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >
-          <ModalRegister isCovered={isCovered}  />
+          <ModalRegister isCovered={isCovered} />
         </ModalTemplate>
       )}
     </div>
