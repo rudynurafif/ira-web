@@ -1,5 +1,8 @@
 import Image from "next/image";
 import React from "react";
+import Lottie from "lottie-react";
+import gifBox from "@/public/assets/Icons/box-gif.json";
+import gifConstruction from "@/public/assets/Icons/construction.json";
 
 import registerIcon from "@/public/assets/Icons/success-register.svg";
 
@@ -7,10 +10,15 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
   return (
     <div>
       <div className="flex justify-center">
-        <Image alt="register" src={registerIcon} className="w-[13s0px]" />
+        <Lottie
+          width={104}
+          height={104}
+          className="w-[170px] sm:w-[190px] md:w-[200px] lg:w-[240px] lg:h-[240px]"
+          animationData={isCovered ? gifBox : gifConstruction}
+        />
       </div>
       <div className="text-center">
-        <h1 className="text-xl text-dark-primary-2 font-bold mt-10">
+        <h1 className="text-xl text-dark-primary-2 font-bold mt-3">
           Terima kasih, pendaftaran Anda berhasil!
         </h1>
         <p className="text-sm w-[80%] mx-auto mt-3">
