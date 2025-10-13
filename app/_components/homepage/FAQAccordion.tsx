@@ -27,7 +27,7 @@ const faqs: FAQItem[] = [
   {
     question: "4. Bagaimana cara mendaftar layanan FWA?",
     answer:
-      "Cukup isi formulir di website atau hubungi tim kami. Tim teknis akan melakukan survei lokasi, pemasangan perangkat, dan aktivasi layanan.",
+      "Cukup isi formulir di website atau hubungi tim kami. Paket CPE (Modem) akan dikirim dari outlet terdekat, ketika sudah sampai bisa langsung diaktivasi lewat website Starlite FWA.",
   },
   {
     question: "5. Apakah tersedia berbagai pilihan paket?",

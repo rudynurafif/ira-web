@@ -33,7 +33,7 @@ export const getProfileInfo = async (params: any) => {
 
     const dummyData = {
       id: "STL10089766890",
-      fullName: "Sugeng Prasetyo",
+      fullName: "Sugeng Prasetyo Namanya Panjang Banget",
       phoneNumber: "08212348889012",
       email: "sugengpresetio@mail.com",
       address:

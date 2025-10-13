@@ -26,6 +26,7 @@ import { setCookie } from "cookies-next";
 import { PHONE_REGEX, regexEmail } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
+import GeoPermissionGate from "./_components/GeoPermissionGate";
 
 interface FormType {
   fullname: string;
@@ -611,6 +612,20 @@ function Page() {
 
           {/* Map */}
           <div className="col-span-2">
+            <div className="mb-3">
+              <GeoPermissionGate
+                onGotLocation={(lat, lng) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    lat: String(lat),
+                    lng: String(lng),
+                  }));
+                  // Opsional: kamu bisa panggil autofill / reverse geocoding di sini
+                  // atau biarkan MapInputForm men-handle perubahan ini.
+                }}
+              />
+            </div>
+
             <MapInputForm
               getAddress={(value: string) => {
                 setFormData((prevData: any) => ({
