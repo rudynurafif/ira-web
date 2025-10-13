@@ -73,11 +73,10 @@ const PersonalData = () => {
               open={openModal}
               onClose={() => setOpenModal(false)}
               initial={{
-                fullName: "Sugeng Prasetio",
-                phone: "0821234889012",
-                email: "sugengpresetio@mail.com",
-                address:
-                  "BINONG KAMPUNG CILENGR GANG GURU LILI NO 178 CURUG 004/03 KAB TANGERANG 15810",
+                fullName: profileInfo?.fullName || "-",
+                phone: profileInfo?.phoneNumber || "-",
+                email: profileInfo?.email || "-",
+                address: profileInfo?.address || "-",
               }}
               onSendOtp={(phone) => console.log("kirim OTP ke", phone)}
               onSubmit={(v) => console.log("submit", v)}
