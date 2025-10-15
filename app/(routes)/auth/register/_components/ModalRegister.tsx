@@ -21,16 +21,18 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
         <h1 className="text-xl text-dark-primary-2 font-bold mt-3">
           Terima kasih, pendaftaran Anda berhasil!
         </h1>
-        <p className="text-sm w-[80%] mx-auto mt-3">
+        <p className="text-sm mt-3">
           {isCovered
             ? "Tim Starlite akan segera menghubungi Anda & perangkat akan dikirim dalam 1-2 hari kerja"
             : "Kami dalam proses pembangunan di daerah Anda. Kami akan menghubungi Anda dalam waktu dekat."}
         </p>
       </div>
       {isCovered && (
-        <button className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer">
-          Pantau pengiriman di sini
-        </button>
+        <div className="text-center">
+          <button className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer">
+            Pantau pengiriman di sini
+          </button>
+        </div>
       )}
     </div>
   );

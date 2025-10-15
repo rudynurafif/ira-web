@@ -432,14 +432,18 @@ function Page() {
 
         setIsModalRegisterSuccess(true);
         setOtpStatus("idle");
+        resetForm();
 
         const token = res.data.data;
         if (token) {
           setCookie("token-fwa", token);
 
           setTimeout(() => {
-            resetForm();
             router.push("/customer-area");
+          }, 5000);
+        } else {
+          setTimeout(() => {
+            router.push("/");
           }, 5000);
         }
       } catch (error: any) {
