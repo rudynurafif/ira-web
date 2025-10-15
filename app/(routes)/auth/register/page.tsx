@@ -82,6 +82,7 @@ function Page() {
   );
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
   const [isCovered, setIsCovered] = useState<boolean>(false);
+  const [coveredAtSubmit, setCoveredAtSubmit] = useState<boolean | null>(null);
 
   const [agreement, setAgreement] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -156,20 +157,22 @@ function Page() {
 
   useEffect(() => {
     const checkCoverage = async () => {
+      console.log("masuk sini cek");
       if (!formData.lat || !formData.lng) {
-        setIsCovered(false);
         return;
       }
 
       setIsCheckCoverage(true);
+
       try {
         const resCoverage = await getCheckCoverage({
           latitude: formData.lat,
           longitude: formData.lng,
         });
-        setIsCovered(resCoverage.data?.result?.inside_coverage ?? false);
+
+        setIsCovered(!!resCoverage.data?.result?.inside_coverage);
       } catch (error: any) {
-        toast.error(error?.response?.data?.message);
+        toast.error(error?.response?.data?.message ?? "Gagal check coverage");
         setIsCovered(false);
       } finally {
         setIsCheckCoverage(false);
@@ -417,15 +420,17 @@ function Page() {
           notes: formData.notes ?? "",
         };
 
-        const res = isCovered
+        const coveredNow = isCovered;
+        setCoveredAtSubmit(coveredNow);
+
+        const res = coveredNow
           ? await registerUser(body)
           : await requestCoverage({
               ...body,
-              phone_number_verified: otpStatus === "valid" ? true : false,
+              phone_number_verified: otpStatus === "valid",
             });
 
         setIsModalRegisterSuccess(true);
-        resetForm();
         setOtpStatus("idle");
 
         const token = res.data.data;
@@ -433,8 +438,9 @@ function Page() {
           setCookie("token-fwa", token);
 
           setTimeout(() => {
+            resetForm();
             router.push("/customer-area");
-          }, 3000);
+          }, 5000);
         }
       } catch (error: any) {
         toast.error(
@@ -954,7 +960,11 @@ function Page() {
 
       {isModalRegisterSuccess && (
         <ModalTemplate
-          closeModal={() => setIsModalRegisterSuccess(false)}
+          closeModal={() => {
+            setIsModalRegisterSuccess(false);
+            resetForm();
+            setCoveredAtSubmit(null);
+          }}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >
           <ModalRegister isCovered={isCovered} />
