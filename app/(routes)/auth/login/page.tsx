@@ -388,7 +388,7 @@ const Page = () => {
             </button>
           )}
           <div className="text-xs text-gray-500 mt-1">
-            Maksimal 3 kali pengiriman ulang. ({Math.min(requestCount, 3)}/{3})
+            Maksimal 3 kali pengiriman ulang. ({Math.min(requestCount - 1, 3)}/{3})
           </div>
         </div>
       </div>
