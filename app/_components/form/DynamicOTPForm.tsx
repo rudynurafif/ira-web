@@ -13,6 +13,7 @@ interface GroupedOTPProps {
   isInvalid?: boolean; // ← tambah ini
   isDisabled?: boolean;
   classNameStyle?: string;
+  value?: string;
 }
 
 export default function GroupedOTP({
@@ -25,8 +26,9 @@ export default function GroupedOTP({
   isInvalid = false,
   isDisabled,
   classNameStyle,
+  value = "",
 }: GroupedOTPProps) {
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState(value);
 
   return (
     <div>
@@ -37,7 +39,7 @@ export default function GroupedOTP({
       <div className={`${classNameStyle}`}>
         <OTPInput
           maxLength={length}
-          value={otp}
+          value={value}
           onChange={(val) => {
             if (isDisabled) return;
             setOtp(val);

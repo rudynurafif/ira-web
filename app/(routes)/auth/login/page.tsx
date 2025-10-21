@@ -5,7 +5,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
-import { verifyOtp, loginUser, sendOtpLogin } from "@/app/_api/Auth/Auth";
+import { verifyOtp, sendOtpLogin } from "@/app/_api/Auth/Auth";
 import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
 import { PHONE_REGEX, formatTimer } from "@/app/_shared/utils";
@@ -18,6 +18,7 @@ const Page = () => {
   const router = useRouter();
 
   const [phone, setPhone] = useState<string>("");
+  const [otp, setOtp] = useState<string>("");
   const [otpStatus, setOtpStatus] = useState<
     "idle" | "verifying" | "valid" | "invalid"
   >("idle");
@@ -169,36 +170,14 @@ const Page = () => {
         error?.message ||
         "Terjadi kesalahan. Gagal mengirim OTP";
 
-      const match =
-        typeof rawMsg === "string"
-          ? rawMsg.match(
-              /(?:terlalu\s*sering).*?(?:dalam|in)\s+(\d+)\s*(?:detik|seconds?)/i
-            )
-          : null;
-
-      // Atau hormati header Retry-After di error
-      const retryAfterHeader =
-        error?.response?.headers?.["retry-after"] ||
-        error?.response?.headers?.["Retry-After"];
-      const retryAfterSec =
-        retryAfterHeader && /^\d+$/.test(String(retryAfterHeader))
-          ? parseInt(String(retryAfterHeader), 10)
-          : null;
-
-      // === RULE: apapun durasinya dari API → ke "blocked" dgn countdown dinamis
-      const seconds =
-        match?.[1] != null
-          ? parseInt(match[1], 10)
-          : retryAfterSec != null
-          ? retryAfterSec
-          : null;
+      const seconds = error?.response?.data?.data?.second;
 
       const lastAttempt = Number(
         localStorage.getItem(storageKeys.reqCount) ?? requestCount ?? 0
       );
 
       if (lastAttempt >= MAX_ATTEMPT) {
-        // attempt sudah 4 → request berikutnya memicu tampilan blokir
+        // attempt sudah 4 atau resend sudah 3 kali → request berikutnya memicu tampilan blokir
         if (Number.isFinite(seconds) && seconds! > 0) {
           const until = Date.now() + seconds! * 1000;
           localStorage.setItem(storageKeys.blockUntil, String(until));
@@ -214,8 +193,6 @@ const Page = () => {
         toast.error(rawMsg);
         return;
       }
-
-      toast.error(rawMsg);
     }
   };
 
@@ -250,7 +227,6 @@ const Page = () => {
       setOtpStatus("verifying");
       const payload = { phone_number: phone, otp: val, type: "login" };
       const res = await verifyOtp(payload);
-      if (res?.data?.statusCode !== 200) throw new Error("OTP tidak valid");
 
       setSuccessVerifyMessage(res?.data?.message);
       setCookie("token-fwa", res.data.data);
@@ -347,8 +323,10 @@ const Page = () => {
               label="Masukkan OTP yang dikirim via Whatsapp/SMS"
               isImportant
               name="otp"
+              value={otp}
               isInvalid={otpStatus === "invalid"}
               onChange={(value: string) => {
+                setOtp(value);
                 if (otpStatus !== "idle") setOtpStatus("idle");
               }}
               onComplete={(val) => handleVerifyOtp(val)}
@@ -376,7 +354,7 @@ const Page = () => {
         <div className="mt-6 text-center text-sm text-gray-700">
           Tidak menerima OTP?{" "}
           {resendLeft > 0 ? (
-            <span className="inline-flex items-center gap-1 font-semibold">
+            <span className="inline-flex cursor-not-allowed items-center gap-1 font-semibold">
               Tunggu ⏳ {formatTimer(resendLeft)} untuk kirim ulang
             </span>
           ) : (
@@ -388,7 +366,8 @@ const Page = () => {
             </button>
           )}
           <div className="text-xs text-gray-500 mt-1">
-            Maksimal 3 kali pengiriman ulang. ({Math.min(requestCount - 1, 3)}/{3})
+            Maksimal 3 kali pengiriman ulang. ({Math.min(requestCount - 1, 3)}/
+            {3})
           </div>
         </div>
       </div>
@@ -458,7 +437,6 @@ const Page = () => {
 
 export default Page;
 
-// ---- util kecil untuk top text (menyamarkan nomor)
 function formatPhoneMask(p: string) {
   if (!p) return "-";
   if (p.length <= 4) return p;

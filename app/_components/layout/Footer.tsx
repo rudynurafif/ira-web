@@ -11,7 +11,7 @@ import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
 
 function Footer() {
   return (
-    // <div className="bg-background-customer">
+    <div className="bg-background-customer">
     <div className="container mx-auto px-5 my-8">
       <div className="block lg:flex justify-between items-center gap-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 w-full lg:w-[60%]">
@@ -63,9 +63,9 @@ function Footer() {
         </div>
       </div>
 
-      <div className="text-center text-[10px] mt-5">ver. 1.1510.019</div>
+      <div className="text-center text-[10px] mt-5">ver. 1.2110.020</div>
     </div>
-    // </div>
+    </div>
   );
 }
 
