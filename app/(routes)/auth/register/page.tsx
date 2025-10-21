@@ -41,7 +41,7 @@ interface FormType {
   sub_district: string;
   postal_code: string;
   notes: string;
-  full_address: string;
+  actual_address: string;
   address_gmaps?: any;
   lat?: string;
   lng?: string;
@@ -59,7 +59,7 @@ const initialFormData: FormType = {
   district: "",
   sub_district: "",
   postal_code: "",
-  full_address: "",
+  actual_address: "",
   notes: "",
   address_gmaps: undefined,
   lat: undefined,
@@ -157,7 +157,6 @@ function Page() {
 
   useEffect(() => {
     const checkCoverage = async () => {
-      console.log("masuk sini cek");
       if (!formData.lat || !formData.lng) {
         return;
       }
@@ -378,8 +377,8 @@ function Page() {
       errors.postal_code = "Kode Pos harus diisi";
     }
 
-    if (!formData.full_address) {
-      errors.full_address = "Alamat Lengkap harus diisi";
+    if (!formData.actual_address) {
+      errors.actual_address = "Alamat Lengkap harus diisi";
     }
 
     if (otpStatus !== "valid") {
@@ -398,7 +397,6 @@ function Page() {
       setIsLoading(false);
       return;
     } else {
-      console.log("masuk");
       try {
         const addressArray = formData.address_gmaps
           ? [normalizeAddressForBackend(formData.address_gmaps)]
@@ -417,6 +415,7 @@ function Page() {
           // postal_code_id: formData.postal_code ?? "",
           postal_code: formData.postal_code ?? "",
           address: addressArray ?? "",
+          actual_address: formData.actual_address ?? "",
           notes: formData.notes ?? "",
         };
 
@@ -440,13 +439,18 @@ function Page() {
 
           setTimeout(() => {
             router.push("/customer-area");
-          }, 5000);
+          }, 3000);
         } else {
           setTimeout(() => {
-            router.push("/");
-          }, 5000);
+            window.location.href = "/";
+          }, 3000);
         }
       } catch (error: any) {
+        console.log("masuk error");
+        if (error?.response?.data?.statusCode === 409) {
+          setOtpStatus("idle");
+          setFormData((prev) => ({ ...prev, otp: "" }));
+        }
         toast.error(
           error?.response?.data?.message || "Gagal melakukan registrasi"
         );
@@ -456,9 +460,9 @@ function Page() {
     }
   }
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
+  // useEffect(() => {
+  //   console.log(formData);
+  // }, [formData]);
 
   function resetForm() {
     setFormData(initialFormData);
@@ -547,6 +551,7 @@ function Page() {
               label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
               isImportant
               name="otp"
+              value={formData.otp}
               isDisabled={otpStatus === "valid"}
               onChange={(val) => {
                 setFormData((prev) => ({ ...prev, otp: val }));
@@ -640,14 +645,14 @@ function Page() {
               getAddress={(value: string) => {
                 setFormData((prevData: any) => ({
                   ...prevData,
-                  full_address: value,
+                  actual_address: value,
                 }));
-                setErrors({ ...errors, full_address: "" });
+                setErrors({ ...errors, actual_address: "" });
               }}
               onPlaceChange={async (p) => {
                 setFormData((prev) => ({
                   ...prev,
-                  full_address: p.address,
+                  actual_address: p.address,
                   address_gmaps: p.raw_result,
                   lat: String(p.latitude),
                   lng: String(p.longitude),
@@ -898,21 +903,21 @@ function Page() {
               type="textarea"
               isImportant
               rows={4}
-              name="full_address"
-              value={formData.full_address}
+              name="actual_address"
+              value={formData.actual_address}
               onChange={(value: string) => {
                 setFormData((prevData: any) => ({
                   ...prevData,
-                  full_address: value,
+                  actual_address: value,
                 }));
-                setErrors({ ...errors, full_address: "" });
+                setErrors({ ...errors, actual_address: "" });
               }}
               placeholder={
                 formData.address_gmaps
                   ? "Masukkan/rapikan Alamat Lengkap"
                   : "Pilih alamat dari pencarian peta untuk mengaktifkan"
               }
-              error={errors.full_address}
+              error={errors.actual_address}
               disabled={!formData.address_gmaps}
             />
           </div>
@@ -955,7 +960,7 @@ function Page() {
                 href="/auth/login"
                 className="underline-animation-register text-dark-primary font-bold"
               >
-                Login
+                Login disini
               </Link>
             </span>
           </p>

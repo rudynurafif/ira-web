@@ -135,13 +135,13 @@ function PhoneOTPForm({
       const errorMessage = error?.response?.data?.message || error?.message;
 
       // ✅ Robust: tangkap "dalam 1161 detik" atau "in 1161 seconds"
-      const match =
-        typeof errorMessage === "string"
-          ? errorMessage.match(/(?:dalam|in)\s+(\d+)\s*(?:detik|seconds?)/i)
-          : null;
+      // const match =
+      //   typeof errorMessage === "string"
+      //     ? errorMessage.match(/(?:dalam|in)\s+(\d+)\s*(?:detik|seconds?)/i)
+      //     : null;
+      let seconds = error?.response?.data?.data?.second;
 
-      if (match?.[1]) {
-        const seconds = parseInt(match[1], 10);
+      if (seconds) {
         toast.error(errorMessage);
         startOtpTimer(seconds); // set cooldown sesuai server
       } else {
