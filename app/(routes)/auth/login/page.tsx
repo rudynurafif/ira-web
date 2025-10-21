@@ -5,7 +5,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
-import { verifyOtp, loginUser, sendOtpLogin } from "@/app/_api/Auth/Auth";
+import { verifyOtp, sendOtpLogin } from "@/app/_api/Auth/Auth";
 import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
 import { PHONE_REGEX, formatTimer } from "@/app/_shared/utils";
@@ -227,7 +227,6 @@ const Page = () => {
       setOtpStatus("verifying");
       const payload = { phone_number: phone, otp: val, type: "login" };
       const res = await verifyOtp(payload);
-      if (res?.data?.statusCode !== 200) throw new Error("OTP tidak valid");
 
       setSuccessVerifyMessage(res?.data?.message);
       setCookie("token-fwa", res.data.data);
