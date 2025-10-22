@@ -6,7 +6,7 @@ import Image from "next/image";
 import redAlert from "@/public/assets/Icons/carbon_warning-filled.svg";
 import greenCheck from "@/public/assets/Icons/mdi_tick-circle.svg";
 import type { SubscriptionHistory } from "@/app/_shared/types/customer-area";
-import { getSubscriptionHistory } from "@/app/_api/CustomerArea";
+import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
 
 const SubscriptionHistoryCard = ({
   paid,

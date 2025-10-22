@@ -233,7 +233,7 @@ const Page = () => {
       setOtpStatus("valid");
       toast.success("OTP terverifikasi ✔");
 
-      router.push("/customer-area");
+      window.location.href = "/customer-area";
       toast.success("Login berhasil");
     } catch (err: any) {
       setOtpStatus("invalid");

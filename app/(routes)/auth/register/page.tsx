@@ -542,6 +542,9 @@ function Page() {
               placeholder="contoh: 08123456789"
               error={errors.phone}
             />
+            <p className="text-xs text-muted mt-1">
+              *Pastikan nomor yang Anda masukkan benar dan aktif
+            </p>
           </div>
 
           {/* OTP */}

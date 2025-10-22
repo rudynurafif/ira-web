@@ -5,8 +5,11 @@ import gifBox from "@/public/assets/Icons/box-gif.json";
 import gifConstruction from "@/public/assets/Icons/construction.json";
 
 import registerIcon from "@/public/assets/Icons/success-register.svg";
+import { useRouter } from "next/navigation";
 
 function ModalRegister({ isCovered }: { isCovered?: boolean }) {
+  const router = useRouter();
+
   return (
     <div>
       <div className="flex justify-center">
@@ -29,7 +32,10 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
       </div>
       {isCovered && (
         <div className="text-center">
-          <button className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer">
+          <button
+            className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer"
+            onClick={() => router.push("/customer-area")}
+          >
             Pantau pengiriman di sini
           </button>
         </div>

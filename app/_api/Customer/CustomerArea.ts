@@ -1,4 +1,4 @@
-import FtthAxios from "./FwaAxios";
+import FtthAxios from "../FwaAxios";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
 
 export const getActivePacket = async (params: any) => {
@@ -25,23 +25,27 @@ export const getActivePacket = async (params: any) => {
 
 export const getProfileInfo = async (params: any) => {
   try {
-    // const data = await FtthAxios({
-    //   url: "/customer/profile",
-    //   method: "GET",
-    //   params: params,
-    // });
+    const data = await FtthAxios({
+      url: "/app/customer/detail",
+      method: "GET",
+      params: params,
+    });
 
-    const dummyData = {
-      id: "FWA10089766890",
-      fullName: "Sugeng Prasetyo Namanya Panjang Banget",
-      phoneNumber: "08212348889012",
-      email: "sugengpresetio@mail.com",
-      address:
-        "BINONG KAMPUNG CIJENGIR GANG GURU LILI NO 178 CURUG 00403 KAB TANGERANG 15810",
-      avatar: starIcon,
-    };
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
 
-    return dummyData;
+export const updateProfileInfo = async (body: any) => {
+  try {
+    const data = await FtthAxios({
+      url: "/app/customer/update",
+      method: "PUT",
+      data: body,
+    });
+
+    return data;
   } catch (error) {
     throw error;
   }

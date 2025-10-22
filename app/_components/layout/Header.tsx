@@ -8,42 +8,41 @@ import { FaRegUser, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
 
-// Images
 import starliteWhiteIcon from "@/public/assets/Icons/icon-starlite-white.svg";
 import weaveWhiteIcon from "@/public/assets/Icons/icon-weave-white.svg";
 import starliteIcon from "@/public/assets/Icons/icon-starlite.svg";
 import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
-import { deleteCookie, getCookie } from "cookies-next";
+import { deleteCookie } from "cookies-next";
 import toast from "react-hot-toast";
-import { decodeJwt } from "@/app/_shared/utils";
-
-interface CustomerData {
-  customer_id: string;
-  exp: 1759809303;
-  iat: 1759722903;
-  id: string;
-  name: string;
-  phone_number: string;
-  email?: string;
-}
+import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
+import { ProfileInfo } from "@/app/_shared/types/customer-area";
+import { getFirstTwoWords } from "@/app/utils";
 
 function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [customerData, setCustomerData] = useState<CustomerData>();
+  const [customerData, setCustomerData] = useState<ProfileInfo>();
 
   useEffect(() => {
-    const token = getCookie("token-fwa");
-    setIsLoggedIn(!!token);
+    const fetchData = async () => {
+      try {
+        const resProfile = await getProfileInfo({});
+        const customer = resProfile.data.data.customer;
 
-    if (token) {
-      const result_decode: any = decodeJwt(token as string);
-      console.log(result_decode);
-      setCustomerData(result_decode);
-    }
-  }, [pathname]);
+        setCustomerData(customer);
+        setIsLoggedIn(!!customer);
+      } catch (error: any) {
+        toast.error(
+          error?.response?.data?.message || "Gagal memuat data pelanggan"
+        );
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleLogout = () => {
     deleteCookie("token-fwa");
@@ -110,10 +109,10 @@ function Header() {
                 <FaRegUser />
                 <div className="flex-col">
                   <div className="text-primary font-bold">
-                    {customerData?.name ?? "Nama Customer"}
+                    {getFirstTwoWords(customerData?.name ?? "Nama Customer")}
                   </div>
                   <div className="text-muted text-xs">
-                    {customerData?.customer_id ?? "ID"}
+                    {customerData?.customer_code ?? "ID"}
                   </div>
                 </div>
               </Link>
