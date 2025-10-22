@@ -439,11 +439,11 @@ function Page() {
 
           setTimeout(() => {
             router.push("/customer-area");
-          }, 3000);
+          }, 5000);
         } else {
           setTimeout(() => {
             window.location.href = "/";
-          }, 3000);
+          }, 5000);
         }
       } catch (error: any) {
         console.log("masuk error");
