@@ -12,7 +12,7 @@ import starliteWhiteIcon from "@/public/assets/Icons/icon-starlite-white.svg";
 import weaveWhiteIcon from "@/public/assets/Icons/icon-weave-white.svg";
 import starliteIcon from "@/public/assets/Icons/icon-starlite.svg";
 import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
-import { deleteCookie } from "cookies-next";
+import { deleteCookie, getCookie } from "cookies-next";
 import toast from "react-hot-toast";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
@@ -28,11 +28,14 @@ function Header() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resProfile = await getProfileInfo({});
-        const customer = resProfile.data.data.customer;
+        const token = getCookie("token-fwa");
+        if (token) {
+          const resProfile = await getProfileInfo({});
+          const customer = resProfile.data.data.customer;
 
-        setCustomerData(customer);
-        setIsLoggedIn(!!customer);
+          setCustomerData(customer);
+          setIsLoggedIn(!!customer);
+        }
       } catch (error: any) {
         toast.error(
           error?.response?.data?.message || "Gagal memuat data pelanggan"
