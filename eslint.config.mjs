@@ -19,7 +19,7 @@ const eslintConfig = [
       "prefer-const": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": [
-        "warn", 
+        "warn",
         {
           additionalHooks: "(useMemoOne|useCallbackOne)",
         },

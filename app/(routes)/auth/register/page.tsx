@@ -439,11 +439,11 @@ function Page() {
 
           setTimeout(() => {
             router.push("/customer-area");
-          }, 3000);
+          }, 5000);
         } else {
           setTimeout(() => {
             window.location.href = "/";
-          }, 3000);
+          }, 5000);
         }
       } catch (error: any) {
         console.log("masuk error");
@@ -542,6 +542,9 @@ function Page() {
               placeholder="contoh: 08123456789"
               error={errors.phone}
             />
+            <p className="text-xs text-muted mt-1">
+              *Pastikan nomor yang Anda masukkan benar dan aktif
+            </p>
           </div>
 
           {/* OTP */}

@@ -11,30 +11,45 @@ import starIcon from "@/public/assets/Icons/icon-star.svg";
 import SubscriptionHistory from "./_components/SubscriptionHistory";
 import { getInitials } from "@/app/utils";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
-import { getProfileInfo } from "@/app/_api/CustomerArea";
+import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import qrCodeDummy from "@/public/assets/Images/qr-code.png";
-
-const tabs = [
-  "Paket Aktif",
-  "Data Pribadi",
-  // "Tracking Pengiriman",
-  "Riwayat Berlangganan",
-];
+import { useRouter, useSearchParams } from "next/navigation";
+import SkeletonBase from "@/app/_components/skeletons/SkeletonBase";
+import SkeletonLarge from "@/app/_components/skeletons/SkeletonLarge";
+import SkeletonMedium from "@/app/_components/skeletons/SkeletonMedium";
+import SkeletonButtonGroup from "@/app/_components/skeletons/SkeletonButtonGroup";
 
 export default function AreaPelanggan() {
-  const [activeTab, setActiveTab] = useState("Paket Aktif");
-  const [profileInfo, setProfileInfo] = useState<ProfileInfo>();
+  const [profileInfo, setProfileInfo] = useState<ProfileInfo | null>(null);
   const [showQR, setShowQR] = useState(false);
   const [isLoading, setIsloading] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const tabs = [
+    "Paket Aktif",
+    "Data Pribadi",
+    // "Tracking Pengiriman",
+    "Riwayat Berlangganan",
+  ];
+
+  const initialTab = searchParams.get("tab") || tabs[0];
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", activeTab);
+    router.replace(url.toString(), { scroll: false });
+  }, [activeTab, router]);
 
   const fetchData = async () => {
     setIsloading(true);
 
     try {
-      const resProfile = await getProfileInfo({});
+      const resProfile: any = await getProfileInfo({});
 
-      setProfileInfo(resProfile);
+      setProfileInfo(resProfile.data?.data?.customer ?? null);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -45,6 +60,8 @@ export default function AreaPelanggan() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const isFetching = !profileInfo;
 
   return (
     <div className="min-h-screen">
@@ -57,23 +74,32 @@ export default function AreaPelanggan() {
           <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
             <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
               <span className="text-6xl max-sm:text-2xl font-bold">
-                {getInitials(profileInfo?.fullName ?? "-")}
+                {isFetching ? (
+                  <SkeletonLarge />
+                ) : (
+                  getInitials(profileInfo?.name)
+                )}
               </span>
             </div>
 
             {/* Info */}
             <div className="flex justify-between items-center">
               <div className="text-center md:text-left select-none">
-                <p className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
-                  {profileInfo?.fullName ?? "Nama Pelanggan"}
-                </p>
-                <p className="text-xl max-sm:text-[16px] text-ads-platform-dark">
-                  {profileInfo?.id || "FWA00000000XXXX"}
-                </p>
+                <div className="">
+                  {isFetching ? (
+                    <SkeletonBase />
+                  ) : (
+                    <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
+                      {profileInfo?.name}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xl max-sm:text-[16px] text-ads-platform-dark">
+                  {isFetching ? <SkeletonBase /> : profileInfo?.customer_code}
+                </div>
               </div>
             </div>
           </div>
-          {/* Avatar */}
 
           {/* Button Show QR */}
           <button
@@ -107,7 +133,7 @@ export default function AreaPelanggan() {
               <div className="mb-6">
                 <p className="text-sm text-gray-600">ID Pelanggan</p>
                 <p className="text-xl font-bold text-dark-primary">
-                  {profileInfo?.id || "FWA123400056"}
+                  {profileInfo?.customer_code || "FWA123400056"}
                 </p>
               </div>
 

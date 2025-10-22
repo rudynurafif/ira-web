@@ -8,7 +8,10 @@ import editIcon from "@/public/assets/Icons/icon-edit.svg";
 import exitIcon from "@/public/assets/Icons/icon-exit.svg";
 import redAlert from "@/public/assets/Icons/carbon_warning-filled.svg";
 import { ProfileLabel } from "./PersonalData";
-import { getActivePacket, getProfileInfo } from "@/app/_api/CustomerArea";
+import {
+  getActivePacket,
+  getProfileInfo,
+} from "@/app/_api/Customer/CustomerArea";
 import {
   ActivePacketData,
   ProfileInfo,
@@ -20,7 +23,7 @@ import Link from "next/link";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 
 const ActivePacket = () => {
-  const [isLoading, setisLoading] = useState(false);
+  const [isLoading, setisLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
 
   const [activePacketData, setActivePacketData] = useState<ActivePacketData>();
@@ -36,7 +39,7 @@ const ActivePacket = () => {
       const resProfile = await getProfileInfo({});
 
       setActivePacketData(resPacket);
-      setprofileInfo(resProfile);
+      setprofileInfo(resProfile.data?.data.customer ?? {});
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -48,9 +51,11 @@ const ActivePacket = () => {
     fetchData();
   }, []);
 
+  const isFetching = !activePacketData || !profileInfo;
+
   return (
     <div className="flex flex-col gap-10 mb-10">
-      {isLoading ? (
+      {isFetching ? (
         <SkeletonLoadingCard />
       ) : (
         <>
@@ -82,7 +87,7 @@ const ActivePacket = () => {
               </div>
               <div className="flex flex-row justify-between items-center">
                 <p className="font-bold text-dark-primary-2 text-xl max-sm:text-sm">
-                  {activePacketData?.packageInfo || "Info Paket Tidak Tersedia"}
+                  {activePacketData?.packageInfo}
                 </p>
                 <div className="flex items-center space-x-1">
                   <Image
@@ -105,12 +110,12 @@ const ActivePacket = () => {
                 </div>
               </div>
               <p className="text-[16px] max-sm:text-[12px] text-black mt-2">
-                {activePacketData?.packagePrice || "Harga Paket Tidak Tersedia"}
+                {activePacketData?.packagePrice}
               </p>
               <div className="flex justify-between items-center mt-2">
                 {/* <p className="text-sm max-sm:text-[12px] text-green-primary">
               Jatuh tempo:{" "}
-              {activePacketData?.dueDate || "Tanggal Tidak Tersedia"}
+              {activePacketData?.dueDate}
             </p> */}
                 <button
                   onClick={() => router.push(`/activation`)}
