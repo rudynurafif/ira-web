@@ -19,6 +19,7 @@ function PhoneOTPForm({
   hint = false,
   externalExpiry,
   isDisabled,
+  isDisabledInput,
   ...props
 }: {
   label: string;
@@ -35,6 +36,7 @@ function PhoneOTPForm({
   hint?: boolean;
   externalExpiry?: number | null;
   isDisabled?: boolean;
+  isDisabledInput?: boolean;
   [key: string]: any;
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -130,15 +132,10 @@ function PhoneOTPForm({
           : await sendOtpRegister(body);
 
       toast.success(res_sendOTP.data.message ?? "OTP telah dikirim!");
-      startOtpTimer(); // default 60 detik
+      startOtpTimer();
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || error?.message;
 
-      // ✅ Robust: tangkap "dalam 1161 detik" atau "in 1161 seconds"
-      // const match =
-      //   typeof errorMessage === "string"
-      //     ? errorMessage.match(/(?:dalam|in)\s+(\d+)\s*(?:detik|seconds?)/i)
-      //     : null;
       let seconds = error?.response?.data?.data?.second;
 
       if (seconds) {
@@ -167,6 +164,9 @@ function PhoneOTPForm({
     onChange(digitsOnly);
   };
 
+  const disabledButton =
+    isLoading || isRunning || !isFilled || isDisabled || isDisabledInput;
+
   return (
     <div>
       <label htmlFor={name} className="text-muted">
@@ -185,7 +185,7 @@ function PhoneOTPForm({
             onPaste={handlePaste}
             className={`px-5 py-3 bg-primary-spectrum rounded-xl w-full border ${
               error ? "border-red-500" : "border-[#D5D5D5]"
-            }`}
+            } placeholder:text-gray-400 placeholder:text-sm`}
             {...props}
           />
         </div>
@@ -193,9 +193,9 @@ function PhoneOTPForm({
         <div>
           <button
             type="button"
-            disabled={isLoading || isRunning || !isFilled || isDisabled}
+            disabled={disabledButton}
             className={`text-white py-3 px-3 rounded-xl  ${
-              isLoading || isRunning || !isFilled || isDisabled
+              disabledButton
                 ? "bg-slate-400 cursor-not-allowed"
                 : "bg-primary cursor-pointer"
             }`}
@@ -203,7 +203,7 @@ function PhoneOTPForm({
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-1">
-                <div className="loading w-[20px] h-[20px]"></div>
+                <div className="loading w-5 h-5"></div>
                 <span className="italic">Loading...</span>
               </div>
             ) : isRunning ? (

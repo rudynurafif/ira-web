@@ -1,5 +1,12 @@
 import { jwtDecode } from "jwt-decode";
 
+export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
+export const PHONE_REGEX2 = /^\d{8,15}$/;
+export const regexEmail =
+  /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+export const NAME_REGEX = /^[a-zA-Z\s.\-]*$/;
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function convertToCurrency(
   number: number,
   locale = "id-ID",
@@ -49,10 +56,6 @@ export function resetUrlParam(param: string) {
   window.history.replaceState(null, "", url.toString());
 }
 
-export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
-export const regexEmail =
-  /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
 export function decodeJwt(token: string) {
   try {
     const decoded = jwtDecode(token);
@@ -61,4 +64,23 @@ export function decodeJwt(token: string) {
     console.error("Error decoding JWT:", e);
     return null;
   }
+}
+
+export function getInitials(name: string | undefined): string {
+  if (!name) return "?";
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase();
+}
+
+export function getFirstTwoWords(name: string): string {
+  if (!name) return "";
+
+  const words = name.trim().split(/\s+/);
+
+  return words.slice(0, 2).join(" ");
 }

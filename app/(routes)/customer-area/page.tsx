@@ -9,7 +9,7 @@ import PersonalData from "./_components/PersonalData";
 import DeliveryTracking from "./_components/DeliveryTracking";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
 import SubscriptionHistory from "./_components/SubscriptionHistory";
-import { getInitials } from "@/app/utils";
+import { getFirstTwoWords, getInitials } from "@/app/_shared/utils";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
@@ -19,6 +19,7 @@ import SkeletonBase from "@/app/_components/skeletons/SkeletonBase";
 import SkeletonLarge from "@/app/_components/skeletons/SkeletonLarge";
 import SkeletonMedium from "@/app/_components/skeletons/SkeletonMedium";
 import SkeletonButtonGroup from "@/app/_components/skeletons/SkeletonButtonGroup";
+import toast from "react-hot-toast";
 
 export default function AreaPelanggan() {
   const [profileInfo, setProfileInfo] = useState<ProfileInfo | null>(null);
@@ -50,8 +51,8 @@ export default function AreaPelanggan() {
       const resProfile: any = await getProfileInfo({});
 
       setProfileInfo(resProfile.data?.data?.customer ?? null);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal muat data profil");
     } finally {
       setIsloading(false);
     }
@@ -95,7 +96,11 @@ export default function AreaPelanggan() {
                   )}
                 </div>
                 <div className="text-xl max-sm:text-[16px] text-ads-platform-dark">
-                  {isFetching ? <SkeletonBase /> : profileInfo?.customer_code}
+                  {isFetching ? (
+                    <SkeletonBase />
+                  ) : (
+                    <span>ID: {profileInfo?.customer_code}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -131,9 +136,11 @@ export default function AreaPelanggan() {
 
               {/* Nomor Pelanggan */}
               <div className="mb-6">
-                <p className="text-sm text-gray-600">ID Pelanggan</p>
+                <p className="text-sm text-gray-600">
+                  {getFirstTwoWords(profileInfo?.name ?? "Nama Customer")}
+                </p>
                 <p className="text-xl font-bold text-dark-primary">
-                  {profileInfo?.customer_code || "FWA123400056"}
+                  ID: {profileInfo?.customer_code ?? "ID Customer"}
                 </p>
               </div>
 

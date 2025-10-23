@@ -7,6 +7,7 @@ import exitIcon from "@/public/assets/Icons/icon-exit.svg";
 
 import Image from "next/image";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
+import toast from "react-hot-toast";
 
 export const ProfileLabel = ({
   label,
@@ -35,8 +36,8 @@ const PersonalData = () => {
       const resProfile: any = await getProfileInfo({});
 
       setProfileInfo(resProfile.data?.data?.customer ?? {});
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal muat data");
     } finally {
       setIsloading(false);
     }
@@ -66,7 +67,7 @@ const PersonalData = () => {
             <>
               <button
                 onClick={() => setOpenModal(true)}
-                className="flex bg-button py-2 px-5 rounded-lg max-sm:text-xs items-center gap-2 cursor-pointer text-white"
+                className="flex bg-button hover:bg-dark-primary-2 py-2 px-5 rounded-lg max-sm:text-xs items-center gap-2 cursor-pointer text-white"
               >
                 Edit
                 <Image src={editIcon} alt="edit-icon" className="text-white" />
