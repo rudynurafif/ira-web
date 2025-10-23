@@ -10,13 +10,21 @@ import { useRouter } from "next/navigation";
 function ModalRegister({ isCovered }: { isCovered?: boolean }) {
   const router = useRouter();
 
+  const toCustomerArea = () => {
+    window.location.href = "/customer-area";
+  };
+
+  const toHomePage = () => {
+    window.location.href = "/";
+  };
+
   return (
     <div>
       <div className="flex justify-center">
         <Lottie
           width={104}
           height={104}
-          className="w-[170px] sm:w-[190px] md:w-[200px] lg:w-[240px] lg:h-[240px]"
+          className="w-[170px] sm:w-[190px] md:w-[200px] lg:w-60 lg:h-60"
           animationData={isCovered ? gifBox : gifConstruction}
         />
       </div>
@@ -26,17 +34,26 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
         </h1>
         <p className="text-sm mt-3">
           {isCovered
-            ? "Tim Starlite akan segera menghubungi Anda & perangkat akan dikirim dalam 1-2 hari kerja"
+            ? "Tim Starlite akan segera menghubungi Anda & perangkat akan segera dikirim."
             : "Kami dalam proses pembangunan di daerah Anda. Kami akan menghubungi Anda dalam waktu dekat."}
         </p>
       </div>
-      {isCovered && (
+      {isCovered ? (
         <div className="text-center">
           <button
             className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer"
-            onClick={() => router.push("/customer-area")}
+            onClick={toCustomerArea}
           >
             Pantau pengiriman di sini
+          </button>
+        </div>
+      ) : (
+        <div className="text-center">
+          <button
+            className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer"
+            onClick={toHomePage}
+          >
+            Selesai
           </button>
         </div>
       )}

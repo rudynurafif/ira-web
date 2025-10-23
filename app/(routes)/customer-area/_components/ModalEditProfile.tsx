@@ -1,7 +1,7 @@
 "use client";
 
 import { Figtree } from "next/font/google";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import OtpInput from "../../auth/login/_components/OTPInput";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
@@ -11,6 +11,8 @@ import toast from "react-hot-toast";
 import { verifyOtp } from "@/app/_api/Auth/Auth";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import { updateProfileInfo } from "@/app/_api/Customer/CustomerArea";
+import { useRouter } from "next/navigation";
+import { EMAIL_REGEX, NAME_REGEX, PHONE_REGEX, PHONE_REGEX2 } from "@/app/_shared/utils";
 
 type Props = {
   open: boolean;
@@ -42,22 +44,25 @@ function normalize(v: unknown) {
   return String(v);
 }
 
+const FIELDS = ["name", "phone_number", "email", "actual_address"] as const;
+
 function buildDiffPayload(prev: Editable, next: Editable, otp?: string) {
   const changed: Record<string, string> = {};
 
-  (["name", "phone_number", "email", "actual_address"] as const).forEach(
-    (k) => {
-      const before = normalize(prev[k]);
-      const after = normalize(next[k]);
-      if (after !== before) {
-        if (k === "email") {
-          if (after !== "") changed[k] = after as string;
-        } else {
-          changed[k] = after as string;
+  FIELDS.forEach((k) => {
+    const before = normalize(prev[k]);
+    const after = normalize(next[k]);
+
+    if (after !== before) {
+      if (k === "email") {
+        if (after !== "") {
+          changed[k] = after;
         }
+      } else {
+        changed[k] = after;
       }
     }
-  );
+  });
 
   return changed;
 }
@@ -76,6 +81,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const baselineRef = useRef<Editable>({});
+  const router = useRouter();
 
   useEffect(() => {
     if (!open) return;
@@ -103,51 +109,74 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    if (!phone_number) {
+
+    const key = normalize(phone_number);
+    const verifiedKey = normalize(verifiedPhone);
+
+    // Jika tidak ada nomor → reset
+    if (!key) {
       setOtpStatus("idle");
       setOtp("");
       return;
     }
 
-    if (verifiedPhone && normalize(phone_number) === normalize(verifiedPhone)) {
-      // kembali ke nomor yang sudah diverifikasi
+    // Jika kembali ke nomor yang sudah diverifikasi
+    if (verifiedPhone && key === verifiedKey) {
       setOtpStatus("valid");
-    } else {
-      // nomor baru / berbeda => wajib verifikasi ulang
-      if (otpStatus !== "idle") setOtpStatus("idle");
-      if (otp) setOtp("");
+      const cached = otpCacheRef.current[key];
+      if (typeof cached === "string") setOtp(cached);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phone_number, verifiedPhone, open]);
 
-  const needsOtp =
-    normalize(phone_number) !== normalize(baselineRef.current.phone_number);
+    // Nomor baru / beda → wajib verifikasi ulang
+    setOtpStatus("idle");
+    const cached = otpCacheRef.current[key];
+    setOtp(cached ?? "");
+  }, [open, phone_number, verifiedPhone]);
+
+  const needsOtp = useMemo(
+    () =>
+      normalize(phone_number) !== normalize(baselineRef.current.phone_number),
+    [phone_number]
+  );
+
+  const verifyAbortRef = useRef<AbortController | null>(null);
 
   async function handleVerifyOtp(val: string) {
+    if (otpStatus === "verifying" || otpStatus === "valid") return;
+
     if (!phone_number) {
       setErrors((e) => ({
         ...e,
-        phone: "Isi nomor handphone terlebih dahulu",
+        phone_number: "Isi nomor handphone terlebih dahulu",
       }));
       toast.error("Nomor handphone wajib diisi sebelum verifikasi OTP");
       return;
     }
 
+    verifyAbortRef.current?.abort();
+    const ac = new AbortController();
+    verifyAbortRef.current = ac;
+
     try {
       setOtpStatus("verifying");
-      const payload = { phone_number, otp: val };
-      const res = await verifyOtp(payload);
-
+      const res = await verifyOtp({
+        phone_number,
+        otp: val,
+        signal: ac.signal,
+      } as any);
       if (res?.data?.statusCode === 200) {
         toast.success(res.data.message ?? "OTP terverifikasi ✔");
         setOtpStatus("valid");
         setVerifiedPhone(phone_number);
         otpCacheRef.current[normalize(phone_number)] = val;
         setOtp(val);
+        setErrors((e) => ({ ...e, otp: "" }));
+      } else {
+        throw new Error("Verifikasi OTP gagal");
       }
-
-      setErrors((e) => ({ ...e, otp: "" }));
     } catch (err: any) {
+      if (ac.signal.aborted) return; // komponen tutup / request dibatalkan
       setOtpStatus("invalid");
       setErrors((e) => ({
         ...e,
@@ -159,44 +188,18 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
     }
   }
 
-  useEffect(() => {
-    if (!open) return;
-
-    const key = normalize(phone_number);
-    if (!key) {
-      setOtpStatus("idle");
-      setOtp("");
-      return;
-    }
-
-    // Kembali ke nomor yang sudah diverifikasi
-    if (verifiedPhone && key === normalize(verifiedPhone)) {
-      setOtpStatus("valid");
-      // pulihkan OTP yang sebelumnya diverifikasi untuk nomor ini (kalau mau tampil)
-      const cached = otpCacheRef.current[key];
-      if (typeof cached === "string") setOtp(cached);
-      return;
-    }
-
-    // Nomor berubah dan belum diverifikasi: reset status & OTP (atau isi dari cache biasa)
-    const cached = otpCacheRef.current[key];
-    setOtpStatus("idle");
-    setOtp(cached ?? ""); // kalau mau benar2 kosong, pakai setOtp("")
-  }, [phone_number, verifiedPhone, open]);
-
   const validate = () => {
     const newErrors: {
       name?: string;
       phone_number?: string;
-      actual_address?: string;
       otp?: string;
+      email?: string;
+      actual_address?: string;
     } = {};
 
     if (!name || name.trim().length < 2) {
       newErrors.name = "Nama minimal 2 huruf";
     }
-
-    console.log(phone_number);
 
     if (!phone_number || phone_number.length < 8 || phone_number.length > 15) {
       newErrors.phone_number = "Nomor HP harus 8-15 digit angka";
@@ -204,6 +207,10 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
 
     if (!actualAddress || actualAddress.trim().length < 5) {
       newErrors.actual_address = "Alamat lengkap terlalu pendek";
+    }
+
+    if (!email && initial?.email) {
+      newErrors.email = "Email tidak bisa dihapus, hanya bisa diganti.";
     }
 
     if (needsOtp && otpStatus !== "valid") {
@@ -223,6 +230,11 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
       otp
     );
 
+    if (Object.keys(diff).length === 0 && email === "") {
+      toast.error("Email tidak boleh kosong");
+      return;
+    }
+
     if (Object.keys(diff).length === 0) {
       toast.error("Tidak ada perubahan data untuk disimpan.");
       return;
@@ -240,9 +252,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         toast.success(res.data.message || "Profil berhasil diperbarui");
 
         setTimeout(() => {
-          // reload page
-          window.location.href = window.location.href;
-        }, 2000);
+          window.location.reload();
+        }, 1000);
       }
     } catch (error: any) {
       toast.error(
@@ -254,6 +265,21 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
     }
   };
 
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e as any).isComposing) return;
+      if (e.key === "Escape" || e.key === "Esc") onClose();
+    };
+
+    window.addEventListener("keydown", onKeyDown, { capture: true });
+    return () =>
+      window.removeEventListener("keydown", onKeyDown, {
+        capture: true,
+      } as any);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
@@ -261,6 +287,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       aria-modal="true"
       role="dialog"
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       {/* Overlay */}
       <div
@@ -275,6 +302,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
       >
         <form
           onSubmit={handleSubmit}
+          noValidate
           className="relative rounded-2xl bg-white shadow-[0_10px_40px_rgba(0,0,0,0.25)] flex flex-col max-h-[90vh] max-sm:max-h-[80vh]"
         >
           {/* Header */}
@@ -292,7 +320,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto overflow-hidden space-y-4 px-6 py-5">
+          <div className="flex-1 overflow-y-auto overflow-hidden space-y-4 p-6">
             {/* Nama */}
             <div>
               <DynamicForm
@@ -301,10 +329,21 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 name="name"
                 value={name}
                 onChange={(value: string) => {
-                  setName(value);
-                  setErrors({ ...errors, name: "" });
+                  const filtered = value.replace(/[^a-zA-Z\s.\-]/g, "");
+                  setName(filtered);
+
+                  if (!NAME_REGEX.test(filtered)) {
+                    setErrors((e) => ({
+                      ...e,
+                      name: "Nama hanya boleh huruf, spasi, titik, atau tanda hubung",
+                    }));
+                  } else if (filtered.length < 2) {
+                    setErrors((e) => ({ ...e, name: "Nama minimal 2 huruf" }));
+                  } else {
+                    setErrors((e) => ({ ...e, name: "" }));
+                  }
                 }}
-                placeholder="contoh: nama@mail.com"
+                placeholder="Masukkan nama lengkap Anda"
                 error={errors.name}
               />
             </div>
@@ -318,12 +357,31 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 label="Nomor Handphone"
                 name="phone_number"
                 onChange={(value: string) => {
-                  setPhoneNumber(value.replace(/[^0-9]/g, ""));
+                  const digitsOnly = value.replace(/\D/g, "").slice(0, 15);
+                  setPhoneNumber(digitsOnly);
+
+                  if (digitsOnly && !PHONE_REGEX2.test(digitsOnly)) {
+                    setErrors((e) => ({
+                      ...e,
+                      phone_number: "Masukkan nomor HP yang valid",
+                    }));
+                  } else if (
+                    digitsOnly.length > 0 &&
+                    (digitsOnly.length < 8 || digitsOnly.length > 15)
+                  ) {
+                    setErrors((e) => ({
+                      ...e,
+                      phone_number: "Nomor HP harus 8-15 digit",
+                    }));
+                  } else {
+                    setErrors((e) => ({ ...e, phone_number: "" }));
+                  }
                 }}
                 isImportant
                 value={phone_number}
-                placeholder="Masukkan nomor handphone yang terdaftar"
+                placeholder="Pastikan nomor handphone Anda benar dan aktif"
                 error={errors.phone_number}
+                isDisabledInput={!needsOtp}
               />
               <p className="text-xs text-muted mt-1">
                 *Kirim OTP untuk verifikasi jika ingin mengganti nomor
@@ -381,17 +439,38 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
             {/* Email */}
             <div className="max-sm:col-span-2 col-span-1">
               <DynamicForm
-                label="Email (opsional)"
+                label="Email"
                 isImportant={false}
                 name="email"
                 value={email}
                 onChange={(value: string) => {
                   setEmail(value);
-                  setErrors({ ...errors, email: "" });
+
+                  if (value && !EMAIL_REGEX.test(value)) {
+                    setErrors((e) => ({
+                      ...e,
+                      email: "Format email tidak valid",
+                    }));
+                  } else if (initial?.email && !value) {
+                    setErrors((e) => ({
+                      ...e,
+                      email: "Email tidak bisa dihapus, hanya bisa diganti",
+                    }));
+                  } else {
+                    setErrors((e) => ({ ...e, email: "" }));
+                  }
                 }}
-                placeholder="contoh: nama@mail.com"
+                placeholder={
+                  initial?.email
+                    ? "Masukkan email baru"
+                    : "contoh: nama@mail.com (opsional)"
+                }
                 error={errors.email}
               />
+              <p className="text-xs text-muted mt-1">
+                {!initial?.email &&
+                  "Opsional: tambahkan email untuk notifikasi dan pemulihan akun."}
+              </p>
             </div>
 
             {/* Alamat */}
@@ -400,12 +479,25 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 label="Alamat Lengkap"
                 type="textarea"
                 isImportant
-                rows={3}
+                rows={4}
                 name="actual_address"
                 value={actualAddress}
                 onChange={(value: string) => {
                   setActualAddress(value);
-                  setErrors({ ...errors, actualAddress: "" });
+
+                  if (value.trim().length > 0 && value.trim().length < 5) {
+                    setErrors((e) => ({
+                      ...e,
+                      actual_address: "Alamat terlalu pendek",
+                    }));
+                  } else if (value.trim().length === 0) {
+                    setErrors((e) => ({
+                      ...e,
+                      actual_address: "Alamat wajib diisi",
+                    }));
+                  } else {
+                    setErrors((e) => ({ ...e, actual_address: "" }));
+                  }
                 }}
                 placeholder="Masukkan Alamat Lengkap"
                 error={errors.actual_address}
@@ -414,18 +506,28 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="px-6 pb-6">
+          <div className="flex gap-6 px-6 pb-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="cursor-pointer w-full rounded-lg bg-red-700 px-4 py-4 text-xl max-sm:text-lg font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Batal
+            </button>
             <button
               type="submit"
-              disabled={isLoading || (needsOtp && otpStatus !== "valid")}
-              className="cursor-pointer w-full rounded-lg bg-primary px-4 py-4 text-xl max-sm:text-lg font-semibold text-white hover:bg-[#0a58a4] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={
+                isLoading ||
+                (needsOtp && otpStatus !== "valid") ||
+                Object.values(errors).some((v) => v && v.trim() !== "")
+              }
+              className="cursor-pointer w-full rounded-lg bg-primary px-4 py-4 text-xl max-sm:text-lg font-semibold text-white hover:bg-dark-primary-2 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </div>
         </form>
       </ModalTemplate>
-      {/* Card */}
     </div>
   );
 }

@@ -190,8 +190,10 @@ function Page() {
           value: item.id.toString(),
         }));
         setProvinceOptions(options);
-      } catch (error) {
-        console.error("Gagal muat provinsi:", error);
+      } catch (error: any) {
+        toast.error(
+          error?.response?.data?.message || "Gagal muat data provinsi"
+        );
       }
     };
     loadProvince();
@@ -212,8 +214,8 @@ function Page() {
             value: String(it.id),
           }))
         );
-      } catch (e) {
-        console.error("Gagal muat kota:", e);
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || "Gagal muat data kota");
         setCityOptions([]);
       }
     })();
@@ -234,8 +236,11 @@ function Page() {
             value: String(it.id),
           }))
         );
-      } catch (e) {
-        console.error("Gagal muat kecamatan:", e);
+      } catch (err: any) {
+        toast.error(
+          err?.response?.data?.message || "Gagal muat data kecamatan"
+        );
+
         setDistrictOptions([]);
       }
     })();
@@ -256,8 +261,10 @@ function Page() {
             value: String(it.id),
           }))
         );
-      } catch (e) {
-        console.error("Gagal muat kelurahan:", e);
+      } catch (err: any) {
+        toast.error(
+          err?.response?.data?.message || "Gagal muat data kelurahan"
+        );
         setSubdistrictOptions([]);
       }
     })();
@@ -282,8 +289,8 @@ function Page() {
           })
           .filter(Boolean) as ReactSelectType[];
         setPostalCodeOptions(options);
-      } catch (e) {
-        console.error("Gagal muat kode pos:", e);
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || "Gagal muat data kode pos");
         setPostalCodeOptions([]);
       }
     })();
@@ -434,17 +441,7 @@ function Page() {
         resetForm();
 
         const token = res.data.data;
-        if (token) {
-          setCookie("token-fwa", token);
-
-          setTimeout(() => {
-            router.push("/customer-area");
-          }, 5000);
-        } else {
-          setTimeout(() => {
-            window.location.href = "/";
-          }, 5000);
-        }
+        if (token) setCookie("token-fwa", token);
       } catch (error: any) {
         console.log("masuk error");
         if (error?.response?.data?.statusCode === 409) {
@@ -478,7 +475,7 @@ function Page() {
   return (
     <div className="container mx-auto px-5 my-22">
       <h1 className="text-center text-[32px] text-[#001D47] font-bold">
-        Registrasi Starlite
+        Registrasi Starlite FWA
       </h1>
 
       <form onSubmit={submitForm} className="mt-7">
@@ -860,7 +857,7 @@ function Page() {
               error={errors.postal_code}
             /> */}
 
-            {/* Versi input number */}
+            {/* Versi input angka */}
             <DynamicForm
               label="Kode Pos"
               isImportant
@@ -976,6 +973,10 @@ function Page() {
             setIsModalRegisterSuccess(false);
             resetForm();
             setCoveredAtSubmit(null);
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+            isCovered
+              ? (window.location.href = "/customer-area")
+              : (window.location.href = "/");
           }}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { FaArrowLeft } from "react-icons/fa6";
 
 function Page() {
@@ -96,8 +97,8 @@ function Page() {
       //   // console.log(res_tnc.data);
       //   setTitle(res_tnc.data[0].title);
       //   setContent(res_tnc.data[0].content);
-    } catch (error: any) {
-      console.error(error.response.data);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal muat data Syarat dan Ketentuan");
     }
   }
 

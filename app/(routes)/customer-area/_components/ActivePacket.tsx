@@ -21,6 +21,7 @@ import DeliveryTracking from "./DeliveryTracking";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
+import toast from "react-hot-toast";
 
 const ActivePacket = () => {
   const [isLoading, setisLoading] = useState(true);
@@ -40,8 +41,8 @@ const ActivePacket = () => {
 
       setActivePacketData(resPacket);
       setprofileInfo(resProfile.data?.data.customer ?? {});
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal muat data paket");
     } finally {
       setisLoading(false);
     }

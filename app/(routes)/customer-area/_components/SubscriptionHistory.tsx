@@ -7,6 +7,7 @@ import redAlert from "@/public/assets/Icons/carbon_warning-filled.svg";
 import greenCheck from "@/public/assets/Icons/mdi_tick-circle.svg";
 import type { SubscriptionHistory } from "@/app/_shared/types/customer-area";
 import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
+import toast from "react-hot-toast";
 
 const SubscriptionHistoryCard = ({
   paid,
@@ -77,8 +78,8 @@ const SubscriptionHistory = () => {
       const resSubHistory = await getSubscriptionHistory({});
 
       setSubscriptionHistory(resSubHistory);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal muat data riwayat langganan");
     } finally {
       setIsLoading(false);
     }

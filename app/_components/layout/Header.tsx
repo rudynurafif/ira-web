@@ -16,7 +16,7 @@ import { deleteCookie, getCookie } from "cookies-next";
 import toast from "react-hot-toast";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
-import { getFirstTwoWords } from "@/app/utils";
+import { getFirstTwoWords } from "@/app/_shared/utils";
 
 function Header() {
   const pathname = usePathname();
