@@ -55,9 +55,8 @@ function Header() {
     }
 
     setIsLoggedIn(false);
-    toast.success("Berhasil logout");
 
-    router.push("/auth/login");
+    window.location.replace("/auth/login");
   };
 
   const [showDropdown, setShowDropdown] = useState(false);

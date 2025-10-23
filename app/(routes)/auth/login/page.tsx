@@ -228,13 +228,16 @@ const Page = () => {
       const payload = { phone_number: phone, otp: val, type: "login" };
       const res = await verifyOtp(payload);
 
-      setSuccessVerifyMessage(res?.data?.message);
+      setSuccessVerifyMessage(res?.data?.message || "OTP terverifikasi ✔");
       setCookie("token-fwa", res.data.data);
       setOtpStatus("valid");
-      toast.success("OTP terverifikasi ✔");
-
-      window.location.href = "/customer-area";
+      
+      toast.success(res?.data?.message || "OTP terverifikasi ✔");
       toast.success("Login berhasil");
+
+      setTimeout(() => {
+        window.location.replace("/customer-area");
+      }, 1000);
     } catch (err: any) {
       setOtpStatus("invalid");
       toast.error(
