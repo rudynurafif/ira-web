@@ -232,9 +232,11 @@ const Page = () => {
       setCookie("token-fwa", res.data.data);
       setOtpStatus("valid");
       toast.success("OTP terverifikasi ✔");
-
-      window.location.href = "/customer-area";
       toast.success("Login berhasil");
+
+      setTimeout(() => {
+        window.location.replace("/customer-area");
+      }, 1000);
     } catch (err: any) {
       setOtpStatus("invalid");
       toast.error(
