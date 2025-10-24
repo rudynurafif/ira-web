@@ -12,7 +12,12 @@ import { verifyOtp } from "@/app/_api/Auth/Auth";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import { updateProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { useRouter } from "next/navigation";
-import { EMAIL_REGEX, NAME_REGEX, PHONE_REGEX, PHONE_REGEX2 } from "@/app/_shared/utils";
+import {
+  EMAIL_REGEX,
+  NAME_REGEX,
+  PHONE_REGEX,
+  PHONE_REGEX2,
+} from "@/app/_shared/utils";
 
 type Props = {
   open: boolean;
@@ -229,11 +234,6 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
       { name, phone_number, email, actual_address: actualAddress },
       otp
     );
-
-    if (Object.keys(diff).length === 0 && email === "") {
-      toast.error("Email tidak boleh kosong");
-      return;
-    }
 
     if (Object.keys(diff).length === 0) {
       toast.error("Tidak ada perubahan data untuk disimpan.");

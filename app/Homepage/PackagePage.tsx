@@ -19,7 +19,7 @@ function PackagePage() {
           return (
             <div
               key={index}
-              className="p-2.5 h-full max-[350px]:min-h-[175px] bg-[#a4b6e8]/20 rounded-xl flex flex-col"
+              className="p-2.5 sm:min-w-[410px] sm:min-h-[200px] h-full max-[350px]:min-h-[175px] bg-[#a4b6e8]/20 rounded-xl flex flex-col"
             >
               <div
                 style={{
@@ -29,9 +29,10 @@ function PackagePage() {
               >
                 {/* Nama Paket */}
                 <div>
-                  <h1 className="text-2xl max-sm:text-base font-bold leading-tight">
+                  <h1 className="text-2xl max-sm:text-base font-bold leading-tight min-h-6">
                     {item.name}
                   </h1>
+
                   <p className="text-4xl max-sm:text-2xl font-bold mt-2">
                     {convertToCurrency(item.price)}
                   </p>
@@ -63,7 +64,7 @@ function PackagePage() {
         </button>
       </div>
 
-      <div className="mt-[144px] max-sm:mt-16">
+      <div className="mt-36 max-sm:mt-16">
         <Image alt="cubmu" src={imageCubmu} className="w-full" />
       </div>
     </div>

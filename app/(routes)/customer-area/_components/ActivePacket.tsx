@@ -128,7 +128,7 @@ const ActivePacket = () => {
                 >
                   Aktivasi Sekarang
                 </button>
-                {activePacketData?.isPaid && (
+                {/* {activePacketData?.isPaid && (
                   <button
                     className={`${
                       activePacketData?.isPaid
@@ -138,117 +138,10 @@ const ActivePacket = () => {
                   >
                     Bayar tagihan
                   </button>
-                )}
+                )} */}
               </div>
             </div>
-            {/* <div className="border text-gray-border"></div> */}
-            {/* <div className="text-secondary text-sm mt-4">Langganan Aktif Lainnya</div> */}
-            {/* <div className="mt-3 flex space-x-10 text-xs">
-          <div className="flex justify-center items-center">
-            <Image
-              src={logoSuperChinese}
-              height={40}
-              width={40}
-              alt="logo-superchinese"
-              className="mr-1"
-            />
-            <Link
-              href={`/`}
-              className="text-dark-primary-2 text-sm font-bold underline"
-            >
-              Login SuperChinese{" "}
-            </Link>
-            <Image src={iconPop} height={16} width={16} alt="icon-pop" />
           </div>
-          <div className="flex justify-center items-center">
-            <Image
-              src={logoCubmu}
-              height={40}
-              width={40}
-              alt="logo-superchinese"
-              className="mr-1"
-            />
-            <Link
-              href={`/`}
-              className="text-dark-primary-2 text-sm font-bold underline"
-            >
-              Login Cubmu{" "}
-            </Link>
-            <Image src={iconPop} height={16} width={16} alt="icon-pop" />
-          </div>
-          <div className="flex justify-center items-center">
-            <Image
-              src={logoIblooming}
-              height={40}
-              width={40}
-              alt="logo-superchinese"
-              className="mr-1"
-            />
-            <Link
-              href={`/`}
-              className="text-dark-primary-2 text-sm font-bold underline"
-            >
-              Login iblooming{" "}
-            </Link>
-            <Image src={iconPop} height={16} width={16} alt="icon-pop" />
-          </div>
-        </div> */}
-          </div>
-          {/* <div className="bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] p-4 max-sm:p-0">
-        <div className="p-4 flex gap-4 items-center">
-          <Image src={starIcon} alt="star-icon" height={40} width={40} />
-          <h3 className="text-2xl font-bold max-sm:text-[16px]">Akun Anda</h3>
-        </div>
-        <ProfileLabel
-          label="Nama Lengkap"
-          data={profileInfo?.fullName || "-"}
-        />
-        <div className="flex items-center justify-between mr-4">
-          <ProfileLabel
-            label="Nomor Handphone"
-            data={profileInfo?.phoneNumber || "-"}
-          />
-          <p
-            onClick={() => {}}
-            className="max-sm:text-xs text-xl text-dark-primary-2 font-bold cursor-pointer"
-          >
-            Verifikasi
-          </p>
-        </div>
-        <ProfileLabel label="Email" data={profileInfo?.email || "-"} />
-        <ProfileLabel label="Alamat" data={profileInfo?.address || "-"} />
-
-        <div className="flex max-sm:flex-col max-sm:gap-2 gap-6 justify-between p-4">
-          <>
-            <div
-              onClick={() => setOpenModal(true)}
-              className="flex max-sm:text-xs text-lg items-center gap-2 cursor-pointer"
-            >
-              <Image src={editIcon} alt="edit-icon" />
-              <p>Edit Profil</p>
-            </div>
-
-            <ModalEditProfile
-              open={openModal}
-              onClose={() => setOpenModal(false)}
-              initial={{
-                fullName: "Sugeng Prasetio",
-                phone: "0821234889012",
-                email: "sugengpresetio@mail.com",
-                address:
-                  "BINONG KAMPUNG CILENGR GANG GURU LILI NO 178 CURUG 004/03 KAB TANGERANG 15810",
-              }}
-              onSendOtp={(phone) => console.log("kirim OTP ke", phone)}
-              onSubmit={(v) => console.log("submit", v)}
-            />
-          </>
-
-          <div className="flex max-sm:text-xs text-lg text-red-primary items-center gap-2 cursor-pointer">
-            <Image src={exitIcon} alt="edit-icon" />
-            <p>Keluar</p>
-          </div>
-        </div>
-      </div> */}
 
           <DeliveryTracking />
         </>
