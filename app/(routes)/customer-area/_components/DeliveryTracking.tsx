@@ -85,6 +85,18 @@ const DeliveryTracking = () => {
           word-break: break-word; /* pecah kata kalau kepanjangan */
         }
 
+        /* Step yang sudah dilewati (finish) */
+        .ant-steps-item-finish .ant-steps-item-icon {
+          background-color: #1faf38 !important;
+          border-color: #1faf38 !important;
+        }
+        .ant-steps-item-finish .ant-steps-icon {
+          color: white !important;
+        }
+        .ant-steps-item-finish .ant-steps-item-title {
+          color: #1faf38 !important;
+        }
+
         @media (max-width: 640px) {
           .ant-steps-item-title {
             font-size: 14px !important;

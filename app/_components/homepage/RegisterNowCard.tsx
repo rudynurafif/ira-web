@@ -23,7 +23,7 @@ function RegisterNowCard() {
         <Image
           alt="register"
           src={imageRegis}
-          className="w-[300px] max-lg:w-[150px]"
+          className="w-[300px] max-[415px]:max-w-[120px] max-lg:w-[150px]"
         />
       </div>
     </div>

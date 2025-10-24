@@ -231,7 +231,7 @@ const Page = () => {
       setSuccessVerifyMessage(res?.data?.message || "OTP terverifikasi ✔");
       setCookie("token-fwa", res.data.data);
       setOtpStatus("valid");
-      
+
       toast.success(res?.data?.message || "OTP terverifikasi ✔");
       toast.success("Login berhasil");
 
@@ -253,7 +253,7 @@ const Page = () => {
     <div className="flex w-full items-start justify-center px-5 my-22">
       <div className="w-full max-w-xl">
         <h1 className="mb-8 text-center text-dark-primary font-extrabold text-[32px]">
-          Login Starlite
+          Login Starlite FWA
         </h1>
 
         <div className="flex flex-col gap-7">
