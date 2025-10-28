@@ -6,6 +6,7 @@ import Image from "next/image";
 import checkSignalHome from "@/public/assets/Images/check-signal-home.webp";
 import Swal from "sweetalert2";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
+import { useRouter } from "next/navigation";
 
 type Level = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -55,12 +56,14 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   autoDurationMs = 1500,
   onRetry,
   onNext,
-  primaryLabel = "Selesai",
+  primaryLabel = "Konfirmasi",
   retryLabel = "Cek Ulang",
 }) => {
   const [isScanning, setIsScanning] = useState(mode === "auto");
   const [resultLevel, setResultLevel] = useState<Level>(level ?? 0);
   const [showPopup, setShowPopup] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     if (!isScanning) return;
@@ -85,7 +88,8 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
     console.log("selesai");
     setShowPopup(false);
     onNext?.(resultLevel);
-  }, [onNext, resultLevel]);
+    router.replace("/customer-area");
+  }, [onNext, resultLevel, router]);
 
   const retryFromPopup = () => {
     setShowPopup(false);
@@ -185,53 +189,6 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
               </motion.div>
             )}
 
-            {/* {showPopup && (
-              <motion.div
-                className="fixed p-6 inset-0 z-50 grid place-items-center bg-black/50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={closePopup}
-              >
-                <motion.div
-                  className="rounded-2xl bg-white py-6 px-15 max-[480px]:px-6 relative"
-                  initial={{ scale: 0.96, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.98, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    type="button"
-                    onClick={closePopup}
-                    className="absolute text-3xl cursor-pointer right-3 top-3 text-gray-500 hover:text-gray-700"
-                    aria-label="Tutup"
-                  >
-                    ×
-                  </button>
-
-                  <h3 className="text-center text-dark-primary font-bold text-lg">
-                    CPE Anda berhasil teraktivasi!
-                  </h3>
-                  <p className="mt-5 text-center font-medium text-sm text-black">
-                    Apakah penempatan modem Anda sudah optimal?
-                    <br />
-                    Cek kekuatan sinyal modem di sini!
-                  </p>
-
-                  <div className="mt-5 flex justify-center">
-                    <button
-                      type="button"
-                      onClick={retryFromPopup}
-                      className="inline-flex w-full items-center justify-center rounded-xl bg-button hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold"
-                    >
-                      Cek Ulang
-                    </button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )} */}
-
             {showPopup && (
               <ModalTemplate
                 key="activation-modal"
@@ -247,13 +204,20 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                   Cek kekuatan sinyal modem di sini!
                 </p>
 
-                <div className="mt-5 flex justify-center">
+                <div className="mt-5 flex justify-center gap-4">
                   <button
                     type="button"
                     onClick={retryFromPopup}
                     className="inline-flex w-full items-center justify-center rounded-xl bg-button hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
                   >
                     Cek Ulang
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closePopup}
+                    className="inline-flex w-full items-center justify-center rounded-xl bg-green-primary px-6 py-3 text-white text-sm font-semibold cursor-pointer"
+                  >
+                    Selesai
                   </button>
                 </div>
               </ModalTemplate>

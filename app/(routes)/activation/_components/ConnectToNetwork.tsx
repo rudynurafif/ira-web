@@ -156,7 +156,7 @@ export default function ConnectToNetwork() {
   // ---- UI ----
   if (screen === "loading") {
     return (
-      <div className="container mx-auto text-center">
+      <div className="container mx-auto px-6 text-center">
         <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-[#001D47]">
           Menghubungkan Perangkat ke Jaringan
         </h2>
@@ -181,7 +181,7 @@ export default function ConnectToNetwork() {
 
   if (screen === "success") {
     return (
-      <div className="container mx-auto text-center">
+      <div className="container mx-auto px-6 text-center">
         <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-[#001D47]">
           Menghubungkan Perangkat ke Jaringan
         </h2>
@@ -217,7 +217,7 @@ export default function ConnectToNetwork() {
 
   if (screen === "failedFinal") {
     return (
-      <div className="container mx-auto text-center">
+      <div className="container mx-auto px-6 text-center">
         <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-[#001D47]">
           Menghubungkan Perangkat ke Jaringan
         </h2>
@@ -249,7 +249,7 @@ export default function ConnectToNetwork() {
 
   // screen === "failed"
   return (
-    <div className="container mx-auto text-center">
+    <div className="container mx-auto px-6 text-center">
       <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-dark-primary">
         Menghubungkan Perangkat ke Jaringan
       </h2>

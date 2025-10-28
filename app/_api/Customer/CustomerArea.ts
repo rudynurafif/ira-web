@@ -1,9 +1,8 @@
-import FtthAxios from "../FwaAxios";
-import starIcon from "@/public/assets/Icons/icon-star.svg";
+import FwaAxios from "../FwaAxios";
 
 export const getActivePacket = async (params: any) => {
   try {
-    // const data = await FtthAxios({
+    // const data = await FwaAxios({
     //   url: "/customer/active-packet",
     //   method: "GET",
     //   params: params,
@@ -25,7 +24,7 @@ export const getActivePacket = async (params: any) => {
 
 export const getProfileInfo = async (params: any) => {
   try {
-    const data = await FtthAxios({
+    const data = await FwaAxios({
       url: "/app/customer/detail",
       method: "GET",
       params: params,
@@ -39,7 +38,7 @@ export const getProfileInfo = async (params: any) => {
 
 export const updateProfileInfo = async (body: any) => {
   try {
-    const data = await FtthAxios({
+    const data = await FwaAxios({
       url: "/app/customer/update",
       method: "PUT",
       data: body,
@@ -53,7 +52,7 @@ export const updateProfileInfo = async (body: any) => {
 
 export const getSubscriptionHistory = async (params: any) => {
   try {
-    // const data = await FtthAxios({
+    // const data = await FwaAxios({
     //   url: "/customer/subscription-history",
     //   method: "GET",
     //   params: params,
