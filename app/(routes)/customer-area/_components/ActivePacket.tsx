@@ -118,16 +118,18 @@ const ActivePacket = () => {
               Jatuh tempo:{" "}
               {activePacketData?.dueDate}
             </p> */}
-                <button
-                  onClick={() => router.push(`/activation`)}
-                  className={`${
-                    activePacketData?.isActive
-                      ? "bg-gray-border cursor-not-allowed"
-                      : "bg-button hover:bg-dark-primary-2 cursor-pointer"
-                  } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
-                >
-                  Aktivasi Sekarang
-                </button>
+                {/* {profileInfo?.status !== "active" && ( */}
+                  <button
+                    onClick={() => router.push(`/activation`)}
+                    className={`${
+                      activePacketData?.isActive
+                        ? "bg-gray-border cursor-not-allowed"
+                        : "bg-button hover:bg-dark-primary-2 cursor-pointer"
+                    } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
+                  >
+                    Aktivasi Sekarang
+                  </button>
+                {/* )} */}
                 {/* {activePacketData?.isPaid && (
                   <button
                     className={`${

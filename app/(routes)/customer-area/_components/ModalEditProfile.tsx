@@ -236,7 +236,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
     );
 
     if (Object.keys(diff).length === 0) {
-      toast.error("Tidak ada perubahan data untuk disimpan.");
+      toast.success("Tidak ada perubahan data untuk disimpan.");
+      onClose();
       return;
     }
 
