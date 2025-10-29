@@ -22,37 +22,35 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import toast from "react-hot-toast";
+import { useAppSelector } from "@/app/store/store";
 
 const ActivePacket = () => {
-  const [isLoading, setisLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
-
   const [activePacketData, setActivePacketData] = useState<ActivePacketData>();
-  const [profileInfo, setprofileInfo] = useState<ProfileInfo>();
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
 
   const router = useRouter();
 
-  const fetchData = async () => {
-    setisLoading(true);
-
-    try {
-      const resPacket = await getActivePacket({});
-      const resProfile = await getProfileInfo({});
-
-      setActivePacketData(resPacket);
-      setprofileInfo(resProfile.data?.data.customer ?? {});
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal muat data paket");
-    } finally {
-      setisLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
-  }, []);
+    const fetchData = async () => {
+      setIsLoading(true);
 
-  const isFetching = !activePacketData || !profileInfo;
+      try {
+        const resPacket = await getActivePacket({});
+
+        setActivePacketData(resPacket);
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || "Gagal muat data paket");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [userInfo]);
+
+  const isFetching = !activePacketData && !userInfo;
 
   return (
     <div className="flex flex-col gap-10 mb-10">
@@ -118,18 +116,18 @@ const ActivePacket = () => {
               Jatuh tempo:{" "}
               {activePacketData?.dueDate}
             </p> */}
-                {/* {profileInfo?.status !== "active" && ( */}
-                  <button
-                    onClick={() => router.push(`/activation`)}
-                    className={`${
-                      activePacketData?.isActive
-                        ? "bg-gray-border cursor-not-allowed"
-                        : "bg-button hover:bg-dark-primary-2 cursor-pointer"
-                    } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
-                  >
-                    Aktivasi Sekarang
-                  </button>
-                {/* )} */}
+                {userInfo?.status !== "active" && (
+                <button
+                  onClick={() => router.push(`/activation`)}
+                  className={`${
+                    activePacketData?.isActive
+                      ? "bg-gray-border cursor-not-allowed"
+                      : "bg-button hover:bg-dark-primary-2 cursor-pointer"
+                  } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
+                >
+                  Aktivasi Sekarang
+                </button>
+                )} 
                 {/* {activePacketData?.isPaid && (
                   <button
                     className={`${

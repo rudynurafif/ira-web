@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import CustomerHeader from "./_components/CustomerHeader";
-import CustomerBanner from "@/public/assets/banner-customer.svg";
 import Image from "next/image";
 import ActivePacket from "./_components/ActivePacket";
 import PersonalData from "./_components/PersonalData";
@@ -10,23 +9,19 @@ import DeliveryTracking from "./_components/DeliveryTracking";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
 import SubscriptionHistory from "./_components/SubscriptionHistory";
 import { getFirstTwoWords, getInitials } from "@/app/_shared/utils";
-import { ProfileInfo } from "@/app/_shared/types/customer-area";
-import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import qrCodeDummy from "@/public/assets/Images/qr-code.png";
 import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonBase from "@/app/_components/skeletons/SkeletonBase";
 import SkeletonLarge from "@/app/_components/skeletons/SkeletonLarge";
-import SkeletonMedium from "@/app/_components/skeletons/SkeletonMedium";
-import SkeletonButtonGroup from "@/app/_components/skeletons/SkeletonButtonGroup";
-import toast from "react-hot-toast";
+import { useAppSelector } from "@/app/store/store";
 
 export default function AreaPelanggan() {
-  const [profileInfo, setProfileInfo] = useState<ProfileInfo | null>(null);
   const [showQR, setShowQR] = useState(false);
-  const [isLoading, setIsloading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
 
   const tabs = [
     "Paket Aktif",
@@ -44,25 +39,14 @@ export default function AreaPelanggan() {
     router.replace(url.toString(), { scroll: false });
   }, [activeTab, router]);
 
-  const fetchData = async () => {
-    setIsloading(true);
-
-    try {
-      const resProfile: any = await getProfileInfo({});
-
-      setProfileInfo(resProfile.data?.data?.customer ?? null);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal muat data profil");
-    } finally {
-      setIsloading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (userInfo) {
+      setIsLoading(false);
+      // console.log("user dari state", user);
+    }
+  }, [userInfo]);
 
-  const isFetching = !profileInfo;
+  const isFetching = !userInfo;
 
   return (
     <div className="min-h-screen">
@@ -75,11 +59,7 @@ export default function AreaPelanggan() {
           <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
             <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
               <span className="text-6xl max-sm:text-2xl font-bold">
-                {isFetching ? (
-                  <SkeletonLarge />
-                ) : (
-                  getInitials(profileInfo?.name)
-                )}
+                {isFetching ? <SkeletonLarge /> : getInitials(userInfo?.name)}
               </span>
             </div>
 
@@ -91,7 +71,7 @@ export default function AreaPelanggan() {
                     <SkeletonBase />
                   ) : (
                     <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
-                      {profileInfo?.name}
+                      {userInfo?.name}
                     </div>
                   )}
                 </div>
@@ -99,7 +79,7 @@ export default function AreaPelanggan() {
                   {isFetching ? (
                     <SkeletonBase />
                   ) : (
-                    <span>ID: {profileInfo?.customer_code}</span>
+                    <span>ID: {userInfo?.customer_code}</span>
                   )}
                 </div>
               </div>
@@ -111,7 +91,7 @@ export default function AreaPelanggan() {
             className="py-2 px-3 bg-primary hover:bg-dark-primary-2 text-white rounded-lg cursor-pointer"
             onClick={() => setShowQR(true)}
           >
-            Tampilkan Kode QR
+            Tampilkan Kode Booking
           </button>
           {showQR && (
             <ModalTemplate
@@ -120,7 +100,7 @@ export default function AreaPelanggan() {
               classNameModal="p-6 max-w-lg w-full mx-4 text-center rounded-xl shadow-lg"
             >
               <h3 className="text-dark-primary text-2xl font-bold mt-6 mb-4">
-                Kode QR Pelanggan
+                Kode QR Booking
               </h3>
 
               {/* QR Code */}
@@ -137,10 +117,10 @@ export default function AreaPelanggan() {
               {/* Nomor Pelanggan */}
               <div className="mb-6">
                 <p className="text-sm text-gray-600">
-                  {getFirstTwoWords(profileInfo?.name ?? "Nama Customer")}
+                  {getFirstTwoWords(userInfo?.name ?? "Nama Customer")}
                 </p>
-                <p className="text-xl font-bold text-dark-primary">
-                  ID: {profileInfo?.customer_code ?? "ID Customer"}
+                <p className="text-lg font-bold text-dark-primary">
+                  ID Pelanggan: {userInfo?.customer_code ?? "ID Customer"}
                 </p>
               </div>
 
