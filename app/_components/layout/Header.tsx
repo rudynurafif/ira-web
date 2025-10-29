@@ -17,6 +17,10 @@ import toast from "react-hot-toast";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
 import { getFirstTwoWords } from "@/app/_shared/utils";
+import { useAppDispatch } from "@/app/store/store";
+import { getUser, login } from "@/app/store/slice/authSlice";
+import { useGetProfileQuery } from "@/app/store/slice/customerSlice";
+import { skipToken } from "@reduxjs/toolkit/query/react";
 
 function Header() {
   const pathname = usePathname();
@@ -24,6 +28,17 @@ function Header() {
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [customerData, setCustomerData] = useState<ProfileInfo>();
+  const dispatch = useAppDispatch();
+
+  // const {
+  //   data: customerData,
+  //   isLoading,
+  //   error,
+  // } = useGetProfileQuery(undefined, {
+  //   skip: !isLoggedIn, // Hanya jalankan query jika pengguna sudah login
+  // });
+
+  // console.log(customerData);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,8 +48,10 @@ function Header() {
           const resProfile = await getProfileInfo({});
           const customer = resProfile.data.data.customer;
 
-          setCustomerData(customer);
-          setIsLoggedIn(!!customer);
+          dispatch(getUser(customer));
+          // setCustomerData(customer);
+
+          setIsLoggedIn(true);
         }
       } catch (error: any) {
         toast.error(
@@ -45,7 +62,7 @@ function Header() {
     };
 
     fetchData();
-  }, []);
+  }, [dispatch]);
 
   const handleLogout = () => {
     deleteCookie("token-fwa");

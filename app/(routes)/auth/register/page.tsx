@@ -81,6 +81,18 @@ function Page() {
     []
   );
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
+  const [mitraID, setMitraID] = useState([]);
+  /**
+  {
+    "inside_coverage": true,
+    "mitra_ids": [
+      {
+        "id": "e5b4c0ca-5df1-4bb3-a547-618de9f6337e",
+        "name": "UD JAYA"
+      }
+    ]
+  }
+   */
   const [isCovered, setIsCovered] = useState<boolean>(false);
   const [coveredAtSubmit, setCoveredAtSubmit] = useState<boolean | null>(null);
 
@@ -169,6 +181,7 @@ function Page() {
           longitude: formData.lng,
         });
 
+        setMitraID(resCoverage.data?.result?.mitra_ids || []);
         setIsCovered(!!resCoverage.data?.result?.inside_coverage);
       } catch (error: any) {
         toast.error(error?.response?.data?.message ?? "Gagal check coverage");
@@ -405,6 +418,7 @@ function Page() {
       return;
     } else {
       try {
+        console.log("mitra ID", mitraID);
         const addressArray = formData.address_gmaps
           ? [normalizeAddressForBackend(formData.address_gmaps)]
           : [];
@@ -412,7 +426,8 @@ function Page() {
         const body: any = {
           phone_number: formData.phone ?? "",
           name: formData.fullname ?? "",
-          ...(formData.email && { email: formData.email }), // kirim jika hanya terisi
+          ...(formData.email && { email: formData.email }),
+          ...(mitraID.length > 0 && { mitra_ids: mitraID }),
           // nik: formData.nik ?? "",
           // no_kk: formData.nokk ?? "",
           province_id: formData.province ?? "",
@@ -423,7 +438,7 @@ function Page() {
           postal_code: formData.postal_code ?? "",
           address: addressArray ?? "",
           actual_address: formData.actual_address ?? "",
-          notes: formData.notes ?? "",
+          ...(formData.notes && { notes: formData.notes }),
         };
 
         const coveredNow = isCovered;

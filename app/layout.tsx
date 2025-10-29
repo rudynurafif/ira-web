@@ -5,6 +5,9 @@ import { Toaster } from "react-hot-toast";
 import Header from "./_components/layout/Header";
 import Footer from "./_components/layout/Footer";
 import { Suspense } from "react";
+import { Provider } from "react-redux";
+import { store } from "./store/store";
+import ClientProvider from "./_components/ClientProvider";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin"], // Gunakan subset latin
@@ -50,10 +53,12 @@ export default function RootLayout({
         ].join(" ")}
       >
         <Suspense>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <Toaster position="top-right" />
+          <ClientProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <Toaster position="top-right" />
+          </ClientProvider>
         </Suspense>
       </body>
     </html>

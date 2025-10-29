@@ -1,3 +1,10 @@
+export const BASE_URL = "";
+export const CUSTOMER_URL = "/app/customer";
+// export const PRODUCTS_URL = "/app/products";
+// export const ORDERS_URL = "/app/orders";
+// export const PAYPAL_URL = "/app/config/paypal";
+// export const UPLOAD_URL = "/app/upload";
+
 import {
   bjb,
   bni,

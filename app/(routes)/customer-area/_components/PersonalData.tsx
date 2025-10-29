@@ -8,6 +8,7 @@ import exitIcon from "@/public/assets/Icons/icon-exit.svg";
 import Image from "next/image";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import toast from "react-hot-toast";
+import { useAppSelector } from "@/app/store/store";
 
 export const ProfileLabel = ({
   label,
@@ -25,29 +26,42 @@ export const ProfileLabel = ({
 };
 
 const PersonalData = () => {
-  const [profileInfo, setProfileInfo] = useState<ProfileInfo>();
-  const [isLoading, setIsloading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
 
+  useEffect(() => {
+    if (userInfo) {
+      setIsLoading(false);
+      // console.log("userInfo dari state", userInfo);
+    }
+  }, [userInfo]);
+
+  /**
+   
   const fetchData = async () => {
-    setIsloading(true);
+    setisLoading(true);
 
     try {
-      const resProfile: any = await getProfileInfo({});
+      const resPacket = await getActivePacket({});
+      const resProfile = await getProfileInfo({});
 
-      setProfileInfo(resProfile.data?.data?.customer ?? {});
+      setActivePacketData(resPacket);
+      setprofileInfo(resProfile.data?.data.customer ?? {});
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal muat data");
+      toast.error(err?.response?.data?.message || "Gagal muat data paket");
     } finally {
-      setIsloading(false);
+      setisLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
   }, []);
+   
+   */
 
-  const isFetching = !profileInfo;
+  const isFetching = !userInfo;
 
   return (
     <div>
@@ -55,13 +69,13 @@ const PersonalData = () => {
         <SkeletonLoadingCard />
       ) : (
         <div className="bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] max-sm:py-2 max-sm:px-0 px-3 py-5">
-          <ProfileLabel label="Nama Lengkap" data={profileInfo?.name || "-"} />
+          <ProfileLabel label="Nama Lengkap" data={userInfo?.name || "-"} />
           <ProfileLabel
             label="Nomor Handphone"
-            data={profileInfo?.phone_number || "-"}
+            data={userInfo?.phone_number || "-"}
           />
-          <ProfileLabel label="Email" data={profileInfo?.email || "-"} />
-          <ProfileLabel label="Alamat" data={profileInfo?.address || "-"} />
+          <ProfileLabel label="Email" data={userInfo?.email || "-"} />
+          <ProfileLabel label="Alamat" data={userInfo?.address || "-"} />
 
           <div className="flex max-sm:gap-2 gap-6 justify-between p-4">
             <>
@@ -77,10 +91,10 @@ const PersonalData = () => {
                 open={openModal}
                 onClose={() => setOpenModal(false)}
                 initial={{
-                  name: profileInfo?.name,
-                  phone_number: profileInfo?.phone_number,
-                  email: profileInfo?.email || "",
-                  actual_address: profileInfo?.address,
+                  name: userInfo?.name,
+                  phone_number: userInfo?.phone_number,
+                  email: userInfo?.email || "",
+                  actual_address: userInfo?.address,
                 }}
               />
             </>

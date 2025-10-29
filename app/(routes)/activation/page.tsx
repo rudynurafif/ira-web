@@ -18,6 +18,8 @@ function Page() {
     const sSection = params.get("section");
     if (sSection) {
       setActiveSection(sSection);
+    } else {
+      setActiveSection("scan");
     }
   }, [params]);
 

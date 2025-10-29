@@ -10,7 +10,10 @@ import DynamicForm from "@/app/_components/form/DynamicForm";
 import toast from "react-hot-toast";
 import { verifyOtp } from "@/app/_api/Auth/Auth";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
-import { updateProfileInfo } from "@/app/_api/Customer/CustomerArea";
+import {
+  getProfileInfo,
+  updateProfileInfo,
+} from "@/app/_api/Customer/CustomerArea";
 import { useRouter } from "next/navigation";
 import {
   EMAIL_REGEX,
@@ -18,6 +21,8 @@ import {
   PHONE_REGEX,
   PHONE_REGEX2,
 } from "@/app/_shared/utils";
+import { getUser } from "@/app/store/slice/authSlice";
+import { useAppDispatch } from "@/app/store/store";
 
 type Props = {
   open: boolean;
@@ -87,6 +92,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const baselineRef = useRef<Editable>({});
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (!open) return;
@@ -249,12 +255,11 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
       const res = await updateProfileInfo(diff);
 
       if (res?.data?.statusCode === 200) {
-        onClose();
+        const updatedProfile = await getProfileInfo({});
+        dispatch(getUser(updatedProfile.data.data.customer));
         toast.success(res.data.message || "Profil berhasil diperbarui");
 
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        onClose();
       }
     } catch (error: any) {
       toast.error(

@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
 import { PHONE_REGEX, formatTimer } from "@/app/_shared/utils";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { useAppDispatch } from "@/app/store/store";
+import { login } from "@/app/store/slice/authSlice";
 
 type Step = "enterPhone" | "enterOtp" | "blocked";
 const MAX_ATTEMPT = 4;
@@ -43,6 +45,8 @@ const Page = () => {
       blockUntil: `otp_block_until:${p}`,
     };
   }, [phone]);
+
+  const dispatch = useAppDispatch();
 
   // Restore state dari localStorage saat nomor berubah
   useEffect(() => {
@@ -228,16 +232,22 @@ const Page = () => {
       const payload = { phone_number: phone, otp: val, type: "login" };
       const res = await verifyOtp(payload);
 
-      setSuccessVerifyMessage(res?.data?.message || "OTP terverifikasi ✔");
-      setCookie("token-fwa", res.data.data);
-      setOtpStatus("valid");
+      if (res?.data?.statusCode === 200) {
+        const { data, message } = res.data;
 
-      toast.success(res?.data?.message || "OTP terverifikasi ✔");
-      toast.success("Login berhasil");
+        dispatch(login({ token: data }));
 
-      setTimeout(() => {
-        window.location.replace("/customer-area");
-      }, 1000);
+        setCookie("token-fwa", data);
+
+        setOtpStatus("valid");
+        setSuccessVerifyMessage(message|| "OTP terverifikasi ✔");
+        toast.success(message|| "OTP terverifikasi ✔");
+        toast.success("Login berhasil");
+
+        setTimeout(() => {
+          window.location.replace("/customer-area");
+        }, 1000);
+      }
     } catch (err: any) {
       setOtpStatus("invalid");
       toast.error(
