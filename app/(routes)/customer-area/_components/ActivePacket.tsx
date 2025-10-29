@@ -116,7 +116,7 @@ const ActivePacket = () => {
               Jatuh tempo:{" "}
               {activePacketData?.dueDate}
             </p> */}
-                {/* {userInfo?.status !== "active" && ( */}
+                {userInfo?.status !== "active" && (
                 <button
                   onClick={() => router.push(`/activation`)}
                   className={`${
@@ -127,7 +127,7 @@ const ActivePacket = () => {
                 >
                   Aktivasi Sekarang
                 </button>
-                {/* )} */}
+                )} 
                 {/* {activePacketData?.isPaid && (
                   <button
                     className={`${

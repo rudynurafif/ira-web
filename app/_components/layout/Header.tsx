@@ -49,7 +49,7 @@ function Header() {
           const customer = resProfile.data.data.customer;
 
           dispatch(getUser(customer));
-          // setCustomerData(customer);
+          setCustomerData(customer);
 
           setIsLoggedIn(true);
         }
