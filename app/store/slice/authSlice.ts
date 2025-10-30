@@ -1,0 +1,45 @@
+import { ProfileInfo } from "@/app/_shared/types/customer-area";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { CookieValueTypes, deleteCookie, getCookie } from "cookies-next";
+
+interface AuthState {
+  isLoggedIn: boolean;
+  token: string | Promise<CookieValueTypes> | null;
+  userInfo: ProfileInfo | null;
+}
+
+const tokenFromCookie = getCookie("token-fwa");
+
+const initialState: AuthState = {
+  isLoggedIn: tokenFromCookie ? true : false,
+  token: getCookie("token-fwa") || null,
+  userInfo: null,
+};
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState,
+  reducers: {
+    login(
+      state,
+      action: PayloadAction<{
+        token: string;
+      }>
+    ) {
+      state.isLoggedIn = true;
+      state.token = action.payload.token;
+    },
+    getUser(state, action: PayloadAction<ProfileInfo>) {
+      state.userInfo = action.payload;
+    },
+    logout(state) {
+      state.isLoggedIn = false;
+      state.token = null;
+      state.userInfo = null;
+      deleteCookie("token-fwa");
+    },
+  },
+});
+
+export const { login, getUser, logout } = authSlice.actions;
+export default authSlice.reducer;
