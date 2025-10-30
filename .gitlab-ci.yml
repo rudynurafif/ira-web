@@ -78,7 +78,7 @@ devel-job:       # This job runs in the build stage, which runs first.
         docker exec $CONT_NAME git branch --set-upstream-to=origin/development development; \
         docker exec $CONT_NAME git pull origin development; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm run build --prod; \
+        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Development - Docker Deployment Completed.'; \
@@ -95,7 +95,7 @@ devel-job:       # This job runs in the build stage, which runs first.
         docker exec $CONT_NAME git branch --set-upstream-to=origin/development development; \
         docker exec $CONT_NAME git pull origin development; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm run build --prod; \
+        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Development - Docker Deployment Completed.'; \
@@ -155,7 +155,7 @@ staging-job:       # This job runs in the build stage, which runs first.
         docker exec $CONT_NAME git branch --set-upstream-to=origin/stage stage; \
         docker exec $CONT_NAME git pull origin stage; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm run build --prod; \
+        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Staging - Docker Deployment Completed.'; \
@@ -173,7 +173,7 @@ staging-job:       # This job runs in the build stage, which runs first.
         docker exec $CONT_NAME git branch --set-upstream-to=origin/stage stage; \
         docker exec $CONT_NAME git pull origin stage; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm run build --prod; \
+        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Staging - Docker Deployment Completed.'; \
@@ -275,7 +275,7 @@ deploy-production:
         docker exec $CONT_NAME git branch --set-upstream-to=origin/main main; \
         docker exec $CONT_NAME git pull origin main; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm run build --prod; \
+        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Production - Docker Deployment Completed.'; \
@@ -293,7 +293,7 @@ deploy-production:
         docker exec $CONT_NAME git branch --set-upstream-to=origin/main main; \
         docker exec $CONT_NAME git pull origin main; \
         docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME npm run build --prod; \
+        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Production - Docker Deployment Completed.'; \
