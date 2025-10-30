@@ -67,7 +67,7 @@ export default function AreaPelanggan() {
             <div className="flex justify-between items-center">
               <div className="text-center md:text-left select-none">
                 <div className="">
-                  {isFetching ? (
+                  {isLoading ? (
                     <SkeletonBase />
                   ) : (
                     <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">

@@ -18,6 +18,7 @@
   --secondary: #666666;
   --mute: #666666;
   --ads-platform-dark: #2c2c2c;
+  --gray-spectrum-800: #050503;
 }
 
 /* Terapkan ke semua Steps */
@@ -48,6 +49,7 @@
   --color-primary-spectrum: var(--primary-spectrum);
   --color-muted: var(--mute);
   --color-primary-text: var(--primary-text);
+  --color-gray-spectrum-800: var(--gray-spectrum-800);
 
   --font-primary: var(--font-be-vietnam);
   --font-secondary: var(--font-figtree);

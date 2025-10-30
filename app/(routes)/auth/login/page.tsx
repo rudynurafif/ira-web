@@ -240,13 +240,12 @@ const Page = () => {
         setCookie("token-fwa", data);
 
         setOtpStatus("valid");
-        setSuccessVerifyMessage(message|| "OTP terverifikasi ✔");
-        toast.success(message|| "OTP terverifikasi ✔");
-        toast.success("Login berhasil");
+        setSuccessVerifyMessage(message || "OTP terverifikasi ✔");
+        toast.success(message || "OTP terverifikasi ✔");
+        toast.success("Login Berhasil!");
 
-        setTimeout(() => {
-          window.location.replace("/customer-area");
-        }, 1000);
+        dispatch(login(data));
+        router.replace("/customer-area");
       }
     } catch (err: any) {
       setOtpStatus("invalid");
