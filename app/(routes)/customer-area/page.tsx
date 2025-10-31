@@ -2,15 +2,10 @@
 
 import { useEffect, useState } from "react";
 import CustomerHeader from "./_components/CustomerHeader";
-import Image from "next/image";
 import ActivePacket from "./_components/ActivePacket";
 import PersonalData from "./_components/PersonalData";
 import DeliveryTracking from "./_components/DeliveryTracking";
-import starIcon from "@/public/assets/Icons/icon-star.svg";
-import SubscriptionHistory from "./_components/SubscriptionHistory";
-import { getFirstTwoWords, getInitials } from "@/app/_shared/utils";
-import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import qrCodeDummy from "@/public/assets/Images/qr-code.png";
+import { getInitials } from "@/app/_shared/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonBase from "@/app/_components/skeletons/SkeletonBase";
 import SkeletonLarge from "@/app/_components/skeletons/SkeletonLarge";
@@ -24,10 +19,10 @@ export default function AreaPelanggan() {
   const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
 
   const tabs = [
-    "Paket Aktif",
+    "Informasi Paket dan Riwayat",
     "Data Pribadi",
     // "Tracking Pengiriman",
-    "Riwayat Berlangganan",
+    // "Riwayat Berlangganan",
   ];
 
   const initialTab = searchParams.get("tab") || tabs[0];
@@ -49,7 +44,7 @@ export default function AreaPelanggan() {
   const isFetching = !userInfo;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background-customer pb-10">
       {/* HEADER */}
       <CustomerHeader />
 
@@ -85,60 +80,16 @@ export default function AreaPelanggan() {
               </div>
             </div>
           </div>
-
-          {/* Button Show QR */}
-          <button
-            className="py-2 px-3 bg-primary hover:bg-dark-primary-2 text-white rounded-lg cursor-pointer"
-            onClick={() => setShowQR(true)}
-          >
-            Tampilkan Kode Booking
-          </button>
-          {showQR && (
-            <ModalTemplate
-              key="qr-modal"
-              closeModal={() => setShowQR(false)}
-              classNameModal="p-6 max-w-lg w-full mx-4 text-center rounded-xl shadow-lg"
-            >
-              <h3 className="text-dark-primary text-2xl font-bold mt-6 mb-4">
-                Kode QR Booking
-              </h3>
-
-              {/* QR Code */}
-              <div className="my-6">
-                <Image
-                  src={qrCodeDummy}
-                  alt="QR Code"
-                  className="w-48 h-48 mx-auto"
-                  width={200}
-                  height={200}
-                />
-              </div>
-
-              {/* Nomor Pelanggan */}
-              <div className="mb-6">
-                <p className="text-sm text-gray-600">
-                  {getFirstTwoWords(userInfo?.name ?? "Nama Customer")}
-                </p>
-                <p className="text-lg font-bold text-dark-primary">
-                  ID Pelanggan: {userInfo?.customer_code ?? "ID Customer"}
-                </p>
-              </div>
-
-              {/* Button Tutup */}
-              <button
-                onClick={() => setShowQR(false)}
-                className="py-3 cursor-pointer px-6 bg-primary hover:bg-dark-primary-2 text-white rounded-lg w-full font-medium transition"
-              >
-                Tutup
-              </button>
-            </ModalTemplate>
-          )}
         </div>
       </div>
 
+      <div className="max-w-[1329px] mx-auto px-8 mt-12 max-md:mt-0">
+        <DeliveryTracking />
+      </div>
+
       {/* TAB MENU */}
-      <div className="max-w-[1329px] px-8 mt-[54px] mx-auto">
-        <div className="flex space-x-6 overflow-x-auto scrollbar-hide  border-b border-gray-border">
+      <div className="max-w-[1329px] px-8 mt-8 mx-auto">
+        <div className="flex space-x-6 overflow-x-auto scrollbar-hide border-b-2 border-gray-border">
           {tabs.map((tab) => (
             <button
               key={tab}
@@ -157,13 +108,13 @@ export default function AreaPelanggan() {
 
       {/* TAB CONTENT */}
       <div className="max-w-[1329px] px-8 mx-auto mt-6">
-        {activeTab === "Paket Aktif" && <ActivePacket />}
+        {activeTab === "Informasi Paket dan Riwayat" && <ActivePacket />}
 
         {activeTab === "Data Pribadi" && <PersonalData />}
 
         {/* {activeTab === "Tracking Pengiriman" && <DeliveryTracking />} */}
 
-        {activeTab === "Riwayat Berlangganan" && <SubscriptionHistory />}
+        {/* {activeTab === "Riwayat Berlangganan" && <SubscriptionHistory />} */}
       </div>
     </div>
   );

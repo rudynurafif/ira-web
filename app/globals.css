@@ -10,6 +10,7 @@
   --dark-primary-2: #003d76;
   --red-primary: #ff0000;
   --green-primary: #1faf38;
+  --green-2: #3FC700;
   --nokia-blue: #0168ff;
   --primary-spectrum: #f7f9fd;
   --button: #005fb8;
@@ -39,6 +40,7 @@
   --color-dark-primary-2: var(--dark-primary-2);
   --color-red-primary: var(--red-primary);
   --color-green-primary: var(--green-primary);
+  --color-green-2: var(--green-2);
   --color-nokia-blue: var(--nokia-blue);
   --color-primary-spectrum: var(--primary-spectrum);
   --color-button: var(--button);

@@ -1,9 +1,10 @@
 export type ActivePacketData = {
-  isPaid: boolean;
-  isActive: boolean;
-  packageInfo: string;
-  packagePrice: string;
-  dueDate: string;
+  packageName: string;
+  packageDuration: string;
+  price: string;
+  speed: string;
+  expiryDate: string;
+  onExtend?: () => void;
 };
 
 export type ProfileInfo = {

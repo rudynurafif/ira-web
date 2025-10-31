@@ -16,7 +16,7 @@ function Footer() {
         <div className="block lg:flex justify-between items-center gap-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 w-full lg:w-[60%]">
             <div className="col-span-1 md:col-span-2">
-              <h5 className="font-bold mb-[10px]">Address</h5>
+              <h5 className="font-bold mb-2.5">Address</h5>
               <p className="font-semibold">PT. Integrasi Jaringan Ekosistem</p>
               <p>
                 Ruko Fatmawati Mas Blok III Kav. 328 - 329, Jl. RS Fatmawati No.
@@ -65,7 +65,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.3010.028</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.3110.029</div>
       </div>
     </div>
   );
