@@ -1,4 +1,4 @@
-export const BASE_URL = "";
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 export const CUSTOMER_URL = "/app/customer";
 // export const PRODUCTS_URL = "/app/products";
 // export const ORDERS_URL = "/app/orders";

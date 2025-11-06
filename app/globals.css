@@ -10,6 +10,7 @@
   --dark-primary-2: #003d76;
   --red-primary: #ff0000;
   --green-primary: #1faf38;
+  --green-2: #3FC700;
   --nokia-blue: #0168ff;
   --primary-spectrum: #f7f9fd;
   --button: #005fb8;
@@ -18,6 +19,7 @@
   --secondary: #666666;
   --mute: #666666;
   --ads-platform-dark: #2c2c2c;
+  --gray-spectrum-800: #050503;
 }
 
 /* Terapkan ke semua Steps */
@@ -38,6 +40,7 @@
   --color-dark-primary-2: var(--dark-primary-2);
   --color-red-primary: var(--red-primary);
   --color-green-primary: var(--green-primary);
+  --color-green-2: var(--green-2);
   --color-nokia-blue: var(--nokia-blue);
   --color-primary-spectrum: var(--primary-spectrum);
   --color-button: var(--button);
@@ -48,6 +51,7 @@
   --color-primary-spectrum: var(--primary-spectrum);
   --color-muted: var(--mute);
   --color-primary-text: var(--primary-text);
+  --color-gray-spectrum-800: var(--gray-spectrum-800);
 
   --font-primary: var(--font-be-vietnam);
   --font-secondary: var(--font-figtree);

@@ -8,7 +8,7 @@ export const NAME_REGEX = /^[a-zA-Z\s.\-]*$/;
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function convertToCurrency(
-  number: number,
+  number: number | undefined,
   locale = "id-ID",
   currency = "IDR"
 ) {
@@ -83,4 +83,33 @@ export function getFirstTwoWords(name: string): string {
   const words = name.trim().split(/\s+/);
 
   return words.slice(0, 2).join(" ");
+}
+
+export function formatDate(expireAt: string): string {
+  const date = new Date(expireAt);
+
+  // Konversi ke WIB (UTC+7)
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: "Asia/Jakarta",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: undefined,
+  };
+
+  const formatted = new Intl.DateTimeFormat("id-ID", options).format(date);
+
+  // Ganti titik dengan titik dua jika perlu, dan tambahkan "WIB"
+  return `${formatted} WIB`;
+}
+
+export function formatPaymentNumber(va: string): string {
+  return (
+    va
+      ?.replace(/\s/g, "")
+      .match(/.{1,4}/g)
+      ?.join(" ") || ""
+  );
 }

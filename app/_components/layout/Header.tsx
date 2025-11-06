@@ -7,7 +7,6 @@ import Link from "next/link";
 import { FaRegUser, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
-
 import starliteWhiteIcon from "@/public/assets/Icons/icon-starlite-white.svg";
 import weaveWhiteIcon from "@/public/assets/Icons/icon-weave-white.svg";
 import starliteIcon from "@/public/assets/Icons/icon-starlite.svg";
@@ -17,8 +16,8 @@ import toast from "react-hot-toast";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
 import { getFirstTwoWords } from "@/app/_shared/utils";
-import { useAppDispatch } from "@/app/store/store";
-import { getUser, login } from "@/app/store/slice/authSlice";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { getUser, login, logout } from "@/app/store/slice/authSlice";
 import { useGetProfileQuery } from "@/app/store/slice/customerSlice";
 import { skipToken } from "@reduxjs/toolkit/query/react";
 
@@ -29,29 +28,30 @@ function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [customerData, setCustomerData] = useState<ProfileInfo>();
   const dispatch = useAppDispatch();
+  const { token: tokenfromState } = useAppSelector((state) => state.auth);
 
   // const {
-  //   data: customerData,
+  //   data: profileData,
   //   isLoading,
   //   error,
   // } = useGetProfileQuery(undefined, {
-  //   skip: !isLoggedIn, // Hanya jalankan query jika pengguna sudah login
+  //   skip: !isLoggedIn,
   // });
+  // const customerData = profileData?.data?.customer;
 
-  // console.log(customerData);
+  const token = getCookie("token-fwa") ?? tokenfromState;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = getCookie("token-fwa");
         if (token) {
           const resProfile = await getProfileInfo({});
           const customer = resProfile.data.data.customer;
 
           dispatch(getUser(customer));
           setCustomerData(customer);
-
           setIsLoggedIn(true);
+          setShowDropdown(false);
         }
       } catch (error: any) {
         toast.error(
@@ -62,18 +62,15 @@ function Header() {
     };
 
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, token]);
 
   const handleLogout = () => {
-    deleteCookie("token-fwa");
-
-    if (typeof window !== "undefined") {
-      localStorage.clear();
-    }
+    dispatch(logout());
 
     setIsLoggedIn(false);
 
-    window.location.replace("/auth/login");
+    router.replace("/auth/login");
+    toast.success("Logout Berhasil!");
   };
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -216,7 +213,7 @@ function Header() {
                   pathname === "/payment" ? "font-bold" : ""
                 } underline-animation-register`}
               >
-                Bayar Tagihan
+                Perpanjang Paket
               </Link>
 
               {/* Dynamic Auth Button */}
@@ -267,13 +264,20 @@ function Header() {
               className={` ${pathname === "/payment" && "font-bold"}`}
               onClick={() => setIsOpenMenu(false)}
             >
-              Bayar Tagihan
+              Perpanjang Paket
             </Link>
 
             <div>
               {isLoggedIn ? (
                 <div className="flex flex-col gap-3">
-                  <span className="font-medium">Area Pelanggan</span>
+                  <Link
+                    href="/customer-area"
+                    className={`${
+                      pathname === "/customer-area" ? "font-bold" : ""
+                    } underline-animation-register`}
+                  >
+                    Area Pelanggan
+                  </Link>
                   <button
                     onClick={() => {
                       handleLogout();
