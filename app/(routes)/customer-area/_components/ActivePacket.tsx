@@ -3,10 +3,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
-import {
-  PackageData,
-  SubscriptionHistoryAPI,
-} from "@/app/_shared/types/customer-area";
+import { PackageData } from "@/app/_shared/types/customer-area";
 import { useRouter } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import toast from "react-hot-toast";
@@ -15,6 +12,8 @@ import bannerPanduan from "@/public/assets/Images/bannerPanduan.svg";
 import bannerCS from "@/public/assets/Images/bannerCS.svg";
 import ActivePackageCard from "./ActivePackageCard";
 import SubsHistoryCard from "./SubsHistoryCard";
+import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
+import ActivePackageCardSkeleton from "./ActivePackageCardSkeleton";
 
 const ActivePacket = () => {
   const [activePacketData, setActivePacketData] =
@@ -28,11 +27,9 @@ const ActivePacket = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resPacket = await getSubscriptionHistory({});
-        setActivePacketData(resPacket.data?.data?.[0]);
-
         const resSubHistory = await getSubscriptionHistory({});
         setSubscriptionHistory(resSubHistory.data?.data);
+        setActivePacketData(resSubHistory.data?.data?.[0]);
       } catch (err: any) {
         toast.error(err?.response?.data?.message || "Gagal muat data paket");
       }
@@ -67,8 +64,8 @@ const ActivePacket = () => {
             Riwayat Tagihan
           </p>
           <div className="flex flex-col gap-6">
-            {subscriptionHistory ? (
-              subscriptionHistory.map((history, index) => (
+            {(subscriptionHistory?.length ?? 0) > 0 ? (
+              (subscriptionHistory ?? []).map((history, index) => (
                 <SubsHistoryCard data={history} key={history.id} />
               ))
             ) : (

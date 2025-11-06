@@ -105,6 +105,57 @@ export function formatDate(expireAt: string): string {
   return `${formatted} WIB`;
 }
 
+export function formatISODate(
+  isoString: string | null,
+  timezoneOffsetHours: number = 7
+): string {
+  if (!isoString) return "";
+
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return "";
+
+  // Sesuaikan ke zona waktu tertentu (misal WIB = UTC+7)
+  const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+  const targetTime = new Date(utc + 3600000 * timezoneOffsetHours);
+
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  };
+
+  const formatter = new Intl.DateTimeFormat("id-ID", options);
+  const parts = formatter.formatToParts(targetTime);
+
+  // Ekstrak bagian untuk susun ulang secara eksplisit jika diperlukan
+  const day = parts.find((p) => p.type === "day")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const year = parts.find((p) => p.type === "year")?.value;
+  const hour = parts.find((p) => p.type === "hour")?.value;
+  const minute = parts.find((p) => p.type === "minute")?.value;
+  const second = parts.find((p) => p.type === "second")?.value;
+
+  return `${day} ${month} ${year}, pukul ${hour}:${minute}:${second} WIB`;
+}
+
+export function daysUntil(targetDateString: string): number {
+  const today = new Date(); // Waktu saat ini (termasuk jam, menit, detik)
+  // Reset ke tengah hari UTC untuk hindari masalah DST & zona waktu saat parsing 'YYYY-MM-DD'
+  const target = new Date(targetDateString + "T12:00:00Z"); // +12:00 agar aman di semua zona waktu
+
+  // Selisih dalam milidetik
+  const diffInMs = target.getTime() - today.getTime();
+
+  // Konversi ke hari (pembulatan ke bawah karena kita hitung hari penuh tersisa)
+  const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+
+  return diffInDays;
+}
+
 export function formatPaymentNumber(va: string): string {
   return (
     va

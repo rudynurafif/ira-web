@@ -10,6 +10,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonBase from "@/app/_components/skeletons/SkeletonBase";
 import SkeletonLarge from "@/app/_components/skeletons/SkeletonLarge";
 import { useAppSelector } from "@/app/store/store";
+import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
+import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
+
+import ModalTemplate from "@/app/_components/modal/ModalTemplate";
+import Lottie from "lottie-react";
 
 export default function AreaPelanggan() {
   const [showQR, setShowQR] = useState(false);
@@ -27,6 +32,33 @@ export default function AreaPelanggan() {
 
   const initialTab = searchParams.get("tab") || tabs[0];
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
+  const [animationData, setAnimationData] = useState<any>();
+  const [successPayment, setSuccessPayment] = useState<boolean>(false);
+
+  useEffect(() => {
+    const paymentSuccess = searchParams.get("payment-success");
+
+    if (paymentSuccess === "true") {
+      setSuccessPayment(true);
+      setShowPaymentSuccessModal(true);
+      setAnimationData(successAnimation);
+      sessionStorage.removeItem("paymentInfo");
+    } else if (paymentSuccess === "false") {
+      setSuccessPayment(false);
+      setShowPaymentSuccessModal(true);
+      setAnimationData(failedAnimation);
+      sessionStorage.removeItem("paymentInfo");
+    }
+  }, [searchParams]);
+
+  const closePaymentSuccessModal = () => {
+    setShowPaymentSuccessModal(false);
+
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete("payment-success");
+    router.replace(newUrl.toString(), { scroll: false });
+  };
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -45,6 +77,32 @@ export default function AreaPelanggan() {
 
   return (
     <div className="min-h-screen bg-background-customer pb-10">
+      {showPaymentSuccessModal && (
+        <ModalTemplate
+          closeModal={closePaymentSuccessModal}
+          classNameModal="max-w-md p-6 text-center w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3"
+        >
+          <h2 className="text-xl font-bold text-dark-primary mb-2">
+            {successPayment ? "Pembayaran Berhasil" : "Pembayaran Gagal"}
+          </h2>
+
+          <div className="flex justify-center">
+            <Lottie
+              width={104}
+              height={104}
+              className="w-[170px] sm:w-[190px] md:w-[200px] lg:w-60 lg:h-60"
+              animationData={animationData}
+            />
+          </div>
+
+          <p className="text-gray-700">
+            {successPayment
+              ? "Terima kasih! Paket langganan Anda telah aktif."
+              : "Silahkan lakukan pembayaran ulang"}
+          </p>
+        </ModalTemplate>
+      )}
+
       {/* HEADER */}
       <CustomerHeader />
 

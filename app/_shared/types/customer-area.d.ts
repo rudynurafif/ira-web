@@ -1,3 +1,5 @@
+import { PackageDetail } from "./payment";
+
 export type Customer = {
   id: string;
   customer_code: string;
@@ -81,12 +83,4 @@ export type ProfileInfo = {
   reset_count_cell_max: number | null;
   reset_count_cell: number | null;
   no_kk: string | null;
-};
-
-export type SubscriptionHistoryAPI = {
-  id: string;
-  customer_id: Customer;
-  package_id: PackageData;
-  start_date: string;
-  end_date: string;
 };

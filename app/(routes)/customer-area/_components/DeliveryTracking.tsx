@@ -23,7 +23,7 @@ const DeliveryTracking = () => {
     {
       title: "Perangkat Dikirim",
       icon: <PiTruck className="sm:w-6 sm:h-6 w-5 h-5" />,
-      isDone: true,
+      isDone: false,
     },
     {
       title: "Perangkat Sampai",

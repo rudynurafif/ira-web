@@ -22,13 +22,16 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleOpenCheckoutUrl}
-      className="bg-primary hover:bg-dark-primary-2 cursor-pointer mt-10 rounded-lg font-bold text-white w-full text-sm sm:text-xl py-3"
-    >
-      Bayar Disini
-    </button>
+    <div className="mt-10">
+      <h1 className="mb-3">{`E-Wallet (${data?.channel_code ?? "-"})`}</h1>
+      <button
+        type="button"
+        onClick={handleOpenCheckoutUrl}
+        className="bg-primary hover:bg-dark-primary-2 cursor-pointer rounded-lg font-bold text-white w-full text-sm sm:text-xl py-3"
+      >
+        Bayar Disini
+      </button>
+    </div>
   );
 };
 
