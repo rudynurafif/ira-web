@@ -2,134 +2,129 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-
-// Import semua gambar
-import {
-  bni,
-  bjb,
-  bri,
-  bsi,
-  cimb,
-  mandiri,
-  permata,
-  qris,
-  gopay,
-  dana,
-  ovo,
-  indomaret,
-  // alfamart,
-  astraPay,
-  bnc,
-  linkAja,
-  muamalat,
-} from "@/public/assets/Images/bank";
-
-import toast from "react-hot-toast";
-import {
-  createPaymentRequest,
-  getPaymentChannel,
-} from "@/app/_api/Payment/Payment";
 import { useRouter } from "next/navigation";
-import ChannelsSkeleton from "./_components/ChannelsSkeleton";
-import ButtonChannel from "./_components/ButtonChannel";
+import toast from "react-hot-toast";
+import { PackageData } from "@/app/_shared/types/customer-area";
+import { getPackageList } from "@/app/_api/Customer/CustomerArea";
+import { convertToCurrency } from "@/app/_shared/utils";
+import ccSvg from "@/public/assets/Icons/payment-method/credit-card-svg.svg";
 import { PaymentChannel } from "@/app/_shared/types/payment";
-import { useAppSelector } from "@/app/store/store";
-
-// Mapping code API -> gambar lokal
-const PAYMENT_LOGOS: Record<string, any> = {
-  // Virtual Account
-  BNI_VIRTUAL_ACCOUNT: bni,
-  BJB_VIRTUAL_ACCOUNT: bjb,
-  BRI_VIRTUAL_ACCOUNT: bri,
-  BSI_VIRTUAL_ACCOUNT: bsi,
-  CIMB_VIRTUAL_ACCOUNT: cimb,
-  MANDIRI_VIRTUAL_ACCOUNT: mandiri,
-  PERMATA_VIRTUAL_ACCOUNT: permata,
-  BNC_VIRTUAL_ACCOUNT: bnc,
-  MUAMALAT_VIRTUAL_ACCOUNT: muamalat,
-
-  // E-Wallet
-  GOPAY: gopay,
-  DANA: dana,
-  OVO: ovo,
-  // SHOPEEPAY: qris,
-
-  // Outlet
-  INDOMARET: indomaret,
-  // ALFAMART: alfamart,
-
-  // QRIS
-  QRIS: qris,
-};
+import {
+  createPaymentRequestEWallet,
+  createPaymentRequestOTC,
+  createPaymentRequestQRIS,
+  createPaymentRequestVA,
+} from "@/app/_api/Payment/Payment";
+import { IoIosArrowForward } from "react-icons/io";
+import Loader from "@/app/_components/Loader";
+import ErrorFallback from "@/app/_components/ErrorFallback";
+import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
 
 const Payment = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [paymentChannels, setPaymentChannels] = useState<any[]>([]);
-  const [selectedChannel, setSelectedChannel] = useState<PaymentChannel>();
-  const { isLoggedIn } = useAppSelector((state) => state.auth);
-
-  const fetchData = async () => {
+  const selectedPackageFromLS = (() => {
+    if (typeof window === "undefined") return null;
+    const item = sessionStorage.getItem("selectedPackage");
+    if (!item) return null;
     try {
-      setIsLoading(true);
-      const res = await getPaymentChannel({});
+      return JSON.parse(item) as PackageData;
+    } catch {
+      return null;
+    }
+  })();
+  const selectedChannelFromLS = (() => {
+    if (typeof window === "undefined") return null;
+    const item = sessionStorage.getItem("selectedPaymentMethod");
+    if (!item) return null;
+    try {
+      return JSON.parse(item) as PaymentChannel;
+    } catch {
+      return null;
+    }
+  })();
 
-      if (res?.data?.data) {
-        setPaymentChannels(res.data.data);
+  const [packages, setPackages] = useState<PackageData[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
+    selectedPackageFromLS
+  );
+  const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
+    selectedChannelFromLS
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPackages = async () => {
+    try {
+      const res = await getPackageList({});
+      if (res?.data?.statusCode === 200) {
+        setPackages(res.data?.data);
       }
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message || "Gagal memuat metode pembayaran"
-      );
+      const errorMsg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Terdapat kesalahan saat memuat daftar paket";
+
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      const currentPath = window.location.pathname;
-      // Jangan simpan callback ke login atau auth
-      if (currentPath !== "/auth/login") {
-        router.push(
-          `/auth/login?callbackUrl=${encodeURIComponent(currentPath)}`
-        );
-      } else {
-        toast.error("Silahkan login terlebih dulu");
-        router.push("/auth/login");
-      }
-    }
-  }, [isLoggedIn, router]);
+    fetchPackages();
+  }, []);
 
-  useEffect(() => {
-    if (isLoggedIn) fetchData();
-  }, [isLoggedIn]);
-
-  // Filter by category
-  const virtualAccounts = paymentChannels.filter(
-    (ch) => ch.category === "va" && ch.is_active
-  );
-  const qrisChannels = paymentChannels.filter(
-    (ch) => ch.category === "qris" && ch.is_active
-  );
-  const ewallets = paymentChannels.filter(
-    (ch) => ch.category === "ewallet" && ch.is_active
-  );
-  const outlets = paymentChannels.filter(
-    (ch) => ch.category === "otc" && ch.is_active
-  );
+  const handleSelect = (pkg: PackageData) => {
+    sessionStorage.setItem("selectedPackage", JSON.stringify(pkg));
+    setSelectedPackage(pkg);
+  };
 
   const handleCreatePayment = async () => {
-    try {
-      const createRes = await createPaymentRequest({
-        payment_channel_id: selectedChannel?.id,
-        package_id: "54d196c8-bed4-427e-b248-9d9e8ca75084",
-      });
+    if (!selectedChannel) return;
 
-      const paymentReqID = createRes.data.payment_request_id;
+    try {
+      let createRes;
+
+      const payload = {
+        package_id: selectedPackage?.id,
+        payment_channel_id: selectedChannel?.id,
+      };
+
+      switch (selectedChannel.category) {
+        case "va":
+          createRes = createPaymentRequestVA(payload);
+          break;
+        case "qris":
+          createRes = createPaymentRequestQRIS(payload);
+          break;
+        case "ewallet":
+          createRes = createPaymentRequestEWallet(payload);
+          break;
+        case "otc":
+          createRes = createPaymentRequestOTC(payload);
+          break;
+        case "card":
+          toast.error(
+            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`
+          );
+          return;
+        default:
+          throw new Error("Metode Pembayaran Tidak Didukung");
+      }
+
+      const paymentReqID = (await createRes)?.data?.data?.id;
+      sessionStorage.setItem(
+        "paymentInfo",
+        JSON.stringify((await createRes).data.data)
+      );
+
+      if (!paymentReqID) {
+        throw new Error("Gagal mendapatkan ID pembayaran");
+      }
 
       router.push(
-        `/payment/checkout-payment?type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`
+        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`
       );
     } catch (error: any) {
       toast.error(
@@ -139,129 +134,119 @@ const Payment = () => {
     }
   };
 
-  if (isLoading) return <ChannelsSkeleton />;
+  if (isLoading) return <Loader />;
+
+  if (error) return <ErrorFallback message={error} onRetry={fetchPackages} />;
 
   return (
     <div className="container mx-auto my-8 p-6">
-      {/* Modal Header */}
-      <div className="bg-white rounded-xl shadow-lg p-6 max-w-4xl mx-auto">
-        <h2 className="text-3xl max-sm:text-center font-bold text-gray-800 mb-6">
-          Metode Pembayaran
-        </h2>
-
-        {/* Virtual Account */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
-            Virtual Account
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            {virtualAccounts.length > 0 ? (
-              virtualAccounts.map((channel) => {
-                const Logo = PAYMENT_LOGOS[channel.code];
-                return (
-                  <ButtonChannel
-                    key={channel.id}
-                    channel={channel}
-                    Logo={Logo}
-                    handleClick={() => setSelectedChannel(channel)}
-                    selected={selectedChannel === channel}
-                  />
-                );
-              })
-            ) : (
-              <p className="text-gray-500 col-span-3 text-sm">
-                Tidak ada virtual account tersedia
+      <div className="flex gap-2 items-center justify-center">
+        <div className="font-bold text-dark-primary text-3xl">Checkout</div>
+      </div>
+      <div className="p-6 shadow-lg my-8 rounded-lg">
+        <h2 className="text-2xl font-bold mb-3">Pilih Paket</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {packages.map((pkg) => (
+            <div
+              key={pkg.id}
+              className={`bg-background-customer rounded-xl shadow-lg p-6 cursor-pointer transition ${
+                selectedPackage?.id === pkg.id
+                  ? "border border-primary"
+                  : "hover:shadow-2xl"
+              }`}
+              onClick={() => handleSelect(pkg)}
+            >
+              <h3 className="text-xl font-bold text-dark-primary mb-2">
+                {pkg.name ?? "-"}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                {pkg.description ?? "-"}
               </p>
-            )}
-          </div>
+
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-2xl font-bold text-primary">
+                  {convertToCurrency(pkg.price ?? 0)}
+                </span>
+                <span className="text-sm">
+                  / berlaku {pkg.duration ?? "0"} Hari
+                </span>
+              </div>
+
+              <div className="text-xs text-gray-500 mb-4">
+                Speed Up to {pkg.speed_mbps} Mbps • Kuota{" "}
+                {parseInt(pkg.quota_mb ?? 0) / 1024} GB
+              </div>
+
+              {pkg.remarks && (
+                <div className="text-xs text-green-600 mb-4">
+                  {pkg.remarks ?? "-"}
+                </div>
+              )}
+
+              <button
+                className={`w-full cursor-pointer py-2 rounded-lg font-semibold transition ${
+                  selectedPackage?.id === pkg.id
+                    ? "bg-primary text-white"
+                    : "bg-white border border-primary text-gray-700 hover:bg-primary hover:text-white"
+                }`}
+              >
+                {selectedPackage?.id === pkg.id ? "Terpilih" : "Pilih Paket"}
+              </button>
+            </div>
+          ))}
         </div>
 
-        {/* QRIS */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
-            QRIS
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            {qrisChannels.length > 0 ? (
-              qrisChannels.map((channel) => {
-                const Logo = PAYMENT_LOGOS[channel.code];
-                return (
-                  <ButtonChannel
-                    key={channel.id}
-                    channel={channel}
-                    Logo={Logo}
-                    handleClick={() => setSelectedChannel(channel)}
-                    selected={selectedChannel === channel}
-                  />
-                );
-              })
+        <div className="border border-gray-border my-5"></div>
+
+        <div className="mb-8">
+          <div className="flex max-md:flex-col max-md:gap-3 justify-between mb-3">
+            <h2 className="font-bold text-2xl ">Metode Pembayaran</h2>
+            <button
+              className="rounded-lg flex gap-1 items-center text-dark-primary-2 font-bold underline-animation-register cursor-pointer"
+              onClick={() => router.push("/payment/payment-methods")}
+            >
+              {selectedChannel
+                ? "Ganti Metode Pembayaran"
+                : "Pilih Metode Pembayaran"}
+              <IoIosArrowForward size={18} className="text-primary" />
+            </button>
+          </div>
+
+          <div className="flex justify-between gap-4 items-center">
+            <div className="flex gap-2">
+              <div className="sm:text-lg text-sm font-semibold">
+                {selectedChannel?.name ??
+                  "*Pilih metode pembayaran terlebih dahulu"}
+              </div>
+            </div>
+            {selectedChannel ? (
+              <Image
+                src={PAYMENT_LOGOS[selectedChannel.code] || ccSvg}
+                width={100}
+                height={100}
+                alt={selectedChannel.name}
+                className="object-contain border border-primary px-3 py-2 shadow-lg rounded-lg"
+              />
             ) : (
-              <p className="text-gray-500 col-span-2 text-sm">
-                Tidak ada QRIS tersedia
-              </p>
+              <Image
+                src={ccSvg}
+                width={80}
+                height={80}
+                alt="Metode pembayaran"
+              />
             )}
           </div>
         </div>
 
-        {/* E-Wallet */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
-            E-Wallet
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            {ewallets.length > 0 ? (
-              ewallets.map((channel) => {
-                const Logo = PAYMENT_LOGOS[channel.code];
-                return (
-                  <ButtonChannel
-                    key={channel.id}
-                    channel={channel}
-                    Logo={Logo}
-                    handleClick={() => setSelectedChannel(channel)}
-                    selected={selectedChannel === channel}
-                  />
-                );
-              })
-            ) : (
-              <p className="text-gray-500 col-span-2 text-sm">
-                Tidak ada e-wallet tersedia
-              </p>
-            )}
-          </div>
+        <div>
+          <button
+            className="rounded-lg text-2xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-3"
+            onClick={handleCreatePayment}
+            disabled={!selectedPackage || !selectedChannel}
+          >
+            Bayar
+          </button>
         </div>
-
-        {/* Outlet */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
-            Outlet
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            {outlets.length > 0 ? (
-              outlets.map((channel) => {
-                const Logo = PAYMENT_LOGOS[channel.code];
-                return (
-                  <ButtonChannel
-                    key={channel.id}
-                    channel={channel}
-                    Logo={Logo}
-                    handleClick={() => setSelectedChannel(channel)}
-                    selected={selectedChannel === channel}
-                  />
-                );
-              })
-            ) : (
-              <p className="text-gray-500 text-sm">Tidak ada outlet tersedia</p>
-            )}
-          </div>
-        </div>
-
-        <button
-          disabled={!selectedChannel}
-          onClick={() => handleCreatePayment()}
-          className="w-full text-base sm:text-xl cursor-pointer py-4 bg-primary text-white font-semibold rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed disabled:bg-slate-400"
-        >
-          {selectedChannel ? "Selanjutnya" : "Pilih Metode Pembayaran"}
-        </button>
       </div>
     </div>
   );

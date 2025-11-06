@@ -47,6 +47,7 @@ function MapInputForm({
 
   useEffect(() => {
     getAddress(address);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
   const [predictions, setPredictions] = useState<

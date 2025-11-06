@@ -1,3 +1,5 @@
+"use client";
+
 import { PaymentChannel } from "@/app/_shared/types/payment";
 import Image from "next/image";
 import React from "react";

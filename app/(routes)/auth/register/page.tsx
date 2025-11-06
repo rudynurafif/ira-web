@@ -42,6 +42,7 @@ interface FormType {
   postal_code: string;
   notes: string;
   actual_address: string;
+  voucher_code: string;
   address_gmaps?: any;
   lat?: string;
   lng?: string;
@@ -61,6 +62,7 @@ const initialFormData: FormType = {
   postal_code: "",
   actual_address: "",
   notes: "",
+  voucher_code: "",
   address_gmaps: undefined,
   lat: undefined,
   lng: undefined,
@@ -439,6 +441,7 @@ function Page() {
           address: addressArray ?? "",
           actual_address: formData.actual_address ?? "",
           ...(formData.notes && { notes: formData.notes }),
+          ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
         };
 
         const coveredNow = isCovered;
@@ -934,6 +937,23 @@ function Page() {
               }
               error={errors.actual_address}
               disabled={!formData.address_gmaps}
+            />
+          </div>
+
+          {/* Kode Voucher */}
+          <div className="col-span-2">
+            <DynamicForm
+              label="Kode Voucher"
+              isImportant={false}
+              name="voucher_code"
+              value={formData.voucher_code}
+              onChange={(value: string) => {
+                const filtered = value.replace(/[^a-zA-Z\s.\-]/g, "");
+                setFormData((prev) => ({ ...prev, voucher_code: filtered }));
+                setErrors({ ...errors, voucher_code: "" });
+              }}
+              placeholder="Masukkan Kode Voucher"
+              error={errors.voucher_code}
             />
           </div>
         </div>

@@ -11,7 +11,7 @@ import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
 
 function Footer() {
   return (
-    <div className="bg-background-customer">
+    <div className="bg-background-customer max-sm:text-sm">
       <div className="container mx-auto px-5 my-8">
         <div className="block lg:flex justify-between items-center gap-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 w-full lg:w-[60%]">
@@ -34,7 +34,7 @@ function Footer() {
               </Link>
             </div>
             <div className="col-span-1">
-              <h5 className="font-bold mb-[10px]">Social Media</h5>
+              <h5 className="font-bold mb-2.5">Social Media</h5>
               <div className="flex gap-3">
                 <Link href={"https://www.instagram.com/"} target="_blank">
                   <FaInstagram size={24} />
@@ -65,7 +65,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.3110.029</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.0611.030</div>
       </div>
     </div>
   );

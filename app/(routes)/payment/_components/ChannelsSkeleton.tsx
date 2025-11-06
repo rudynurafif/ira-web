@@ -1,7 +1,7 @@
  const ChannelsSkeleton = () => {
   return (
     <div className="container mx-auto my-8 p-6">
-      <div className="bg-white rounded-xl shadow-lg p-6 max-w-4xl mx-auto">
+      <div className="bg-white rounded-xl shadow-lg p-6 mx-auto">
         {/* Title Skeleton */}
         <div className="h-8 bg-gray-200 rounded-lg mb-6 animate-pulse"></div>
 

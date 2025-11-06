@@ -1,25 +1,24 @@
 import React from "react";
 import Image from "next/image";
 import { FaChevronRight, FaStar } from "react-icons/fa";
-import { IoArrowForward } from "react-icons/io5";
-import { ActivePacketData } from "@/app/_shared/types/customer-area";
+import {
+  PackageData,
+  SubscriptionHistoryAPI,
+} from "@/app/_shared/types/customer-area";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
 import confetti from "@/public/assets/Icons/confetti.svg";
 import packageIcon from "@/public/assets/Icons/hargaPaket.svg";
 import sandClock from "@/public/assets/Icons/jam-pasir.svg";
 import rocket from "@/public/assets/Icons/rocket.svg";
 import calendar from "@/public/assets/Icons/calendar-clock.svg";
+import { convertToCurrency } from "@/app/_shared/utils";
+import { useRouter } from "next/navigation";
 
-const ActivePackageCard = ({
-  packageName,
-  packageDuration,
-  price,
-  speed,
-  expiryDate,
-  onExtend,
-}: ActivePacketData) => {
+const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
+  const router = useRouter();
+
   return (
-    <div className="bg-linear-to-b from-white via-white to-[#CAE2EC] rounded-xl shadow-lg p-6 max-sm:p-4">
+    <div className=" bg-linear-to-b from-white via-white to-[#CAE2EC] rounded-xl shadow-lg p-6 max-sm:p-4">
       {/* Header */}
       <div className="flex items-center gap-4 mb-4">
         {/* Logo */}
@@ -28,9 +27,11 @@ const ActivePackageCard = ({
         </div>
 
         <div>
-          <h3 className="text-xl font-bold text-dark-primary">{packageName}</h3>
+          <h3 className="text-xl font-bold text-dark-primary">
+            {data.package_id.name}
+          </h3>
           <button
-            onClick={onExtend}
+            onClick={() => router.push("/payment")}
             className="text-primary cursor-pointer flex items-center justify-center gap-1 text-sm underline hover:text-dark-primary transition"
           >
             Perpanjang Paket
@@ -49,11 +50,12 @@ const ActivePackageCard = ({
           className="mb-1"
         />
         <p className="text-sm font-bold text-gray-700">
-          Selamat paket {packageName} baru kamu sudah aktif!
+          Selamat paket {data.package_id.name} baru kamu sudah aktif!
         </p>
         <p className="text-sm text-gray-700 mt-1">
-          Nikmati <strong>{speed}</strong> penuh dan koneksi stabil selama{" "}
-          <strong>{packageDuration}</strong> ke depan.
+          Nikmati <strong>{data.package_id.quota_mb} MB</strong> penuh dan
+          koneksi stabil selama <strong>{data.package_id.duration}</strong> hari
+          ke depan.
         </p>
       </div>
 
@@ -66,7 +68,9 @@ const ActivePackageCard = ({
           <Image src={packageIcon} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Harga Paket</p>
-            <p className="text-lg">{price}</p>
+            <p className="text-lg">
+              {convertToCurrency(data.package_id.price)}
+            </p>
           </div>
         </div>
 
@@ -75,7 +79,7 @@ const ActivePackageCard = ({
           <Image src={sandClock} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Sisa Hari</p>
-            <p className="text-lg">{packageDuration}</p>
+            <p className="text-lg">{data.package_id.duration} Hari</p>
           </div>
         </div>
 
@@ -84,7 +88,7 @@ const ActivePackageCard = ({
           <Image src={rocket} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Kecepatan Paket</p>
-            <p className="text-lg">{speed}</p>
+            <p className="text-lg">{data.package_id.speed_mbps}Mpbs</p>
           </div>
         </div>
 
@@ -92,8 +96,10 @@ const ActivePackageCard = ({
         <div className="flex flex-col items-start gap-3">
           <Image src={calendar} alt="packageIcon" />
           <div>
-            <p className="text-xs font-bold mb-2 mt-3">Tanggal Jatuh Tempo</p>
-            <p className="text-lg">{expiryDate}</p>
+            <p className="text-xs font-bold mb-2 mt-3">
+              Tanggal Berakhir Paket
+            </p>
+            <p className="text-lg">{data.end_date}</p>
           </div>
         </div>
       </div>

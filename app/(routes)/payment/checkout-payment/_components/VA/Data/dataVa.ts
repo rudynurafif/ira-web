@@ -1,33 +1,22 @@
-// Virtual account
-import VAbca from "@/public/assets/Icons/payment-method/VA/logo-bca.png";
-import VAbni from "@/public/assets/Icons/payment-method/VA/logo-bni.png";
-import VAbjb from "@/public/assets/Icons/payment-method/VA/logo-bjb.png";
-import VAbri from "@/public/assets/Icons/payment-method/VA/logo-bri.png";
-import VAbsi from "@/public/assets/Icons/payment-method/VA/logo-bsi.png";
-import VAcimb from "@/public/assets/Icons/payment-method/VA/logo-cimbniaga.png";
-import VAmandiri from "@/public/assets/Icons/payment-method/VA/logo-mandiri.png";
-import VApermata from "@/public/assets/Icons/payment-method/VA/logo-permata.png";
+import {
+  bca,
+  bjb,
+  bni,
+  bri,
+  bsi,
+  cimb,
+  mandiri,
+  permata,
+} from "@/public/assets/Images/bank";
 
-// ewallet
-import ewalletDana from "@/public/assets/Icons/payment-method/ewallet/logo-dana.png";
-import ewalletOVO from "@/public/assets/Icons/payment-method/ewallet/logo-ovo.png";
-import ewalletSpay from "@/public/assets/Icons/payment-method/ewallet/logo-shopee.png";
-
-// QR
-import Qris from "@/public/assets/Icons/payment-method/QR/qris.png";
-import QrisGopay from "@/public/assets/Icons/payment-method/QR/gopay-192x92-1.png";
-
-// outlet
-import outletAlfa from "@/public/assets/Icons/payment-method/outlet/logo-alfamart.png";
-import outletIndomaret from "@/public/assets/Icons/payment-method/outlet/indomaret-large.png";
 export const dataVa = [
   {
     id: 1,
     title: "Virtual Account",
     logo: [
       {
-        name: "BNI_VIRTUAL_ACCOUNT",
-        image: VAbni,
+        name: "BNI",
+        image: bni,
         instructions: [
           {
             title: "Petunjuk mBanking",
@@ -64,8 +53,8 @@ export const dataVa = [
         ],
       },
       {
-        name: "BCA_VIRTUAL_ACCOUNT",
-        image: VAbca,
+        name: "BCA",
+        image: bca,
         instructions: [
           {
             title: "Petunjuk mBanking",
@@ -102,8 +91,8 @@ export const dataVa = [
         ],
       },
       {
-        name: "BJB_VIRTUAL_ACCOUNT",
-        image: VAbjb,
+        name: "BJB",
+        image: bjb,
         instructions: [
           {
             title: "Petunjuk mBanking",
@@ -129,8 +118,8 @@ export const dataVa = [
         ],
       },
       {
-        name: "BRI_VIRTUAL_ACCOUNT",
-        image: VAbri,
+        name: "BRI",
+        image: bri,
         instructions: [
           {
             title: "Petunjuk mBanking",
@@ -154,8 +143,8 @@ export const dataVa = [
         ],
       },
       {
-        name: "BSI_VIRTUAL_ACCOUNT",
-        image: VAbsi,
+        name: "BSI",
+        image: bsi,
         instructions: [
           {
             title: "Petunjuk mBanking",
@@ -179,8 +168,8 @@ export const dataVa = [
         ],
       },
       {
-        name: "CIMB_VIRTUAL_ACCOUNT",
-        image: VAcimb,
+        name: "CIMB",
+        image: cimb,
         instructions: [
           {
             title: "Petunjuk mBanking",
@@ -204,8 +193,8 @@ export const dataVa = [
         ],
       },
       {
-        name: "MANDIRI_VIRTUAL_ACCOUNT",
-        image: VAmandiri,
+        name: "MANDIRI",
+        image: mandiri,
         instructions: [
           {
             title: "Petunjuk mBanking",
@@ -229,8 +218,8 @@ export const dataVa = [
         ],
       },
       {
-        name: "PERMATA_VIRTUAL_ACCOUNT",
-        image: VApermata,
+        name: "PERMATA",
+        image: permata,
         instructions: [
           {
             title: "Petunjuk mBanking",

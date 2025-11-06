@@ -6,7 +6,7 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: BASE_URL,
     prepareHeaders: (headers, { getState }) => {
-      const token = getCookie("token-fwa"); // Jika menggunakan cookies
+      const token = getCookie("token-fwa");
 
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);

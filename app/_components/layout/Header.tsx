@@ -213,7 +213,7 @@ function Header() {
                   pathname === "/payment" ? "font-bold" : ""
                 } underline-animation-register`}
               >
-                Bayar Tagihan
+                Perpanjang Paket
               </Link>
 
               {/* Dynamic Auth Button */}
@@ -264,13 +264,20 @@ function Header() {
               className={` ${pathname === "/payment" && "font-bold"}`}
               onClick={() => setIsOpenMenu(false)}
             >
-              Bayar Tagihan
+              Perpanjang Paket
             </Link>
 
             <div>
               {isLoggedIn ? (
                 <div className="flex flex-col gap-3">
-                  <span className="font-medium">Area Pelanggan</span>
+                  <Link
+                    href="/customer-area"
+                    className={`${
+                      pathname === "/customer-area" ? "font-bold" : ""
+                    } underline-animation-register`}
+                  >
+                    Area Pelanggan
+                  </Link>
                   <button
                     onClick={() => {
                       handleLogout();

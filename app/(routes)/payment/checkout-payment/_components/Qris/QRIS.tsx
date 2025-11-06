@@ -7,7 +7,7 @@ function QRIS() {
   const router = useRouter();
   return (
     <div>
-      <div className="mt-4 w-full bg-[#F7F9FD] border border-[#949AA3] rounded-[12px] p-5">
+      <div className="mt-4 w-full bg-[#F7F9FD] border border-[#949AA3] rounded-xl p-5">
         <div className="flex justify-center">
           <Image
             src={checkoutQris}
@@ -22,7 +22,7 @@ function QRIS() {
           <button
             type="button"
             onClick={() => {}}
-            className="bg-dark-primary-2 rounded-[8px] text-white font-bold w-full max-sm:text-sm py-3"
+            className="bg-dark-primary-2 rounded-lg text-white font-bold w-full max-sm:text-sm py-3"
           >
             Download QR Code
           </button>

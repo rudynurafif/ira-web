@@ -9,12 +9,15 @@ import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 
 import { useSearchParams } from "next/navigation";
 import { dataVa } from "./Data/dataVa";
+import { VAPaymentData } from "@/app/_shared/types/payment";
+import { formatDate, formatPaymentNumber } from "@/app/_shared/utils";
 
-function VA() {
+function VA({ data }: { data: VAPaymentData }) {
   const [selectedImage, setSelectedImage] = useState<any>("");
   const params = useSearchParams();
   const [selectedInstructionList, setSelectedInstructionList] = useState([]);
   const [activeInstructions, setActiveInstructions] = useState<any>({});
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     const type = params.get("type");
@@ -48,28 +51,48 @@ function VA() {
 
   return (
     <div>
-      <div className="mt-4 bg-[#F7F9FD] border border-[#949AA3] w-full rounded-xl p-5">
+      <div className="mt-4 bg-[#F7F9FD] border border-[#949AA3] w-full rounded-xl p-5 shadow-lg">
         <div className="flex flex-col justify-between w-full">
           <span className="block max-[580px]:text-sm">
             Nomor Virtual Account
           </span>
           <span className="font-bold text-dark-primary-2 text-[20px] sm:text-[23px] block pt-2">
-            8930 1129 3222 9120
+            {formatPaymentNumber(data.va)}
           </span>
 
           <div className="max-sm:flex-col sm:flex sm:justify-between sm:items-center">
             <button
               type="button"
+              disabled={isCopied}
               onClick={() => {
-                toast.success("Nomor Virtual Account Berhasil Disalin!");
-                navigator.clipboard.writeText("8930 1129 3222 9120");
+                navigator.clipboard
+                  .writeText(data.va)
+                  .then(() => {
+                    setIsCopied(true);
+                    toast.success("Nomor Virtual Account Berhasil Disalin!");
+
+                    // Reset setelah 3 detik
+                    setTimeout(() => {
+                      setIsCopied(false);
+                    }, 3000);
+                  })
+                  .catch((err) => {
+                    toast.error("Gagal menyalin. Coba lagi.");
+                    console.error("Error copying text: ", err);
+                  });
               }}
-              className="bg-dark-primary-2 text-sm rounded-lg px-6 py-3 mt-1 flex text-white justify-center items-center gap-1"
+              className={`bg-dark-primary-2 text-sm rounded-lg px-6 py-3 mt-1 flex text-white justify-center items-center gap-1 ${
+                isCopied
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:bg-dark-primary cursor-pointer"
+              } transition`}
             >
               <div>
                 <IoCopyOutline size={15} />
               </div>
-              <div>Salin</div>
+              <div className="font-bold">
+                {isCopied ? "Tersalin!" : "Salin"}
+              </div>
             </button>
 
             <div className="sm:text-right">
@@ -80,7 +103,7 @@ function VA() {
                     alt=""
                     width={500}
                     height={500}
-                    className="w-[124px] h-fit"
+                    className="w-[124px] h-fit my-3"
                   />
                 </div>
               )}
@@ -94,7 +117,7 @@ function VA() {
           <div className="flex justify-between gap-2 w-full pt-3">
             <div>Bayar Sebelum</div>
             <div className="sm:text-right font-medium">
-              {moment().format("dddd D MMMM YYYY, HH:mm")}
+              {formatDate(data.expire_at)}
             </div>
           </div>
         </div>

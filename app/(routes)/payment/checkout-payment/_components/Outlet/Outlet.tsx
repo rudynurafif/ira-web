@@ -25,10 +25,13 @@ function Outlet() {
     const selected = params.get("selected_payment");
 
     if (type && selected) {
-      const matchedType = dataOutlet.find((item) => item.route.toLowerCase() === type);
+      const matchedType = dataOutlet.find(
+        (item) => item.route.toLowerCase() === type
+      );
+      console.log("matchedtype", matchedType);
       if (matchedType) {
         const matchedLogo: any = matchedType.logo.find(
-          (logo) => logo.name.toLowerCase() === selected
+          (logo) => logo.name === selected
         );
         if (matchedLogo) {
           setSelectedImage(matchedLogo);
