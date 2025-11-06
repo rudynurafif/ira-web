@@ -1,18 +1,16 @@
 import React from "react";
 import Image from "next/image";
 import { FaChevronRight, FaStar } from "react-icons/fa";
-import {
-  PackageData,
-  SubscriptionHistoryAPI,
-} from "@/app/_shared/types/customer-area";
+import { PackageData } from "@/app/_shared/types/customer-area";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
 import confetti from "@/public/assets/Icons/confetti.svg";
 import packageIcon from "@/public/assets/Icons/hargaPaket.svg";
 import sandClock from "@/public/assets/Icons/jam-pasir.svg";
 import rocket from "@/public/assets/Icons/rocket.svg";
 import calendar from "@/public/assets/Icons/calendar-clock.svg";
-import { convertToCurrency } from "@/app/_shared/utils";
+import { convertToCurrency, daysUntil } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
+import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 
 const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   const router = useRouter();
@@ -53,9 +51,10 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           Selamat paket {data.package_id.name} baru kamu sudah aktif!
         </p>
         <p className="text-sm text-gray-700 mt-1">
-          Nikmati <strong>{data.package_id.quota_mb} MB</strong> penuh dan
-          koneksi stabil selama <strong>{data.package_id.duration}</strong> hari
-          ke depan.
+          Nikmati kecepatan hingga{" "}
+          <strong>{data.package_id.speed_mbps} Mbps </strong> penuh dan koneksi
+          stabil selama <strong>{daysUntil(data.end_date)}</strong> hari ke
+          depan.
         </p>
       </div>
 
@@ -79,7 +78,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           <Image src={sandClock} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Sisa Hari</p>
-            <p className="text-lg">{data.package_id.duration} Hari</p>
+            <p className="text-lg">{daysUntil(data.end_date)} Hari</p>
           </div>
         </div>
 

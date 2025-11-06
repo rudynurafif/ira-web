@@ -35,11 +35,14 @@ function Page() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("paymentInfo");
+      const stored = sessionStorage.getItem("paymentInfo");
 
       if (stored) {
         try {
-          const parsed = JSON.parse(stored) as VAPaymentData;
+          const parsed = JSON.parse(stored) as
+            | VAPaymentData
+            | EWalletPaymentData
+            | QRISPaymentData;
           setPaymentInfo(parsed);
         } catch (e) {
           console.error("Gagal parse paymentInfo:", e);
@@ -47,7 +50,7 @@ function Page() {
           router.replace("/payment");
         }
       } else {
-        // Jika tidak ada di localStorage, redirect
+        // Jika tidak ada di sessionStorage, redirect
         toast.error("Sesi pembayaran tidak ditemukan.");
         router.replace("/payment");
       }
@@ -63,9 +66,6 @@ function Page() {
 
   if (isLoading) {
     return <Loader />;
-  }
-
-  if (!paymentInfo) {
   }
 
   return (
@@ -98,9 +98,7 @@ function Page() {
               Total Pembayaran
             </div>
             <div className="text-right text-dark-primary-2 font-bold text-lg sm:text-2xl">
-              {convertToCurrency(
-                parseInt(String(paymentInfo?.amount ?? "0"), 10)
-              )}
+              {convertToCurrency(parseInt(String(paymentInfo?.amount ?? "0")))}
             </div>
           </div>
 

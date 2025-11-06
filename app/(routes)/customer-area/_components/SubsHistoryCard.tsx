@@ -1,9 +1,13 @@
-import { SubscriptionHistoryAPI } from "@/app/_shared/types/customer-area";
 import Image from "next/image";
 import redAlert from "@/public/assets/Icons/carbon_warning-filled.svg";
 import greenCheck from "@/public/assets/Icons/mdi_tick-circle.svg";
 import starIcon from "@/public/assets/Icons/icon-star.svg";
-import { convertToCurrency } from "@/app/_shared/utils";
+import {
+  convertToCurrency,
+  formatDate,
+  formatISODate,
+} from "@/app/_shared/utils";
+import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 
 const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   return (
@@ -32,16 +36,20 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               width={12}
               alt="alert"
             />
-            {data.package_id.name}
+            {data?.billing_id[0]?.status === "PAID"
+              ? "Paket berhasil dibayar"
+              : "Paket belum dibayar"}
           </p>
           <p className="text-xl max-sm:text-sm font-bold text-dark-primary-2">
-            {data.package_id.description}
+            {data.package_id.name ?? "-"}
           </p>
           <p className="max-sm:block hidden text-sm font-medium">
-            {data.package_id.price}
+            {data.package_id.price ?? "-"}
           </p>
           <p className=" text-xs max-sm:text-[10px]">
-            {data.package_id.remarks}
+            {" "}
+            Dibayar pada{" "}
+            {formatISODate(data?.billing_id[0]?.invoice_id[0]?.paid_at) || "-"}
           </p>
         </div>
       </div>

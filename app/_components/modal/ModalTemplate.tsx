@@ -18,7 +18,7 @@ function ModalTemplate({
       />
       <div
         className={
-          "z-[10001] bg-white rounded-[20px] overflow-auto relative " +
+          "z-10001 bg-white rounded-[20px] overflow-auto relative " +
           classNameModal
         }
       >

@@ -126,16 +126,63 @@ export interface PackageDetail {
   duration: number; // 30
 }
 
-export interface PackageDetail {
+export interface BillingItem {
   id: string;
-  name: string;
-  speed_mbps: string;
-  quota_mb: string;
-  discount_price: string;
-  price: number;
-  treshold_isolate_days: number;
-  description: string;
-  remarks: string;
-  is_active: boolean;
-  duration: number;
+  billing_period: string; // e.g. "Feb"
+  billing_year: number; // e.g. 2026
+  amount: string; // e.g. "300000.00"
+  tax: string; // e.g. "0.00"
+  discount_price: string; // e.g. "0.00"
+  discount_rate: string; // e.g. "0.00"
+  total_due: string; // e.g. "300000.00"
+  voucher_code: string | null;
+  is_free: boolean;
+  status: string; // e.g. "PAID", "PENDING", "OVERDUE"
+  billing_issued_at: string; // ISO 8601
+  billing_start_at: string; // ISO 8601
+  billing_deadline_at: string; // ISO 8601
+  remarks: string | null;
+  description: string | null;
+  invoice_id: InvoiceID[];
+}
+
+export interface InvoiceID {
+  id: string;
+  invoice_no: string;
+  status: string; // Misal: "paid", "pending", "failed"
+  currency: string; // Misal: "IDR"
+  amount: string; // "300000.00"
+  tax: string; // "0.00"
+  discount_price: string; // "0.00"
+  discount_rate: string; // "0.00"
+  total_due: string; // "300000.00"
+  is_free: boolean;
+  issued_at: string; // ISO 8601 datetime
+  due_at: string; // ISO 8601 datetime
+  paid_at: string | null; // ISO 8601 datetime atau null jika belum dibayar
+  payment_gateway: string; // "xendit"
+  payment_method: string; // "e_wallet", "va", "qris", dll.
+  payment_number: string | null;
+  payment_reference: string | null; // ID referensi dari gateway
+  paid_amount: string | null; // "300000.00"
+  gateway_pr_id: string | null; // Payment Request ID di gateway
+  gateway_pm_id: string | null; // Payment Method ID di gateway
+  checkout_url: string | null;
+  qr_string: string | null;
+  xendit_event_id: string | null;
+  callback_received_at: string | null; // Saat callback diterima
+  failure_code: string | null;
+  failure_message: string | null;
+  remarks: string | null;
+  description: string | null;
+}
+
+// Subscription history entry
+export interface SubscriptionHistoryAPI {
+  id: string;
+  customer_id: Customer;
+  package_id: PackageData;
+  start_date: string; // format: "YYYY-MM-DD"
+  end_date: string; // format: "YYYY-MM-DD"
+  billing_id: BillingItem[]; // array of billing records
 }

@@ -24,7 +24,7 @@ function Footer() {
               </p>
             </div>
             <div className="col-span-1">
-              <h5 className="font-bold mb-[10px]">Business Phone Number</h5>
+              <h5 className="font-bold mb-2.5">Business Phone Number</h5>
               <Link
                 href={"https://wa.me/6281188011388"}
                 className="hover:underline"
@@ -65,7 +65,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.0611.030</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.0611.031</div>
       </div>
     </div>
   );

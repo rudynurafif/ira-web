@@ -60,12 +60,14 @@ const Payment = () => {
         setPackages(res.data?.data);
       }
     } catch (error: any) {
+      const errorStatusCode =
+        error?.response?.data?.statusCode || "(status code)";
       const errorMsg =
         error?.response?.data?.message ||
         error?.message ||
         "Terdapat kesalahan saat memuat daftar paket";
 
-      setError(errorMsg);
+      setError(`Error ${errorStatusCode}: ${errorMsg}`);
     } finally {
       setIsLoading(false);
     }
@@ -146,54 +148,58 @@ const Payment = () => {
       <div className="p-6 shadow-lg my-8 rounded-lg">
         <h2 className="text-2xl font-bold mb-3">Pilih Paket</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {packages.map((pkg) => (
-            <div
-              key={pkg.id}
-              className={`bg-background-customer rounded-xl shadow-lg p-6 cursor-pointer transition ${
-                selectedPackage?.id === pkg.id
-                  ? "border border-primary"
-                  : "hover:shadow-2xl"
-              }`}
-              onClick={() => handleSelect(pkg)}
-            >
-              <h3 className="text-xl font-bold text-dark-primary mb-2">
-                {pkg.name ?? "-"}
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                {pkg.description ?? "-"}
-              </p>
-
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-2xl font-bold text-primary">
-                  {convertToCurrency(pkg.price ?? 0)}
-                </span>
-                <span className="text-sm">
-                  / berlaku {pkg.duration ?? "0"} Hari
-                </span>
-              </div>
-
-              <div className="text-xs text-gray-500 mb-4">
-                Speed Up to {pkg.speed_mbps} Mbps • Kuota{" "}
-                {parseInt(pkg.quota_mb ?? 0) / 1024} GB
-              </div>
-
-              {pkg.remarks && (
-                <div className="text-xs text-green-600 mb-4">
-                  {pkg.remarks ?? "-"}
-                </div>
-              )}
-
-              <button
-                className={`w-full cursor-pointer py-2 rounded-lg font-semibold transition ${
+          {packages ? (
+            packages.map((pkg) => (
+              <div
+                key={pkg.id}
+                className={`bg-background-customer rounded-xl shadow-lg p-6 cursor-pointer transition ${
                   selectedPackage?.id === pkg.id
-                    ? "bg-primary text-white"
-                    : "bg-white border border-primary text-gray-700 hover:bg-primary hover:text-white"
+                    ? "border border-primary"
+                    : "hover:shadow-2xl"
                 }`}
+                onClick={() => handleSelect(pkg)}
               >
-                {selectedPackage?.id === pkg.id ? "Terpilih" : "Pilih Paket"}
-              </button>
-            </div>
-          ))}
+                <h3 className="text-xl font-bold text-dark-primary mb-2">
+                  {pkg.name ?? "-"}
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  {pkg.description ?? "-"}
+                </p>
+
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-2xl font-bold text-primary">
+                    {convertToCurrency(pkg.price ?? 0)}
+                  </span>
+                  <span className="text-sm">
+                    / berlaku {pkg.duration ?? "0"} Hari
+                  </span>
+                </div>
+
+                <div className="text-xs text-gray-500 mb-4">
+                  Speed Up to {pkg.speed_mbps} Mbps • Kuota{" "}
+                  {parseInt(pkg.quota_mb ?? 0) / 1024} GB
+                </div>
+
+                {pkg.remarks && (
+                  <div className="text-xs text-green-600 mb-4">
+                    {pkg.remarks ?? "-"}
+                  </div>
+                )}
+
+                <button
+                  className={`w-full cursor-pointer py-2 rounded-lg font-semibold transition ${
+                    selectedPackage?.id === pkg.id
+                      ? "bg-primary text-white"
+                      : "bg-white border border-primary text-gray-700 hover:bg-primary hover:text-white"
+                  }`}
+                >
+                  {selectedPackage?.id === pkg.id ? "Terpilih" : "Pilih Paket"}
+                </button>
+              </div>
+            ))
+          ) : (
+            <div>Belum ada Daftar Paket yang tersedia untuk Anda</div>
+          )}
         </div>
 
         <div className="border border-gray-border my-5"></div>
