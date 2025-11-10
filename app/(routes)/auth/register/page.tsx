@@ -943,7 +943,7 @@ function Page() {
           {/* Kode Voucher */}
           <div className="col-span-2">
             <DynamicForm
-              label="Kode Voucher"
+              label="Kode Voucher (opsional)"
               isImportant={false}
               name="voucher_code"
               value={formData.voucher_code}
@@ -978,7 +978,7 @@ function Page() {
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
-                <div className="loading w-[20px] h-[20px]"></div>
+                <div className="loading w-5 h-5"></div>
                 <span className="italic text-white">Loading...</span>
               </div>
             ) : (

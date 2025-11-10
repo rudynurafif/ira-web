@@ -36,7 +36,7 @@ const ActivePacket = () => {
     };
 
     fetchData();
-  }, [userInfo]);
+  }, []);
 
   const isFetching = !activePacketData && !userInfo;
 
