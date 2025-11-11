@@ -8,15 +8,16 @@ import packageIcon from "@/public/assets/Icons/hargaPaket.svg";
 import sandClock from "@/public/assets/Icons/jam-pasir.svg";
 import rocket from "@/public/assets/Icons/rocket.svg";
 import calendar from "@/public/assets/Icons/calendar-clock.svg";
-import { convertToCurrency, daysUntil } from "@/app/_shared/utils";
+import { convertToCurrency, packageCountdown } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 
 const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   const router = useRouter();
+  const { label, status, days } = packageCountdown(data.end_date ?? null);
 
   return (
-    <div className=" bg-linear-to-b from-white via-white to-[#CAE2EC] rounded-xl shadow-lg p-6 max-sm:p-4">
+    <div className=" bg-linear-to-b from-white via-white to-[#FFDCDC] rounded-xl shadow-lg p-6 max-sm:p-4">
       {/* Header */}
       <div className="flex items-center gap-4 mb-4">
         {/* Logo */}
@@ -25,7 +26,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
         </div>
 
         <div>
-          <h3 className="text-xl font-bold text-dark-primary">
+          <h3 className="text-xl font-bold text-black">
             {data.package_id.name}
           </h3>
           <button
@@ -50,12 +51,26 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
         <p className="text-sm font-bold text-gray-700">
           Selamat paket {data.package_id.name} baru kamu sudah aktif!
         </p>
-        <p className="text-sm text-gray-700 mt-1">
-          Nikmati kecepatan hingga{" "}
-          <strong>{data.package_id.speed_mbps} Mbps </strong> penuh dan koneksi
-          stabil selama <strong>{daysUntil(data.end_date)}</strong> hari ke
-          depan.
-        </p>
+        {status === "active" && (
+          <p className="text-sm text-gray-700 mt-1">
+            Nikmati kecepatan hingga{" "}
+            <strong>{data.package_id.speed_mbps} Mbps</strong> penuh dan koneksi
+            stabil selama <strong>{days}</strong> hari ke depan.
+          </p>
+        )}
+        {status === "expires_today" && (
+          <p className="text-sm text-gray-700 mt-1">
+            Paket <strong>{data.package_id.name}</strong> berakhir{" "}
+            <strong>hari ini</strong>. Perpanjang sekarang agar layanan tetap
+            aktif.
+          </p>
+        )}
+        {status === "expired" && (
+          <p className="text-sm text-gray-700 mt-1">
+            Masa aktif paket telah <strong>berakhir</strong>. Silakan perpanjang
+            untuk mengaktifkan kembali internet.
+          </p>
+        )}
       </div>
 
       <div className="border-t border-gray-200 my-6"></div>
@@ -78,7 +93,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           <Image src={sandClock} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Sisa Hari</p>
-            <p className="text-lg">{daysUntil(data.end_date)} Hari</p>
+            <p className="text-lg">{label}</p>
           </div>
         </div>
 

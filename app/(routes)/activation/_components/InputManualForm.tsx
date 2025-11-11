@@ -3,7 +3,7 @@ import DynamicForm from "@/app/_components/form/DynamicForm";
 import LoadingModal from "@/app/_components/modal/LoadingModal";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { addUrlParam } from "@/app/_shared/utils";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -16,6 +16,7 @@ function InputManualForm() {
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
+  const router = useRouter();
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,6 +51,11 @@ function InputManualForm() {
 
         addUrlParam("section", "connect");
         addUrlParam("serial_number", serialNumber);
+
+        // Untuk keperluan simulasi, redirect ke customer-area setelah submit
+        setTimeout(() => {
+          window.location.href = "/customer-area";
+        }, 3000);
       }
     } catch (error: any) {
       setOpenModalFailed(true);
@@ -115,8 +121,9 @@ function InputManualForm() {
       <LoadingModal isOpen={isSubmitting} />
 
       {openModalFailed && (
-        <ModalTemplate closeModal={() => setOpenModalFailed(false)}
-        classNameModal="p-6 max-w-lg w-full mx-4 text-center"
+        <ModalTemplate
+          closeModal={() => setOpenModalFailed(false)}
+          classNameModal="p-6 max-w-lg w-full mx-4 text-center"
         >
           {/* Modal Content */}
           <h3 className="text-dark-primary font-bold text-lg">

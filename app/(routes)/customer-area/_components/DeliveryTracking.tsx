@@ -1,33 +1,54 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Image from "next/image";
 import qrCodeDummy from "@/public/assets/Images/qr-code.png";
-import { getFirstTwoWords } from "@/app/_shared/utils";
+import { copyToClipboard, getFirstTwoWords } from "@/app/_shared/utils";
 import { useAppSelector } from "@/app/store/store";
-import { FaRegClock } from "react-icons/fa";
+import { FaRegClock, FaRegCopy } from "react-icons/fa";
 import { PiTruck } from "react-icons/pi";
 import boxDelivered from "@/public/assets/Icons/box-delivered.svg";
 import { useRouter } from "next/navigation";
+import { getShipment } from "@/app/_api/Shipment/Shipment";
+import { Shipment } from "@/app/_shared/data/shipment";
+import { BsExclamationTriangle } from "react-icons/bs";
+import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 
-const DeliveryTracking = () => {
-  const [showQR, setShowQR] = useState(false);
-  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
+const DeliveryTracking = ({
+  data,
+}: {
+  data: SubscriptionHistoryAPI | undefined;
+}) => {
   const router = useRouter();
+  const [showQR, setShowQR] = useState(false);
+  const [packageData, setPackageData] = useState<Shipment>();
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
 
-  const steps = [
+  type ShipmentStatus = "waiting" | "assigned" | "done";
+
+  const shipmentStatus: ShipmentStatus =
+    (data?.shipement_status as ShipmentStatus) ??
+    ((data as any)?.shipment_status as ShipmentStatus) ??
+    "waiting";
+
+  const rankMap: Record<ShipmentStatus, number> = {
+    waiting: 0,
+    assigned: 1,
+    done: 2,
+  };
+
+  const currentRank = rankMap[shipmentStatus]; // 0..2
+
+  const stepDefs = [
     {
       title: "Pesanan Diterima",
       icon: <FaRegClock className="sm:w-6 sm:h-6 w-5 h-5" />,
-      isDone: true,
     },
     {
       title: "Perangkat Dikirim",
       icon: <PiTruck className="sm:w-6 sm:h-6 w-5 h-5" />,
-      isDone: false,
     },
     {
       title: "Perangkat Sampai",
-      isDone: false,
       icon: (
         <Image
           src={boxDelivered}
@@ -39,6 +60,31 @@ const DeliveryTracking = () => {
       ),
     },
   ];
+
+  // isDone: step dianggap selesai jika rank status saat ini >= index step
+  const steps = stepDefs.map((s, idx) => ({
+    ...s,
+    isDone: currentRank >= idx,
+  }));
+
+  const fetchData = async () => {
+    try {
+      const res: any = await getShipment({});
+      if (res?.data?.statusCode === 200) {
+        setPackageData(res.data?.data);
+        console.log(
+          `${process.env.NEXT_PUBLIC_URL_OBS}${packageData?.code_url}`
+        );
+      }
+    } catch (error) {
+    } finally {
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex max-lg:flex-col border border-gray-border justify-between gap-8 lg:gap-16 items-center bg-white rounded-xl max-sm:p-6 py-6 px-8">
@@ -77,14 +123,10 @@ const DeliveryTracking = () => {
       </div>
 
       {/* Button Show QR */}
-      {steps[2].isDone ? (
+      {currentRank === 2 ? (
         <button
           onClick={() => router.push(`/activation`)}
-          className={`${
-            userInfo?.status === "active"
-              ? "bg-button hover:bg-dark-primary-2 cursor-pointer"
-              : "bg-gray-border cursor-not-allowed"
-          } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
+          className={`bg-button hover:bg-dark-primary-2 cursor-pointer max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
         >
           Aktivasi Sekarang
         </button>
@@ -115,7 +157,7 @@ const DeliveryTracking = () => {
         <ModalTemplate
           key="qr-modal"
           closeModal={() => setShowQR(false)}
-          classNameModal="p-6 max-w-lg w-full mx-4 text-center rounded-xl shadow-lg"
+          classNameModal="p-6 max-w-2xl w-full max-sm:mx-4 text-center rounded-xl shadow-lg"
         >
           <h3 className="text-dark-primary text-2xl font-bold mt-6 mb-4">
             Kode QR Booking
@@ -124,31 +166,84 @@ const DeliveryTracking = () => {
           {/* QR Code */}
           <div className="my-6">
             <Image
-              src={qrCodeDummy}
+              src={`${process.env.NEXT_PUBLIC_URL_OBS}${packageData?.code_url}`}
               alt="QR Code"
-              className="w-48 h-48 mx-auto"
-              width={200}
-              height={200}
+              className="w-76 h-76 mx-auto"
+              width={304}
+              height={304}
             />
           </div>
 
           {/* Nomor Pelanggan */}
           <div className="mb-6">
-            <p className="text-sm text-gray-600">
-              {getFirstTwoWords(userInfo?.name ?? "Nama Customer")}
+            <p className="text-lg text-gray-600">
+              {getFirstTwoWords(
+                packageData?.customer_id.name ?? "Nama Customer"
+              )}{" "}
+              - {packageData?.customer_id.customer_code ?? "ID Customer"}
             </p>
             <p className="text-lg font-bold text-dark-primary">
-              ID Pelanggan: {userInfo?.customer_code ?? "ID Customer"}
+              No. Shipment: {packageData?.code ?? "ID Shipment"}
             </p>
           </div>
 
           {/* Button Tutup */}
           <button
-            onClick={() => setShowQR(false)}
-            className="py-3 cursor-pointer px-6 bg-primary hover:bg-dark-primary-2 text-white rounded-lg w-full font-medium transition"
+            onClick={() => copyToClipboard(packageData?.code ?? "ID Shipment")}
+            className="py-3 flex justify-center items-center gap-2 cursor-pointer px-6 bg-primary hover:bg-dark-primary-2 text-white rounded-lg w-full font-medium transition"
           >
-            Tutup
+            <FaRegCopy /> Salin Kode
           </button>
+
+          <div className="my-5 border border-b border-gray-border"></div>
+
+          <div className="w-full flex justify-center gap-4 items-center py-3 px-4 bg-[#FEFCE8] border border-[#A16207] rounded-lg text-sm text-[#A16207]">
+            <BsExclamationTriangle size={38} />
+            <p className="text-start">
+              Tips Keamanan: Jangan bagikan Kode Booking ke pihak lain selain
+              kurir resmi atau wali penerima yang Anda tunjuk.
+            </p>
+          </div>
+
+          {/* Informasi Kode Booking */}
+          <div className="my-6 text-start">
+            <h4 className="text-lg font-semibold text-dark-primary mb-3">
+              Informasi Kode Booking
+            </h4>
+
+            <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+              <li>
+                <span className="font-medium">Kode Booking</span> bersifat
+                rahasia dan hanya digunakan untuk verifikasi penerima paket.
+              </li>
+              <li>
+                Kode ini dapat disimpan dan diberikan kepada wali penerima paket
+                jika penerima utama tidak dapat menerima langsung.
+              </li>
+              <li>
+                Jika <span className="font-medium">Kode Booking</span> hilang
+                atau lupa, Anda dapat:
+                <ul className="list-disc list-inside mt-1 ml-4 space-y-1">
+                  <li>
+                    Mengecek kembali melalui halaman resmi{" "}
+                    <a
+                      href="https://internet-rakyat.id"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      IRA Internet Rakyat
+                    </a>{" "}
+                    dengan login menggunakan nomor yang terdaftar.
+                  </li>
+                  <li>
+                    Meminta kurir untuk mengirimkan ulang{" "}
+                    <span className="font-medium">Kode Booking</span> Anda.
+                  </li>
+                </ul>
+              </li>
+            </ol>
+          </div>
         </ModalTemplate>
       )}
     </div>

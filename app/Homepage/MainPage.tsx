@@ -3,6 +3,7 @@ import React from "react";
 
 import modem from "@/public/assets/Images/main-modem.svg";
 import modem2 from "@/public/assets/Images/main-modem-2.svg";
+import modemIra from "@/public/assets/Images/CPE-IRA.svg";
 import starlite from "@/public/assets/Icons/icon-starlite-white.svg";
 import CardPackage from "../_components/homepage/CardPackage";
 import Slider from "react-slick";
@@ -22,7 +23,7 @@ function MainPage() {
   };
 
   return (
-    <div className="bg-[url('/assets/Images/HERO.webp')] bg-cover bg-center bg-no-repeat text-white">
+    <div className="bg-[url('/assets/Images/HERO-IRA.png')] bg-cover bg-center bg-no-repeat text-white">
       <div className="container mx-auto px-5 py-30">
         <div className="text-center">
           <FaWifi size={50} color="white" className="mx-auto" />
@@ -45,7 +46,7 @@ function MainPage() {
               </div>
             </Slider> */}
             <Image
-              src={modem2}
+              src={modemIra}
               alt="modem2"
               className="w-full flex items-center"
             />
@@ -53,8 +54,8 @@ function MainPage() {
         </div>
         <div className="text-center mt-10">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl">
-            <span className="font-bold">Starlite Fixed Wireless Access -</span>{" "}
-            Internet ngebut tanpa ribet pakai kabel.
+            <span className="font-bold">IRA Internet Rakyat -</span> Internet
+            ngebut tanpa ribet pakai kabel.
           </h1>
           <div className="flex gap-4 items-start justify-center mt-5">
             <p>Supported by:</p>

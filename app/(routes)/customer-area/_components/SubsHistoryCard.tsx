@@ -40,7 +40,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               ? "Paket berhasil dibayar"
               : "Paket belum dibayar"}
           </p>
-          <p className="text-xl max-sm:text-sm font-bold text-dark-primary-2">
+          <p className="text-xl max-sm:text-sm font-bold text-black">
             {data.package_id.name ?? "-"}
           </p>
           <p className="max-sm:block hidden text-sm font-medium">
@@ -61,11 +61,11 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
         <button
           className={`${
             data.package_id.is_active
-              ? "bg-dark-primary-2 hover:bg-dark-primary"
-              : "bg-red-primary hover:bg-red-700"
+              ? "bg-primary hover:bg-dark-primary-2"
+              : "bg-red-primary hover:bg-dark-primary"
           } text-white cursor-pointer whitespace-nowrap px-5 py-2 max-sm:p-2 rounded-lg text-sm max-sm:text-[10px]`}
         >
-          {data.package_id.is_active ? "Unduh Tagihan" : "Bayar Tagihan"}
+          {data.package_id.is_active ? "Unduh Invoice" : "Bayar Invoice"}
         </button>
       </div>
     </div>

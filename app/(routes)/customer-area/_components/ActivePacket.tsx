@@ -45,7 +45,9 @@ const ActivePacket = () => {
   return (
     <div className="grid grid-cols-12 gap-6">
       <div className="lg:col-span-5 col-span-12 space-y-5">
-        {activePacketData && <ActivePackageCard data={activePacketData} />}
+        {activePacketData?.start_date && (
+          <ActivePackageCard data={activePacketData} />
+        )}
         <Image
           src={bannerCS}
           alt="banner CS"
@@ -60,11 +62,9 @@ const ActivePacket = () => {
         />
 
         <div className="">
-          <p className="text-xl font-bold text-dark-primary mb-4">
-            Riwayat Tagihan
-          </p>
+          <p className="text-xl font-bold text-black mb-4">Riwayat Tagihan</p>
           <div className="flex flex-col gap-6">
-            {(subscriptionHistory?.length ?? 0) > 0 ? (
+            {subscriptionHistory?.[0].start_date ? (
               (subscriptionHistory ?? []).map((history, index) => (
                 <SubsHistoryCard data={history} key={history.id} />
               ))
