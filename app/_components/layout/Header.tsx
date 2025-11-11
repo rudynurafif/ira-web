@@ -11,15 +11,15 @@ import starliteWhiteIcon from "@/public/assets/Icons/icon-starlite-white.svg";
 import weaveWhiteIcon from "@/public/assets/Icons/icon-weave-white.svg";
 import starliteIcon from "@/public/assets/Icons/icon-starlite.svg";
 import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
-import { deleteCookie, getCookie } from "cookies-next";
+import IraIcon from "@/public/assets/Icons/IraIcon.svg";
+import IraWhiteIcon from "@/public/assets/Icons/IraWhiteIcon.svg";
+import { getCookie } from "cookies-next";
 import toast from "react-hot-toast";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
 import { getFirstTwoWords } from "@/app/_shared/utils";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { getUser, login, logout } from "@/app/store/slice/authSlice";
-import { useGetProfileQuery } from "@/app/store/slice/customerSlice";
-import { skipToken } from "@reduxjs/toolkit/query/react";
+import { getUser, logout } from "@/app/store/slice/authSlice";
 
 function Header() {
   const pathname = usePathname();
@@ -69,7 +69,7 @@ function Header() {
 
     setIsLoggedIn(false);
 
-    router.replace("/auth/login");
+    window.location.href = "/auth/login";
     toast.success("Logout Berhasil!");
   };
 
@@ -167,7 +167,7 @@ function Header() {
         className={
           pathname === "/"
             ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white bg-[rgba(0,61,118,0.5)]`
-            : "text-dark-primary bg-white shadow-sm"
+            : "text-primary bg-white shadow-sm"
         }
       >
         {/* Desktop Header */}
@@ -176,13 +176,8 @@ function Header() {
             {/* Logo */}
             <Link href="/" className="flex gap-5 cursor-pointer">
               <Image
-                src={pathname === "/" ? starliteWhiteIcon : starliteIcon}
-                alt="Starlite"
-                className="w-[125px]"
-              />
-              <Image
-                src={pathname === "/" ? weaveWhiteIcon : weaveIcon}
-                alt="Weave"
+                src={pathname === "/" ? IraWhiteIcon : IraIcon}
+                alt="Internet Rakyat"
                 className="w-[125px]"
               />
             </Link>
@@ -195,7 +190,7 @@ function Header() {
                   pathname === "/" ? "font-bold" : ""
                 } underline-animation-register`}
               >
-                Starlite FWA
+                IRA
               </Link>
 
               <Link
@@ -248,7 +243,7 @@ function Header() {
               className={` ${pathname === "/" && "font-bold"}`}
               onClick={() => setIsOpenMenu(false)}
             >
-              Starlite FWA
+              IRA
             </Link>
 
             <Link

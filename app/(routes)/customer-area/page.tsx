@@ -15,6 +15,9 @@ import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Lottie from "lottie-react";
+import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
+import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
+import toast from "react-hot-toast";
 
 export default function AreaPelanggan() {
   const [showQR, setShowQR] = useState(false);
@@ -35,6 +38,22 @@ export default function AreaPelanggan() {
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
   const [animationData, setAnimationData] = useState<any>();
   const [successPayment, setSuccessPayment] = useState<boolean>(false);
+
+  const [subscriptionHistory, setSubscriptionHistory] =
+    useState<SubscriptionHistoryAPI[]>();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const resSubHistory = await getSubscriptionHistory({});
+        setSubscriptionHistory(resSubHistory.data?.data);
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || "Gagal muat data paket");
+      }
+    };
+
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const paymentSuccess = searchParams.get("payment-success");
@@ -141,9 +160,11 @@ export default function AreaPelanggan() {
         </div>
       </div>
 
-      <div className="max-w-[1329px] mx-auto px-8 mt-12 max-md:mt-0">
-        <DeliveryTracking />
-      </div>
+      {!subscriptionHistory?.[0].start_date && (
+        <div className="max-w-[1329px] mx-auto px-8 mt-12 max-md:mt-0">
+          <DeliveryTracking data={subscriptionHistory?.[0]} />
+        </div>
+      )}
 
       {/* TAB MENU */}
       <div className="max-w-[1329px] px-8 mt-8 mx-auto">
@@ -154,7 +175,7 @@ export default function AreaPelanggan() {
               onClick={() => setActiveTab(tab)}
               className={`pb-2 underline-animation-register whitespace-nowrap max-sm:text-xs text-xl cursor-pointer ${
                 activeTab === tab
-                  ? "text-dark-primary font-bold"
+                  ? "text-black font-bold"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >

@@ -1,4 +1,5 @@
 import { jwtDecode } from "jwt-decode";
+import toast from "react-hot-toast";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
 export const PHONE_REGEX2 = /^\d{8,15}$/;
@@ -142,18 +143,45 @@ export function formatISODate(
   return `${day} ${month} ${year}, pukul ${hour}:${minute}:${second} WIB`;
 }
 
-export function daysUntil(targetDateString: string): number {
-  const today = new Date(); // Waktu saat ini (termasuk jam, menit, detik)
-  // Reset ke tengah hari UTC untuk hindari masalah DST & zona waktu saat parsing 'YYYY-MM-DD'
-  const target = new Date(targetDateString + "T12:00:00Z"); // +12:00 agar aman di semua zona waktu
+// Parse "YYYY-MM-DD" jadi midnight lokal, lalu bandingkan dengan midnight lokal hari ini.
+export function daysUntil(dateISO: string): number {
+  const [y, m, d] = dateISO.split("-").map(Number);
+  const target = new Date(y, m - 1, d); // midnight lokal
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // midnight lokal
 
-  // Selisih dalam milidetik
-  const diffInMs = target.getTime() - today.getTime();
+  const msPerDay = 24 * 60 * 60 * 1000;
+  // karena keduanya midnight lokal, hasilnya pasti kelipatan 1 hari (integer)
+  return Math.trunc((target.getTime() - today.getTime()) / msPerDay);
+}
 
-  // Konversi ke hari (pembulatan ke bawah karena kita hitung hari penuh tersisa)
-  const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+// Helper untuk UI: status & teks yang tepat untuk 0 / <0 / >0
+export function packageCountdown(endDateISO: string) {
+  const days = daysUntil(endDateISO);
 
-  return diffInDays;
+  if (days > 0) {
+    return {
+      days,
+      status: "active" as const,
+      label: `${days} Hari`,
+      note: `Berakhir dalam ${days} hari`,
+    };
+  }
+  if (days === 0) {
+    return {
+      days,
+      status: "expires_today" as const,
+      label: "Berakhir hari ini",
+      note: "Paket berakhir hari ini",
+    };
+  }
+  // expired
+  return {
+    days: 0,
+    status: "expired" as const,
+    label: "Sudah berakhir",
+    note: "Masa aktif telah berakhir",
+  };
 }
 
 export function formatPaymentNumber(va: string): string {
@@ -164,3 +192,14 @@ export function formatPaymentNumber(va: string): string {
       ?.join(" ") || ""
   );
 }
+
+export const copyToClipboard = (text: string) => {
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      toast.success("Copied to clipboard");
+    })
+    .catch(() => {
+      toast.error("Failed to copy to clipboard");
+    });
+};
