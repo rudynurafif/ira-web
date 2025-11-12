@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { PackageData } from "@/app/_shared/types/customer-area";
 import { getPackageList } from "@/app/_api/Customer/CustomerArea";
-import { convertToCurrency } from "@/app/_shared/utils";
+import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
 import ccSvg from "@/public/assets/Icons/payment-method/credit-card-svg.svg";
 import { PaymentChannel } from "@/app/_shared/types/payment";
 import {
@@ -66,6 +66,8 @@ const Payment = () => {
         error?.response?.data?.message ||
         error?.message ||
         "Terdapat kesalahan saat memuat daftar paket";
+
+      toastErrorFromAPI(error);
 
       setError(`Error ${errorStatusCode}: ${errorMsg}`);
     } finally {
@@ -143,7 +145,9 @@ const Payment = () => {
   return (
     <div className="container mx-auto my-8 p-6">
       <div className="flex gap-2 items-center justify-center">
-        <div className="font-bold text-dark-primary text-3xl">Checkout</div>
+        <div className="font-bold text-primary-text text-3xl">
+          Perpanjang Paket
+        </div>
       </div>
       <div className="p-6 shadow-lg my-8 rounded-lg">
         <h2 className="text-2xl font-bold mb-3">Pilih Paket</h2>
@@ -207,40 +211,48 @@ const Payment = () => {
         <div className="mb-8">
           <div className="flex max-md:flex-col max-md:gap-3 justify-between mb-3">
             <h2 className="font-bold text-2xl ">Metode Pembayaran</h2>
-            <button
-              className="rounded-lg flex gap-1 items-center text-dark-primary-2 font-bold underline-animation-register cursor-pointer"
-              onClick={() => router.push("/payment/payment-methods")}
-            >
-              {selectedChannel
-                ? "Ganti Metode Pembayaran"
-                : "Pilih Metode Pembayaran"}
-              <IoIosArrowForward size={18} className="text-primary" />
-            </button>
           </div>
 
-          <div className="flex justify-between gap-4 items-center">
-            <div className="flex gap-2">
+          <div className="flex mt-6 justify-between border border-gray-border gap-4 rounded-lg p-4 items-center">
+            <div className="flex items-center gap-8">
+              {selectedChannel ? (
+                <Image
+                  src={PAYMENT_LOGOS[selectedChannel.code] || ccSvg}
+                  width={100}
+                  height={100}
+                  alt={selectedChannel.name}
+                  className="object-contain"
+                />
+              ) : (
+                <Image
+                  src={ccSvg}
+                  width={80}
+                  height={80}
+                  alt="Metode pembayaran"
+                />
+              )}
+
               <div className="sm:text-lg text-sm font-semibold">
                 {selectedChannel?.name ??
                   "*Pilih metode pembayaran terlebih dahulu"}
               </div>
             </div>
-            {selectedChannel ? (
-              <Image
-                src={PAYMENT_LOGOS[selectedChannel.code] || ccSvg}
-                width={100}
-                height={100}
-                alt={selectedChannel.name}
-                className="object-contain border border-primary px-3 py-2 shadow-lg rounded-lg"
+
+            <button
+              className="rounded-lg flex gap-1 items-center text-dark-primary-2 font-bold cursor-pointer"
+              onClick={() => router.push("/payment/payment-methods")}
+            >
+              <p className="hidden md:block">
+                {selectedChannel
+                  ? "Ganti Metode Pembayaran"
+                  : "Pilih Metode Pembayaran"}
+              </p>
+
+              <IoIosArrowForward
+                size={18}
+                className="text-dark-primary-2 font-bold"
               />
-            ) : (
-              <Image
-                src={ccSvg}
-                width={80}
-                height={80}
-                alt="Metode pembayaran"
-              />
-            )}
+            </button>
           </div>
         </div>
 

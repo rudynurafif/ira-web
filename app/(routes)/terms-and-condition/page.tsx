@@ -104,7 +104,7 @@ function Page() {
 
   return (
     <div>
-      <div className="pt-20 pb-10 bg-gradient-to-r from-[#2474BA] to-[#66A6FF]">
+      <div className="pt-20 pb-10 bg-linear-to-r from-[#ba2424] to-[#ff6666]">
         <div className="container mx-auto">
           <div
             className="flex items-center gap-2 text-white mb-5 cursor-pointer px-3"
@@ -118,7 +118,7 @@ function Page() {
         </div>
       </div>
       <div className="container mx-auto py-10">
-        <ul className="list-[upper-alpha] list-outside text-[#2474BA] text-base sm:text-2xl font-bold mx-10">
+        <ul className="list-[upper-alpha] list-outside text-primary text-base sm:text-2xl font-bold mx-10">
           {content_terms.map((item: any) => {
             return (
               <li key={item.id} className="mb-5 ml-4">
@@ -146,7 +146,7 @@ function Page() {
                 <Link
                   href={`https://wa.me/${process.env.NEXT_PUBLIC_PHONE_CS}`}
                   target="_blank"
-                  className="text-[#2474BA] hover:underline"
+                  className="text-primary hover:underline"
                 >
                   {process.env.NEXT_PUBLIC_PHONE_CS}
                 </Link>{" "}
@@ -155,7 +155,7 @@ function Page() {
                 Email:{" "}
                 <Link
                   href={"mailto: support@starliteindonesia.com"}
-                  className="text-[#2474BA] hover:underline"
+                  className="text-primary hover:underline"
                 >
                   support@starliteindonesia.com
                 </Link>{" "}
@@ -165,7 +165,7 @@ function Page() {
                 <Link
                   href={"https://maps.app.goo.gl/mk3Zj4YYpcqrxya29"}
                   target="_blank"
-                  className="text-[#2474BA] hover:underline"
+                  className="text-primary hover:underline"
                 >
                   {process.env.NEXT_PUBLIC_ADDRESS}
                 </Link>

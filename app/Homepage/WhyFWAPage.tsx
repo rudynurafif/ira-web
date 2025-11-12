@@ -9,7 +9,6 @@ import RegisterNowCard from "../_components/homepage/RegisterNowCard";
 interface descriptionListType {
   id: number;
   image: StaticImageData;
-  color: string;
   description: string;
 }
 
@@ -18,19 +17,16 @@ function WhyFWAPage() {
     {
       id: 1,
       image: desc1,
-      color: "rgba(79, 255, 181, 0.20)",
       description: "Mulai dari harga hemat, cocok buat semua kebutuhan.",
     },
     {
       id: 2,
       image: desc2,
-      color: "rgba(234, 175, 255, 0.20)",
       description: "Streaming, kerja, main game? Semua lancar!",
     },
     {
       id: 3,
       image: desc3,
-      color: "rgba(2, 239, 254, 0.20)",
       description: "Harian, mingguan, atau bulanan? Terserah kamu!",
     },
   ];
@@ -41,7 +37,7 @@ function WhyFWAPage() {
         Mengapa pilih Starlite FWA <span>(Fixed Wireless Access) ?</span>
       </h1>
 
-      <div className="mt-[72px] max-sm:mt-[48px]">
+      <div className="mt-[72px] max-sm:mt-12">
         <div className="grid grid-cols-3 max-sm:flex max-sm:flex-col max-sm:gap-6">
           {description.map((item, index: number) => {
             return (
@@ -49,15 +45,12 @@ function WhyFWAPage() {
                 key={"desc-" + index}
                 className="col-span-1 text-center max-sm:flex justify-between"
               >
-                <div
-                  className="inline-block p-[47px] max-sm:p-[20px] rounded-full mx-auto "
-                  style={{ backgroundColor: item.color }}
-                >
+                <div className="inline-block p-[47px] max-sm:p-5 rounded-full mx-auto ">
                   <div className="w-full h-full">
                     <Image
                       src={item.image}
                       alt={item.description}
-                      className="flex justify-center items-center w-[50px] h-[50px] max-sm:w-[30px] max-sm:h-[30px]"
+                      className="flex justify-center items-center w-[150px] h-[150px] max-sm:w-[30px] max-sm:h-[30px]"
                     />
                   </div>
                 </div>

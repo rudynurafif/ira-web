@@ -73,7 +73,7 @@ export default function Home() {
 
       <MainPage />
       <WhyFWAPage />
-      <PackagePage />
+      {/* <PackagePage /> */}
       <FAQPage />
     </div>
   );

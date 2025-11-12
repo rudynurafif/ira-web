@@ -13,7 +13,7 @@ function CheckboxAgreeForm({
         type="checkbox"
         name="agreement"
         id="agreement"
-        className="w-[20px] h-[20px]"
+        className="w-5 h-5"
         defaultChecked={value}
         onChange={onChange}
       />
@@ -22,7 +22,7 @@ function CheckboxAgreeForm({
         <a
           href="/terms-and-condition"
           target="_blank"
-          className="font-bold text-dark-primary underline"
+          className="font-bold text-dark-primary-2 underline"
         >
           Syarat dan Ketentuan serta Kebijakan Privasi
         </a>{" "}

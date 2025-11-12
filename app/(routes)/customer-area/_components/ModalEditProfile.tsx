@@ -304,7 +304,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
 
       <ModalTemplate
         closeModal={onClose}
-        classNameModal="sm:min-w-[50%] max-sm:mx-4"
+        classNameModal="lg:min-w-[50%] md:min-w-[70%] max-sm:mx-4"
       >
         <form
           onSubmit={handleSubmit}
@@ -313,7 +313,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         >
           {/* Header */}
           <div className="relative flex items-center justify-center my-6">
-            <h3 className="text-2xl font-bold text-dark-primary">
+            <h3 className="text-2xl font-bold text-black">
               Edit Profile
             </h3>
             <button
@@ -512,11 +512,11 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="flex gap-6 px-6 pb-6">
+          <div className="flex max-md:flex-col gap-3 md:gap-6 px-6 pb-6">
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer w-full rounded-lg bg-red-700 px-4 py-4 text-xl max-sm:text-lg font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="cursor-pointer border-2 border-primary w-full rounded-lg bg-white px-4 py-4 text-xl max-sm:text-lg font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
               Batal
             </button>

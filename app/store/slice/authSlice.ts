@@ -6,6 +6,7 @@ interface AuthState {
   isLoggedIn: boolean;
   token: string | Promise<CookieValueTypes> | null;
   userInfo: ProfileInfo | null;
+  shipmentStatus: string | null;
 }
 
 const tokenFromCookie = getCookie("token-fwa");
@@ -14,6 +15,7 @@ const initialState: AuthState = {
   isLoggedIn: tokenFromCookie ? true : false,
   token: getCookie("token-fwa") || null,
   userInfo: null,
+  shipmentStatus: null,
 };
 
 const authSlice = createSlice({
@@ -32,6 +34,9 @@ const authSlice = createSlice({
     getUser(state, action: PayloadAction<ProfileInfo>) {
       state.userInfo = action.payload;
     },
+    setShipmentStatus(state, action: PayloadAction<string | null>) {
+      state.shipmentStatus = action.payload;
+    },
     logout(state) {
       state.isLoggedIn = false;
       state.token = null;
@@ -41,5 +46,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { login, getUser, logout } = authSlice.actions;
+export const { login, getUser, setShipmentStatus, logout } = authSlice.actions;
 export default authSlice.reducer;

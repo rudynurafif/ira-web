@@ -261,7 +261,7 @@ const Page = () => {
   const renderEnterPhone = () => (
     <div className="flex w-full items-start justify-center px-5 my-22">
       <div className="w-full max-w-xl">
-        <h1 className="mb-8 text-center text-dark-primary font-extrabold text-[32px]">
+        <h1 className="mb-8 text-center text-black font-extrabold text-[32px]">
           Login Starlite FWA
         </h1>
 
@@ -297,7 +297,7 @@ const Page = () => {
             Belum punya akun Starlite?{" "}
             <Link
               href="/auth/register"
-              className="underline-animation-register font-semibold text-dark-primary"
+              className="underline-animation-register font-semibold text-primary"
             >
               Register
             </Link>
@@ -319,7 +319,7 @@ const Page = () => {
           </button>
         </div>
 
-        <h1 className="mb-5 text-center text-dark-primary font-extrabold text-[28px]">
+        <h1 className="mb-5 text-center font-extrabold text-[28px]">
           Masukkan Kode OTP Anda
         </h1>
 
@@ -372,7 +372,7 @@ const Page = () => {
           ) : (
             <button
               onClick={handleAfterSendOtp}
-              className="text-dark-primary-2 font-semibold underline-animation-activation cursor-pointer transition"
+              className="text-primary font-semibold underline-animation-register cursor-pointer transition"
             >
               Klik Kirim Ulang OTP
             </button>

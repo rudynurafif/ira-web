@@ -1,4 +1,5 @@
 import { jwtDecode } from "jwt-decode";
+import moment from "moment";
 import toast from "react-hot-toast";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
@@ -203,3 +204,21 @@ export const copyToClipboard = (text: string) => {
       toast.error("Failed to copy to clipboard");
     });
 };
+
+export const toastErrorFromAPI = (
+  error: any,
+  defaultMessage = "Terjadi kesalahan"
+) => {
+  const errorStatusCode = error?.response?.data?.statusCode || "(status code)";
+  const errorMsg =
+    error?.response?.data?.message ||
+    error?.message ||
+    "Terdapat kesalahan saat memuat daftar paket";
+
+  toast.error(`Error ${errorStatusCode}: ${errorMsg}`);
+};
+
+export const formattedDate = (dateString: string) => {
+  const date = moment(dateString);
+  return date.format("DD MMMM YYYY");
+}

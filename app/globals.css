@@ -147,13 +147,13 @@ body {
 }
 
 .background-card-register {
-  border: 1px solid #949aa3;
+  border: 1px solid #a39494;
   background: linear-gradient(
     183deg,
     #fff -2.94%,
-    #fdfefe 45.46%,
-    #f6fafb 57.71%,
-    #9fc9e3 118.06%
+    #fefdfd 45.46%,
+    #fbf6f6 57.71%,
+    #e39f9f 118.06%
   );
 }
 
@@ -168,7 +168,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: var(--dark-primary);
+  background-color: var(--primary);
   transform-origin: bottom right;
   transform: scaleX(0);
   transition: transform 0.5s ease;
@@ -183,17 +183,17 @@ body {
   background: linear-gradient(
     221deg,
     #fff -2.94%,
-    #fdfefe 45.46%,
-    #f6fafb 63.61%,
-    #eaf4f6 75.71%,
-    #d9ebef 86.6%,
-    #d4e8ee 92.65%,
-    #cce7ff 97.49%,
-    #99ceff 102.33%,
-    #71bafe 107.17%,
-    #67b6fe 111.15%,
-    #43a4fe 115.64%,
-    #0285fe 118.06%
+    #fefdfd 45.46%,
+    #fbf6f6 63.61%,
+    #f6eaea 75.71%,
+    #efd9d9 86.6%,
+    #eed4d4 92.65%,
+    #ffcccc 97.49%,
+    #ff9999 102.33%,
+    #fe7171 107.17%,
+    #fe6767 111.15%,
+    #fe4343 115.64%,
+    #fe0202 118.06%
   );
 }
 
@@ -221,7 +221,7 @@ body {
 }
 
 .gradient-box {
-  background: linear-gradient(0deg, #61f0ff 23%, #489fff 100%);
+  background: linear-gradient(0deg, #ff6161 23%, #ff4848 100%);
 }
 
 .custom-click,
@@ -241,9 +241,9 @@ body {
 }
 
 .bg-subs-new {
-  background: linear-gradient(173deg, #3b59e3 -12.78%, #033683 91.2%);
-  box-shadow: inset 0px 0px 13.567px rgba(192, 243, 255, 0.75);
-  filter: drop-shadow(0px 0px 21.349px #40e9ff);
+  background: linear-gradient(173deg, #e33b3b -12.78%, #830303 91.2%);
+  box-shadow: inset 0px 0px 13.567px rgba(255, 192, 192, 0.75);
+  filter: drop-shadow(0px 0px 21.349px #ffaae3);
 }
 
 .custom-bg-animation:after {

@@ -72,7 +72,7 @@ function Page() {
     <div className="">
       <div className="container mx-auto p-6 my-8">
         <div className="flex gap-2 items-center justify-center">
-          <div className="font-bold text-dark-primary text-3xl">Pembayaran</div>
+          <div className="font-bold text-primary-text text-3xl">Pembayaran</div>
         </div>
 
         <div className="mt-5 bg-white shadow-[0px_4px_20px_0px_rgba(0,0,0,0.12)] rounded-xl p-6">
@@ -97,7 +97,7 @@ function Page() {
             <div className="text-lg font-semibold sm:text-xl">
               Total Pembayaran
             </div>
-            <div className="text-right text-dark-primary-2 font-bold text-lg sm:text-2xl">
+            <div className="text-right text-primary font-bold text-lg sm:text-2xl">
               {convertToCurrency(parseInt(String(paymentInfo?.amount ?? "0")))}
             </div>
           </div>
