@@ -63,7 +63,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.1111.033</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.1211.034</div>
       </div>
     </div>
   );
