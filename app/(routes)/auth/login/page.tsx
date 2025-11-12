@@ -245,7 +245,7 @@ const Page = () => {
         toast.success("Login Berhasil!");
 
         dispatch(login(data));
-        router.replace("/customer-area");
+        window.location.href = "/customer-area";
       }
     } catch (err: any) {
       setOtpStatus("invalid");
