@@ -151,8 +151,8 @@ function Header() {
         href="/auth/login"
         className={`flex gap-1 items-center ${
           pathname === "/"
-            ? "bg-button-login hover:bg-blue-700"
-            : "bg-primary hover:bg-[#0a58a4]"
+            ? "bg-button-login"
+            : "bg-primary hover:bg-dark-primary-2"
         } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white shadow-sm transition`}
       >
         <FaRegUser />
