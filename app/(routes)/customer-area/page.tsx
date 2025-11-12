@@ -5,11 +5,11 @@ import CustomerHeader from "./_components/CustomerHeader";
 import ActivePacket from "./_components/ActivePacket";
 import PersonalData from "./_components/PersonalData";
 import DeliveryTracking from "./_components/DeliveryTracking";
-import { getInitials } from "@/app/_shared/utils";
+import { getInitials, toastErrorFromAPI } from "@/app/_shared/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonBase from "@/app/_components/skeletons/SkeletonBase";
 import SkeletonLarge from "@/app/_components/skeletons/SkeletonLarge";
-import { useAppSelector } from "@/app/store/store";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
 import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 
@@ -18,13 +18,16 @@ import Lottie from "lottie-react";
 import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import toast from "react-hot-toast";
+import { setShipmentStatus } from "@/app/store/slice/authSlice";
 
 export default function AreaPelanggan() {
   const [showQR, setShowQR] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
+  const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
+    (state) => state.auth
+  );
 
   const tabs = [
     "Informasi Paket dan Riwayat",
@@ -38,22 +41,29 @@ export default function AreaPelanggan() {
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
   const [animationData, setAnimationData] = useState<any>();
   const [successPayment, setSuccessPayment] = useState<boolean>(false);
+  const dispatch = useAppDispatch();
 
   const [subscriptionHistory, setSubscriptionHistory] =
     useState<SubscriptionHistoryAPI[]>();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const resSubHistory = await getSubscriptionHistory({});
-        setSubscriptionHistory(resSubHistory.data?.data);
-      } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Gagal muat data paket");
-      }
-    };
+  const fetchData = async () => {
+    try {
+      const resSubHistory = await getSubscriptionHistory({});
+      const data = resSubHistory.data?.data;
+      setSubscriptionHistory(data);
 
-    fetchData();
-  }, []);
+      const shipmentStatus = data?.[0]?.shipment_status || null;
+      dispatch(setShipmentStatus(shipmentStatus));
+      console.log(shipmentStatus);
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+    }
+  };
+
+  useEffect(() => {
+    if (!shipmentStatus) fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shipmentStatus]);
 
   useEffect(() => {
     const paymentSuccess = searchParams.get("payment-success");
@@ -160,9 +170,12 @@ export default function AreaPelanggan() {
         </div>
       </div>
 
-      {!subscriptionHistory?.[0].start_date && (
-        <div className="max-w-[1329px] mx-auto px-8 mt-12 max-md:mt-0">
-          <DeliveryTracking data={subscriptionHistory?.[0]} />
+      {!subscriptionHistory?.[0].start_date && !isLoading && (
+        <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
+          <DeliveryTracking
+            refetch={fetchData}
+            data={subscriptionHistory?.[0]}
+          />
         </div>
       )}
 
@@ -173,7 +186,7 @@ export default function AreaPelanggan() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 underline-animation-register whitespace-nowrap max-sm:text-xs text-xl cursor-pointer ${
+              className={`pb-2 underline-animation-register whitespace-nowrap text-md sm:text-xl cursor-pointer ${
                 activeTab === tab
                   ? "text-black font-bold"
                   : "text-gray-500 hover:text-gray-700"

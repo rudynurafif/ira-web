@@ -28,8 +28,8 @@ const raleway = Raleway({
 });
 
 export const metadata: Metadata = {
-  title: "Starlite FWA",
-  description: "FWA Web",
+  title: "Internet Rakyat",
+  description: "Internet Rakyat Web",
 };
 
 export default function RootLayout({
@@ -63,7 +63,7 @@ export default function RootLayout({
             <Toaster
               position="top-right"
               toastOptions={{
-                duration: 3000,
+                duration: 5000,
               }}
             />
           </ClientProvider>

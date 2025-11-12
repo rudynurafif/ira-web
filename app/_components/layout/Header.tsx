@@ -135,7 +135,7 @@ function Header() {
 
               <button
                 onClick={handleLogout}
-                className="flex cursor-pointer w-full items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition"
+                className="flex cursor-pointer w-full items-center gap-3 px-4 py-3 text-primary hover:bg-red-50 transition"
               >
                 <FaSignOutAlt />
                 <span>Logout</span>
@@ -166,8 +166,8 @@ function Header() {
       <div
         className={
           pathname === "/"
-            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white bg-[rgba(0,61,118,0.5)]`
-            : "text-primary bg-white shadow-sm"
+            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white bg-[rgba(118,18,0,0.5)]`
+            : "text-black bg-white shadow-sm"
         }
       >
         {/* Desktop Header */}
@@ -237,7 +237,7 @@ function Header() {
             pathname === "/" ? "text-white" : "text-dark-primary"
           }`}
         >
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-5 text-center">
             <Link
               href="/"
               className={` ${pathname === "/" && "font-bold"}`}
@@ -278,7 +278,7 @@ function Header() {
                       handleLogout();
                       setIsOpenMenu(false);
                     }}
-                    className="flex items-center gap-2 text-red-500"
+                    className="flex items-center gap-2 text-center justify-center text-primary"
                   >
                     <FaUser /> Logout
                   </button>

@@ -492,7 +492,7 @@ function Page() {
 
   return (
     <div className="container mx-auto px-5 my-22">
-      <h1 className="text-center text-[32px] text-[#001D47] font-bold">
+      <h1 className="text-center text-[32px] text-black font-bold">
         Registrasi Starlite FWA
       </h1>
 
@@ -973,7 +973,7 @@ function Page() {
             className={`py-[15px] w-1/2 font-bold text-white ${
               isLoading || !agreement
                 ? "bg-slate-400 cursor-not-allowed"
-                : "bg-primary cursor-pointer"
+                : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             } text-xl rounded-xl mx-auto `}
           >
             {isLoading ? (
@@ -993,7 +993,7 @@ function Page() {
             <span>
               <Link
                 href="/auth/login"
-                className="underline-animation-register text-dark-primary font-bold"
+                className="underline-animation-register text-primary font-bold"
               >
                 Login disini
               </Link>

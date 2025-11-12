@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Image from "next/image";
 import qrCodeDummy from "@/public/assets/Images/qr-code.png";
-import { copyToClipboard, getFirstTwoWords } from "@/app/_shared/utils";
+import {
+  copyToClipboard,
+  getFirstTwoWords,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import { useAppSelector } from "@/app/store/store";
 import { FaRegClock, FaRegCopy } from "react-icons/fa";
 import { PiTruck } from "react-icons/pi";
@@ -12,11 +16,14 @@ import { getShipment } from "@/app/_api/Shipment/Shipment";
 import { Shipment } from "@/app/_shared/data/shipment";
 import { BsExclamationTriangle } from "react-icons/bs";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
+import toast from "react-hot-toast";
 
 const DeliveryTracking = ({
   data,
+  refetch
 }: {
   data: SubscriptionHistoryAPI | undefined;
+  refetch: () => Promise<void>;
 }) => {
   const router = useRouter();
   const [showQR, setShowQR] = useState(false);
@@ -72,17 +79,15 @@ const DeliveryTracking = ({
       const res: any = await getShipment({});
       if (res?.data?.statusCode === 200) {
         setPackageData(res.data?.data);
-        console.log(
-          `${process.env.NEXT_PUBLIC_URL_OBS}${packageData?.code_url}`
-        );
       }
-    } catch (error) {
+    } catch (error: any) {
+      toastErrorFromAPI(error);
     } finally {
     }
   };
 
   useEffect(() => {
-    fetchData();
+    if (data?.shipement_status === "assign") fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -156,7 +161,11 @@ const DeliveryTracking = ({
       {showQR && (
         <ModalTemplate
           key="qr-modal"
-          closeModal={() => setShowQR(false)}
+          closeModal={() => {
+            setShowQR(false)
+            refetch();
+            window.location.reload();
+          }}
           classNameModal="p-6 max-w-2xl w-full max-sm:mx-4 text-center rounded-xl shadow-lg"
         >
           <h3 className="text-dark-primary text-2xl font-bold mt-6 mb-4">
@@ -176,14 +185,14 @@ const DeliveryTracking = ({
 
           {/* Nomor Pelanggan */}
           <div className="mb-6">
-            <p className="text-lg text-gray-600">
+            <p className="text-base mb-2 text-gray-600">
               {getFirstTwoWords(
                 packageData?.customer_id.name ?? "Nama Customer"
               )}{" "}
               - {packageData?.customer_id.customer_code ?? "ID Customer"}
             </p>
             <p className="text-lg font-bold text-dark-primary">
-              No. Shipment: {packageData?.code ?? "ID Shipment"}
+              Kode Shipment: {packageData?.code ?? "ID Shipment"}
             </p>
           </div>
 
