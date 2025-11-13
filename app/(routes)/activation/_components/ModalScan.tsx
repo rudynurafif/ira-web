@@ -25,7 +25,7 @@ function ModalScan({
           onClick={() => {
             scanAgain(true);
           }}
-          className="bg-[#005FB8] cursor-pointer rounded-[12px] p-2 font-medium w-full text-white"
+          className="bg-primary cursor-pointer rounded-[12px] p-2 font-medium w-full text-white"
         >
           Scan Ulang
         </button>

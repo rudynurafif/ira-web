@@ -34,7 +34,7 @@ function WhyFWAPage() {
   return (
     <div className="container mx-auto px-5 text-black py-18 max-sm:py-9">
       <h1 className="text-[32px] max-sm:text-[24px] max-sm:flex max-sm:flex-col font-bold text-center">
-        Mengapa pilih Starlite FWA <span>(Fixed Wireless Access) ?</span>
+        Mengapa pilih Internet Rakyat <span>(IRA) ?</span>
       </h1>
 
       <div className="mt-[72px] max-sm:mt-12">

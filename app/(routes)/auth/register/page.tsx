@@ -457,7 +457,7 @@ function Page() {
         resetForm();
 
         const token = res.data.data;
-        if (token) setCookie("token-fwa", token);
+        if (token) setCookie("token-ira", token);
       } catch (error: any) {
         console.log("masuk error");
         if (error?.response?.data?.statusCode === 409) {
@@ -489,7 +489,7 @@ function Page() {
   return (
     <div className="container mx-auto px-5 my-22">
       <h1 className="text-center text-[32px] text-black font-bold">
-        Registrasi Starlite FWA
+        Registrasi Internet Rakyat (IRA)
       </h1>
 
       <form onSubmit={submitForm} className="mt-7">
@@ -985,7 +985,7 @@ function Page() {
 
         <div className="mt-7 text-center">
           <p className="text-primary-text">
-            Sudah punya akun Starlite?{" "}
+            Sudah punya akun IRA?{" "}
             <span>
               <Link
                 href="/auth/login"

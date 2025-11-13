@@ -16,6 +16,7 @@ import { getShipment } from "@/app/_api/Shipment/Shipment";
 import { Shipment } from "@/app/_shared/data/shipment";
 import { BsExclamationTriangle } from "react-icons/bs";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
+import Link from "next/link";
 
 const DeliveryTracking = ({
   data,
@@ -89,9 +90,8 @@ const DeliveryTracking = ({
   };
 
   useEffect(() => {
-    // if (data?.shipment_status === "assigned")
-    fetchData();
-  }, []);
+    if (data?.shipment_status === "assigned") fetchData();
+  }, [data?.shipment_status]);
 
   return (
     <div className="flex max-lg:flex-col border border-gray-border justify-between gap-8 lg:gap-16 items-center bg-white rounded-xl max-sm:p-6 py-6 px-8">
@@ -149,11 +149,11 @@ const DeliveryTracking = ({
           <div className="text-xs text-secondary space-y-2">
             <div>
               Kode Booking adalah kode unik untuk proses penerimaan paket
-              perangkat CPE (Customer Premises Equipment) dari kurir resmi
-              Starlite Indonesia.
+              perangkat CPE (Customer Premises Equipment) dari Sales resmi
+              Internet Rakyat.
             </div>
             <div>
-              Simpan dan tunjukkan kode ini saat kurir tiba di lokasi Anda.
+              Simpan dan tunjukkan kode ini saat Sales tiba di lokasi Anda.
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@ const DeliveryTracking = ({
             <BsExclamationTriangle size={38} />
             <p className="text-start">
               Tips Keamanan: Jangan bagikan Kode Booking ke pihak lain selain
-              kurir resmi atau wali penerima yang Anda tunjuk.
+              Sales resmi atau wali penerima yang Anda tunjuk.
             </p>
           </div>
 
@@ -237,18 +237,18 @@ const DeliveryTracking = ({
                 <ul className="list-disc list-inside mt-1 ml-4 space-y-1">
                   <li>
                     Mengecek kembali melalui halaman resmi{" "}
-                    <a
-                      href="https://internet-rakyat.id"
+                    <Link
+                      href="/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline font-medium"
                     >
                       IRA Internet Rakyat
-                    </a>{" "}
+                    </Link>{" "}
                     dengan login menggunakan nomor yang terdaftar.
                   </li>
                   <li>
-                    Meminta kurir untuk mengirimkan ulang{" "}
+                    Meminta sales untuk mengirimkan ulang{" "}
                     <span className="font-medium">Kode Booking</span> Anda.
                   </li>
                 </ul>

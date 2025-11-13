@@ -12,7 +12,7 @@ const FwaAxios = axios.create({
 
 FwaAxios.interceptors.request.use(async (req) => {
   // const token = await localStorage.getItem("access_token");
-  const token = getCookie("token-fwa");
+  const token = getCookie("token-ira");
   if (token) {
     req.headers.Authorization = `Bearer ${token}`;
   }

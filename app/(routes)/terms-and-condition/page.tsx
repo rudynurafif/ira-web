@@ -15,18 +15,18 @@ function Page() {
       id: 1,
       title: "Umum",
       description: [
-        `Syarat dan Ketentuan ini ("Syarat") mengatur penyediaan layanan internet ("Layanan") oleh Starlite kepada pelanggan ("Pelanggan").`,
+        `Syarat dan Ketentuan ini ("Syarat") mengatur penyediaan layanan internet ("Layanan") oleh Internet Rakyat kepada pelanggan ("Pelanggan").`,
         `Dengan berlangganan Layanan, Pelanggan dianggap telah menyetujui Syarat ini.`,
-        `Starlite berhak mengubah Syarat ini kapan saja, dan perubahan tersebut akan berlaku setelah dipublikasikan di situs resmi.`,
+        `Internet Rakyat berhak mengubah Syarat ini kapan saja, dan perubahan tersebut akan berlaku setelah dipublikasikan di situs resmi.`,
       ],
     },
     {
       id: 2,
       title: "Layanan",
       description: [
-        `Starlite menyediakan konektivitas internet dengan kecepatan sesuai paket yang dipilih. Kecepatan aktual dapat bervariasi tergantung kondisi jaringan, kemampuan perangkat, dan faktor eksternal lainnya.`,
+        `Internet Rakyat menyediakan konektivitas internet dengan kecepatan sesuai paket yang dipilih. Kecepatan aktual dapat bervariasi tergantung kondisi jaringan, kemampuan perangkat, dan faktor eksternal lainnya.`,
         `Layanan ditawarkan sebagai paket "Unlimited" tanpa pembatasan Kebijakan Penggunaan Wajar (FUP).`,
-        `Starlite berhak melakukan pemeliharaan jaringan yang mungkin berdampak sementara pada Layanan. Pelanggan akan diberi tahu sebelumnya jika memungkinkan.`,
+        `Internet Rakyat berhak melakukan pemeliharaan jaringan yang mungkin berdampak sementara pada Layanan. Pelanggan akan diberi tahu sebelumnya jika memungkinkan.`,
       ],
     },
     {
@@ -35,7 +35,7 @@ function Page() {
       description: [
         `Biaya berlanggan untuk Layanan adalah Rp. 100.000 per bulan dan atau 250.000 per bulan, termasuk pajak yang berlaku.`,
         `Pelanggan akan mendapatkan gratis bulan pertama untuk siklus penagihan awal.`,
-        `Starlite menawarkan bulan pertama gratis untuk Pelanggan baru. Promosi ini tidak dapat dipindahtangankan dan hanya berlaku untuk siklus penagihan pertama.`,
+        `Internet Rakyat menawarkan bulan pertama gratis untuk Pelanggan baru. Promosi ini tidak dapat dipindahtangankan dan hanya berlaku untuk siklus penagihan pertama.`,
         `Pembayaran dapat dilakukan melalui metode yang tercantum di situs resmi atau saluran pembayaran resmi.`,
       ],
     },
@@ -43,8 +43,8 @@ function Page() {
       id: 4,
       title: "Instalasi dan Peralatan",
       description: [
-        `Instalasi disediakan secara gratis oleh Starlite.`,
-        `Pelanggan akan diberikan modem yang biayanya sudah termasuk dalam biaya berlangganan. Modem tetap menjadi milik Starlite.`,
+        `Instalasi disediakan secara gratis oleh Internet Rakyat.`,
+        `Pelanggan akan diberikan modem yang biayanya sudah termasuk dalam biaya berlangganan. Modem tetap menjadi milik Internet Rakyat.`,
         `Pelanggan harus memastikan modem dikembalikan dalam kondisi baik setelah penghentian Layanan. Biaya dapat dikenakan untuk peralatan yang hilang atau rusak.`,
       ],
     },
@@ -61,17 +61,17 @@ function Page() {
       id: 6,
       title: "Penghentian",
       description: [
-        `Pelanggan dapat menghentikan langganan dengan memberikan pemberitahuan tertulis setidaknya 30 hari kepada Starlite.`,
+        `Pelanggan dapat menghentikan langganan dengan memberikan pemberitahuan tertulis setidaknya 30 hari kepada Internet Rakyat.`,
         // `Layanan ditawarkan sebagai paket "Unlimited" tanpa pembatasan Kebijakan Penggunaan Wajar (FUP).`,
-        `Setelah penghentian, Pelanggan harus menyelesaikan pembayaran yang tertunda dan mengembalikan peralatan milik Starlite.`,
+        `Setelah penghentian, Pelanggan harus menyelesaikan pembayaran yang tertunda dan mengembalikan peralatan milik Internet Rakyat.`,
       ],
     },
     {
       id: 7,
       title: "Tanggung Jawab",
       description: [
-        `Starlite tidak bertanggung jawab atas kerugian langsung, tidak langsung, insidental, atau konsekuensial yang timbul dari penggunaan atau ketidakmampuan menggunakan Layanan.`,
-        `Tanggung jawab Starlite terbatas pada jumlah yang dibayarkan oleh Pelanggan untuk siklus penagihan saat ini.`,
+        `Internet Rakyat tidak bertanggung jawab atas kerugian langsung, tidak langsung, insidental, atau konsekuensial yang timbul dari penggunaan atau ketidakmampuan menggunakan Layanan.`,
+        `Tanggung jawab Internet Rakyat terbatas pada jumlah yang dibayarkan oleh Pelanggan untuk siklus penagihan saat ini.`,
       ],
     },
     {
@@ -155,10 +155,10 @@ function Page() {
               <li className=" mb-2">
                 Email:{" "}
                 <Link
-                  href={"mailto: support@starliteindonesia.com"}
+                  href={"mailto: support@Internet Rakyatindonesia.com"}
                   className="text-primary hover:underline"
                 >
-                  support@starliteindonesia.com
+                  support@Internet Rakyatindonesia.com
                 </Link>{" "}
               </li>
               <li className=" mb-2">
@@ -176,7 +176,7 @@ function Page() {
           <li className="mb-5">
             <h3 className=" mb-2">Pengakuan</h3>
             <p className="text-black font-normal text-sm sm:text-base">
-              Dengan berlangganan Layanan Starlite, Pelanggan menyatakan telah
+              Dengan berlangganan Layanan Internet Rakyat, Pelanggan menyatakan telah
               membaca, memahami, dan menyetujui Syarat dan Ketentuan ini.
             </p>
           </li>
