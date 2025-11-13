@@ -16,11 +16,10 @@ import { getShipment } from "@/app/_api/Shipment/Shipment";
 import { Shipment } from "@/app/_shared/data/shipment";
 import { BsExclamationTriangle } from "react-icons/bs";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import toast from "react-hot-toast";
 
 const DeliveryTracking = ({
   data,
-  refetch
+  refetch,
 }: {
   data: SubscriptionHistoryAPI | undefined;
   refetch: () => Promise<void>;
@@ -28,13 +27,16 @@ const DeliveryTracking = ({
   const router = useRouter();
   const [showQR, setShowQR] = useState(false);
   const [packageData, setPackageData] = useState<Shipment>();
-  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
+  const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
+    (state) => state.auth
+  );
 
   type ShipmentStatus = "waiting" | "assigned" | "done";
 
-  const shipmentStatus: ShipmentStatus =
-    (data?.shipement_status as ShipmentStatus) ??
+  const shipmentStatusData: ShipmentStatus =
+    (data?.shipment_status as ShipmentStatus) ??
     ((data as any)?.shipment_status as ShipmentStatus) ??
+    shipmentStatus ??
     "waiting";
 
   const rankMap: Record<ShipmentStatus, number> = {
@@ -43,7 +45,7 @@ const DeliveryTracking = ({
     done: 2,
   };
 
-  const currentRank = rankMap[shipmentStatus]; // 0..2
+  const currentRank = rankMap[shipmentStatusData]; // 0..2
 
   const stepDefs = [
     {
@@ -87,8 +89,8 @@ const DeliveryTracking = ({
   };
 
   useEffect(() => {
-    if (data?.shipement_status === "assign") fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // if (data?.shipment_status === "assigned")
+    fetchData();
   }, []);
 
   return (
@@ -162,13 +164,13 @@ const DeliveryTracking = ({
         <ModalTemplate
           key="qr-modal"
           closeModal={() => {
-            setShowQR(false)
+            setShowQR(false);
             refetch();
             window.location.reload();
           }}
           classNameModal="p-6 max-w-2xl w-full max-sm:mx-4 text-center rounded-xl shadow-lg"
         >
-          <h3 className="text-dark-primary text-2xl font-bold mt-6 mb-4">
+          <h3 className="text-black text-2xl font-bold mt-6 mb-4">
             Kode QR Booking
           </h3>
 

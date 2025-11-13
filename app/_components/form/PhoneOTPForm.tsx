@@ -1,5 +1,9 @@
 import { sendOtpLogin, sendOtpRegister } from "@/app/_api/Auth/Auth";
-import { formatTimer, PHONE_REGEX } from "@/app/_shared/utils";
+import {
+  formatTimer,
+  PHONE_REGEX,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -134,15 +138,13 @@ function PhoneOTPForm({
       toast.success(res_sendOTP.data.message ?? "OTP telah dikirim!");
       startOtpTimer();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message;
-
       let seconds = error?.response?.data?.data?.second;
 
       if (seconds) {
-        toast.error(errorMessage);
+        toastErrorFromAPI(error);
         startOtpTimer(seconds); // set cooldown sesuai server
       } else {
-        toast.error(errorMessage ?? "Terjadi kesalahan saat mengirim OTP");
+        toastErrorFromAPI(error, "Terjadi kesalahan saat mengirim OTP");
       }
     } finally {
       setIsLoading(false);

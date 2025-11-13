@@ -46,7 +46,10 @@ export default function FAQAccordion() {
   return (
     <div className="w-full ">
       {faqs.map((faq, index) => (
-        <div key={index} className="mb-3 bg-[#EEF4FC] px-8 py-5 rounded-xl">
+        <div
+          key={index}
+          className="mb-3 bg-white border border-gray-border px-8 py-5 rounded-xl"
+        >
           <button
             onClick={() => toggleAccordion(index)}
             className="w-full flex justify-between items-center py-5 text-slate-800 cursor-pointer"
@@ -65,7 +68,7 @@ export default function FAQAccordion() {
               openIndex === index ? "max-h-40" : "max-h-0"
             }`}
           >
-            <div className="pb-5 text-sm text-slate-500">{faq.answer}</div>
+            <div className="pb-5 text-sm text-slate-800">{faq.answer}</div>
           </div>
         </div>
       ))}

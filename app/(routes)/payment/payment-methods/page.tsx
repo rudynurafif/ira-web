@@ -11,6 +11,7 @@ import ChannelsSkeleton from "../_components/ChannelsSkeleton";
 import ButtonChannel from "../_components/ButtonChannel";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
 
 // Mapping code API -> gambar lokal
 
@@ -81,10 +82,7 @@ const PaymentMehods = () => {
         setPaymentChannels(allChannels ?? []);
       }
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          "Gagal memuat daftar metode pembayaran"
-      );
+      toastErrorFromAPI(error, "Gagal muat daftar metode pembayaran");
     } finally {
       setIsLoading(false);
     }

@@ -2,7 +2,7 @@ import { activation } from "@/app/_api/Activation/Activation";
 import DynamicForm from "@/app/_components/form/DynamicForm";
 import LoadingModal from "@/app/_components/modal/LoadingModal";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import { addUrlParam } from "@/app/_shared/utils";
+import { addUrlParam, toastErrorFromAPI } from "@/app/_shared/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
@@ -64,9 +64,9 @@ function InputManualForm() {
           error.response?.data?.message ||
           "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.",
       });
-      toast.error(
-        error.response?.data?.message ||
-          "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi."
+      toastErrorFromAPI(
+        error,
+        "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi."
       );
     } finally {
       setIsSubmitting(false);

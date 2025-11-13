@@ -185,5 +185,5 @@ export interface SubscriptionHistoryAPI {
   start_date: string; // format: "YYYY-MM-DD"
   end_date: string; // format: "YYYY-MM-DD"
   billing_id: BillingItem[]; // array of billing records
-  shipement_status: string
+  shipment_status: string
 }

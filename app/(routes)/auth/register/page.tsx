@@ -23,7 +23,11 @@ import {
 import { normalizeAddressForBackend } from "@/app/_shared/utils/address";
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
-import { PHONE_REGEX, regexEmail } from "@/app/_shared/utils";
+import {
+  PHONE_REGEX,
+  regexEmail,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import GeoPermissionGate from "./_components/GeoPermissionGate";
@@ -162,8 +166,8 @@ function Page() {
 
       toast.success("Lokasi terisi otomatis ✔");
     } catch (err: any) {
-      console.error("getUserLocation failed:", err);
-      toast.error(err?.response?.data?.message || "Autofill lokasi gagal");
+      // console.error("getUserLocation failed:", err);
+      toastErrorFromAPI(err, "Autofill lokasi gagal");
     } finally {
       setIsAutoFilling(false);
     }
@@ -186,7 +190,7 @@ function Page() {
         setMitraID(resCoverage.data?.result?.mitra_ids || []);
         setIsCovered(!!resCoverage.data?.result?.inside_coverage);
       } catch (error: any) {
-        toast.error(error?.response?.data?.message ?? "Gagal check coverage");
+        toastErrorFromAPI(error, "Gagal check coverage");
         setIsCovered(false);
       } finally {
         setIsCheckCoverage(false);
@@ -206,9 +210,7 @@ function Page() {
         }));
         setProvinceOptions(options);
       } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Gagal muat data provinsi"
-        );
+        toastErrorFromAPI(error, "Gagal muat data provinsi");
       }
     };
     loadProvince();
@@ -230,7 +232,7 @@ function Page() {
           }))
         );
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Gagal muat data kota");
+        toastErrorFromAPI(err, "Gagal muat data kota");
         setCityOptions([]);
       }
     })();
@@ -252,9 +254,7 @@ function Page() {
           }))
         );
       } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message || "Gagal muat data kecamatan"
-        );
+        toastErrorFromAPI(err, "Gagal muat data kecamatan");
 
         setDistrictOptions([]);
       }
@@ -277,9 +277,7 @@ function Page() {
           }))
         );
       } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message || "Gagal muat data kelurahan"
-        );
+        toastErrorFromAPI(err, "Gagal muat data kelurahan");
         setSubdistrictOptions([]);
       }
     })();
@@ -305,7 +303,7 @@ function Page() {
           .filter(Boolean) as ReactSelectType[];
         setPostalCodeOptions(options);
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Gagal muat data kode pos");
+        toastErrorFromAPI(err, "Gagal muat data kode pos");
         setPostalCodeOptions([]);
       }
     })();
@@ -338,7 +336,7 @@ function Page() {
         ...e,
         otp: "Kode OTP tidak valid atau sudah kedaluwarsa",
       }));
-      toast.error(err?.response?.data?.message || "Verifikasi OTP gagal");
+      toastErrorFromAPI(err, "Verifikasi OTP gagal");
     }
   }
 
@@ -466,9 +464,7 @@ function Page() {
           setOtpStatus("idle");
           setFormData((prev) => ({ ...prev, otp: "" }));
         }
-        toast.error(
-          error?.response?.data?.message || "Gagal melakukan registrasi"
-        );
+        toastErrorFromAPI(error, "Gagal melakukan registrasi");
       } finally {
         setIsLoading(false);
       }

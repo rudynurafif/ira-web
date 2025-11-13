@@ -8,7 +8,11 @@ import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import { verifyOtp, sendOtpLogin } from "@/app/_api/Auth/Auth";
 import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
-import { PHONE_REGEX, formatTimer } from "@/app/_shared/utils";
+import {
+  PHONE_REGEX,
+  formatTimer,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { useAppDispatch } from "@/app/store/store";
 import { login } from "@/app/store/slice/authSlice";
@@ -169,11 +173,6 @@ const Page = () => {
       setStep("enterOtp");
       toast.success(res.data.message ?? "OTP terkirim");
     } catch (error: any) {
-      const rawMsg =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Terjadi kesalahan. Gagal mengirim OTP";
-
       const seconds = error?.response?.data?.data?.second;
 
       const lastAttempt = Number(
@@ -188,13 +187,13 @@ const Page = () => {
           setBlockUntil(until);
         }
         setStep("blocked");
-        toast.error(rawMsg);
+        toastErrorFromAPI(error, "Gagal mengirim OTP");
         return;
       } else {
         if (Number.isFinite(seconds) && seconds! > 0) {
           startResendTimer(seconds!);
         }
-        toast.error(rawMsg);
+        toastErrorFromAPI(error, "Gagal mengirim OTP");
         return;
       }
     }
@@ -245,13 +244,11 @@ const Page = () => {
         toast.success("Login Berhasil!");
 
         dispatch(login(data));
-        router.replace("/customer-area");
+        window.location.href = "/customer-area";
       }
     } catch (err: any) {
       setOtpStatus("invalid");
-      toast.error(
-        err?.response?.data?.message || "Verifikasi OTP gagal. Coba lagi."
-      );
+      toastErrorFromAPI(err, "Verifikasi OTP gagal. Silahkan coba lagi.");
       setErrorVerifyOtp(
         err?.response?.data?.message ?? "Verifikasi OTP gagal. Coba lagi."
       );

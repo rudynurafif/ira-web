@@ -19,6 +19,74 @@ import { IoIosArrowForward } from "react-icons/io";
 import Loader from "@/app/_components/Loader";
 import ErrorFallback from "@/app/_components/ErrorFallback";
 import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
+import petir from "@/public/assets/Icons/petir.svg";
+
+function PackageCardMobile({
+  pkg,
+  selected,
+  onSelect,
+  convertToCurrency,
+}: {
+  pkg: PackageData;
+  selected: boolean;
+  onSelect: (p: PackageData) => void;
+  convertToCurrency: (v: number) => string;
+}) {
+  const isUnlimited = !pkg.quota_mb || Number(pkg.quota_mb) === 0;
+
+  return (
+    <div
+      onClick={() => onSelect(pkg)}
+      className={[
+        "rounded-xl border bg-[url('/assets/Images/packageBackground.svg')] bg-cover bg-center cursor-pointer transition shadow-sm px-4 pt-3 pb-4",
+        selected
+          ? "border-[#D7201D] ring-1 ring-[#D7201D]/30"
+          : "border-gray-200 active:scale-[0.99]",
+      ].join(" ")}
+    >
+      {/* judul */}
+      <div className="flex items-center gap-1">
+        <span className="text-base">
+          <Image src={petir} alt="icon" />
+        </span>
+        <h3 className="text-base font-semibold text-secondary">
+          {pkg.name ?? "-"}
+        </h3>
+      </div>
+
+      {/* body */}
+      <div className="mt-2 ">
+        {/* speed block */}
+        <div className="w-full rounded-md overflow-hidden">
+          <div className="flex items-start justify-between w-full relative text-dark-primary-2 whitespace-nowrap">
+            <div className="text-[10px] ">Up to</div>
+            <div className="flex pt-2 gap-1">
+              <div className="text-3xl leading-none font-extrabold tracking-tight">
+                {pkg.speed_mbps}
+              </div>
+              <div className="flex flex-col items-start">
+                <div className="pb-1 text-xs font-semibold">Mbps</div>
+                <div className="text-[10px]">Unlimited Kuota</div>
+              </div>
+            </div>
+
+            {/* badge harga */}
+            <div className="shrink-0 ml-3">
+              <span className="inline-block rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] font-semibold shadow-sm text-black whitespace-nowrap">
+                {convertToCurrency(pkg.price ?? 0)}/{pkg.duration ?? 0} Hari
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* remarks optional */}
+      {pkg.remarks ? (
+        <div className="mt-2 text-[10px] text-dark-primary">{pkg.remarks}</div>
+      ) : null}
+    </div>
+  );
+}
 
 const Payment = () => {
   const router = useRouter();
@@ -131,10 +199,7 @@ const Payment = () => {
         `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`
       );
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          "Terjadi kesalahan saat memproses pembayaran"
-      );
+      toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
     }
   };
 
@@ -143,15 +208,36 @@ const Payment = () => {
   if (error) return <ErrorFallback message={error} onRetry={fetchPackages} />;
 
   return (
-    <div className="container mx-auto my-8 p-6">
+    <div className="container mx-auto my-8">
       <div className="flex gap-2 items-center justify-center">
         <div className="font-bold text-primary-text text-3xl">
           Perpanjang Paket
         </div>
       </div>
-      <div className="p-6 shadow-lg my-8 rounded-lg">
-        <h2 className="text-2xl font-bold mb-3">Pilih Paket</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="p-4 sm:p-6 shadow-lg my-8 rounded-lg">
+        <h2 className="text-2xl text-primary-text font-bold mb-3">
+          Pilih Paket
+        </h2>
+
+        {/* MOBILE cards */}
+        <div className="md:hidden space-y-6 mb-8">
+          {packages && packages.length ? (
+            packages.map((pkg) => (
+              <PackageCardMobile
+                key={pkg.id}
+                pkg={pkg}
+                selected={selectedPackage?.id === pkg.id}
+                onSelect={handleSelect}
+                convertToCurrency={convertToCurrency}
+              />
+            ))
+          ) : (
+            <div>Belum ada Daftar Paket yang tersedia untuk Anda</div>
+          )}
+        </div>
+
+        {/* DESKTOP cards (tetap seperti punyamu) */}
+        <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {packages ? (
             packages.map((pkg) => (
               <div
@@ -180,12 +266,11 @@ const Payment = () => {
                 </div>
 
                 <div className="text-xs text-gray-500 mb-4">
-                  Speed Up to {pkg.speed_mbps} Mbps • Kuota{" "}
-                  {parseInt(pkg.quota_mb ?? 0) / 1024} GB
+                  Speed Up to {pkg.speed_mbps} Mbps • Unlimited Kuota
                 </div>
 
                 {pkg.remarks && (
-                  <div className="text-xs text-green-600 mb-4">
+                  <div className="text-xs text-dark-primary mb-4">
                     {pkg.remarks ?? "-"}
                   </div>
                 )}
@@ -210,11 +295,16 @@ const Payment = () => {
 
         <div className="mb-8">
           <div className="flex max-md:flex-col max-md:gap-3 justify-between mb-3">
-            <h2 className="font-bold text-2xl ">Metode Pembayaran</h2>
+            <h2 className="font-bold text-2xl text-primary-text">
+              Metode Pembayaran
+            </h2>
           </div>
 
-          <div className="flex mt-6 justify-between border border-gray-border gap-4 rounded-lg p-4 items-center">
-            <div className="flex items-center gap-8">
+          <div
+            className="flex cursor-pointer mt-6 justify-between border border-gray-border gap-4 rounded-lg p-4 items-center"
+            onClick={() => router.push("/payment/payment-methods")}
+          >
+            <div className="flex items-center gap-4 md:gap-8">
               {selectedChannel ? (
                 <Image
                   src={PAYMENT_LOGOS[selectedChannel.code] || ccSvg}
