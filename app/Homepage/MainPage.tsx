@@ -78,13 +78,15 @@ function MainPage() {
             id="button-berlangganan-sekarang"
           >
             <div className="w-[97%] xl:py-9 relative flex justify-center px-[15px] gap-1 items-center bg-subs-new rounded-[58px] h-[62px] mt-px overflow-hidden custom-bg-animation">
-              <div className=" absolute top-1.5 left-1/2 transform -translate-x-1/2 fancy-background w-[93%]  z-0 h-[30px] rounded-[58px]"></div>
+              <div className="absolute top-1.5 left-1/2 transform -translate-x-1/2 fancy-background w-[93%] z-0 h-[30px] rounded-[58px]"></div>
 
-              <span className="text-white text-base sm:text-lg md:text-2xl xl:text-3xl  font-bold text-nowrap whitespace-nowrap relative max-sm:px-2 px-8">
+              <span className="text-white text-base sm:text-lg md:text-2xl xl:text-3xl font-bold text-nowrap whitespace-nowrap relative max-sm:px-2 px-8">
                 Coba GRATIS selama 30 hari
               </span>
             </div>
           </Link>
+
+          
         </div>
         {/* <div className="mt-10">
           <CardPackage />

@@ -19,7 +19,7 @@ import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 
 const DeliveryTracking = ({
   data,
-  refetch
+  refetch,
 }: {
   data: SubscriptionHistoryAPI | undefined;
   refetch: () => Promise<void>;
@@ -27,13 +27,16 @@ const DeliveryTracking = ({
   const router = useRouter();
   const [showQR, setShowQR] = useState(false);
   const [packageData, setPackageData] = useState<Shipment>();
-  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
+  const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
+    (state) => state.auth
+  );
 
   type ShipmentStatus = "waiting" | "assigned" | "done";
 
-  const shipmentStatus: ShipmentStatus =
+  const shipmentStatusData: ShipmentStatus =
     (data?.shipment_status as ShipmentStatus) ??
     ((data as any)?.shipment_status as ShipmentStatus) ??
+    shipmentStatus ??
     "waiting";
 
   const rankMap: Record<ShipmentStatus, number> = {
@@ -42,7 +45,7 @@ const DeliveryTracking = ({
     done: 2,
   };
 
-  const currentRank = rankMap[shipmentStatus]; // 0..2
+  const currentRank = rankMap[shipmentStatusData]; // 0..2
 
   const stepDefs = [
     {
@@ -87,7 +90,7 @@ const DeliveryTracking = ({
 
   useEffect(() => {
     // if (data?.shipment_status === "assigned")
-      fetchData();
+    fetchData();
   }, []);
 
   return (
@@ -161,7 +164,7 @@ const DeliveryTracking = ({
         <ModalTemplate
           key="qr-modal"
           closeModal={() => {
-            setShowQR(false)
+            setShowQR(false);
             refetch();
             window.location.reload();
           }}
