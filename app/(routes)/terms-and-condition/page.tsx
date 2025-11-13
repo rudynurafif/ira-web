@@ -1,5 +1,6 @@
 "use client";
 
+import { toastErrorFromAPI } from "@/app/_shared/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -98,7 +99,7 @@ function Page() {
       //   setTitle(res_tnc.data[0].title);
       //   setContent(res_tnc.data[0].content);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal muat data Syarat dan Ketentuan");
+      toastErrorFromAPI(err, "Gagal muat data Syarat dan Ketentuan");
     }
   }
 

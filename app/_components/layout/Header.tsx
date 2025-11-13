@@ -17,7 +17,7 @@ import { getCookie } from "cookies-next";
 import toast from "react-hot-toast";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
-import { getFirstTwoWords } from "@/app/_shared/utils";
+import { getFirstTwoWords, toastErrorFromAPI } from "@/app/_shared/utils";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { getUser, logout } from "@/app/store/slice/authSlice";
 
@@ -54,10 +54,7 @@ function Header() {
           setShowDropdown(false);
         }
       } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Gagal memuat data pelanggan"
-        );
-        console.error("Error fetching data:", error);
+        toastErrorFromAPI(error, "Gagal memuat data pelanggan");
       }
     };
 

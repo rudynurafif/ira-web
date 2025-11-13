@@ -199,10 +199,7 @@ const Payment = () => {
         `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`
       );
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          "Terjadi kesalahan saat memproses pembayaran"
-      );
+      toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
     }
   };
 

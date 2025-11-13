@@ -16,7 +16,6 @@ import { getShipment } from "@/app/_api/Shipment/Shipment";
 import { Shipment } from "@/app/_shared/data/shipment";
 import { BsExclamationTriangle } from "react-icons/bs";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import toast from "react-hot-toast";
 
 const DeliveryTracking = ({
   data,
@@ -33,7 +32,7 @@ const DeliveryTracking = ({
   type ShipmentStatus = "waiting" | "assigned" | "done";
 
   const shipmentStatus: ShipmentStatus =
-    (data?.shipement_status as ShipmentStatus) ??
+    (data?.shipment_status as ShipmentStatus) ??
     ((data as any)?.shipment_status as ShipmentStatus) ??
     "waiting";
 
@@ -87,8 +86,8 @@ const DeliveryTracking = ({
   };
 
   useEffect(() => {
-    if (data?.shipement_status === "assign") fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // if (data?.shipment_status === "assigned")
+      fetchData();
   }, []);
 
   return (
@@ -168,7 +167,7 @@ const DeliveryTracking = ({
           }}
           classNameModal="p-6 max-w-2xl w-full max-sm:mx-4 text-center rounded-xl shadow-lg"
         >
-          <h3 className="text-dark-primary text-2xl font-bold mt-6 mb-4">
+          <h3 className="text-black text-2xl font-bold mt-6 mb-4">
             Kode QR Booking
           </h3>
 

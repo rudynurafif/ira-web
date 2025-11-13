@@ -20,6 +20,7 @@ import {
   NAME_REGEX,
   PHONE_REGEX,
   PHONE_REGEX2,
+  toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import { getUser } from "@/app/store/slice/authSlice";
 import { useAppDispatch } from "@/app/store/store";
@@ -195,7 +196,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
           err?.response?.data?.message ||
           "Kode OTP tidak valid atau sudah kedaluwarsa",
       }));
-      toast.error(err?.response?.data?.message || "Verifikasi OTP gagal");
+      toastErrorFromAPI(err, "Verifikasi OTP gagal");
     }
   }
 
@@ -262,10 +263,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         onClose();
       }
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          "Terjadi kesalahan saat menyimpan data"
-      );
+      toastErrorFromAPI(error, "Terjadi kesalahan saat menyimpan data");
     } finally {
       setIsLoading(false);
     }
@@ -313,9 +311,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         >
           {/* Header */}
           <div className="relative flex items-center justify-center my-6">
-            <h3 className="text-2xl font-bold text-black">
-              Edit Profile
-            </h3>
+            <h3 className="text-2xl font-bold text-black">Edit Profile</h3>
             <button
               type="button"
               onClick={onClose}
