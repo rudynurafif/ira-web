@@ -28,7 +28,7 @@ function MainPage() {
       <div className="container mx-auto px-5 py-30">
         <div className="text-center">
           <FaWifi size={50} color="white" className="mx-auto" />
-          <div className="bg-opacity-black-10 rounded-full px-5 py-2.5 text-lg max-sm:text-sm text-white font-bold inline-block mt-2.5 shadow-sm shadow-white">
+          <div className="bg-opacity-black-10 rounded-full px-5 py-2.5 text-lg max-sm:text-sm text-white font-semibold inline-block mt-2.5 shadow-sm shadow-white">
             Internet ngebut tanpa ribet pakai kabel.
           </div>
         </div>
