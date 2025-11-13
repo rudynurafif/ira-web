@@ -39,7 +39,7 @@ function Header() {
   // });
   // const customerData = profileData?.data?.customer;
 
-  const token = getCookie("token-fwa") ?? tokenfromState;
+  const token = getCookie("token-ira") ?? tokenfromState;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +55,15 @@ function Header() {
         }
       } catch (error: any) {
         toastErrorFromAPI(error, "Gagal memuat data pelanggan");
+        if (error?.response?.data?.statusCode === 401) {
+          toastErrorFromAPI(
+            error,
+            "Sesi Anda telah berakhir, silakan login kembali."
+          );
+          dispatch(logout());
+          setIsLoggedIn(false);
+          window.location.href = "/auth/login";
+        }
       }
     };
 

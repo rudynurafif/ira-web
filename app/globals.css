@@ -326,7 +326,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #005fb8;
+  background-color: var(--primary);
   transform-origin: bottom right;
   transform: scaleX(0);
   transition: transform 0.5s ease;

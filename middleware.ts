@@ -9,9 +9,9 @@ export function middleware(req: NextRequest) {
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
 
-  // const token = getCookie("token-fwa");
-  const token = req.cookies.get("token-fwa")?.value;
-  // console.log("token-fwa", token);
+  // const token = getCookie("token-ira");
+  const token = req.cookies.get("token-ira")?.value;
+  // console.log("token-ira", token);
 
   // jika sudah login tapi ingin akses login atau reg arahkan ke customer area
   if (token && pathname.startsWith("/auth/")) {

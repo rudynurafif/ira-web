@@ -28,7 +28,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
       <div className="flex items-center gap-4 mb-4">
         {/* Logo */}
         <div className="w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center">
-          <Image src={logoIra} alt="Starlite Icon" width={28} height={28} />
+          <Image src={logoIra} alt="IRA Icon" width={28} height={28} />
         </div>
 
         <div>

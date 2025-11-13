@@ -66,7 +66,7 @@ function MainPage() {
             Nikmati internet ngebut tanpa ribet pakai kabel.
           </p>
           <p className="text-xl mt-5">
-            FREE TRIAL🎉 Yuk, coba gratis layanan FWA tanpa ribet, tanpa
+            FREE TRIAL🎉 Yuk, coba gratis layanan IRA tanpa ribet, tanpa
             komitmen panjang!
           </p> */}
           {/* <button className="w-1/2 py-7 bg-primary rounded-full mt-10">

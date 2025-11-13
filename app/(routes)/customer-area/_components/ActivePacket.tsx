@@ -55,7 +55,7 @@ const ActivePacket = () => {
         ) : (
           <div className="flex text-secondary flex-col gap-4 justify-center items-center text-center py-10">
             <Image src={empty} alt="empty" />
-            Anda belum memiliki riwayat pembelian paket FWA Starlite.
+            Anda belum memiliki riwayat pembelian paket Internet Rakyat.
           </div>
         )}
       </div>

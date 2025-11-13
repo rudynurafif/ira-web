@@ -236,7 +236,7 @@ const Page = () => {
 
         dispatch(login({ token: data }));
 
-        setCookie("token-fwa", data);
+        setCookie("token-ira", data);
 
         setOtpStatus("valid");
         setSuccessVerifyMessage(message || "OTP terverifikasi ✔");
@@ -259,7 +259,7 @@ const Page = () => {
     <div className="flex w-full items-start justify-center px-5 my-22">
       <div className="w-full max-w-xl">
         <h1 className="mb-8 text-center text-black font-extrabold text-[32px]">
-          Login Starlite FWA
+          Login Internet Rakyat (IRA)
         </h1>
 
         <div className="flex flex-col gap-7">
@@ -291,7 +291,7 @@ const Page = () => {
           </div>
 
           <p className="text-center text-md text-primary-text">
-            Belum punya akun Starlite?{" "}
+            Belum punya akun IRA?{" "}
             <Link
               href="/auth/register"
               className="underline-animation-register font-semibold text-primary"

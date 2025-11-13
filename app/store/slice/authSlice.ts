@@ -9,11 +9,11 @@ interface AuthState {
   shipmentStatus: string | null;
 }
 
-const tokenFromCookie = getCookie("token-fwa");
+const tokenFromCookie = getCookie("token-ira");
 
 const initialState: AuthState = {
   isLoggedIn: tokenFromCookie ? true : false,
-  token: getCookie("token-fwa") || null,
+  token: getCookie("token-ira") || null,
   userInfo: null,
   shipmentStatus: null,
 };
@@ -41,7 +41,7 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.token = null;
       state.userInfo = null;
-      deleteCookie("token-fwa");
+      deleteCookie("token-ira");
     },
   },
 });

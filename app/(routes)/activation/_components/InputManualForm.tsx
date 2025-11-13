@@ -75,7 +75,7 @@ function InputManualForm() {
 
   return (
     <div className="container mx-auto max-w-[480px] max-sm:px-8">
-      <h2 className="text-[#001D47] font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
+      <h2 className="text-primary-text font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Input Manual Serial Number
       </h2>
 
@@ -98,7 +98,7 @@ function InputManualForm() {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full hover:brightness-[1.05] cursor-pointer bg-[#005FB8] shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]"
+              className="w-full hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]"
             >
               Submit
             </button>
@@ -109,7 +109,7 @@ function InputManualForm() {
                   addUrlParam("section", "scan");
                 }}
                 type="button"
-                className="w-fit hover:font-bold underline-animation-activation cursor-pointer text-[#005FB8] font-semibold text-center pt-5"
+                className="w-fit hover:font-bold underline-animation-activation cursor-pointer text-primary font-semibold text-center pt-5"
               >
                 Pindai Barcode
               </button>

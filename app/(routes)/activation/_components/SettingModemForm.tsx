@@ -206,8 +206,8 @@ function SettingModemForm() {
                 !formData.password_24ghz ||
                 !formData.ssid_5ghz ||
                 !formData.password_5ghz
-                  ? "bg-[#005FB8]/50"
-                  : "cursor-pointer bg-[#005FB8]"
+                  ? "bg-primary/50"
+                  : "cursor-pointer bg-primary"
               }    shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]`}
             >
               Simpan
@@ -219,7 +219,7 @@ function SettingModemForm() {
                   addUrlParam("section", "check_signal");
                 }}
                 type="button"
-                className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-[#005FB8] text-[#005FB8] shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-[12px]"
+                className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-[12px]"
               >
                 Lewati
               </button>

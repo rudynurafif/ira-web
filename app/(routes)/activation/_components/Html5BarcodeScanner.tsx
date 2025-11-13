@@ -513,7 +513,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
             onClick={() => {
               addUrlParam("section", "input");
             }}
-            className="bg-[#005FB8] hover:bg-[#014280] p-2 cursor-pointer text-white font-bold w-full rounded-[12px] "
+            className="bg-primary hover:bg-dark-primary-2 p-2 cursor-pointer text-white font-bold w-full rounded-[12px] "
             type="button"
           >
             Input Manual

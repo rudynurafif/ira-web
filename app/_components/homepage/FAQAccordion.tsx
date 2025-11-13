@@ -10,29 +10,29 @@ type FAQItem = {
 
 const faqs: FAQItem[] = [
   {
-    question: "1. Apa itu Starlite FWA?",
+    question: "1. Apa itu Internet Rakyat (IRA)?",
     answer:
-      "Starlite FWA (Fixed Wireless Access) adalah layanan internet rumah dan bisnis yang menggunakan jaringan nirkabel tetap untuk menghadirkan koneksi cepat dan stabil tanpa perlu kabel fiber.",
+      "Internet Rakyat (IRA) adalah layanan internet rumah dan bisnis yang menggunakan jaringan nirkabel tetap untuk menghadirkan koneksi cepat dan stabil tanpa perlu kabel fiber.",
   },
   {
-    question: "2. Bagaimana cara kerja FWA?",
+    question: "2. Bagaimana cara kerja IRA?",
     answer:
       "Internet dikirim melalui sinyal radio dari menara pemancar ke antena penerima di rumah pelanggan, lalu diteruskan ke modem/router agar bisa digunakan di semua perangkat.",
   },
   {
-    question: "3. Apakah sinyal FWA stabil saat hujan?",
+    question: "3. Apakah sinyal IRA stabil saat hujan?",
     answer:
-      "Cuaca ekstrem seperti hujan lebat dapat sedikit memengaruhi kualitas sinyal, namun sistem jaringan Starlite dirancang agar tetap stabil dengan perangkat dan arah antena yang tepat.",
+      "Cuaca ekstrem seperti hujan lebat dapat sedikit memengaruhi kualitas sinyal, namun sistem jaringan Internet Rakyat dirancang agar tetap stabil dengan perangkat dan arah antena yang tepat.",
   },
   {
-    question: "4. Bagaimana cara mendaftar layanan FWA?",
+    question: "4. Bagaimana cara mendaftar layanan IRA?",
     answer:
-      "Cukup isi formulir di website atau hubungi tim kami. Paket CPE (Modem) akan dikirim dari outlet terdekat, ketika sudah sampai bisa langsung diaktivasi lewat website Starlite FWA.",
+      "Cukup isi formulir di website atau hubungi tim kami. Paket CPE (Modem) akan dikirim dari outlet terdekat, ketika sudah sampai bisa langsung diaktivasi lewat website Internet Rakyat.",
   },
   {
     question: "5. Apakah tersedia berbagai pilihan paket?",
     answer:
-      "Ya. Starlite menyediakan beberapa paket internet dengan kecepatan dan harga berbeda sesuai kebutuhan rumah atau bisnis Anda.",
+      "Ya. Internet Rakyat menyediakan beberapa paket internet dengan kecepatan dan harga berbeda sesuai kebutuhan rumah atau bisnis Anda.",
   },
 ];
 
