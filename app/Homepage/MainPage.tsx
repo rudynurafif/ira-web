@@ -23,7 +23,7 @@ function MainPage() {
   };
 
   return (
-    <div className="relative bg-[url('/assets/Images/HERO-IRA.png')] bg-cover bg-center bg-no-repeat text-white">
+    <div className="relative bg-[url('/assets/Images/HERO-IRA.svg')] bg-cover bg-center bg-no-repeat text-white">
       <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
       <div className="container mx-auto px-5 py-30">
         <div className="text-center">

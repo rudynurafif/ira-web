@@ -28,7 +28,6 @@ function Outlet() {
       const matchedType = dataOutlet.find(
         (item) => item.route.toLowerCase() === type
       );
-      console.log("matchedtype", matchedType);
       if (matchedType) {
         const matchedLogo: any = matchedType.logo.find(
           (logo) => logo.name === selected

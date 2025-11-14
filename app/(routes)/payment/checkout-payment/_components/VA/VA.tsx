@@ -24,12 +24,10 @@ function VA({ data }: { data: VAPaymentData }) {
     const selected = params.get("selected_payment");
 
     if (type && selected) {
-      console.log(dataVa);
 
       const matchedType = dataVa.find(
         (item) => item.route.toLowerCase() === type
       );
-      console.log("matchedtype", matchedType);
       if (matchedType) {
         const matchedLogo: any = matchedType.logo.find(
           (logo) => logo.name === selected

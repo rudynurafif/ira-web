@@ -37,8 +37,7 @@ const DeliveryTracking = ({
   const shipmentStatusData: ShipmentStatus =
     (data?.shipment_status as ShipmentStatus) ??
     ((data as any)?.shipment_status as ShipmentStatus) ??
-    shipmentStatus ??
-    "waiting";
+    shipmentStatus;
 
   const rankMap: Record<ShipmentStatus, number> = {
     waiting: 0,

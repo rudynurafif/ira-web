@@ -32,7 +32,7 @@ const faqs: FAQItem[] = [
   {
     question: "5. Apakah tersedia berbagai pilihan paket?",
     answer:
-      "Ya. Internet Rakyat menyediakan beberapa paket internet dengan kecepatan dan harga berbeda sesuai kebutuhan rumah atau bisnis Anda.",
+      "Ya. Internet Rakyat menyediakan beberapa paket internet dengan durasi masa aktif berbeda sesuai kebutuhan rumah atau bisnis Anda.",
   },
 ];
 
