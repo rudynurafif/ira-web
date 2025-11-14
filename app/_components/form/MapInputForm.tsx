@@ -5,12 +5,14 @@ import {
   APIProvider,
   MapCameraChangedEvent,
   MapCameraProps,
+  MapMouseEvent,
   Map as Maps,
   Marker,
 } from "@vis.gl/react-google-maps";
 import { debounce } from "@/app/_shared/utils";
 import { GetListGeocode } from "@/app/_api/Maps/Maps";
 import { Libraries, useJsApiLoader } from "@react-google-maps/api";
+import toast from "react-hot-toast";
 
 const libs: Libraries = ["places", "geocoding"];
 
@@ -33,8 +35,116 @@ function MapInputForm({
   const [latitude, setLatitude] = useState<any>(0);
   const [longitude, setLongitude] = useState<any>(0);
   const [rawData, setRawData] = useState<any>(null);
-
   const [cameraProps, setCameraProps] = useState<MapCameraProps | null>(null);
+  const [customIcon, setCustomIcon] = useState<any>(null);
+  const [iconAnimation, setIconAnimation] = useState<any>(null);
+
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_MAP_API_KEY
+      ? process.env.NEXT_PUBLIC_MAP_API_KEY
+      : "",
+    libraries: libs,
+  });
+
+  useEffect(() => {
+    if (isLoaded) {
+      // ✅ Semua akses ke google.maps dilakukan di sini
+      setCustomIcon({
+        url: "/assets/icon/Pinpoint.webp",
+        scaledSize: new google.maps.Size(40, 40),
+      });
+      setIconAnimation(google.maps.Animation.BOUNCE);
+    }
+  }, [isLoaded]);
+
+  // State untuk countdown autocomplete
+  const [countdown, setCountdown] = useState<number>(0);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+
+  // State untuk cooldown drag/click map
+  const [isCooldown, setIsCooldown] = useState<boolean>(false);
+  const [cooldownCount, setCooldownCount] = useState<number>(0); // Countdown untuk cooldown map
+  const cooldownRef = useRef<NodeJS.Timeout | null>(null);
+
+  // State untuk melacak apakah sedang dalam proses drag
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  // Tambahkan ref untuk menyimpan timeoutId dari autocomplete
+  const autocompleteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Tambahkan ref untuk menyimpan timeoutId dari input listener
+  const inputTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startCountdown = useCallback((duration: number = 10) => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+    }
+
+    setCountdown(duration);
+    setIsLoadingSearch(true);
+
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+          }
+          setIsLoadingSearch(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  // Fungsi untuk menghentikan countdown autocomplete
+  const stopCountdown = useCallback(() => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+    setIsLoadingSearch(false);
+    setCountdown(0);
+  }, []);
+
+  // Fungsi untuk menghentikan timeout autocomplete
+  const stopAutocompleteTimeout = useCallback(() => {
+    if (autocompleteTimeoutRef.current) {
+      clearTimeout(autocompleteTimeoutRef.current);
+      autocompleteTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Fungsi untuk menghentikan timeout input
+  const stopInputTimeout = useCallback(() => {
+    if (inputTimeoutRef.current) {
+      clearTimeout(inputTimeoutRef.current);
+      inputTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Fungsi untuk memulai cooldown drag/click map
+  const startCooldown = useCallback((duration: number = 10) => {
+    if (cooldownRef.current) {
+      clearInterval(cooldownRef.current);
+    }
+
+    setIsCooldown(true);
+    setCooldownCount(duration); // Set initial countdown value
+
+    cooldownRef.current = setInterval(() => {
+      setCooldownCount((prev) => {
+        if (prev <= 1) {
+          if (cooldownRef.current) {
+            clearInterval(cooldownRef.current);
+          }
+          setIsCooldown(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
 
   useEffect(() => {
     if (locationMap !== null) {
@@ -47,7 +157,7 @@ function MapInputForm({
 
   useEffect(() => {
     getAddress(address);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
   const [predictions, setPredictions] = useState<
@@ -55,14 +165,6 @@ function MapInputForm({
   >([]);
 
   const [isLoadingSearch, setIsLoadingSearch] = useState(false);
-
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_MAP_API_KEY
-      ? process.env.NEXT_PUBLIC_MAP_API_KEY
-      : "",
-    libraries: libs,
-  });
 
   useEffect(() => {
     if (isLoaded && placeAutoCompleteRef.current) {
@@ -74,12 +176,29 @@ function MapInputForm({
       let timeoutId: NodeJS.Timeout;
 
       placeAutoCompleteRef.current.addEventListener("input", () => {
+        if (isCooldown || isDragging) {
+          setPredictions([]);
+          stopAutocompleteTimeout();
+          return;
+        }
+
         const inputValue = placeAutoCompleteRef.current!.value;
 
         if (inputValue.length >= 3) {
-          clearTimeout(timeoutId);
-          setIsLoadingSearch(true);
-          timeoutId = setTimeout(() => {
+          // Hentikan timeout sebelumnya jika ada
+          stopInputTimeout();
+
+          setPredictions([]); // Clear previous predictions immediately
+
+          // Hentikan timeout autocomplete sebelumnya jika ada
+          stopAutocompleteTimeout();
+
+          // Mulai countdown 10 detik
+          startCountdown(10);
+
+          // Simpan timeoutId ke ref agar bisa diakses dari luar
+          inputTimeoutRef.current = setTimeout(() => {
+            // Ambil predictions setelah countdown selesai
             autoCompleteService.getPlacePredictions(
               { input: inputValue, componentRestrictions: { country: "ID" } },
               (predictions, status) => {
@@ -94,25 +213,53 @@ function MapInputForm({
                 setIsLoadingSearch(false);
               }
             );
-          }, 3000);
+          }, 10000); // Tunggu 10 detik sesuai countdown
         } else {
           setPredictions([]);
+          stopCountdown();
+          stopAutocompleteTimeout(); // Hentikan timeout autocomplete jika sedang berjalan
+          stopInputTimeout(); // Hentikan timeout input jika sedang berjalan
         }
       });
 
       placeAutoCompleteRef.current.addEventListener("blur", () => {
-        setTimeout(() => setPredictions([]), 200); // Delay to allow click event
+        setTimeout(() => {
+          setPredictions([]);
+          stopCountdown();
+          stopAutocompleteTimeout(); // Hentikan timeout autocomplete jika sedang berjalan
+          stopInputTimeout(); // Hentikan timeout input jika sedang berjalan
+        }, 200); // Delay to allow click event
       });
 
       return () => {
-        clearTimeout(timeoutId); // Bersihkan timeout saat komponen di-unmount
+        stopCountdown();
+        stopAutocompleteTimeout(); // Hentikan timeout autocomplete jika sedang berjalan
+        stopInputTimeout();
       };
     }
-  }, [isLoaded]);
+  }, [
+    isCooldown,
+    isDragging,
+    isLoaded,
+    startCountdown,
+    stopAutocompleteTimeout,
+    stopCountdown,
+    stopInputTimeout,
+  ]);
 
   const handlePredictionClick = (
     prediction: google.maps.places.AutocompletePrediction
   ) => {
+    if (isCooldown) {
+      toast.error("Silakan tunggu sebelum melakukan aksi lagi");
+      return;
+    }
+
+    stopCountdown();
+    setPredictions([]);
+    stopAutocompleteTimeout(); // Hentikan timeout autocomplete jika sedang berjalan
+    stopInputTimeout();
+
     const placesService = new google.maps.places.PlacesService(
       document.createElement("div")
     );
@@ -210,17 +357,60 @@ function MapInputForm({
   }
 
   function dragMarker(e: google.maps.MapMouseEvent) {
-    // //console.log(e);
+    if (isCooldown) {
+      toast.error("Silakan tunggu sebelum melakukan aksi lagi");
+      return;
+    }
+
+    // Hentikan countdown autocomplete jika sedang berjalan
+    stopCountdown();
+    // Hentikan timeout autocomplete jika sedang berjalan
+    stopAutocompleteTimeout();
+    // Hentikan timeout input jika sedang berjalan
+    stopInputTimeout();
+    // Bersihkan predictions
+    setPredictions([]);
+    // Set flag bahwa sedang dalam proses drag
+    setIsDragging(true);
 
     if (e.latLng !== null) {
-      // //console.log(e.latLng.lat());
       const newLat = e.latLng.lat();
       const newLng = e.latLng.lng();
       setLocationMap({ lat: newLat, lng: newLng });
-      debouncedFetchLocationData(newLat, newLng);
 
-      // const formattedAddress = results[0].formatted_address;
-      // setFormattedPlace(formattedAddress);
+      startCooldown(10);
+
+      debouncedFetchLocationData(newLat, newLng);
+    }
+
+    setTimeout(() => setIsDragging(false), 100);
+  }
+
+  function clickMap(e: MapMouseEvent) {
+    // Cegah click jika dalam masa cooldown
+    if (isCooldown) {
+      toast.error("Silakan tunggu sebelum melakukan aksi lagi");
+      return;
+    }
+
+    // Hentikan countdown autocomplete jika sedang berjalan
+    stopCountdown();
+    // Hentikan timeout autocomplete jika sedang berjalan
+    stopAutocompleteTimeout();
+    // Hentikan timeout input jika sedang berjalan
+    stopInputTimeout();
+    // Bersihkan predictions
+    setPredictions([]);
+
+    if (e.detail.latLng !== null) {
+      const newLat = e.detail.latLng.lat;
+      const newLng = e.detail.latLng.lng;
+      setLocationMap({ lat: newLat, lng: newLng });
+
+      // Mulai cooldown setelah click map
+      startCooldown(10);
+
+      debouncedFetchLocationData(newLat, newLng);
     }
   }
 
@@ -229,7 +419,7 @@ function MapInputForm({
     []
   );
   const debouncedFetchLocationData = useCallback(
-    debounce(getLocation, 2000),
+    debounce(getLocation, 10000),
     []
   );
 
@@ -258,7 +448,10 @@ function MapInputForm({
           <input
             placeholder="Masukkan Alamat"
             ref={placeAutoCompleteRef}
-            className="w-full py-2 pl-2 pr-10 border border-[#ccc] bg-white text-black max-sm:text-sm rounded shadow-sm"
+            className={`w-full py-2 pl-2 pr-10 border bg-white border-[#ccc] text-black max-sm:text-sm rounded shadow-sm ${
+              isCooldown ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={isCooldown}
           />
           {placeAutoCompleteRef.current &&
           placeAutoCompleteRef.current.value ? (
@@ -269,6 +462,10 @@ function MapInputForm({
                 if (placeAutoCompleteRef?.current) {
                   placeAutoCompleteRef.current.value = "";
                 }
+                setPredictions([]); // Clear predictions when clearing input
+                stopCountdown(); // Stop countdown when clearing input
+                stopAutocompleteTimeout(); // Stop autocomplete timeout when clearing input
+                stopInputTimeout(); // Stop input timeout when clearing input
               }}
             />
           ) : (
@@ -279,30 +476,50 @@ function MapInputForm({
           )}
         </div>
 
-        {isLoadingSearch && (
+        {isLoadingSearch && !isCooldown && (
           <div className="bg-white border-2 rounded-lg px-2 py-2">
-            Loading...
+            Sedang mencari dalam {countdown}
           </div>
         )}
 
-        {!isLoadingSearch && predictions.length > 0 && (
+        {isCooldown && (
           <div className="bg-white border-2 rounded-lg px-2 py-2">
-            {predictions.map((prediction) => (
-              <div
-                key={prediction.place_id}
-                onClick={() => handlePredictionClick(prediction)}
-                className="cursor-pointer flex gap-2 items-center pb-2"
-              >
-                <div>
-                  <FaLocationDot size={20} className="text-starlite" />
-                </div>
-                <div>{prediction.description}</div>
-              </div>
-            ))}
+            Sedang mencari dalam {cooldownCount}
           </div>
         )}
+
+        {!isLoadingSearch &&
+          !isCooldown &&
+          !isDragging &&
+          predictions.length > 0 && (
+            <div className="bg-white border-2 rounded-lg px-2 py-2">
+              {predictions.map((prediction) => (
+                <div
+                  key={prediction.place_id}
+                  onClick={() => handlePredictionClick(prediction)}
+                  className="cursor-pointer flex gap-2 items-center pb-2"
+                >
+                  <div>
+                    <FaLocationDot size={20} className="text-orange" />
+                  </div>
+                  <div>{prediction.description}</div>
+                </div>
+              ))}
+            </div>
+          )}
       </div>
-      {isLoaded && (
+
+      <div className="relative">
+        {/* Tampilkan overlay jika dalam cooldown */}
+        {isCooldown && (
+          <div className="absolute cursor-not-allowed inset-0 bg-black/30 flex items-center justify-center z-10 rounded">
+            <div className="bg-white p-4 rounded shadow-lg">
+              <p className="text-center">
+                Sedang mencari dalam {cooldownCount}
+              </p>
+            </div>
+          </div>
+        )}
         <APIProvider
           apiKey={
             process.env.NEXT_PUBLIC_MAP_API_KEY
@@ -313,37 +530,23 @@ function MapInputForm({
           <Maps
             {...cameraProps}
             onCameraChanged={handleCameraChange}
-            className="w-full h-[400px] rounded-[12px] border border-[#D5D5D5] overflow-hidden"
+            className="w-full h-[400px] rounded-xl border border-[#D5D5D5] overflow-hidden"
             mapTypeControl={false}
             fullscreenControl={false}
             streetViewControl={false}
-            onClick={(e) => {
-              // // //console.log(e);
-
-              setLocationMap({
-                lat: e.detail.latLng?.lat,
-                lng: e.detail.latLng?.lng,
-              });
-
-              debouncedFetchLocationData(
-                e.detail.latLng?.lat,
-                e.detail.latLng?.lng
-              );
-            }}
+            // zoomControl={false}
+            onClick={clickMap}
           >
             <Marker
               position={locationMap}
               draggable={true}
+              // icon={customIcon}
+              animation={iconAnimation}
               onDragEnd={dragMarker}
-              // icon={{
-              //   url: "/assets/icon/icon-pinpoint.webp",
-              //   scaledSize: new window.google.maps.Size(40, 40), // Ukuran marker
-              // }}
-              animation={window.google.maps.Animation.BOUNCE}
             />
           </Maps>
         </APIProvider>
-      )}
+      </div>
     </div>
   );
 }
