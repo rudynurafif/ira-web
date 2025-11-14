@@ -34,18 +34,33 @@ const DeliveryTracking = ({
 
   type ShipmentStatus = "waiting" | "assigned" | "done";
 
-  const shipmentStatusData: ShipmentStatus =
-    (data?.shipment_status as ShipmentStatus) ??
-    ((data as any)?.shipment_status as ShipmentStatus) ??
-    shipmentStatus;
+  const [shipmentStatusData, setShipmentStatusData] = useState<ShipmentStatus>(
+    (data?.shipment_status as ShipmentStatus) ?? "waiting"
+  );
 
   const rankMap: Record<ShipmentStatus, number> = {
     waiting: 0,
     assigned: 1,
     done: 2,
   };
+  const currentRank = rankMap[shipmentStatusData];
 
-  const currentRank = rankMap[shipmentStatusData]; // 0..2
+  useEffect(() => {
+    if (data?.shipment_status !== shipmentStatusData) {
+      setShipmentStatusData(data?.shipment_status as ShipmentStatus);
+    }
+  }, [data?.shipment_status, shipmentStatusData]);
+
+  useEffect(() => {
+    if (data?.shipment_status === "assigned") {
+      const intervalId = setInterval(() => {
+        console.log("masuk");
+        refetch();
+      }, 15000);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [data?.shipment_status, refetch]);
 
   const stepDefs = [
     {
@@ -165,7 +180,7 @@ const DeliveryTracking = ({
           closeModal={() => {
             setShowQR(false);
             refetch();
-            window.location.reload();
+            // window.location.reload();
           }}
           classNameModal="p-6 max-w-2xl w-full max-sm:mx-4 text-center rounded-xl shadow-lg"
         >
