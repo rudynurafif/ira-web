@@ -54,16 +54,16 @@ export default function AreaPelanggan() {
 
       const shipmentStatus = data?.[0]?.shipment_status || null;
       dispatch(setShipmentStatus(shipmentStatus));
-      console.log(shipmentStatus);
     } catch (err: any) {
       toastErrorFromAPI(err);
     }
   };
 
   useEffect(() => {
-    if (!shipmentStatus) fetchData();
+    // if (!shipmentStatus)
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shipmentStatus]);
+  }, []);
 
   useEffect(() => {
     const paymentSuccess = searchParams.get("payment-success");
@@ -170,14 +170,16 @@ export default function AreaPelanggan() {
         </div>
       </div>
 
-      {!subscriptionHistory?.[0].start_date && !isLoading && (
-        <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
-          <DeliveryTracking
-            refetch={fetchData}
-            data={subscriptionHistory?.[0]}
-          />
-        </div>
-      )}
+      {subscriptionHistory &&
+        !subscriptionHistory?.[0].start_date &&
+        !isLoading && (
+          <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
+            <DeliveryTracking
+              refetch={fetchData}
+              data={subscriptionHistory?.[0]}
+            />
+          </div>
+        )}
 
       {/* TAB MENU */}
       <div className="max-w-[1329px] px-8 mt-8 mx-auto">
@@ -200,7 +202,9 @@ export default function AreaPelanggan() {
 
       {/* TAB CONTENT */}
       <div className="max-w-[1329px] px-8 mx-auto mt-6">
-        {activeTab === "Informasi Paket dan Riwayat" && <ActivePacket />}
+        {activeTab === "Informasi Paket dan Riwayat" && (
+          <ActivePacket subHistory={subscriptionHistory ?? []} />
+        )}
 
         {activeTab === "Data Pribadi" && <PersonalData />}
 

@@ -6,8 +6,8 @@ import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
 import { useRouter } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
-import bannerPanduan from "@/public/assets/Images/bannerPanduan.svg";
-import bannerCS from "@/public/assets/Images/bannerCS.svg";
+import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
+import bannerCS from "@/public/assets/Images/bannerCS.png";
 import ActivePackageCard from "./ActivePackageCard";
 import SubsHistoryCard from "./SubsHistoryCard";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
@@ -15,7 +15,11 @@ import { toastErrorFromAPI } from "@/app/_shared/utils";
 import empty from "@/public/assets/Images/Empty.svg";
 import Link from "next/link";
 
-const ActivePacket = () => {
+const ActivePacket = ({
+  subHistory,
+}: {
+  subHistory: SubscriptionHistoryAPI[];
+}) => {
   const [activePacketData, setActivePacketData] =
     useState<SubscriptionHistoryAPI>();
   const [subscriptionHistory, setSubscriptionHistory] =
@@ -27,15 +31,14 @@ const ActivePacket = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resSubHistory = await getSubscriptionHistory({});
-        setSubscriptionHistory(resSubHistory.data?.data);
-        setActivePacketData(resSubHistory.data?.data?.[0]);
+        setSubscriptionHistory(subHistory);
+        setActivePacketData(subHistory?.[0]);
       } catch (err: any) {
         toastErrorFromAPI(err);
       }
     };
     fetchData();
-  }, []);
+  }, [subHistory]);
 
   const isFetching = !activePacketData && !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
@@ -46,7 +49,9 @@ const ActivePacket = () => {
 
   const HistorySection = () => (
     <div>
-      <p className="text-xl hidden sm:block font-bold text-black mb-4">Riwayat Tagihan</p>
+      <p className="text-xl hidden sm:block font-bold text-black mb-4">
+        Riwayat Tagihan
+      </p>
       <div className="flex flex-col gap-6">
         {hasHistory ? (
           (subscriptionHistory ?? []).map((history) => (

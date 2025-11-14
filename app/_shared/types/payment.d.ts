@@ -128,19 +128,19 @@ export interface PackageDetail {
 
 export interface BillingItem {
   id: string;
-  billing_period: string; // e.g. "Feb"
-  billing_year: number; // e.g. 2026
-  amount: string; // e.g. "300000.00"
-  tax: string; // e.g. "0.00"
-  discount_price: string; // e.g. "0.00"
-  discount_rate: string; // e.g. "0.00"
-  total_due: string; // e.g. "300000.00"
+  billing_period: string;
+  billing_year: number; 
+  amount: string; 
+  tax: string;
+  discount_price: string; 
+  discount_rate: string; 
+  total_due: string;
   voucher_code: string | null;
   is_free: boolean;
-  status: string; // e.g. "PAID", "PENDING", "OVERDUE"
-  billing_issued_at: string; // ISO 8601
-  billing_start_at: string; // ISO 8601
-  billing_deadline_at: string; // ISO 8601
+  status: string; 
+  billing_issued_at: string; 
+  billing_start_at: string; 
+  billing_deadline_at: string;
   remarks: string | null;
   description: string | null;
   invoice_id: InvoiceID[];

@@ -418,7 +418,6 @@ function Page() {
       return;
     } else {
       try {
-        console.log("mitra ID", mitraID);
         const addressArray = formData.address_gmaps
           ? [normalizeAddressForBackend(formData.address_gmaps)]
           : [];
@@ -459,7 +458,6 @@ function Page() {
         const token = res.data.data;
         if (token) setCookie("token-ira", token);
       } catch (error: any) {
-        console.log("masuk error");
         if (error?.response?.data?.statusCode === 409) {
           setOtpStatus("idle");
           setFormData((prev) => ({ ...prev, otp: "" }));
