@@ -119,6 +119,7 @@ const ActivePacket = ({
 
           <Image
             src={bannerCS}
+            onClick={() => window.open("https://wa.me/6281110689111", "_blank")}
             alt="banner CS"
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
           />
@@ -127,6 +128,7 @@ const ActivePacket = ({
         <div className="lg:col-span-7 col-span-12 flex flex-col gap-6">
           <Image
             src={bannerPanduan}
+            onClick={() => window.open("/panduan-cara-bayar", "_blank")}
             alt="Banner Panduan"
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
           />
