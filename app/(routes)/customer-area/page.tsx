@@ -48,8 +48,6 @@ export default function AreaPelanggan() {
 
   const fetchData = async () => {
     try {
-      console.log("masuk");
-
       const resSubHistory = await getSubscriptionHistory({});
       const data = resSubHistory.data?.data;
       setSubscriptionHistory(data);
@@ -204,7 +202,9 @@ export default function AreaPelanggan() {
 
       {/* TAB CONTENT */}
       <div className="max-w-[1329px] px-8 mx-auto mt-6">
-        {activeTab === "Informasi Paket dan Riwayat" && <ActivePacket />}
+        {activeTab === "Informasi Paket dan Riwayat" && (
+          <ActivePacket subHistory={subscriptionHistory ?? []} />
+        )}
 
         {activeTab === "Data Pribadi" && <PersonalData />}
 
