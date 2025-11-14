@@ -209,16 +209,17 @@ export const toastErrorFromAPI = (
   error: any,
   defaultMessage = "Terjadi kesalahan"
 ) => {
-  const errorStatusCode = error?.response?.data?.statusCode || "(status code)";
+  // const errorStatusCode = error?.response?.data?.statusCode ?? "(status code)";
   const errorMsg =
-    error?.response?.data?.message ||
-    error?.message ||
-    "Terdapat kesalahan saat memuat daftar paket";
+    error?.response?.data?.message ??
+    error?.message ??
+    "Terjadi kesalahan, silakan coba lagi.";
 
-  toast.error(`Error ${errorStatusCode}: ${errorMsg}`);
+  // toast.error(`Error ${errorStatusCode}: ${errorMsg}`);
+  toast.error(errorMsg);
 };
 
 export const formattedDate = (dateString: string) => {
   const date = moment(dateString);
   return date.format("DD MMMM YYYY");
-}
+};
