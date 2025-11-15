@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import React from "react";
-import { FaInstagram } from "react-icons/fa";
-import { FaSquareFacebook } from "react-icons/fa6";
+import { FaInstagram, FaLinkedin, FaTiktok, FaYoutube } from "react-icons/fa";
+import { AiFillTikTok } from "react-icons/ai";
+import { FaSquareFacebook, FaSquareInstagram } from "react-icons/fa6";
 import Image from "next/image";
 
 // image
@@ -25,21 +26,39 @@ function Footer() {
             <div className="col-span-1">
               <h5 className="font-bold mb-2.5">Business Phone Number</h5>
               <Link
-                href={"https://wa.me/6281188011388"}
+                href={"https://wa.me/6281110689111"}
                 className="hover:underline"
                 target="_blank"
               >
-                +6281188011388
+                +6281110689111
               </Link>
             </div>
             <div className="col-span-1">
               <h5 className="font-bold mb-2.5">Social Media</h5>
               <div className="flex gap-3">
-                <Link href={"https://www.instagram.com/"} target="_blank">
+                <Link
+                  href={"https://www.instagram.com/internetrakyat.id"}
+                  target="_blank"
+                >
                   <FaInstagram size={24} />
                 </Link>
-                <Link href={"https://www.facebook.com/"} target="_blank">
-                  <FaSquareFacebook size={24} />
+                <Link
+                  href={"https://www.youtube.com/@internetrakyat.official"}
+                  target="_blank"
+                >
+                  <FaYoutube size={24} />
+                </Link>
+                <Link
+                  href={"https://www.linkedin.com/company/internet-rakyat"}
+                  target="_blank"
+                >
+                  <FaLinkedin size={24} />
+                </Link>
+                <Link
+                  href={"https://www.tiktok.com/@internetrakyat.id"}
+                  target="_blank"
+                >
+                  <FaTiktok size={24} />
                 </Link>
               </div>
             </div>
@@ -50,11 +69,15 @@ function Footer() {
             </div>
             <p className="mb-3">
               <span>
-                <Link href={"/terms-and-condition"} target="_blank">Terms & Conditions</Link>
+                <Link href={"/terms-and-condition"} target="_blank">
+                  Terms & Conditions
+                </Link>
               </span>{" "}
               |{" "}
               <span>
-                <Link href={"/terms-and-condition"} target="_blank">Privacy Policy</Link>
+                <Link href={"/terms-and-condition"} target="_blank">
+                  Privacy Policy
+                </Link>
               </span>
             </p>
             <p className="">

@@ -286,6 +286,10 @@ body {
   animation-name: sweep;
 }
 
+.custom-bg-animation {
+  will-change: transform;
+}
+
 @keyframes gradient-sweep {
   0% {
     background-position: 0% 0%;
