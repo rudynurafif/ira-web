@@ -270,12 +270,12 @@ function Header() {
 
             <div>
               {isLoggedIn ? (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-6">
                   <Link
                     href="/customer-area"
                     className={`${
                       pathname === "/customer-area" ? "font-bold" : ""
-                    } underline-animation-register`}
+                    }`}
                   >
                     Area Pelanggan
                   </Link>
@@ -284,7 +284,11 @@ function Header() {
                       handleLogout();
                       setIsOpenMenu(false);
                     }}
-                    className="flex items-center gap-2 text-center justify-center text-primary"
+                    className={`flex ${
+                      pathname === "/"
+                        ? "bg-white text-primary"
+                        : "bg-primary text-white"
+                    } font-bold items-center gap-2 text-center justify-center rounded-full px-5 py-2.5`}
                   >
                     <FaUser /> Logout
                   </button>
@@ -292,7 +296,7 @@ function Header() {
               ) : (
                 <Link
                   href="/auth/login"
-                  className={`flex gap-1 items-center ${
+                  className={`flex gap-1 justify-center items-center ${
                     pathname === "/" ? "bg-button-login" : "bg-primary"
                   } text-white rounded-full px-5 py-2.5 font-medium`}
                   onClick={() => setIsOpenMenu(false)}

@@ -47,6 +47,8 @@ const ActivePacket = ({
     (subscriptionHistory?.length ?? 0) > 0 &&
     Boolean(subscriptionHistory?.[0]?.start_date);
 
+  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+
   const HistorySection = () => (
     <div>
       <p className="text-xl hidden sm:block font-bold text-black mb-4">
@@ -119,7 +121,7 @@ const ActivePacket = ({
 
           <Image
             src={bannerCS}
-            onClick={() => window.open("https://wa.me/6281110689111", "_blank")}
+            onClick={() => window.open(`https://wa.me/${phoneCS}`, "_blank")}
             alt="banner CS"
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
           />
