@@ -74,7 +74,7 @@ function MainPage() {
           </button> */}
           <Link
             href="/auth/register"
-            className="inline-flex gap-2 justify-center items-center mt-10 py-1.5 max-sm:py-0.5 px-0.1 gradient-box rounded-[58px] custom-click cursor-pointer"
+            className="inline-flex gap-2 justify-center items-center mt-10 py-1.5 max-sm:py-0.6 max-sm:px-1 gradient-box rounded-[58px] custom-click cursor-pointer"
             id="button-berlangganan-sekarang"
           >
             <div className="w-[97%] xl:py-9 relative flex justify-center px-[15px] gap-1 items-center bg-subs-new rounded-[58px] h-[62px] mt-px overflow-hidden custom-bg-animation">
