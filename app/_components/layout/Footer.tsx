@@ -10,6 +10,10 @@ import Image from "next/image";
 import iraIcon from "@/public/assets/Icons/IraIcon.svg";
 
 function Footer() {
+
+  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+  const address = process.env.NEXT_PUBLIC_ADDRESS || "";
+
   return (
     <div className="bg-white max-sm:text-sm">
       <div className="container mx-auto px-5 my-8">
@@ -19,18 +23,17 @@ function Footer() {
               <h5 className="font-bold mb-2.5">Address</h5>
               <p className="font-semibold">PT. Telemedia Komunikasi Pratama</p>
               <p>
-                Ruko Fatmawati Mas Blok III Kav. 328 - 329, Jl. RS Fatmawati No.
-                20, Cilandak Barat, Cilandak, Jakarta Selatan, Indonesia
+                {address}
               </p>
             </div>
             <div className="col-span-1">
               <h5 className="font-bold mb-2.5">Business Phone Number</h5>
               <Link
-                href={"https://wa.me/6281110689111"}
+                href={`https://wa.me/${phoneCS}`}
                 className="hover:underline"
                 target="_blank"
               >
-                +6281110689111
+                +{phoneCS}
               </Link>
             </div>
             <div className="col-span-1">
@@ -86,7 +89,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.1411.039</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.1711.040</div>
       </div>
     </div>
   );

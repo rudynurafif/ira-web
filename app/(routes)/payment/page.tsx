@@ -59,14 +59,16 @@ function PackageCardMobile({
         {/* speed block */}
         <div className="w-full rounded-md overflow-hidden">
           <div className="flex items-start justify-between w-full relative text-dark-primary-2 whitespace-nowrap">
-            <div className="text-[10px] ">Up to</div>
-            <div className="flex pt-2 gap-1">
-              <div className="text-3xl leading-none font-extrabold tracking-tight">
-                {pkg.speed_mbps}
-              </div>
-              <div className="flex flex-col items-start">
-                <div className="pb-1 text-xs font-semibold">Mbps</div>
-                <div className="text-[10px]">Unlimited Kuota</div>
+            <div className="flex gap-2">
+              <div className="text-xs">Up to</div>
+              <div className="flex pt-2 gap-1">
+                <div className="text-3xl leading-none font-extrabold tracking-tight">
+                  {pkg.speed_mbps}
+                </div>
+                <div className="flex flex-col items-start">
+                  <div className="pb-1 text-xs font-semibold">Mbps</div>
+                  <div className="text-[10px]">Unlimited Kuota</div>
+                </div>
               </div>
             </div>
 
@@ -130,14 +132,12 @@ const Payment = () => {
     } catch (error: any) {
       const errorStatusCode =
         error?.response?.data?.statusCode || "(status code)";
-      const errorMsg =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Terdapat kesalahan saat memuat daftar paket";
 
       toastErrorFromAPI(error);
 
-      setError(`Error ${errorStatusCode}: ${errorMsg}`);
+      if (errorStatusCode === 401) {
+        setError(`Silahkan login terlebih dahulu untuk melanjutkan.`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -208,7 +208,7 @@ const Payment = () => {
   if (error) return <ErrorFallback message={error} onRetry={fetchPackages} />;
 
   return (
-    <div className="container mx-auto my-8">
+    <div className="container mx-auto my-8 max-md:p-4">
       <div className="flex gap-2 items-center justify-center">
         <div className="font-bold text-primary-text text-3xl">
           Perpanjang Paket
@@ -301,7 +301,7 @@ const Payment = () => {
           </div>
 
           <div
-            className="flex cursor-pointer mt-6 justify-between border border-gray-border gap-4 rounded-lg p-4 items-center"
+            className="flex cursor-pointer mt-6 justify-between border border-gray-border shadow-md gap-4 rounded-lg p-4 items-center"
             onClick={() => router.push("/payment/payment-methods")}
           >
             <div className="flex items-center gap-4 md:gap-8">
