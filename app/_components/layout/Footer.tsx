@@ -8,9 +8,9 @@ import Image from "next/image";
 
 // image
 import iraIcon from "@/public/assets/Icons/IraIcon.svg";
+import moment from "moment";
 
 function Footer() {
-
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
   const address = process.env.NEXT_PUBLIC_ADDRESS || "";
 
@@ -22,9 +22,7 @@ function Footer() {
             <div className="col-span-1 md:col-span-2">
               <h5 className="font-bold mb-2.5">Address</h5>
               <p className="font-semibold">PT. Telemedia Komunikasi Pratama</p>
-              <p>
-                {address}
-              </p>
+              <p>{address}</p>
             </div>
             <div className="col-span-1">
               <h5 className="font-bold mb-2.5">Business Phone Number</h5>
@@ -42,24 +40,28 @@ function Footer() {
                 <Link
                   href={"https://www.instagram.com/internetrakyat.id"}
                   target="_blank"
+                  className="hover:cursor-pointer"
                 >
                   <FaInstagram size={24} />
                 </Link>
                 <Link
                   href={"https://www.youtube.com/@internetrakyat.official"}
                   target="_blank"
+                  className="hover:cursor-pointer"
                 >
                   <FaYoutube size={24} />
                 </Link>
                 <Link
                   href={"https://www.linkedin.com/company/internet-rakyat"}
                   target="_blank"
+                  className="hover:cursor-pointer"
                 >
                   <FaLinkedin size={24} />
                 </Link>
                 <Link
                   href={"https://www.tiktok.com/@internetrakyat.id"}
                   target="_blank"
+                  className="hover:cursor-pointer"
                 >
                   <FaTiktok size={24} />
                 </Link>
@@ -84,12 +86,12 @@ function Footer() {
               </span>
             </p>
             <p className="">
-              Copyright © 2025 PT. Telemedia Komunikasi Pratama
+              Copyright © {moment().year()} PT. Telemedia Komunikasi Pratama
             </p>
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.1711.040</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.1911.041</div>
       </div>
     </div>
   );

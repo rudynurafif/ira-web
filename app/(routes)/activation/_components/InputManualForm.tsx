@@ -111,7 +111,7 @@ function InputManualForm() {
                 type="button"
                 className="w-fit hover:font-bold underline-animation-activation cursor-pointer text-primary font-semibold text-center pt-5"
               >
-                Pindai Barcode
+                Scan Barcode
               </button>
             </div>
           </div>

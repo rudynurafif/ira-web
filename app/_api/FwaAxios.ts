@@ -8,8 +8,8 @@ const baseURL =
     : process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
 const FwaAxios = axios.create({
-  // baseURL: process.env.NEXT_PUBLIC_API_URL, // kalo di local
-  baseURL: baseURL, // kalo mau naik ke dev/staging/production
+  baseURL: process.env.NEXT_PUBLIC_API_URL, // kalo di local
+  // baseURL: baseURL, // kalo mau naik ke dev/staging/production
   headers: {
     "x-api-key": "280999!FTTH",
     // "ngrok-skip-browser-warning": "6024",
