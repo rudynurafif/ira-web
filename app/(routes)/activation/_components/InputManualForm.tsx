@@ -2,8 +2,8 @@ import { activation } from "@/app/_api/Activation/Activation";
 import DynamicForm from "@/app/_components/form/DynamicForm";
 import LoadingModal from "@/app/_components/modal/LoadingModal";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import { addUrlParam } from "@/app/_shared/utils";
-import { useSearchParams } from "next/navigation";
+import { addUrlParam, toastErrorFromAPI } from "@/app/_shared/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -16,6 +16,7 @@ function InputManualForm() {
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
+  const router = useRouter();
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,6 +51,11 @@ function InputManualForm() {
 
         addUrlParam("section", "connect");
         addUrlParam("serial_number", serialNumber);
+
+        // Untuk keperluan simulasi, redirect ke customer-area setelah submit
+        setTimeout(() => {
+          window.location.href = "/customer-area";
+        }, 3000);
       }
     } catch (error: any) {
       setOpenModalFailed(true);
@@ -58,9 +64,9 @@ function InputManualForm() {
           error.response?.data?.message ||
           "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.",
       });
-      toast.error(
-        error.response?.data?.message ||
-          "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi."
+      toastErrorFromAPI(
+        error,
+        "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi."
       );
     } finally {
       setIsSubmitting(false);
@@ -69,7 +75,7 @@ function InputManualForm() {
 
   return (
     <div className="container mx-auto max-w-[480px] max-sm:px-8">
-      <h2 className="text-[#001D47] font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
+      <h2 className="text-primary-text font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Input Manual Serial Number
       </h2>
 
@@ -92,7 +98,7 @@ function InputManualForm() {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full hover:brightness-[1.05] cursor-pointer bg-[#005FB8] shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]"
+              className="w-full hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]"
             >
               Submit
             </button>
@@ -103,9 +109,9 @@ function InputManualForm() {
                   addUrlParam("section", "scan");
                 }}
                 type="button"
-                className="w-fit hover:font-bold underline-animation-activation cursor-pointer text-[#005FB8] font-semibold text-center pt-5"
+                className="w-fit hover:font-bold underline-animation-activation cursor-pointer text-primary font-semibold text-center pt-5"
               >
-                Pindai Barcode
+                Scan Barcode
               </button>
             </div>
           </div>
@@ -115,8 +121,9 @@ function InputManualForm() {
       <LoadingModal isOpen={isSubmitting} />
 
       {openModalFailed && (
-        <ModalTemplate closeModal={() => setOpenModalFailed(false)}
-        classNameModal="p-6 max-w-lg w-full mx-4 text-center"
+        <ModalTemplate
+          closeModal={() => setOpenModalFailed(false)}
+          classNameModal="p-6 max-w-lg w-full mx-4 text-center"
         >
           {/* Modal Content */}
           <h3 className="text-dark-primary font-bold text-lg">

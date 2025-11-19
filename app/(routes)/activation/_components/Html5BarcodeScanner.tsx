@@ -129,7 +129,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
   const modalScanRef = useRef<boolean | null>(null);
 
   // --- NEW: bentuk qrbox, device id terakhir, dan flag desktop ---
-  const [qrBoxShape, setQrBoxShape] = useState<"rect" | "square">("rect");
+  const [qrBoxShape, setQrBoxShape] = useState<"rect" | "square">("square");
   const lastDeviceIdRef = useRef<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   const isDesktopRef = useRef<boolean | null>(null);
@@ -390,39 +390,6 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
       <div className="max-w-[480px] mx-auto w-full text-center">
         <h1 className="text-[24px] sm:text-[28px] font-bold ">Scan Barcode</h1>
 
-        {!starting && (
-          <div>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={qrBoxShape === "square"}
-                  onChange={(e) =>
-                    setQrBoxShape(e.target.checked ? "square" : "rect")
-                  }
-                />
-              }
-              label={
-                <>
-                  {qrBoxShape === "square" ? (
-                    <>
-                      <CiBarcode size={30} style={{ marginRight: 8 }} />
-                      {/* QR Box: Kotak */}
-                    </>
-                  ) : (
-                    <>
-                      <MdOutlineQrCodeScanner
-                        size={30}
-                        style={{ marginRight: 8 }}
-                      />
-                      {/* QR Box: Persegi Panjang */}
-                    </>
-                  )}
-                </>
-              }
-            />
-          </div>
-        )}
-
         <div style={{ display: "inline-block", position: "relative" }}>
           {/* html5-qrcode render video/canvas ke sini */}
           <div
@@ -513,7 +480,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
             onClick={() => {
               addUrlParam("section", "input");
             }}
-            className="bg-[#005FB8] hover:bg-[#014280] p-2 cursor-pointer text-white font-bold w-full rounded-[12px] "
+            className="bg-primary hover:bg-dark-primary-2 p-2 cursor-pointer text-white font-bold w-full rounded-[12px] "
             type="button"
           >
             Input Manual

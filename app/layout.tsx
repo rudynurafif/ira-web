@@ -28,8 +28,8 @@ const raleway = Raleway({
 });
 
 export const metadata: Metadata = {
-  title: "Starlite FWA",
-  description: "FWA Web",
+  title: "Internet Rakyat",
+  description: "Internet Rakyat Web",
 };
 
 export default function RootLayout({
@@ -37,6 +37,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // const maintenanceMode = process.env.MAINTENANCE_MODE === "true";
+
   return (
     <html lang="en" className="h-full">
       <body
@@ -54,10 +56,16 @@ export default function RootLayout({
       >
         <Suspense>
           <ClientProvider>
-            <Header />
+            {/* {!maintenanceMode && <Header />} */}
+             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
-            <Toaster position="top-right" />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 5000,
+              }}
+            />
           </ClientProvider>
         </Suspense>
       </body>

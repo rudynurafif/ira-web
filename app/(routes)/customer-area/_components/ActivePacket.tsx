@@ -2,151 +2,142 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import checkGreenIcon from "@/public/assets/Icons/mdi_tick-circle.svg";
-import starIcon from "@/public/assets/Icons/icon-star.svg";
-import editIcon from "@/public/assets/Icons/icon-edit.svg";
-import exitIcon from "@/public/assets/Icons/icon-exit.svg";
-import redAlert from "@/public/assets/Icons/carbon_warning-filled.svg";
-import { ProfileLabel } from "./PersonalData";
-import {
-  getActivePacket,
-  getProfileInfo,
-} from "@/app/_api/Customer/CustomerArea";
-import {
-  ActivePacketData,
-  ProfileInfo,
-} from "@/app/_shared/types/customer-area";
-import ModalEditProfile from "./ModalEditProfile";
-import DeliveryTracking from "./DeliveryTracking";
+import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
-import toast from "react-hot-toast";
 import { useAppSelector } from "@/app/store/store";
+import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
+import bannerCS from "@/public/assets/Images/bannerCS.png";
+import ActivePackageCard from "./ActivePackageCard";
+import SubsHistoryCard from "./SubsHistoryCard";
+import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
+import empty from "@/public/assets/Images/Empty.svg";
+import Link from "next/link";
 
-const ActivePacket = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [openModal, setOpenModal] = useState(false);
-  const [activePacketData, setActivePacketData] = useState<ActivePacketData>();
-  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
+const ActivePacket = ({
+  subHistory,
+}: {
+  subHistory: SubscriptionHistoryAPI[];
+}) => {
+  const [activePacketData, setActivePacketData] =
+    useState<SubscriptionHistoryAPI>();
+  const [subscriptionHistory, setSubscriptionHistory] =
+    useState<SubscriptionHistoryAPI[]>();
+  const { userInfo } = useAppSelector((state) => state.auth);
 
   const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
-
       try {
-        const resPacket = await getActivePacket({});
-
-        setActivePacketData(resPacket);
+        setSubscriptionHistory(subHistory);
+        setActivePacketData(subHistory?.[0]);
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Gagal muat data paket");
-      } finally {
-        setIsLoading(false);
+        toastErrorFromAPI(err);
       }
     };
-
     fetchData();
-  }, [userInfo]);
+  }, [subHistory]);
 
   const isFetching = !activePacketData && !userInfo;
+  if (isFetching) return <SkeletonLoadingCard />;
+
+  const hasHistory =
+    (subscriptionHistory?.length ?? 0) > 0 &&
+    Boolean(subscriptionHistory?.[0]?.start_date);
+
+  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+
+  const HistorySection = () => (
+    <div>
+      <p className="text-xl hidden sm:block font-bold text-black mb-4">
+        Riwayat Tagihan
+      </p>
+      <div className="flex flex-col gap-6">
+        {hasHistory ? (
+          (subscriptionHistory ?? []).map((history) => (
+            <SubsHistoryCard data={history} key={history.id} />
+          ))
+        ) : (
+          <div className="flex text-secondary flex-col gap-4 justify-center items-center text-center py-10">
+            <Image src={empty} alt="empty" />
+            Anda belum memiliki riwayat pembelian paket Internet Rakyat.
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col gap-10 mb-10">
-      {isFetching ? (
-        <SkeletonLoadingCard />
-      ) : (
-        <>
-          <div className="bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] p-8 max-sm:p-4">
-            <div>
-              <div className="flex flex-row justify-between items-center mb-1">
-                <h3 className="text-sm text-secondary max-sm:text-xs">
-                  Paket Aktif
-                </h3>
-                {/* <div className="flex items-center space-x-1">
-              <Image
-                src={activePacketData?.isPaid ? checkGreenIcon : redAlert}
-                alt="check-green"
-                width={20}
-                height={20}
-              />
-              <p
-                className={`text-sm max-sm:text-[10px] ${
-                  activePacketData?.isPaid
-                    ? "text-green-primary"
-                    : "text-red-primary"
-                }  font-medium`}
-              >
-                {activePacketData?.isPaid
-                  ? "Tagihan Lunas"
-                  : "Tagihan Belum Lunas"}
-              </p>
-            </div> */}
-              </div>
-              <div className="flex flex-row justify-between items-center">
-                <p className="font-bold text-dark-primary-2 text-xl max-sm:text-sm">
-                  {activePacketData?.packageInfo}
-                </p>
-                <div className="flex items-center space-x-1">
-                  <Image
-                    src={activePacketData?.isPaid ? checkGreenIcon : redAlert}
-                    alt="check-green"
-                    width={20}
-                    height={20}
-                  />
-                  <p
-                    className={`text-sm max-sm:text-[10px] ${
-                      activePacketData?.isPaid
-                        ? "text-green-primary"
-                        : "text-red-primary"
-                    }  font-medium`}
-                  >
-                    {activePacketData?.isPaid
-                      ? "Tagihan Lunas"
-                      : "Tagihan Belum Lunas"}
-                  </p>
-                </div>
-              </div>
-              <p className="text-[16px] max-sm:text-[12px] text-black mt-2">
-                {activePacketData?.packagePrice}
-              </p>
-              <div className="flex justify-between items-center mt-2">
-                {/* <p className="text-sm max-sm:text-[12px] text-green-primary">
-              Jatuh tempo:{" "}
-              {activePacketData?.dueDate}
-            </p> */}
-                {userInfo?.status !== "active" && (
-                <button
-                  onClick={() => router.push(`/activation`)}
-                  className={`${
-                    activePacketData?.isActive
-                      ? "bg-gray-border cursor-not-allowed"
-                      : "bg-button hover:bg-dark-primary-2 cursor-pointer"
-                  } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
-                >
-                  Aktivasi Sekarang
-                </button>
-                )} 
-                {/* {activePacketData?.isPaid && (
-                  <button
-                    className={`${
-                      activePacketData?.isPaid
-                        ? "bg-gray-border cursor-not-allowed"
-                        : "bg-button hover:bg-dark-primary-2 cursor-pointer"
-                    } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
-                  >
-                    Bayar tagihan
-                  </button>
-                )} */}
-              </div>
-            </div>
-          </div>
+    <>
+      {/* MOBILE (< sm): urutan dinamis */}
+      <div className="sm:hidden space-y-6">
+        {hasHistory ? (
+          <>
+            {activePacketData?.start_date && (
+              <ActivePackageCard data={activePacketData} />
+            )}
 
-          <DeliveryTracking />
-        </>
-      )}
-    </div>
+            <Image
+              src={bannerCS}
+              alt="banner CS"
+              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            />
+
+            <Image
+              src={bannerPanduan}
+              alt="Banner Panduan"
+              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            />
+
+            <HistorySection />
+          </>
+        ) : (
+          <>
+            <HistorySection />
+
+            <Image
+              src={bannerCS}
+              alt="banner CS"
+              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            />
+
+            <Image
+              src={bannerPanduan}
+              alt="Banner Panduan"
+              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            />
+          </>
+        )}
+      </div>
+
+      {/* TABLET / DESKTOP (≥ sm): tetap seperti sebelumnya */}
+      <div className="hidden sm:grid grid-cols-12 gap-6">
+        <div className="lg:col-span-5 col-span-12 space-y-5">
+          {activePacketData?.start_date && (
+            <ActivePackageCard data={activePacketData} />
+          )}
+
+          <Image
+            src={bannerCS}
+            onClick={() => window.open(`https://wa.me/${phoneCS}`, "_blank")}
+            alt="banner CS"
+            className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+          />
+        </div>
+
+        <div className="lg:col-span-7 col-span-12 flex flex-col gap-6">
+          <Image
+            src={bannerPanduan}
+            onClick={() => window.open("/panduan-cara-bayar", "_blank")}
+            alt="Banner Panduan"
+            className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+          />
+          <HistorySection />
+        </div>
+      </div>
+    </>
   );
 };
 

@@ -29,7 +29,7 @@ export default function Home() {
 
         // const token = res.data.data;
         // if (token) {
-        //   localStorage.setItem("token-fwa", token);
+        //   localStorage.setItem("token-ira", token);
         // }
 
         // setTimeout(() => {
@@ -73,7 +73,7 @@ export default function Home() {
 
       <MainPage />
       <WhyFWAPage />
-      <PackagePage />
+      {/* <PackagePage /> */}
       <FAQPage />
     </div>
   );

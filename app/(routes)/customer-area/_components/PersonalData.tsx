@@ -37,30 +37,6 @@ const PersonalData = () => {
     }
   }, [userInfo]);
 
-  /**
-   
-  const fetchData = async () => {
-    setisLoading(true);
-
-    try {
-      const resPacket = await getActivePacket({});
-      const resProfile = await getProfileInfo({});
-
-      setActivePacketData(resPacket);
-      setprofileInfo(resProfile.data?.data.customer ?? {});
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal muat data paket");
-    } finally {
-      setisLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-   
-   */
-
   const isFetching = !userInfo;
 
   return (

@@ -1,4 +1,4 @@
-export const BASE_URL = "";
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 export const CUSTOMER_URL = "/app/customer";
 // export const PRODUCTS_URL = "/app/products";
 // export const ORDERS_URL = "/app/orders";
@@ -23,7 +23,7 @@ import {
 export const packageList: any = [
   {
     id: 1,
-    name: "Starlite 7 Hari [UNLIMITED]",
+    name: "IRA 7 Hari [UNLIMITED]",
     price: 37500,
     period: 7,
     benefit: [
@@ -36,7 +36,7 @@ export const packageList: any = [
   },
   {
     id: 2,
-    name: "Starlite 14 Hari [UNLIMITED]",
+    name: "IRA 14 Hari [UNLIMITED]",
     price: 65000,
     period: 14,
     benefit: [
@@ -49,7 +49,7 @@ export const packageList: any = [
   },
   {
     id: 3,
-    name: "Starlite 30 Hari [UNLIMITED]",
+    name: "IRA 30 Hari [UNLIMITED]",
     price: 100000,
     period: 30,
     benefit: [

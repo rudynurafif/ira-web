@@ -23,7 +23,11 @@ import {
 import { normalizeAddressForBackend } from "@/app/_shared/utils/address";
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
-import { PHONE_REGEX, regexEmail } from "@/app/_shared/utils";
+import {
+  PHONE_REGEX,
+  regexEmail,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import GeoPermissionGate from "./_components/GeoPermissionGate";
@@ -42,6 +46,7 @@ interface FormType {
   postal_code: string;
   notes: string;
   actual_address: string;
+  voucher_code: string;
   address_gmaps?: any;
   lat?: string;
   lng?: string;
@@ -61,6 +66,7 @@ const initialFormData: FormType = {
   postal_code: "",
   actual_address: "",
   notes: "",
+  voucher_code: "",
   address_gmaps: undefined,
   lat: undefined,
   lng: undefined,
@@ -82,17 +88,7 @@ function Page() {
   );
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
   const [mitraID, setMitraID] = useState([]);
-  /**
-  {
-    "inside_coverage": true,
-    "mitra_ids": [
-      {
-        "id": "e5b4c0ca-5df1-4bb3-a547-618de9f6337e",
-        "name": "UD JAYA"
-      }
-    ]
-  }
-   */
+  const [btsID, setBtsID] = useState([]);
   const [isCovered, setIsCovered] = useState<boolean>(false);
   const [coveredAtSubmit, setCoveredAtSubmit] = useState<boolean | null>(null);
 
@@ -160,8 +156,8 @@ function Page() {
 
       toast.success("Lokasi terisi otomatis ✔");
     } catch (err: any) {
-      console.error("getUserLocation failed:", err);
-      toast.error(err?.response?.data?.message || "Autofill lokasi gagal");
+      // console.error("getUserLocation failed:", err);
+      toastErrorFromAPI(err, "Autofill lokasi gagal");
     } finally {
       setIsAutoFilling(false);
     }
@@ -182,9 +178,10 @@ function Page() {
         });
 
         setMitraID(resCoverage.data?.result?.mitra_ids || []);
+        setBtsID(resCoverage.data?.result?.bts_ids || []);
         setIsCovered(!!resCoverage.data?.result?.inside_coverage);
       } catch (error: any) {
-        toast.error(error?.response?.data?.message ?? "Gagal check coverage");
+        toastErrorFromAPI(error, "Gagal check coverage");
         setIsCovered(false);
       } finally {
         setIsCheckCoverage(false);
@@ -204,9 +201,7 @@ function Page() {
         }));
         setProvinceOptions(options);
       } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Gagal muat data provinsi"
-        );
+        toastErrorFromAPI(error, "Gagal muat data provinsi");
       }
     };
     loadProvince();
@@ -228,7 +223,7 @@ function Page() {
           }))
         );
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Gagal muat data kota");
+        toastErrorFromAPI(err, "Gagal muat data kota");
         setCityOptions([]);
       }
     })();
@@ -250,9 +245,7 @@ function Page() {
           }))
         );
       } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message || "Gagal muat data kecamatan"
-        );
+        toastErrorFromAPI(err, "Gagal muat data kecamatan");
 
         setDistrictOptions([]);
       }
@@ -275,9 +268,7 @@ function Page() {
           }))
         );
       } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message || "Gagal muat data kelurahan"
-        );
+        toastErrorFromAPI(err, "Gagal muat data kelurahan");
         setSubdistrictOptions([]);
       }
     })();
@@ -303,7 +294,7 @@ function Page() {
           .filter(Boolean) as ReactSelectType[];
         setPostalCodeOptions(options);
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Gagal muat data kode pos");
+        toastErrorFromAPI(err, "Gagal muat data kode pos");
         setPostalCodeOptions([]);
       }
     })();
@@ -336,7 +327,7 @@ function Page() {
         ...e,
         otp: "Kode OTP tidak valid atau sudah kedaluwarsa",
       }));
-      toast.error(err?.response?.data?.message || "Verifikasi OTP gagal");
+      toastErrorFromAPI(err, "Verifikasi OTP gagal");
     }
   }
 
@@ -418,7 +409,6 @@ function Page() {
       return;
     } else {
       try {
-        console.log("mitra ID", mitraID);
         const addressArray = formData.address_gmaps
           ? [normalizeAddressForBackend(formData.address_gmaps)]
           : [];
@@ -428,6 +418,7 @@ function Page() {
           name: formData.fullname ?? "",
           ...(formData.email && { email: formData.email }),
           ...(mitraID.length > 0 && { mitra_ids: mitraID }),
+          ...(btsID.length > 0 && { bts_ids: btsID }),
           // nik: formData.nik ?? "",
           // no_kk: formData.nokk ?? "",
           province_id: formData.province ?? "",
@@ -439,6 +430,7 @@ function Page() {
           address: addressArray ?? "",
           actual_address: formData.actual_address ?? "",
           ...(formData.notes && { notes: formData.notes }),
+          ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
         };
 
         const coveredNow = isCovered;
@@ -456,16 +448,13 @@ function Page() {
         resetForm();
 
         const token = res.data.data;
-        if (token) setCookie("token-fwa", token);
+        if (token) setCookie("token-ira", token);
       } catch (error: any) {
-        console.log("masuk error");
         if (error?.response?.data?.statusCode === 409) {
           setOtpStatus("idle");
           setFormData((prev) => ({ ...prev, otp: "" }));
         }
-        toast.error(
-          error?.response?.data?.message || "Gagal melakukan registrasi"
-        );
+        toastErrorFromAPI(error, "Gagal melakukan registrasi");
       } finally {
         setIsLoading(false);
       }
@@ -489,8 +478,8 @@ function Page() {
 
   return (
     <div className="container mx-auto px-5 my-22">
-      <h1 className="text-center text-[32px] text-[#001D47] font-bold">
-        Registrasi Starlite FWA
+      <h1 className="text-center text-[32px] text-black font-bold">
+        Registrasi Internet Rakyat (IRA)
       </h1>
 
       <form onSubmit={submitForm} className="mt-7">
@@ -936,6 +925,23 @@ function Page() {
               disabled={!formData.address_gmaps}
             />
           </div>
+
+          {/* Kode Voucher */}
+          <div className="col-span-2">
+            <DynamicForm
+              label="Kode Voucher (opsional)"
+              isImportant={false}
+              name="voucher_code"
+              value={formData.voucher_code}
+              onChange={(value: string) => {
+                const filtered = value.replace(/[^a-zA-Z\s.\-]/g, "");
+                setFormData((prev) => ({ ...prev, voucher_code: filtered }));
+                setErrors({ ...errors, voucher_code: "" });
+              }}
+              placeholder="Masukkan Kode Voucher"
+              error={errors.voucher_code}
+            />
+          </div>
         </div>
 
         {/* Agreement */}
@@ -953,12 +959,12 @@ function Page() {
             className={`py-[15px] w-1/2 font-bold text-white ${
               isLoading || !agreement
                 ? "bg-slate-400 cursor-not-allowed"
-                : "bg-primary cursor-pointer"
+                : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             } text-xl rounded-xl mx-auto `}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
-                <div className="loading w-[20px] h-[20px]"></div>
+                <div className="loading w-5 h-5"></div>
                 <span className="italic text-white">Loading...</span>
               </div>
             ) : (
@@ -969,11 +975,11 @@ function Page() {
 
         <div className="mt-7 text-center">
           <p className="text-primary-text">
-            Sudah punya akun Starlite?{" "}
+            Sudah punya akun IRA?{" "}
             <span>
               <Link
                 href="/auth/login"
-                className="underline-animation-register text-dark-primary font-bold"
+                className="underline-animation-register text-primary font-bold"
               >
                 Login disini
               </Link>

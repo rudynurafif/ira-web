@@ -1,22 +1,14 @@
 import FwaAxios from "../FwaAxios";
 
-export const getActivePacket = async (params: any) => {
+export const getPackageList = async (params: any) => {
   try {
-    // const data = await FwaAxios({
-    //   url: "/customer/active-packet",
-    //   method: "GET",
-    //   params: params,
-    // });
+    const data = await FwaAxios({
+      url: "/app/billing/package",
+      method: "GET",
+      params: params,
+    });
 
-    const dummyData = {
-      isPaid: true,
-      isActive: false,
-      packageInfo: "Paket Free Trial Starlite FWA 30 Hari",
-      packagePrice: "100.000/Bulan",
-      dueDate: "30 Januari 2025",
-    };
-
-    return dummyData;
+    return data;
   } catch (error) {
     throw error;
   }
@@ -52,30 +44,13 @@ export const updateProfileInfo = async (body: any) => {
 
 export const getSubscriptionHistory = async (params: any) => {
   try {
-    // const data = await FwaAxios({
-    //   url: "/customer/subscription-history",
-    //   method: "GET",
-    //   params: params,
-    // });
+    const data = await FwaAxios({
+      url: "/app/billing/customer-package",
+      method: "GET",
+      params: params,
+    });
 
-    const dummyData = [
-      {
-        paid: false,
-        mainTitle: "Pembayaran sudah jatuh tempo",
-        packageInfo: "Paket Starlite FWA 30 Hari",
-        subTitle: "Bayarkan tagihan Anda tanggal 10 Juli 2025",
-        price: "Rp100.000/Bulan",
-      },
-      {
-        paid: true,
-        mainTitle: "Tagihan Lunas",
-        packageInfo: "Paket Starlite FWA 30 Hari",
-        subTitle: "Aktif sampai 10 Juni 2025",
-        price: "Rp0/Bulan",
-      },
-    ];
-
-    return dummyData;
+    return data;
   } catch (error) {
     throw error;
   }

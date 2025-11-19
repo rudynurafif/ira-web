@@ -8,7 +8,11 @@ import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import { verifyOtp, sendOtpLogin } from "@/app/_api/Auth/Auth";
 import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
-import { PHONE_REGEX, formatTimer } from "@/app/_shared/utils";
+import {
+  PHONE_REGEX,
+  formatTimer,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { useAppDispatch } from "@/app/store/store";
 import { login } from "@/app/store/slice/authSlice";
@@ -169,11 +173,6 @@ const Page = () => {
       setStep("enterOtp");
       toast.success(res.data.message ?? "OTP terkirim");
     } catch (error: any) {
-      const rawMsg =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Terjadi kesalahan. Gagal mengirim OTP";
-
       const seconds = error?.response?.data?.data?.second;
 
       const lastAttempt = Number(
@@ -188,13 +187,13 @@ const Page = () => {
           setBlockUntil(until);
         }
         setStep("blocked");
-        toast.error(rawMsg);
+        toastErrorFromAPI(error, "Gagal mengirim OTP");
         return;
       } else {
         if (Number.isFinite(seconds) && seconds! > 0) {
           startResendTimer(seconds!);
         }
-        toast.error(rawMsg);
+        toastErrorFromAPI(error, "Gagal mengirim OTP");
         return;
       }
     }
@@ -237,22 +236,19 @@ const Page = () => {
 
         dispatch(login({ token: data }));
 
-        setCookie("token-fwa", data);
+        setCookie("token-ira", data);
 
         setOtpStatus("valid");
-        setSuccessVerifyMessage(message|| "OTP terverifikasi ✔");
-        toast.success(message|| "OTP terverifikasi ✔");
-        toast.success("Login berhasil");
+        setSuccessVerifyMessage(message || "OTP terverifikasi ✔");
+        toast.success(message || "OTP terverifikasi ✔");
+        toast.success("Login Berhasil!");
 
-        setTimeout(() => {
-          window.location.replace("/customer-area");
-        }, 1000);
+        dispatch(login(data));
+        window.location.href = "/customer-area";
       }
     } catch (err: any) {
       setOtpStatus("invalid");
-      toast.error(
-        err?.response?.data?.message || "Verifikasi OTP gagal. Coba lagi."
-      );
+      toastErrorFromAPI(err, "Verifikasi OTP gagal. Silahkan coba lagi.");
       setErrorVerifyOtp(
         err?.response?.data?.message ?? "Verifikasi OTP gagal. Coba lagi."
       );
@@ -262,8 +258,8 @@ const Page = () => {
   const renderEnterPhone = () => (
     <div className="flex w-full items-start justify-center px-5 my-22">
       <div className="w-full max-w-xl">
-        <h1 className="mb-8 text-center text-dark-primary font-extrabold text-[32px]">
-          Login Starlite FWA
+        <h1 className="mb-8 text-center text-black font-extrabold text-[32px]">
+          Login Internet Rakyat (IRA)
         </h1>
 
         <div className="flex flex-col gap-7">
@@ -295,10 +291,10 @@ const Page = () => {
           </div>
 
           <p className="text-center text-md text-primary-text">
-            Belum punya akun Starlite?{" "}
+            Belum punya akun IRA?{" "}
             <Link
               href="/auth/register"
-              className="underline-animation-register font-semibold text-dark-primary"
+              className="underline-animation-register font-semibold text-primary"
             >
               Register
             </Link>
@@ -320,7 +316,7 @@ const Page = () => {
           </button>
         </div>
 
-        <h1 className="mb-5 text-center text-dark-primary font-extrabold text-[28px]">
+        <h1 className="mb-5 text-center font-extrabold text-[28px]">
           Masukkan Kode OTP Anda
         </h1>
 
@@ -373,7 +369,7 @@ const Page = () => {
           ) : (
             <button
               onClick={handleAfterSendOtp}
-              className="text-dark-primary-2 font-semibold underline-animation-activation cursor-pointer transition"
+              className="text-primary font-semibold underline-animation-register cursor-pointer transition"
             >
               Klik Kirim Ulang OTP
             </button>

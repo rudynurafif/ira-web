@@ -20,6 +20,7 @@ import {
   NAME_REGEX,
   PHONE_REGEX,
   PHONE_REGEX2,
+  toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import { getUser } from "@/app/store/slice/authSlice";
 import { useAppDispatch } from "@/app/store/store";
@@ -195,7 +196,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
           err?.response?.data?.message ||
           "Kode OTP tidak valid atau sudah kedaluwarsa",
       }));
-      toast.error(err?.response?.data?.message || "Verifikasi OTP gagal");
+      toastErrorFromAPI(err, "Verifikasi OTP gagal");
     }
   }
 
@@ -262,10 +263,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         onClose();
       }
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          "Terjadi kesalahan saat menyimpan data"
-      );
+      toastErrorFromAPI(error, "Terjadi kesalahan saat menyimpan data");
     } finally {
       setIsLoading(false);
     }
@@ -304,7 +302,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
 
       <ModalTemplate
         closeModal={onClose}
-        classNameModal="sm:min-w-[50%] max-sm:mx-4"
+        classNameModal="lg:min-w-[50%] md:min-w-[70%] max-sm:mx-4"
       >
         <form
           onSubmit={handleSubmit}
@@ -313,9 +311,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         >
           {/* Header */}
           <div className="relative flex items-center justify-center my-6">
-            <h3 className="text-2xl font-bold text-dark-primary">
-              Edit Profile
-            </h3>
+            <h3 className="text-2xl font-bold text-black">Edit Profile</h3>
             <button
               type="button"
               onClick={onClose}
@@ -512,11 +508,11 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="flex gap-6 px-6 pb-6">
+          <div className="flex max-md:flex-col gap-3 md:gap-6 px-6 pb-6">
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer w-full rounded-lg bg-red-700 px-4 py-4 text-xl max-sm:text-lg font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="cursor-pointer border-2 border-primary w-full rounded-lg bg-white p-2 text-lg font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
               Batal
             </button>
@@ -527,7 +523,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 (needsOtp && otpStatus !== "valid") ||
                 Object.values(errors).some((v) => v && v.trim() !== "")
               }
-              className="cursor-pointer w-full rounded-lg bg-primary px-4 py-4 text-xl max-sm:text-lg font-semibold text-white hover:bg-dark-primary-2 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="cursor-pointer w-full rounded-lg bg-primary p-2 text-lg font-semibold text-white hover:bg-dark-primary-2 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
             </button>

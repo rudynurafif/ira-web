@@ -5,19 +5,21 @@
   --background: #ffffff;
   --background-customer: #f5f5f5;
   --foreground: #171717;
-  --primary: #005fb8;
-  --dark-primary: #001d47;
-  --dark-primary-2: #003d76;
+  --primary: #d7201d;
+  --dark-primary: #520201;
+  --dark-primary-2: #9a0806;
   --red-primary: #ff0000;
   --green-primary: #1faf38;
+  --green-2: #3fc700;
   --nokia-blue: #0168ff;
   --primary-spectrum: #f7f9fd;
-  --button: #005fb8;
+  --button: #d7201d;
   --gray-border: #d5d5d5;
   --primary-text: #353535;
   --secondary: #666666;
   --mute: #666666;
   --ads-platform-dark: #2c2c2c;
+  --gray-spectrum-800: #050503;
 }
 
 /* Terapkan ke semua Steps */
@@ -38,6 +40,7 @@
   --color-dark-primary-2: var(--dark-primary-2);
   --color-red-primary: var(--red-primary);
   --color-green-primary: var(--green-primary);
+  --color-green-2: var(--green-2);
   --color-nokia-blue: var(--nokia-blue);
   --color-primary-spectrum: var(--primary-spectrum);
   --color-button: var(--button);
@@ -48,6 +51,7 @@
   --color-primary-spectrum: var(--primary-spectrum);
   --color-muted: var(--mute);
   --color-primary-text: var(--primary-text);
+  --color-gray-spectrum-800: var(--gray-spectrum-800);
 
   --font-primary: var(--font-be-vietnam);
   --font-secondary: var(--font-figtree);
@@ -143,13 +147,13 @@ body {
 }
 
 .background-card-register {
-  border: 1px solid #949aa3;
+  border: 1px solid #a39494;
   background: linear-gradient(
     183deg,
     #fff -2.94%,
-    #fdfefe 45.46%,
-    #f6fafb 57.71%,
-    #9fc9e3 118.06%
+    #fefdfd 45.46%,
+    #fbf6f6 57.71%,
+    #e39f9f 118.06%
   );
 }
 
@@ -164,7 +168,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: var(--dark-primary);
+  background-color: var(--primary);
   transform-origin: bottom right;
   transform: scaleX(0);
   transition: transform 0.5s ease;
@@ -179,17 +183,17 @@ body {
   background: linear-gradient(
     221deg,
     #fff -2.94%,
-    #fdfefe 45.46%,
-    #f6fafb 63.61%,
-    #eaf4f6 75.71%,
-    #d9ebef 86.6%,
-    #d4e8ee 92.65%,
-    #cce7ff 97.49%,
-    #99ceff 102.33%,
-    #71bafe 107.17%,
-    #67b6fe 111.15%,
-    #43a4fe 115.64%,
-    #0285fe 118.06%
+    #fefdfd 45.46%,
+    #fbf6f6 63.61%,
+    #f6eaea 75.71%,
+    #efd9d9 86.6%,
+    #eed4d4 92.65%,
+    #ffcccc 97.49%,
+    #ff9999 102.33%,
+    #fe7171 107.17%,
+    #fe6767 111.15%,
+    #fe4343 115.64%,
+    #fe0202 118.06%
   );
 }
 
@@ -217,7 +221,32 @@ body {
 }
 
 .gradient-box {
-  background: linear-gradient(0deg, #61f0ff 23%, #489fff 100%);
+  background: linear-gradient(0deg, #ff7bda 10%, #ffffff 50%);
+}
+
+.bg-subs-new {
+  background: linear-gradient(
+    173.48deg,
+    #ff5f5d -12.78%,
+    #cd2a27 37.72%,
+    #c21e1b 91.2%
+  );
+  box-shadow: 0px 0px 33.1708px #ff3ba0,
+    inset 0px 0px 21.0795px rgba(255, 165, 211, 0.55);
+  /* filter: drop-shadow(0px 0px 21.349px #ffaae3); */
+}
+
+.fancy-background {
+  background: linear-gradient(
+    180deg,
+    #ff6bb7 -78.1%,
+    rgba(255, 147, 202, 0) 101.42%
+  );
+  /* background: linear-gradient(
+    189.83deg,
+    #ff3ba0 -78.1%,
+    rgba(255, 147, 202, 0) 101.42%
+  ); */
 }
 
 .custom-click,
@@ -234,12 +263,6 @@ body {
 .custom-click:active {
   transform: translate(0, 0);
   border-bottom: 2px solid rgb(50, 50, 50);
-}
-
-.bg-subs-new {
-  background: linear-gradient(173deg, #3b59e3 -12.78%, #033683 91.2%);
-  box-shadow: inset 0px 0px 13.567px rgba(192, 243, 255, 0.75);
-  filter: drop-shadow(0px 0px 21.349px #40e9ff);
 }
 
 .custom-bg-animation:after {
@@ -261,6 +284,10 @@ body {
   animation-iteration-count: infinite;
   animation-timing-function: ease-out;
   animation-name: sweep;
+}
+
+.custom-bg-animation {
+  will-change: transform;
 }
 
 @keyframes gradient-sweep {
@@ -288,14 +315,6 @@ body {
   }
 }
 
-.fancy-background {
-  background: linear-gradient(
-    180deg,
-    #93ffec -78.1%,
-    rgba(143, 223, 255, 0) 101.42%
-  );
-}
-
 .bg-opacity-black-10 {
   background: rgba(255, 255, 255, 0.1);
 }
@@ -311,7 +330,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #005fb8;
+  background-color: var(--primary);
   transform-origin: bottom right;
   transform: scaleX(0);
   transition: transform 0.5s ease;

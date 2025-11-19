@@ -147,9 +147,9 @@ export default function ConnectToNetwork() {
 
   function contactCS() {
     const msg = encodeURIComponent(
-      `Halo CS, saya butuh bantuan aktivasi modem FWA.\nSN: ${serialNumber}`
+      `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSN: ${serialNumber}`
     );
-    const phone = process.env.NEXT_PUBLIC_PHONE_CS || "6280000000000";
+    const phone = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
     window.location.href = `https://wa.me/${phone}?text=${msg}`;
   }
 
