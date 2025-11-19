@@ -12,7 +12,9 @@ import moment from "moment";
 
 function Footer() {
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
-  const address = process.env.NEXT_PUBLIC_ADDRESS || "";
+  const address =
+    process.env.NEXT_PUBLIC_ADDRESS ||
+    "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat";
 
   return (
     <div className="bg-white max-sm:text-sm">

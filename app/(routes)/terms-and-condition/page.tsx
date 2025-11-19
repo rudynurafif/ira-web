@@ -168,7 +168,8 @@ function Page() {
                   target="_blank"
                   className="text-primary hover:underline"
                 >
-                  {process.env.NEXT_PUBLIC_ADDRESS}
+                  {process.env.NEXT_PUBLIC_ADDRESS ||
+                    "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat"}
                 </Link>
               </li>
             </ul>
