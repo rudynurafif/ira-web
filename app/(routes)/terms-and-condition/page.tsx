@@ -155,16 +155,16 @@ function Page() {
               <li className=" mb-2">
                 Email:{" "}
                 <Link
-                  href={"mailto: support@Internet Rakyatindonesia.com"}
+                  href={`mailto: ${process.env.NEXT_PUBLIC_EMAIL_CS}`}
                   className="text-primary hover:underline"
                 >
-                  support@Internet Rakyatindonesia.com
+                  {process.env.NEXT_PUBLIC_EMAIL_CS}
                 </Link>{" "}
               </li>
               <li className=" mb-2">
                 Alamat:{" "}
                 <Link
-                  href={"https://maps.app.goo.gl/mk3Zj4YYpcqrxya29"}
+                  href={`${process.env.NEXT_PUBLIC_ADDRESS_GMAPS}`}
                   target="_blank"
                   className="text-primary hover:underline"
                 >
@@ -176,8 +176,8 @@ function Page() {
           <li className="mb-5">
             <h3 className=" mb-2">Pengakuan</h3>
             <p className="text-black font-normal text-sm sm:text-base">
-              Dengan berlangganan Layanan Internet Rakyat, Pelanggan menyatakan telah
-              membaca, memahami, dan menyetujui Syarat dan Ketentuan ini.
+              Dengan berlangganan Layanan Internet Rakyat, Pelanggan menyatakan
+              telah membaca, memahami, dan menyetujui Syarat dan Ketentuan ini.
             </p>
           </li>
         </ul>

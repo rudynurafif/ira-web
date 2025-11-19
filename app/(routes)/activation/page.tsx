@@ -17,7 +17,7 @@ import { setShipmentStatus } from "@/app/store/slice/authSlice";
 
 function Page() {
   const params = useSearchParams();
-  const [activeSection, setActiveSection] = useState("");
+  const [activeSection, setActiveSection] = useState("scan");
   const { shipmentStatus } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const [subscriptionHistory, setSubscriptionHistory] =

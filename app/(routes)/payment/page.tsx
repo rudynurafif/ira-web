@@ -129,11 +129,16 @@ const Payment = () => {
       if (res?.data?.statusCode === 200) {
         setPackages(res.data?.data);
       }
-    } catch (error: any) {
+    } catch (err: any) {
       const errorStatusCode =
-        error?.response?.data?.statusCode || "(status code)";
+        err?.response?.data?.statusCode || "(status code)";
 
-      toastErrorFromAPI(error);
+      toastErrorFromAPI(err);
+
+      if (errorStatusCode === 404) {
+        setError(err?.response?.data?.message || "Data paket tidak ditemukan.");
+        return
+      }
 
       if (errorStatusCode === 401) {
         setError(`Silahkan login terlebih dahulu untuk melanjutkan.`);

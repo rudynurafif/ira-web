@@ -223,3 +223,7 @@ export const formattedDate = (dateString: string) => {
   const date = moment(dateString);
   return date.format("DD MMMM YYYY");
 };
+
+export function formatNamaWilayah(nama: string): string {
+  return nama.replace(/^kab\./i, "kabupaten");
+}

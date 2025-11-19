@@ -10,9 +10,9 @@ import {
   Marker,
 } from "@vis.gl/react-google-maps";
 import { debounce } from "@/app/_shared/utils";
-import { GetListGeocode } from "@/app/_api/Maps/Maps";
 import { Libraries, useJsApiLoader } from "@react-google-maps/api";
 import toast from "react-hot-toast";
+import { GetListGeocode } from "@/app/_api/Location/Location";
 
 const libs: Libraries = ["places", "geocoding"];
 

@@ -29,22 +29,18 @@ function Header() {
   const [customerData, setCustomerData] = useState<ProfileInfo>();
   const dispatch = useAppDispatch();
   const { token: tokenfromState } = useAppSelector((state) => state.auth);
-
-  // const {
-  //   data: profileData,
-  //   isLoading,
-  //   error,
-  // } = useGetProfileQuery(undefined, {
-  //   skip: !isLoggedIn,
-  // });
-  // const customerData = profileData?.data?.customer;
-
-  const token = getCookie("token-ira") ?? tokenfromState;
+  // const token = getCookie("token-ira") ?? tokenfromState;
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
+    const cookieToken = getCookie("token-ira") as string | null;
+    const finalToken =
+      cookieToken ?? (tokenfromState as string | undefined) ?? null;
+    setToken(finalToken);
+
     const fetchData = async () => {
       try {
-        if (token) {
+        if (finalToken) {
           const resProfile = await getProfileInfo({});
           const customer = resProfile.data.data.customer;
 
@@ -68,7 +64,7 @@ function Header() {
     };
 
     fetchData();
-  }, [dispatch, token]);
+  }, [dispatch, tokenfromState]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -208,14 +204,16 @@ function Header() {
                 Cek Jangkauan
               </Link>
 
-              <Link
-                href="/payment"
-                className={`${
-                  pathname === "/payment" ? "font-bold" : ""
-                } underline-animation-register`}
-              >
-                Perpanjang Paket
-              </Link>
+              {isLoggedIn && (
+                <Link
+                  href="/payment"
+                  className={`${
+                    pathname === "/payment" ? "font-bold" : ""
+                  } underline-animation-register`}
+                >
+                  Perpanjang Paket
+                </Link>
+              )}
 
               {/* Dynamic Auth Button */}
               <AuthButton />
@@ -260,13 +258,15 @@ function Header() {
               Cek Jangkauan
             </Link>
 
-            <Link
-              href="/payment"
-              className={` ${pathname === "/payment" && "font-bold"}`}
-              onClick={() => setIsOpenMenu(false)}
-            >
-              Perpanjang Paket
-            </Link>
+            {isLoggedIn && (
+              <Link
+                href="/payment"
+                className={` ${pathname === "/payment" && "font-bold"}`}
+                onClick={() => setIsOpenMenu(false)}
+              >
+                Perpanjang Paket
+              </Link>
+            )}
 
             <div>
               {isLoggedIn ? (

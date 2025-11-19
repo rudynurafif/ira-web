@@ -88,17 +88,7 @@ function Page() {
   );
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
   const [mitraID, setMitraID] = useState([]);
-  /**
-  {
-    "inside_coverage": true,
-    "mitra_ids": [
-      {
-        "id": "e5b4c0ca-5df1-4bb3-a547-618de9f6337e",
-        "name": "UD JAYA"
-      }
-    ]
-  }
-   */
+  const [btsID, setBtsID] = useState([]);
   const [isCovered, setIsCovered] = useState<boolean>(false);
   const [coveredAtSubmit, setCoveredAtSubmit] = useState<boolean | null>(null);
 
@@ -188,6 +178,7 @@ function Page() {
         });
 
         setMitraID(resCoverage.data?.result?.mitra_ids || []);
+        setBtsID(resCoverage.data?.result?.bts_ids || []);
         setIsCovered(!!resCoverage.data?.result?.inside_coverage);
       } catch (error: any) {
         toastErrorFromAPI(error, "Gagal check coverage");
@@ -427,6 +418,7 @@ function Page() {
           name: formData.fullname ?? "",
           ...(formData.email && { email: formData.email }),
           ...(mitraID.length > 0 && { mitra_ids: mitraID }),
+          ...(btsID.length > 0 && { bts_ids: btsID }),
           // nik: formData.nik ?? "",
           // no_kk: formData.nokk ?? "",
           province_id: formData.province ?? "",

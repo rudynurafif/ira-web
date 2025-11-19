@@ -11,7 +11,7 @@ function ModalTemplate({
   children: ReactNode;
 }) {
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center z-[1000000000]">
+    <div className="fixed p-6 top-0 left-0 right-0 bottom-0 flex items-center justify-center z-1000000000">
       <div
         className="fixed bg-[#00000080] w-full h-full"
         onClick={closeModal}
