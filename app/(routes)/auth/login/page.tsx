@@ -256,7 +256,7 @@ const Page = () => {
   }
 
   const renderEnterPhone = () => (
-    <div className="flex w-full items-start justify-center px-5 my-22">
+    <div className="flex w-full items-start justify-center px-5 sm:my-22 my-6">
       <div className="w-full max-w-xl">
         <h1 className="mb-8 text-center text-black font-extrabold text-[32px]">
           Login Internet Rakyat (IRA)

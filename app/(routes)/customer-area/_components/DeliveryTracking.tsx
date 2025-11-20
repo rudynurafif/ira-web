@@ -196,6 +196,7 @@ const DeliveryTracking = ({
               className="w-76 h-76 mx-auto"
               width={304}
               height={304}
+              unoptimized
             />
           </div>
 

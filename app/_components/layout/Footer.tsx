@@ -7,7 +7,7 @@ import { FaSquareFacebook, FaSquareInstagram } from "react-icons/fa6";
 import Image from "next/image";
 
 // image
-import iraIcon from "@/public/assets/Icons/IraIcon.svg";
+import iraIcon from "@/public/assets/Icons/IraIconFooter.png"
 import moment from "moment";
 
 function Footer() {
@@ -17,8 +17,8 @@ function Footer() {
     "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat";
 
   return (
-    <div className="bg-white max-sm:text-sm">
-      <div className="container mx-auto px-5 my-8">
+    <div className="bg-white text-xs">
+      <div className="container mx-auto px-5 my-2">
         <div className="block lg:flex justify-between items-center gap-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 w-full lg:w-[60%]">
             <div className="col-span-1 md:col-span-2">
@@ -72,7 +72,7 @@ function Footer() {
           </div>
           <div className="text-left lg:text-right w-full md:w-[40%] lg:mt-0 mt-5">
             <div className="flex justify-start lg:justify-end gap-5 items-center mb-3">
-              <Image src={iraIcon} alt="weave" className="w-[125px]" />
+              <Image src={iraIcon} alt="weave" className="w-[100px]" />
             </div>
             <p className="mb-3">
               <span>

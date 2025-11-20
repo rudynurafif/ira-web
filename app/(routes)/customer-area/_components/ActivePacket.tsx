@@ -7,7 +7,9 @@ import { useRouter } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
 import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
+import bannerPanduanMobile from "@/public/assets/Images/bannerPanduangmobile.png";
 import bannerCS from "@/public/assets/Images/bannerCS.png";
+import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import ActivePackageCard from "./ActivePackageCard";
 import SubsHistoryCard from "./SubsHistoryCard";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
@@ -82,13 +84,24 @@ const ActivePacket = ({
             <Image
               src={bannerCS}
               alt="banner CS"
-              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+              className="hidden sm:block w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            />
+
+            <Image
+              src={bannerCSMobile}
+              alt="banner CS"
+              className="block sm:hidden w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             />
 
             <Image
               src={bannerPanduan}
               alt="Banner Panduan"
-              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+              className="hidden sm:block w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            />
+            <Image
+              src={bannerPanduanMobile}
+              alt="Banner Panduan"
+              className="block sm:hidden w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             />
 
             <HistorySection />
@@ -100,13 +113,24 @@ const ActivePacket = ({
             <Image
               src={bannerCS}
               alt="banner CS"
-              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+              className="hidden sm:block w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            />
+
+            <Image
+              src={bannerCSMobile}
+              alt="banner CS"
+              className="block sm:hidden w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             />
 
             <Image
               src={bannerPanduan}
               alt="Banner Panduan"
-              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+              className="hidden sm:block w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            />
+            <Image
+              src={bannerPanduanMobile}
+              alt="Banner Panduan"
+              className="block sm:hidden w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             />
           </>
         )}

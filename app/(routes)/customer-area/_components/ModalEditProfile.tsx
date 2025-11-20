@@ -2,7 +2,6 @@
 
 import { Figtree } from "next/font/google";
 import { useEffect, useMemo, useRef, useState } from "react";
-import OtpInput from "../../auth/login/_components/OTPInput";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
