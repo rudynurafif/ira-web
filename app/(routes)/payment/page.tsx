@@ -73,8 +73,8 @@ function PackageCardMobile({
             </div>
 
             {/* badge harga */}
-            <div className="shrink-0 ml-3">
-              <span className="inline-block rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] font-semibold shadow-sm text-black whitespace-nowrap">
+            <div className="shrink-0 ml-2">
+              <span className="inline-block rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold shadow-sm text-black whitespace-nowrap">
                 {convertToCurrency(pkg.price ?? 0)}/{pkg.duration ?? 0} Hari
               </span>
             </div>
@@ -219,8 +219,8 @@ const Payment = () => {
           Perpanjang Paket
         </div>
       </div>
-      <div className="p-4 sm:p-6 shadow-lg my-8 rounded-lg">
-        <h2 className="text-2xl text-primary-text font-bold mb-3">
+      <div className="sm:p-6 sm:shadow-lg my-8 rounded-lg">
+        <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
           Pilih Paket
         </h2>
 
@@ -300,7 +300,7 @@ const Payment = () => {
 
         <div className="mb-8">
           <div className="flex max-md:flex-col max-md:gap-3 justify-between mb-3">
-            <h2 className="font-bold text-2xl text-primary-text">
+            <h2 className="font-bold sm:text-2xl text-lg text-primary-text">
               Metode Pembayaran
             </h2>
           </div>
@@ -353,7 +353,7 @@ const Payment = () => {
 
         <div>
           <button
-            className="rounded-lg text-2xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-3"
+            className="rounded-full sm:text-2xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-3"
             onClick={handleCreatePayment}
             disabled={!selectedPackage || !selectedChannel}
           >

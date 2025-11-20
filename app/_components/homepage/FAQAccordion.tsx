@@ -52,7 +52,7 @@ export default function FAQAccordion() {
         >
           <button
             onClick={() => toggleAccordion(index)}
-            className="w-full flex justify-between gap-4 items-center py-5 text-slate-800 cursor-pointer"
+            className="w-full flex justify-between gap-4 items-center text-slate-800 cursor-pointer"
           >
             <span className="font-semibold text-start [text-indent:-1.2rem] ml-4">
               {faq.question}

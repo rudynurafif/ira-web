@@ -477,15 +477,15 @@ function Page() {
   }
 
   return (
-    <div className="container mx-auto px-5 my-22">
+    <div className="container mx-auto xl:px-42 lg:px-22 px-6 sm:my-22 my-6">
       <h1 className="text-center text-[32px] text-black font-bold">
         Registrasi Internet Rakyat (IRA)
       </h1>
 
       <form onSubmit={submitForm} className="mt-7">
-        <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-7">
+        <div className="grid grid-cols-2 max-md:grid-cols-1 gap-7">
           {/* Nama */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="Nama Lengkap"
               isImportant
@@ -502,7 +502,7 @@ function Page() {
           </div>
 
           {/* Email */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="Email (opsional)"
               isImportant={false}
@@ -521,7 +521,7 @@ function Page() {
           </div>
 
           {/* Nomor Handphone */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <PhoneOTPForm
               storageKey={`otp:register:phone`}
               otpDurationSec={0}
@@ -549,7 +549,7 @@ function Page() {
           </div>
 
           {/* OTP */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <GroupedOTP
               isInvalid={!!errors.otp || otpStatus === "invalid"}
               label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
@@ -596,7 +596,7 @@ function Page() {
           </div>
 
           {/* NIK */}
-          {/* <div className="max-sm:col-span-2 col-span-1">
+          {/* <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="NIK"
               isImportant={false}
@@ -613,7 +613,7 @@ function Page() {
           </div> */}
 
           {/* NOKK */}
-          {/* <div className="max-sm:col-span-2 col-span-1">
+          {/* <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="No KK"
               isImportant={false}
@@ -684,7 +684,7 @@ function Page() {
             )}
             {!isCovered && !isCheckCoverage && (
               <p className="mt-1 text-red-primary flex items-center gap-1 text-sm">
-                <FaCircleExclamation className="text-red-primary" />
+                <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
                 Lokasi Anda belum berada dijangkauan area kami, dan kami sedang
                 menuju ke daerah Anda.
               </p>
@@ -692,7 +692,7 @@ function Page() {
           </div>
 
           {/* Provinsi */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Provinsi"
@@ -730,7 +730,7 @@ function Page() {
           </div>
 
           {/* Kota */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kota/Kabupaten"
@@ -766,7 +766,7 @@ function Page() {
           </div>
 
           {/* Kecamatan */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kecamatan"
@@ -800,7 +800,7 @@ function Page() {
           </div>
 
           {/* Kelurahan */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kelurahan"
@@ -832,7 +832,7 @@ function Page() {
           </div>
 
           {/* Kode Pos */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             {/* Versi dropdown */}
             {/* <DynamicSelectForm
               menuPosition="fixed"
@@ -882,7 +882,7 @@ function Page() {
           </div>
 
           {/* Patokan Alamat */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="Patokan Alamat (opsional)"
               isImportant={false}

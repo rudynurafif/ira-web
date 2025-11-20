@@ -28,7 +28,7 @@ const CustomerHeader = () => {
 
         {/* Judul tengah */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <h1 className="text-white text-[40px] max-sm:text-[20px] font-extrabold ">
+          <h1 className="text-white text-[40px] max-sm:text-xl font-extrabold ">
             Area Pelanggan
           </h1>
         </div>

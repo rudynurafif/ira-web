@@ -11,6 +11,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Link from "next/link";
 import { FaWifi } from "react-icons/fa";
+import { TiWiFi } from "react-icons/ti";
+import wifiIcon from '@/public/assets/Icons/wifi.svg'
 
 function MainPage() {
   const settingsSlider = {
@@ -23,29 +25,17 @@ function MainPage() {
   };
 
   return (
-    <div className="relative bg-[url('/assets/Images/HERO-IRA.svg')] bg-cover bg-center bg-no-repeat text-white">
+    <div className="relative bg-[url('/assets/Images/HERO-IRA.webp')] bg-cover bg-center bg-no-repeat text-white">
       <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
-      <div className="container mx-auto px-5 py-30">
+      <div className="container mx-auto px-5 py-25">
         <div className="text-center">
-          <FaWifi size={50} color="white" className="mx-auto" />
-          <div className="bg-opacity-black-10 rounded-full px-5 py-2.5 text-lg max-sm:text-sm text-white font-semibold inline-block mt-2.5 shadow-sm shadow-white">
+          <Image src={wifiIcon} width={50} height={50} alt="wifi-icon" className="mx-auto" />
+          <div className="bg-opacity-black-10 rounded-full px-5 py-2.5 text-xl max-sm:text-sm text-white font-semibold inline-block mt-2.5 shadow-sm shadow-white">
             Internet ngebut tanpa ribet pakai kabel.
           </div>
         </div>
         <div className="flex justify-center items-center">
           <div className="w-1/3 max-sm:w-4/5">
-            {/* <Slider {...settingsSlider}>
-              <div className="text-center">
-                <Image src={modem} alt="modem" className="w-full" />
-              </div>
-              <div className="text-center h-full">
-                <Image
-                  src={modem2}
-                  alt="modem2"
-                  className="w-full flex items-center"
-                />
-              </div>
-            </Slider> */}
             <Image
               src={modemIra}
               alt="modem2"
@@ -53,14 +43,14 @@ function MainPage() {
             />
           </div>
         </div>
-        <div className="text-center mt-10">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl">
+        <div className="text-center">
+          <h1 className="text-xl sm:text-4xl lg:text-5xl xl:text-6xl">
             <span className="font-bold">IRA Internet Rakyat -</span> Internet
             ngebut tanpa ribet pakai kabel.
           </h1>
           <div className="flex gap-4 items-start justify-center mt-5">
             <p>Supported by:</p>
-            <Image src={starlite} alt="starlite" />
+            <Image src={starlite} width={120} alt="starlite" />
           </div>
           {/* <p className="text-4xl font-bold mt-8">
             Nikmati internet ngebut tanpa ribet pakai kabel.
@@ -74,7 +64,7 @@ function MainPage() {
           </button> */}
           <Link
             href="/auth/register"
-            className="inline-flex gap-2 justify-center items-center mt-10 py-1.5 max-sm:py-0.6 max-sm:px-1 gradient-box rounded-[58px] custom-click cursor-pointer"
+            className="inline-flex gap-2 justify-center items-center mt-10 py-1.5 max-sm:py-1 max-sm:px-0.5 gradient-box rounded-[58px] custom-click cursor-pointer"
             id="button-berlangganan-sekarang"
           >
             <div className="w-[97%] xl:py-9 relative flex justify-center px-[15px] gap-1 items-center bg-subs-new rounded-[58px] h-[62px] mt-px overflow-hidden custom-bg-animation">

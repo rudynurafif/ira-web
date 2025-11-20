@@ -36,7 +36,7 @@ export default function AreaPelanggan() {
     // "Riwayat Berlangganan",
   ];
 
-  const initialTab = searchParams.get("tab") || tabs[0];
+  const initialTab = searchParams.get("tab") || "Informasi Paket dan Riwayat";
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
   const [animationData, setAnimationData] = useState<any>();
@@ -182,15 +182,15 @@ export default function AreaPelanggan() {
         )}
 
       {/* TAB MENU */}
-      <div className="max-w-[1329px] px-8 mt-8 mx-auto">
+      <div className="max-w-[1329px] sm:px-8 px-5 mt-8 mx-auto">
         <div className="flex space-x-6 overflow-x-auto scrollbar-hide border-b-2 border-gray-border">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 underline-animation-register whitespace-nowrap text-md sm:text-xl cursor-pointer ${
+              className={`pb-2 underline-animation-register whitespace-nowrap text-sm sm:text-xl cursor-pointer ${
                 activeTab === tab
-                  ? "text-black font-bold"
+                  ? "text-black font-bold border-b-2 border-primary"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -201,7 +201,7 @@ export default function AreaPelanggan() {
       </div>
 
       {/* TAB CONTENT */}
-      <div className="max-w-[1329px] px-8 mx-auto mt-6">
+      <div className="max-w-[1329px] sm:px-8 px-5 mx-auto mt-6">
         {activeTab === "Informasi Paket dan Riwayat" && (
           <ActivePacket subHistory={subscriptionHistory ?? []} />
         )}

@@ -85,10 +85,10 @@ function Page() {
                   </div>
                 </div>
 
-                <div className="bg-[#A7A7A7] w-full h-[1px] my-10" />
+                <div className="bg-[#A7A7A7] w-full h-px my-10" />
 
                 {/* Metode Pembayaran */}
-                <h2 className="text-xl font-bold">Metode Pembayaran</h2>
+                <h2 className="text-lg font-bold">Metode Pembayaran</h2>
 
                 <div className="flex justify-between items-center gap-10 mt-5">
                   <p>Virtual Account</p>
