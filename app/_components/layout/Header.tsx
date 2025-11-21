@@ -290,7 +290,7 @@ function Header() {
                         : "bg-primary text-white"
                     } font-bold items-center gap-2 text-center justify-center rounded-full px-5 py-2.5`}
                   >
-                    <FaUser /> Logout
+                    <FaSignOutAlt /> Logout
                   </button>
                 </div>
               ) : (
