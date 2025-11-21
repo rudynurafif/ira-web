@@ -19,7 +19,7 @@ function Footer() {
   return (
     <div className="bg-white text-xs">
       <div className="container mx-auto px-5 my-2">
-        <div className="block lg:flex justify-between items-center gap-10">
+        <div className="block lg:flex justify-between items-center gap-10 mt-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 w-full lg:w-[60%]">
             <div className="col-span-1 md:col-span-2">
               <h5 className="font-bold mb-2.5">Address</h5>
@@ -93,7 +93,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.2011.042</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.2111.043</div>
       </div>
     </div>
   );

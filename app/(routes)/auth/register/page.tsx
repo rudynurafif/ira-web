@@ -31,6 +31,7 @@ import {
 import { useRouter } from "next/navigation";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import GeoPermissionGate from "./_components/GeoPermissionGate";
+import MapGeoapify from "@/app/_components/form/MapGeoapify";
 
 interface FormType {
   fullname: string;
@@ -119,48 +120,44 @@ function Page() {
     setOtpExpiry(expiry);
   }
 
+  // un comment kalo API autofill udah oke
   async function autofillLocationViaApiWithRaw(rawGooglePlace: any) {
-    setIsAutoFilling(true);
-    try {
-      const resp = await getUserLocation(toUserLocationPayload(rawGooglePlace));
-      const payload = resp?.data;
-
-      if (!payload || payload.statusCode !== 200) {
-        toast.error("Gagal mengenali lokasi dari API.");
-        return;
-      }
-
-      const prov = payload.province;
-      const city = payload.city;
-      const dist = payload.district;
-      const subd = payload.sub_district;
-      const pcode = payload.postal_code; // bisa null
-
-      // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
-      setFormData((prev) => ({
-        ...prev,
-        province: prov?.id ? String(prov.id) : "",
-        city: city?.id ? String(city.id) : "",
-        district: dist?.id ? String(dist.id) : "",
-        sub_district: subd?.id ? String(subd.id) : "",
-        postal_code: pcode ? String(pcode) : "",
-      }));
-
-      if (prov?.id && prov?.name) {
-        setProvinceOptions((opts) =>
-          opts.some((o) => String(o.value) === String(prov.id))
-            ? opts
-            : [{ label: prov.name, value: String(prov.id) }, ...opts]
-        );
-      }
-
-      toast.success("Lokasi terisi otomatis ✔");
-    } catch (err: any) {
-      // console.error("getUserLocation failed:", err);
-      toastErrorFromAPI(err, "Autofill lokasi gagal");
-    } finally {
-      setIsAutoFilling(false);
-    }
+    // setIsAutoFilling(true);
+    // try {
+    //   const resp = await getUserLocation(toUserLocationPayload(rawGooglePlace));
+    //   const payload = resp?.data;
+    //   if (!payload || payload.statusCode !== 200) {
+    //     toast.error("Gagal mengenali lokasi dari API.");
+    //     return;
+    //   }
+    //   const prov = payload.province;
+    //   const city = payload.city;
+    //   const dist = payload.district;
+    //   const subd = payload.sub_district;
+    //   const pcode = payload.postal_code; // bisa null
+    //   // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
+    //   setFormData((prev) => ({
+    //     ...prev,
+    //     province: prov?.id ? String(prov.id) : "",
+    //     city: city?.id ? String(city.id) : "",
+    //     district: dist?.id ? String(dist.id) : "",
+    //     sub_district: subd?.id ? String(subd.id) : "",
+    //     postal_code: pcode ? String(pcode) : "",
+    //   }));
+    //   if (prov?.id && prov?.name) {
+    //     setProvinceOptions((opts) =>
+    //       opts.some((o) => String(o.value) === String(prov.id))
+    //         ? opts
+    //         : [{ label: prov.name, value: String(prov.id) }, ...opts]
+    //     );
+    //   }
+    //   toast.success("Lokasi terisi otomatis ✔");
+    // } catch (err: any) {
+    //   // console.error("getUserLocation failed:", err);
+    //   toastErrorFromAPI(err, "Autofill lokasi gagal");
+    // } finally {
+    //   setIsAutoFilling(false);
+    // }
   }
 
   useEffect(() => {
@@ -478,7 +475,7 @@ function Page() {
 
   return (
     <div className="container mx-auto xl:px-42 lg:px-22 px-6 sm:my-22 my-6">
-      <h1 className="text-center text-[32px] text-black font-bold">
+      <h1 className="text-center sm:text-[32px] text-2xl text-black font-bold">
         Registrasi Internet Rakyat (IRA)
       </h1>
 
@@ -645,7 +642,35 @@ function Page() {
               />
             </div>
 
-            <MapInputForm
+            {/* Versi Google */}
+            {/* <MapInputForm
+              getAddress={(value: string) => {
+                setFormData((prevData: any) => ({
+                  ...prevData,
+                  actual_address: value,
+                }));
+                setErrors({ ...errors, actual_address: "" });
+              }}
+              onPlaceChange={async (p) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  actual_address: p.address,
+                  address_gmaps: p.raw_result,
+                  lat: String(p.latitude),
+                  lng: String(p.longitude),
+                  province: "",
+                  city: "",
+                  district: "",
+                  sub_district: "",
+                  postal_code: "",
+                }));
+
+                await autofillLocationViaApiWithRaw(p.raw_result);
+              }}
+            /> */}
+
+            {/* Versi Geoapify */}
+            <MapGeoapify
               getAddress={(value: string) => {
                 setFormData((prevData: any) => ({
                   ...prevData,
@@ -670,6 +695,7 @@ function Page() {
                 await autofillLocationViaApiWithRaw(p.raw_result);
               }}
             />
+
             {isCheckCoverage && (
               <p className="mt-1 text-gray-500 flex items-center gap-2 text-sm">
                 <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>

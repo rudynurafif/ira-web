@@ -353,7 +353,7 @@ const Payment = () => {
 
         <div>
           <button
-            className="rounded-full sm:text-2xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-3"
+            className="rounded-full shadow-lg sm:text-2xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-3"
             onClick={handleCreatePayment}
             disabled={!selectedPackage || !selectedChannel}
           >

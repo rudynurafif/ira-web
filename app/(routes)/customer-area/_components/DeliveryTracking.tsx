@@ -56,7 +56,7 @@ const DeliveryTracking = ({
       const intervalId = setInterval(() => {
         console.log("masuk");
         refetch();
-      }, 15000);
+      }, 20000);
 
       return () => clearInterval(intervalId);
     }
@@ -182,20 +182,20 @@ const DeliveryTracking = ({
             refetch();
             // window.location.reload();
           }}
-          classNameModal="p-6 max-w-2xl w-full max-sm:mx-4 text-center rounded-xl shadow-lg"
+          classNameModal="p-6 max-w-2xl overflow w-full max-sm:mx-4 text-center rounded-xl shadow-lg"
         >
-          <h3 className="text-black text-2xl font-bold mt-6 mb-4">
+          <h3 className="text-black text-2xl font-bold mb-4">
             Kode QR Booking
           </h3>
 
           {/* QR Code */}
-          <div className="my-6">
+          <div className="my-6 flex justify-center">
             <Image
               src={`${process.env.NEXT_PUBLIC_URL_OBS}${packageData?.code_url}`}
               alt="QR Code"
-              className="w-76 h-76 mx-auto"
-              width={304}
-              height={304}
+              width={256}
+              height={256}
+              className="w-64 h-64 object-contain"
               unoptimized
             />
           </div>

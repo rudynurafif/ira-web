@@ -19,7 +19,7 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
   };
 
   return (
-    <div>
+    <div className="">
       <div className="flex justify-center">
         <Lottie
           width={104}
