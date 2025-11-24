@@ -97,26 +97,32 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
   useEffect(() => {
     if (!open) return;
 
-    // isi form dari initial
-    setName(initial?.name ?? "");
-    setPhoneNumber(initial?.phone_number ?? "");
-    setEmail(initial?.email ?? "");
-    setActualAddress(initial?.actual_address ?? "");
+    // Hanya ambil initial saat pertama kali modal dibuka, jangan tiap kali initial berubah!
+    if (
+      name === "" &&
+      phone_number === "" &&
+      email === "" &&
+      actualAddress === ""
+    ) {
+      setName(initial?.name ?? "");
+      setPhoneNumber(initial?.phone_number ?? "");
+      setEmail(initial?.email ?? "");
+      setActualAddress(initial?.actual_address ?? "");
 
-    // freeze baseline untuk diff
-    baselineRef.current = {
-      name: initial?.name ?? "",
-      phone_number: initial?.phone_number ?? "",
-      email: initial?.email ?? "",
-      actual_address: initial?.actual_address ?? "",
-    };
+      baselineRef.current = {
+        name: initial?.name ?? "",
+        phone_number: initial?.phone_number ?? "",
+        email: initial?.email ?? "",
+        actual_address: initial?.actual_address ?? "",
+      };
+    }
 
     setOtp("");
     setOtpStatus("idle");
     setVerifiedPhone(null);
     otpCacheRef.current = {};
     setErrors({});
-  }, [initial, open]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -311,14 +317,6 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
           {/* Header */}
           <div className="relative flex items-center justify-center my-6">
             <h3 className="text-2xl font-bold text-black">Edit Profile</h3>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className="absolute right-6 grid h-8 w-8 place-items-center rounded-full hover:bg-gray-100 cursor-pointer"
-            >
-              ✕
-            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto overflow-hidden space-y-4 p-6">

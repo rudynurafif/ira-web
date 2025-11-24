@@ -401,7 +401,9 @@ function MapGeoapify({
               >
                 <p className="font-medium">{feature.properties.formatted}</p>
                 <p className="text-sm text-gray-600">
-                  {feature.properties.country}
+                  {feature?.properties?.city ?? feature?.properties?.county ?? "Kota"},{" "}
+                  {feature?.properties?.state ?? "Provinsi"},{" "}
+                  {feature?.properties?.country ?? "Negara"}
                 </p>
               </div>
             ))}

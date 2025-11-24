@@ -54,8 +54,8 @@ const DeliveryTracking = ({
   useEffect(() => {
     if (data?.shipment_status === "assigned") {
       const intervalId = setInterval(() => {
-        console.log("masuk");
         refetch();
+        console.log("status shipment refetched");
       }, 20000);
 
       return () => clearInterval(intervalId);
