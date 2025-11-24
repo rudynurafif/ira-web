@@ -107,7 +107,8 @@ function Page() {
   const router = useRouter();
 
   function toUserLocationPayload(rawGooglePlace: any) {
-    return { address: [rawGooglePlace] };
+    // return { address: [rawGooglePlace] };
+    return rawGooglePlace;
   }
 
   const STORAGE_KEY = `otp:register:phone`;
@@ -122,42 +123,42 @@ function Page() {
 
   // un comment kalo API autofill udah oke
   async function autofillLocationViaApiWithRaw(rawGooglePlace: any) {
-    // setIsAutoFilling(true);
-    // try {
-    //   const resp = await getUserLocation(toUserLocationPayload(rawGooglePlace));
-    //   const payload = resp?.data;
-    //   if (!payload || payload.statusCode !== 200) {
-    //     toast.error("Gagal mengenali lokasi dari API.");
-    //     return;
-    //   }
-    //   const prov = payload.province;
-    //   const city = payload.city;
-    //   const dist = payload.district;
-    //   const subd = payload.sub_district;
-    //   const pcode = payload.postal_code; // bisa null
-    //   // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
-    //   setFormData((prev) => ({
-    //     ...prev,
-    //     province: prov?.id ? String(prov.id) : "",
-    //     city: city?.id ? String(city.id) : "",
-    //     district: dist?.id ? String(dist.id) : "",
-    //     sub_district: subd?.id ? String(subd.id) : "",
-    //     postal_code: pcode ? String(pcode) : "",
-    //   }));
-    //   if (prov?.id && prov?.name) {
-    //     setProvinceOptions((opts) =>
-    //       opts.some((o) => String(o.value) === String(prov.id))
-    //         ? opts
-    //         : [{ label: prov.name, value: String(prov.id) }, ...opts]
-    //     );
-    //   }
-    //   toast.success("Lokasi terisi otomatis ✔");
-    // } catch (err: any) {
-    //   // console.error("getUserLocation failed:", err);
-    //   toastErrorFromAPI(err, "Autofill lokasi gagal");
-    // } finally {
-    //   setIsAutoFilling(false);
-    // }
+    setIsAutoFilling(true);
+    try {
+      const resp = await getUserLocation(toUserLocationPayload(rawGooglePlace));
+      const payload = resp?.data;
+      if (!payload || payload.statusCode !== 200) {
+        toast.error("Gagal mengenali lokasi dari API.");
+        return;
+      }
+      const prov = payload.result.province;
+      const city = payload.city;
+      const dist = payload.district;
+      const subd = payload.sub_district;
+      const pcode = payload.result.postal_code.name; // bisa null
+      // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
+      setFormData((prev) => ({
+        ...prev,
+        province: prov?.id ? String(prov.id) : "",
+        city: city?.id ? String(city.id) : "",
+        district: dist?.id ? String(dist.id) : "",
+        sub_district: subd?.id ? String(subd.id) : "",
+        postal_code: pcode ? String(pcode) : "",
+      }));
+      if (prov?.id && prov?.name) {
+        setProvinceOptions((opts) =>
+          opts.some((o) => String(o.value) === String(prov.id))
+            ? opts
+            : [{ label: prov.name, value: String(prov.id) }, ...opts]
+        );
+      }
+      toast.success("Lokasi terisi otomatis ✔");
+    } catch (err: any) {
+      // console.error("getUserLocation failed:", err);
+      toastErrorFromAPI(err, "Autofill lokasi gagal");
+    } finally {
+      setIsAutoFilling(false);
+    }
   }
 
   useEffect(() => {

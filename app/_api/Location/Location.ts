@@ -1,3 +1,4 @@
+import axios, { Axios } from "axios";
 import FwaAxios from "../FwaAxios";
 
 export const getProvince = async (params: any = "") => {
@@ -65,14 +66,17 @@ export const getPostalCode = async (params: any) => {
   }
 };
 
-// _api/Location/Location.ts
-export const getUserLocation = async (addressPayload: { address: any[] }) => {
+export const getUserLocation = async (addressPayload: any) => {
   try {
-    const data = await FwaAxios({
-      url: "/app/location/user-location",
-      method: "POST",
-      data: addressPayload,
-    });
+    // const data = await FwaAxios({
+    //   url: "/customer-registration/user-location-geoapify",
+    //   method: "POST",
+    //   data: addressPayload,
+    // });
+    const data = await axios.post(
+      "https://1d05d528b8b5.ngrok-free.app/customer-registration/user-location-geoapify",
+      addressPayload
+    );
     return data;
   } catch (error) {
     throw error;
