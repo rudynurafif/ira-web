@@ -17,7 +17,7 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
     setCheckOutUrl(url ?? null);
 
     if (url) {
-      window.open(url, "_blank");
+      window.location.href = url
     }
   };
 
