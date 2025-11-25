@@ -49,8 +49,8 @@ interface FormType {
   actual_address: string;
   voucher_code: string;
   address_gmaps?: any;
-  lat?: string;
-  lng?: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 const initialFormData: FormType = {
@@ -69,8 +69,8 @@ const initialFormData: FormType = {
   notes: "",
   voucher_code: "",
   address_gmaps: undefined,
-  lat: undefined,
-  lng: undefined,
+  latitude: undefined,
+  longitude: undefined,
 };
 
 function Page() {
@@ -106,11 +106,6 @@ function Page() {
 
   const router = useRouter();
 
-  function toUserLocationPayload(rawGooglePlace: any) {
-    // return { address: [rawGooglePlace] };
-    return rawGooglePlace;
-  }
-
   const STORAGE_KEY = `otp:register:phone`;
 
   function startOtpTimerFromParent(seconds: number) {
@@ -122,20 +117,20 @@ function Page() {
   }
 
   // un comment kalo API autofill udah oke
-  async function autofillLocationViaApiWithRaw(rawGooglePlace: any) {
+  async function autofillLocationViaApiWithRaw(rawResult: any) {
     setIsAutoFilling(true);
     try {
-      const resp = await getUserLocation(toUserLocationPayload(rawGooglePlace));
+      const resp = await getUserLocation(rawResult);
       const payload = resp?.data;
       if (!payload || payload.statusCode !== 200) {
         toast.error("Gagal mengenali lokasi dari API.");
         return;
       }
-      const prov = payload.result.province;
-      const city = payload.city;
-      const dist = payload.district;
-      const subd = payload.sub_district;
-      const pcode = payload.result.postal_code.name; // bisa null
+      const prov = payload?.result?.province ?? null;
+      const city = payload?.result?.city ?? null;
+      const dist = payload?.result?.district ?? null;
+      const subd = payload?.result?.sub_district ?? null;
+      const pcode = payload?.result?.postal_code?? null; // bisa null
       // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
       setFormData((prev) => ({
         ...prev,
@@ -163,7 +158,7 @@ function Page() {
 
   useEffect(() => {
     const checkCoverage = async () => {
-      if (!formData.lat || !formData.lng) {
+      if (!formData.latitude || !formData.longitude) {
         return;
       }
 
@@ -171,8 +166,8 @@ function Page() {
 
       try {
         const resCoverage = await getCheckCoverage({
-          latitude: formData.lat,
-          longitude: formData.lng,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
         });
 
         setMitraID(resCoverage.data?.result?.mitra_ids || []);
@@ -187,7 +182,7 @@ function Page() {
     };
 
     checkCoverage();
-  }, [formData.lat, formData.lng]);
+  }, [formData.latitude, formData.longitude]);
 
   useEffect(() => {
     const loadProvince = async () => {
@@ -407,9 +402,10 @@ function Page() {
       return;
     } else {
       try {
-        const addressArray = formData.address_gmaps
-          ? [normalizeAddressForBackend(formData.address_gmaps)]
-          : [];
+        // const addressArray = formData.address_gmaps
+        //   ? [normalizeAddressForBackend(formData.address_gmaps)]
+        //   : [];
+        const addressArray = [formData.address_gmaps]
 
         const body: any = {
           phone_number: formData.phone ?? "",
@@ -427,6 +423,8 @@ function Page() {
           postal_code: formData.postal_code ?? "",
           address: addressArray ?? "",
           actual_address: formData.actual_address ?? "",
+          ...(formData.latitude && { latitude: formData.latitude }),
+          ...(formData.longitude && { longitude: formData.longitude }),
           ...(formData.notes && { notes: formData.notes }),
           ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
         };
@@ -459,9 +457,9 @@ function Page() {
     }
   }
 
-  // useEffect(() => {
-  //   console.log(formData);
-  // }, [formData]);
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
 
   function resetForm() {
     setFormData(initialFormData);
@@ -684,8 +682,8 @@ function Page() {
                   ...prev,
                   actual_address: p.address,
                   address_gmaps: p.raw_result,
-                  lat: String(p.latitude),
-                  lng: String(p.longitude),
+                  latitude: String(p.latitude),
+                  longitude: String(p.longitude),
                   province: "",
                   city: "",
                   district: "",

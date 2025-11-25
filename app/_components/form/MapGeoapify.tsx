@@ -71,6 +71,8 @@ function MapGeoapify({
               setAddress(addr);
               if (inputRef.current) inputRef.current.value = addr;
 
+              feature.query = feature?.query || null;
+
               onPlaceChange?.({
                 address: addr,
                 raw_result: feature,
@@ -189,6 +191,8 @@ function MapGeoapify({
     const { properties, geometry } = feature;
     const addr = properties.formatted;
 
+    feature.query = null;
+
     if (inputRef.current) {
       inputRef.current.value = addr;
     }
@@ -306,6 +310,8 @@ function MapGeoapify({
             inputRef.current.value = addr;
             setAddress(addr);
 
+            feature.query = feature?.query || null;
+
             onPlaceChange?.({
               address: addr,
               raw_result: feature,
@@ -377,7 +383,7 @@ function MapGeoapify({
           {address && (
             <button
               onClick={clearInput}
-              className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute bg-white rounded-full cursor-pointer right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
             >
               <IoClose size={24} />
             </button>
@@ -401,8 +407,10 @@ function MapGeoapify({
               >
                 <p className="font-medium">{feature.properties.formatted}</p>
                 <p className="text-sm text-gray-600">
-                  {feature?.properties?.city ?? feature?.properties?.county ?? "Kota"},{" "}
-                  {feature?.properties?.state ?? "Provinsi"},{" "}
+                  {feature?.properties?.city ??
+                    feature?.properties?.county ??
+                    "Kota"}
+                  , {feature?.properties?.state ?? "Provinsi"},{" "}
                   {feature?.properties?.country ?? "Negara"}
                 </p>
               </div>
