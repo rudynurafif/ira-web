@@ -68,15 +68,11 @@ export const getPostalCode = async (params: any) => {
 
 export const getUserLocation = async (addressPayload: any) => {
   try {
-    // const data = await FwaAxios({
-    //   url: "/customer-registration/user-location-geoapify",
-    //   method: "POST",
-    //   data: addressPayload,
-    // });
-    const data = await axios.post(
-      "https://1d05d528b8b5.ngrok-free.app/customer-registration/user-location-geoapify",
-      addressPayload
-    );
+    const data = await FwaAxios({
+      url: "/app/location/user-location-geoapify",
+      method: "POST",
+      data: addressPayload,
+    });
     return data;
   } catch (error) {
     throw error;

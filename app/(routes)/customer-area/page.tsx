@@ -202,9 +202,7 @@ export default function AreaPelanggan() {
 
       {/* TAB CONTENT */}
       <div className="max-w-[1329px] sm:px-8 px-5 mx-auto mt-6">
-        {activeTab === "Informasi Paket dan Riwayat" && (
-          <ActivePacket subHistory={subscriptionHistory ?? []} />
-        )}
+        {activeTab === "Informasi Paket dan Riwayat" && <ActivePacket />}
 
         {activeTab === "Data Pribadi" && <PersonalData />}
 
