@@ -71,7 +71,7 @@ function MapGeoapify({
               setAddress(addr);
               if (inputRef.current) inputRef.current.value = addr;
 
-              feature.query = feature?.query || null;
+              feature.query = data?.query || null;
 
               onPlaceChange?.({
                 address: addr,
@@ -310,7 +310,7 @@ function MapGeoapify({
             inputRef.current.value = addr;
             setAddress(addr);
 
-            feature.query = feature?.query || null;
+            feature.query = data?.query || null;
 
             onPlaceChange?.({
               address: addr,
@@ -328,6 +328,7 @@ function MapGeoapify({
       });
     });
 
+    (window as any).mapInitialized = true;
     (window as any).mapInstance = map;
     (window as any).markerInstance = marker;
   };
