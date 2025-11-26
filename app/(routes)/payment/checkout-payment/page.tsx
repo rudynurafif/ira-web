@@ -77,6 +77,11 @@ function Page() {
 
         <div className="mt-5 bg-white shadow-[0px_4px_20px_0px_rgba(0,0,0,0.12)] rounded-xl p-6">
           <div className="grid grid-cols-2 gap-y-2 sm:text-base text-xs">
+            <div>Nama Paket</div>
+            <div className="text-right">
+              {paymentInfo?.package_id.name}
+            </div>
+
             <div>Deskripsi</div>
             <div className="text-right">
               {paymentInfo?.package_id.description}

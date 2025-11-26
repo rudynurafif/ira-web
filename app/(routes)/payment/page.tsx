@@ -38,9 +38,9 @@ function PackageCardMobile({
     <div
       onClick={() => onSelect(pkg)}
       className={[
-        "rounded-xl border bg-[url('/assets/Images/packageBackground.svg')] bg-cover bg-center cursor-pointer transition shadow-sm px-4 pt-3 pb-4",
+        "rounded-xl border bg-[url('/assets/Images/packageBackground.svg')] bg-cover bg-center cursor-pointer transition px-4 pt-3 pb-4",
         selected
-          ? "border-[#D7201D] ring-1 ring-[#D7201D]/30"
+          ? "border-[#D7201D] ring-1 ring-[#D7201D]/30 shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
           : "border-gray-200 active:scale-[0.99]",
       ].join(" ")}
     >
@@ -49,7 +49,7 @@ function PackageCardMobile({
         <span className="text-base">
           <Image src={petir} alt="icon" />
         </span>
-        <h3 className="text-base font-semibold text-secondary">
+        <h3 className="text-base sm:text-xl font-semibold text-secondary">
           {pkg.name ?? "-"}
         </h3>
       </div>
@@ -60,14 +60,14 @@ function PackageCardMobile({
         <div className="w-full rounded-md overflow-hidden">
           <div className="flex items-start justify-between w-full relative text-dark-primary-2 whitespace-nowrap">
             <div className="flex gap-2">
-              <div className="text-xs">Up to</div>
+              <div className="text-xs sm:text-sm">Up to</div>
               <div className="flex pt-2 gap-1">
-                <div className="text-3xl leading-none font-extrabold tracking-tight">
+                <div className="text-3xl sm:text-4xl leading-none font-extrabold tracking-tight">
                   {pkg.speed_mbps}
                 </div>
                 <div className="flex flex-col items-start">
-                  <div className="pb-1 text-xs font-semibold">Mbps</div>
-                  <div className="text-[10px]">Unlimited Kuota</div>
+                  <div className="text-xs sm:text-sm font-semibold">Mbps</div>
+                  <div className="text-[10px] sm:text-xs">Unlimited Kuota</div>
                 </div>
               </div>
             </div>
@@ -84,7 +84,7 @@ function PackageCardMobile({
 
       {/* remarks optional */}
       {pkg.remarks ? (
-        <div className="mt-2 text-[10px] text-dark-primary">{pkg.remarks}</div>
+        <div className="mt-2 text-[10px] sm:text-xs text-dark-primary">{pkg.remarks}</div>
       ) : null}
     </div>
   );
@@ -225,7 +225,7 @@ const Payment = () => {
         </h2>
 
         {/* MOBILE cards */}
-        <div className="md:hidden space-y-6 mb-8">
+        <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
           {packages && packages.length ? (
             packages.map((pkg) => (
               <PackageCardMobile
@@ -242,7 +242,7 @@ const Payment = () => {
         </div>
 
         {/* DESKTOP cards (tetap seperti punyamu) */}
-        <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="hidden ">
           {packages ? (
             packages.map((pkg) => (
               <div
@@ -353,7 +353,7 @@ const Payment = () => {
 
         <div>
           <button
-            className="rounded-full shadow-lg sm:text-2xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-3"
+            className="rounded-lg shadow-lg sm:text-2xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-3"
             onClick={handleCreatePayment}
             disabled={!selectedPackage || !selectedChannel}
           >

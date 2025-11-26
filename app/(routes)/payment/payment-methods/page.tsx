@@ -111,7 +111,7 @@ const PaymentMehods = () => {
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
             Virtual Account
           </h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-4">
             {virtualAccounts.length > 0 ? (
               virtualAccounts.map((channel) => {
                 const Logo = PAYMENT_LOGOS[channel.code];

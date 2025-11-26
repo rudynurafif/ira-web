@@ -130,7 +130,7 @@ function Page() {
       const city = payload?.result?.city ?? null;
       const dist = payload?.result?.district ?? null;
       const subd = payload?.result?.sub_district ?? null;
-      const pcode = payload?.result?.postal_code?? null; // bisa null
+      const pcode = payload?.result?.postal_code ?? null; // bisa null
       // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
       setFormData((prev) => ({
         ...prev,
@@ -405,7 +405,7 @@ function Page() {
         // const addressArray = formData.address_gmaps
         //   ? [normalizeAddressForBackend(formData.address_gmaps)]
         //   : [];
-        const addressArray = [formData.address_gmaps]
+        const addressArray = [formData.address_gmaps];
 
         const body: any = {
           phone_number: formData.phone ?? "",
@@ -457,9 +457,9 @@ function Page() {
     }
   }
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
+  // useEffect(() => {
+  //   console.log(formData);
+  // }, [formData]);
 
   function resetForm() {
     setFormData(initialFormData);

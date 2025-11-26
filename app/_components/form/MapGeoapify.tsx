@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
+import { FaSearch } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 
 const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
@@ -61,7 +62,7 @@ function MapGeoapify({
           // Ambil alamat dari koordinat (reverse geocoding)
           try {
             const res = await fetch(
-              `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&apiKey=${GEOAPIFY_API_KEY}`
+              `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&apiKey=${GEOAPIFY_API_KEY}&lang=id`
             );
             const data = await res.json();
             const feature = data.features[0];
@@ -112,7 +113,7 @@ function MapGeoapify({
   }, []);
 
   // === Fungsi start cooldown (dengan onFinish) ===
-  const startCooldown = (duration: number = 10, onFinish?: () => void) => {
+  const startCooldown = (duration: number = 5, onFinish?: () => void) => {
     if (cooldownRef.current) clearInterval(cooldownRef.current);
     setIsCooldown(true);
     setCooldownCount(duration);
@@ -130,12 +131,43 @@ function MapGeoapify({
     }, 1000);
   };
 
+  // Fungsi terpusat: handle autocomplete dengan cooldown & deduplikasi
+  const performAutocompleteSearch = (query: string) => {
+    if (!query || query.length < 3) {
+      setPredictions([]);
+      return;
+    }
+
+    if (isCooldown) return;
+
+    if (lastAutocompleteQueryRef.current === query) return;
+
+    lastAutocompleteQueryRef.current = query;
+    setIsLoading(true);
+
+    startCooldown(5, async () => {
+      try {
+        const res = await fetch(
+          `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
+            query
+          )}&filter=countrycode:id&lang=id&apiKey=${GEOAPIFY_API_KEY}`
+        );
+        const data = await res.json();
+        setPredictions(data.features || []);
+      } catch (err) {
+        console.error("Error fetching suggestions:", err);
+        toast.error("Gagal memuat saran alamat");
+      } finally {
+        setIsLoading(false);
+      }
+    });
+  };
+
   // Autocomplete Alamat: countdown setelah user berhenti ngetik
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setAddress(value);
 
-    // setiap ketik, reset debounce
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
@@ -145,45 +177,10 @@ function MapGeoapify({
       return;
     }
 
-    // kalau masih cooldown, biarin user ngetik tapi jangan mulai countdown baru
-    if (isCooldown) return;
-
-    // debounce: tunggu user berhenti ngetik dulu (misal 2000ms)
+    // Gunakan debounce 3 detik
     typingTimeoutRef.current = setTimeout(() => {
-      setIsLoading(true);
-
-      startCooldown(10, async () => {
-        const query = latestAddressRef.current;
-
-        if (!query || query.length < 3) {
-          setIsLoading(false);
-          setPredictions([]);
-          return;
-        }
-
-        // ✅ Cegah autocomplete ke-hit 2x untuk query yang sama
-        if (lastAutocompleteQueryRef.current === query) {
-          setIsLoading(false);
-          return;
-        }
-        lastAutocompleteQueryRef.current = query;
-
-        try {
-          const res = await fetch(
-            `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
-              query
-            )}&filter=countrycode:id&apiKey=${GEOAPIFY_API_KEY}`
-          );
-          const data = await res.json();
-          setPredictions(data.features || []);
-        } catch (err) {
-          console.error("Error fetching suggestions:", err);
-          toast.error("Gagal memuat saran alamat");
-        } finally {
-          setIsLoading(false);
-        }
-      });
-    }, 2000); // durasi "berhenti ngetik" sebelum countdown mulai
+      performAutocompleteSearch(value);
+    }, 5000);
   };
 
   // === Pilih dari Dropdown ===
@@ -265,10 +262,9 @@ function MapGeoapify({
     }
 
     // Belum ada map, init baru
-    const map = L.map(mapContainerRef.current).setView(
-      [location.lat, location.lng],
-      18
-    );
+    const map = L.map(mapContainerRef.current, {
+      zoomControl: false,
+    }).setView([location.lat, location.lng], 18);
 
     L.tileLayer(
       `https://maps.geoapify.com/v1/tile/osm-liberty/{z}/{x}/{y}.png?apiKey=${GEOAPIFY_API_KEY}`,
@@ -290,7 +286,7 @@ function MapGeoapify({
 
       setIsLoading(true);
 
-      startCooldown(10, async () => {
+      startCooldown(5, async () => {
         const last = lastReverseCoordsRef.current;
         if (last && last.lat === lat && last.lng === lng) {
           setIsLoading(false);
@@ -371,35 +367,73 @@ function MapGeoapify({
   return (
     <div className="relative">
       {/* Input Alamat */}
-      <div className="absolute top-4 z-1000 w-[90%] left-[5%]">
-        <div className="relative">
+      <div className="absolute top-4 z-1000 w-full px-5">
+        <div className="relative w-full flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (inputRef.current) {
+                const query = inputRef.current.value;
+
+                // Batalkan debounce yang sedang menunggu
+                if (typingTimeoutRef.current) {
+                  clearTimeout(typingTimeoutRef.current);
+                  typingTimeoutRef.current = null;
+                }
+
+                // Jalankan pencarian langsung
+                performAutocompleteSearch(query);
+              }
+            }}
+            className="flex items-center justify-center gap-2 bg-white p-2 shadow-md rounded-lg cursor-pointer text-gray-500 hover:text-gray-700"
+          >
+            <p className="text-black font-semibold">Cari</p>
+            <FaSearch size={16} color="black" />
+          </button>
+
           <input
             ref={inputRef}
             type="text"
-            placeholder="Masukkan alamat Anda"
+            disabled={isLoading}
+            placeholder="Masukkan alamat Anda, tekan Enter untuk mencari"
             value={address}
             onChange={handleInputChange}
-            className="w-full bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+
+                // Batalkan debounce yang sedang menunggu
+                if (typingTimeoutRef.current) {
+                  clearTimeout(typingTimeoutRef.current);
+                  typingTimeoutRef.current = null;
+                }
+
+                // Jalankan pencarian langsung
+                performAutocompleteSearch(e.currentTarget.value);
+              }
+            }}
+            className="w-full disabled:cursor-not-allowed bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {address && (
             <button
+              type="button"
               onClick={clearInput}
-              className="absolute bg-white rounded-full cursor-pointer right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className=" bg-white p-2 shadow-md rounded-full cursor-pointer text-gray-500 hover:text-gray-700"
             >
-              <IoClose size={24} />
+              <IoClose size={24} color="black" />
             </button>
           )}
         </div>
 
         {/* Loading & Predictions */}
         {isLoading && (
-          <div className="bg-white border rounded-lg px-4 py-2 w-full">
-            Mengambil lokasi...
+          <div className="bg-white mt-3 border rounded-lg px-4 py-2 w-full">
+            Mencari lokasi... {cooldownCount > 0 && cooldownCount}
           </div>
         )}
 
         {!isLoading && predictions.length > 0 && (
-          <div className="bg-white border rounded-lg shadow-lg w-full max-h-60 overflow-y-auto">
+          <div className="bg-white border rounded-lg shadow-lg w-full mt-3 max-h-70 overflow-y-auto">
             {predictions.map((feature, i) => (
               <div
                 key={i}
@@ -434,13 +468,16 @@ function MapGeoapify({
       </div>
 
       {/* Overlay Cooldown */}
-      {isCooldown && (
-        <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-1000 rounded-xl">
+      {/* {isCooldown && (
+        <div className="absolute bottom-7 right-5 flex items-center justify-center z-1000 rounded-xl">
           <div className="bg-white px-6 py-3 rounded-lg shadow-lg">
-            <p>Mohon menunggu... ({cooldownCount} detik)</p>
+            <p>
+              Sedang mencari... {" "}
+              <span className="text-primary">({cooldownCount})</span>
+            </p>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

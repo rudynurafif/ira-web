@@ -53,6 +53,7 @@ export default function AreaPelanggan() {
       setSubscriptionHistory(data);
 
       const shipmentStatus = data?.[0]?.shipment_status || null;
+      // console.log(shipmentStatus)
       dispatch(setShipmentStatus(shipmentStatus));
     } catch (err: any) {
       toastErrorFromAPI(err);
@@ -111,7 +112,7 @@ export default function AreaPelanggan() {
           closeModal={closePaymentSuccessModal}
           classNameModal="max-w-md p-6 text-center w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3"
         >
-          <h2 className="text-xl font-bold text-dark-primary mb-2">
+          <h2 className="text-xl font-bold text-primary mb-2">
             {successPayment ? "Pembayaran Berhasil" : "Pembayaran Gagal"}
           </h2>
 
