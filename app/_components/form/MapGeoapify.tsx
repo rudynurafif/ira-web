@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
+import { FaSearch } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 
 const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
@@ -368,6 +369,28 @@ function MapGeoapify({
       {/* Input Alamat */}
       <div className="absolute top-4 z-1000 w-full px-5">
         <div className="relative w-full flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (inputRef.current) {
+                const query = inputRef.current.value;
+
+                // Batalkan debounce yang sedang menunggu
+                if (typingTimeoutRef.current) {
+                  clearTimeout(typingTimeoutRef.current);
+                  typingTimeoutRef.current = null;
+                }
+
+                // Jalankan pencarian langsung
+                performAutocompleteSearch(query);
+              }
+            }}
+            className="flex items-center justify-center gap-2 bg-white p-2 shadow-md rounded-lg cursor-pointer text-gray-500 hover:text-gray-700"
+          >
+            <p className="text-black font-semibold">Cari</p>
+            <FaSearch size={16} color="black" />
+          </button>
+
           <input
             ref={inputRef}
             type="text"
@@ -389,10 +412,11 @@ function MapGeoapify({
                 performAutocompleteSearch(e.currentTarget.value);
               }
             }}
-            className="w-full bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full disabled:cursor-not-allowed bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {address && (
             <button
+              type="button"
               onClick={clearInput}
               className=" bg-white p-2 shadow-md rounded-full cursor-pointer text-gray-500 hover:text-gray-700"
             >
@@ -403,8 +427,8 @@ function MapGeoapify({
 
         {/* Loading & Predictions */}
         {isLoading && (
-          <div className="bg-white border rounded-lg px-4 py-2 w-full">
-            Mencari lokasi... {cooldownCount > 0 && (cooldownCount)}
+          <div className="bg-white mt-3 border rounded-lg px-4 py-2 w-full">
+            Mencari lokasi... {cooldownCount > 0 && cooldownCount}
           </div>
         )}
 
