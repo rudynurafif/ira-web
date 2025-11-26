@@ -28,16 +28,11 @@ function Step1({
         </h1>
         <p className="mt-3 w-full sm:w-3/4 mx-auto">
           {status
-            ? "Klik tombol di bawah ini untuk pilih paket sesuai dengan kebutuhan Anda."
+            ? "Klik tombol di bawah ini untuk mulai berlangganan paket internet Internet Rakyat."
             : "Bantu kami agar wilayah Anda dapat terjangkau dengan mengisi data berikut ini."}
         </p>
         <button
           onClick={() => {
-            // if (status) {
-            //   setStep(2);
-            // } else {
-            //   setStep(4);
-            // }
             window.location.href = "/auth/register"
           }}
           className="w-full cursor-pointer py-4 text-white font-bold bg-primary rounded-xl mt-6"

@@ -1,3 +1,4 @@
+import axios, { Axios } from "axios";
 import FwaAxios from "../FwaAxios";
 
 export const getProvince = async (params: any = "") => {
@@ -65,11 +66,10 @@ export const getPostalCode = async (params: any) => {
   }
 };
 
-// _api/Location/Location.ts
-export const getUserLocation = async (addressPayload: { address: any[] }) => {
+export const getUserLocation = async (addressPayload: any) => {
   try {
     const data = await FwaAxios({
-      url: "/app/location/user-location",
+      url: "/app/location/user-location-geoapify",
       method: "POST",
       data: addressPayload,
     });

@@ -102,7 +102,7 @@ const PaymentMehods = () => {
           onClick={() => router.back()}
           size={30}
         />
-        <h2 className="text-3xl font-bold text-gray-800">Metode Pembayaran</h2>
+        <h2 className="sm:text-3xl text-xl font-bold text-gray-800">Metode Pembayaran</h2>
       </div>
       {/* Modal Header */}
       <div className="bg-white rounded-xl shadow-lg p-6 ">
@@ -111,7 +111,7 @@ const PaymentMehods = () => {
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
             Virtual Account
           </h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-4">
             {virtualAccounts.length > 0 ? (
               virtualAccounts.map((channel) => {
                 const Logo = PAYMENT_LOGOS[channel.code];
@@ -266,7 +266,7 @@ const PaymentMehods = () => {
         <button
           disabled={!selectedChannel}
           onClick={() => router.back()}
-          className="w-full mt-4 text-base sm:text-xl cursor-pointer py-4 bg-primary text-white font-semibold rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed disabled:bg-slate-400"
         >
           Pilih
         </button>

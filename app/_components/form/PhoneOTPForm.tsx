@@ -124,8 +124,8 @@ function PhoneOTPForm({
     try {
       // ✅ Jika parent menyediakan onSendOTP, delegasikan ke parent dan keluar.
       if (onSendOTP) {
-        await Promise.resolve(onSendOTP()); // biar support async
-        return; // parent yang ngatur timer lewat localStorage
+        await Promise.resolve(onSendOTP());
+        return; 
       }
 
       // === Fallback: child kirim OTP sendiri jika tidak ada onSendOTP ===

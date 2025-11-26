@@ -146,6 +146,8 @@ export function formatISODate(
 
 // Parse "YYYY-MM-DD" jadi midnight lokal, lalu bandingkan dengan midnight lokal hari ini.
 export function daysUntil(dateISO: string): number {
+  if (!dateISO) return 0;
+  
   const [y, m, d] = dateISO.split("-").map(Number);
   const target = new Date(y, m - 1, d); // midnight lokal
   const now = new Date();

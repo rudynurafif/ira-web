@@ -72,13 +72,18 @@ function Page() {
     <div className="">
       <div className="container mx-auto p-6 my-8">
         <div className="flex gap-2 items-center justify-center">
-          <div className="font-bold text-primary-text text-3xl">Pembayaran</div>
+          <div className="font-bold text-primary-text md:text-3xl text-2xl">Pembayaran</div>
         </div>
 
         <div className="mt-5 bg-white shadow-[0px_4px_20px_0px_rgba(0,0,0,0.12)] rounded-xl p-6">
-          <div className="grid grid-cols-2 gap-y-2 text-base">
+          <div className="grid grid-cols-2 gap-y-2 sm:text-base text-xs">
+            <div>Nama Paket</div>
+            <div className="text-right">
+              {paymentInfo?.package_id.name}
+            </div>
+
             <div>Deskripsi</div>
-            <div className="text-right ">
+            <div className="text-right">
               {paymentInfo?.package_id.description}
             </div>
 
@@ -91,10 +96,10 @@ function Page() {
             <div className="text-right">{convertToCurrency(bankFee) || 0}</div>
           </div>
 
-          <div className="border border-gray-border my-5"></div>
+          <div className="border border-gray-border sm:my-5 my-3"></div>
 
-          <div className="grid grid-cols-2 gap-y-2 text-sm pt-3">
-            <div className="text-lg font-semibold sm:text-xl">
+          <div className="grid grid-cols-2 gap-y-2 text-sm items-center">
+            <div className="text-base font-semibold sm:text-xl">
               Total Pembayaran
             </div>
             <div className="text-right text-primary font-bold text-lg sm:text-2xl">
@@ -123,7 +128,7 @@ function Page() {
           <button
             type="button"
             onClick={() => router.push("/customer-area")}
-            className="cursor-pointer mt-10 rounded-lg font-bold text-primary hover:text-dark-primary hover:underline-animation-activation w-full max-sm:text-sm py-3"
+            className="cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold text-primary hover:text-dark-primary hover:underline-animation-activation w-full max-sm:text-sm py-3"
           >
             Kembali ke Area Pelanggan
           </button>

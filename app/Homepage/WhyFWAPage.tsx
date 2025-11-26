@@ -33,8 +33,8 @@ function WhyFWAPage() {
 
   return (
     <div className="container mx-auto px-5 text-black py-18 max-sm:py-9">
-      <h1 className="text-[32px] max-sm:text-[24px] max-sm:flex max-sm:flex-col font-bold text-center">
-        Mengapa pilih Internet Rakyat <span>(IRA) ?</span>
+      <h1 className="text-[32px] max-sm:text-[24px] font-bold text-center">
+        Mengapa pilih Internet Rakyat <span className="inline">(IRA) ?</span>
       </h1>
 
       <div className="mt-[72px] max-sm:mt-12">
@@ -43,18 +43,18 @@ function WhyFWAPage() {
             return (
               <div
                 key={"desc-" + index}
-                className="col-span-1 text-center max-sm:flex justify-between"
+                className="col-span-1 text-center max-sm:flex items-center justify-between"
               >
-                <div className="inline-block p-[47px] max-sm:p-5 rounded-full mx-auto ">
+                <div className="inline-block rounded-full mx-auto ">
                   <div className="w-full h-full">
                     <Image
                       src={item.image}
                       alt={item.description}
-                      className="flex justify-center items-center w-[150px] h-[150px] max-sm:w-[30px] max-sm:h-[30px]"
+                      className="flex justify-center items-center w-[150px] h-[150px] max-sm:w-[60px] max-sm:h-[60px]"
                     />
                   </div>
                 </div>
-                <div className="w-3/4 mx-auto mt-6">
+                <div className="w-3/4 mx-auto sm:mt-6">
                   <p className="text-center max-sm:text-start mx-auto text-xl max-sm:text-sm font-medium">
                     {item.description}
                   </p>

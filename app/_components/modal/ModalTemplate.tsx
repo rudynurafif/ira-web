@@ -11,26 +11,28 @@ function ModalTemplate({
   children: ReactNode;
 }) {
   return (
-    <div className="fixed p-6 top-0 left-0 right-0 bottom-0 flex items-center justify-center z-1000000000">
+    <div className="fixed z-[9999] inset-0 flex items-center justify-center p-4 sm:p-6">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/50" onClick={closeModal} />
+
+      {/* Modal Container */}
       <div
-        className="fixed bg-[#00000080] w-full h-full"
-        onClick={closeModal}
-      />
-      <div
-        className={
-          "z-10001 bg-white rounded-[20px] overflow-auto relative " +
-          classNameModal
-        }
+        className={`relative bg-white rounded-2xl max-h-[90vh] w-full max-w-2xl overflow-hidden ${
+          classNameModal || ""
+        }`}
       >
-        <div className="absolute top-5 right-5">
-          <LiaTimesSolid
-            size={24}
-            onClick={closeModal}
-            className="cursor-pointer"
-            color="#001D47"
-          />
+        {/* Close Button */}
+        <button
+          onClick={closeModal}
+          className="absolute cursor-pointer top-5 right-5 z-10 text-gray-600 hover:text-gray-800"
+        >
+          <LiaTimesSolid size={24} />
+        </button>
+
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto max-h-[calc(90vh-3rem)] hide-scrollbar">
+          {children}
         </div>
-        {children}
       </div>
     </div>
   );

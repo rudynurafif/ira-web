@@ -13,7 +13,7 @@ function CheckboxAgreeForm({
         type="checkbox"
         name="agreement"
         id="agreement"
-        className="w-5 h-5"
+        className="w-5 h-5 accent-green-600"
         defaultChecked={value}
         onChange={onChange}
       />
