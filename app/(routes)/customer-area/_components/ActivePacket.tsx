@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
 import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
-import bannerPanduanMobile from "@/public/assets/Images/bannerPanduangmobile.png";
+import bannerPanduanMobile from "@/public/assets/Images/bannerPanduanMobile.png";
 import bannerCS from "@/public/assets/Images/bannerCS.png";
 import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import ActivePackageCard from "./ActivePackageCard";
@@ -15,7 +15,6 @@ import SubsHistoryCard from "./SubsHistoryCard";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import empty from "@/public/assets/Images/Empty.svg";
-import Link from "next/link";
 
 const PAGE_SIZE = 5;
 
@@ -36,7 +35,6 @@ const ActivePacket = () => {
   // Ambil hanya paket aktif dari subHistory (indeks 0)
   useEffect(() => {
     if (subscriptionHistory?.[0]) {
-      console.log(subscriptionHistory?.[0]);
       // Cek apakah ini paket aktif (ada start_date dan belum expired)
       const isActive =
         subscriptionHistory[0]?.start_date && subscriptionHistory[0]?.end_date;
