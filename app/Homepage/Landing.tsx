@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import iconWeave from "../../public/assets/icon/weave-logo.png";
-import iconStarlite from "../../public/assets/icon/starlite-logo.png";
+import iconIra from "../../public/assets/icon/starlite-logo.png";
 import Image from "next/image";
 import arrowClick from "../../public/assets/icon/arrow-click.svg";
 
@@ -28,8 +28,8 @@ function Landing() {
       <div className="flex gap-4 lg:gap-8  items-center pt-10 pl-20">
         <div>
           <Image
-            src={iconStarlite}
-            alt="icon-starlite"
+            src={iconIra}
+            alt="icon-ira"
             width={500}
             height={500}
             className="w-[67px] h-fit"
