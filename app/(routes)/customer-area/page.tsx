@@ -19,6 +19,7 @@ import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import toast from "react-hot-toast";
 import { setShipmentStatus } from "@/app/store/slice/authSlice";
+import DeviceInformation from "./_components/DeviceInformation";
 
 export default function AreaPelanggan() {
   const [showQR, setShowQR] = useState(false);
@@ -32,7 +33,7 @@ export default function AreaPelanggan() {
   const tabs = [
     "Informasi Paket dan Riwayat",
     "Data Pribadi",
-    // "Tracking Pengiriman",
+    "Informasi Perangkat",
     // "Riwayat Berlangganan",
   ];
 
@@ -142,7 +143,13 @@ export default function AreaPelanggan() {
           <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
             <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
               <span className="text-6xl max-sm:text-2xl font-bold">
-                {isFetching ? <SkeletonLarge /> : getInitials(userInfo?.name)}
+                {isFetching ? (
+                  <SkeletonLarge />
+                ) : userInfo?.name ? (
+                  getInitials(userInfo?.name)
+                ) : (
+                  "Test"
+                )}
               </span>
             </div>
 
@@ -172,7 +179,7 @@ export default function AreaPelanggan() {
       </div>
 
       {subscriptionHistory &&
-        !subscriptionHistory?.[0].start_date &&
+        !subscriptionHistory?.[0]?.start_date &&
         !isLoading && (
           <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
             <DeliveryTracking
@@ -206,6 +213,8 @@ export default function AreaPelanggan() {
         {activeTab === "Informasi Paket dan Riwayat" && <ActivePacket />}
 
         {activeTab === "Data Pribadi" && <PersonalData />}
+
+        {activeTab === "Informasi Perangkat" && <DeviceInformation />}
 
         {/* {activeTab === "Tracking Pengiriman" && <DeliveryTracking />} */}
 

@@ -64,7 +64,7 @@ const DeliveryTracking = ({
 
   const stepDefs = [
     {
-      title: "Pesanan Diterima",
+      title: "Pesanan Dalam Antrian",
       icon: <FaRegClock className="sm:w-6 sm:h-6 w-5 h-5" />,
     },
     {

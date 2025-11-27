@@ -15,6 +15,7 @@
   --primary-spectrum: #f7f9fd;
   --button: #d7201d;
   --gray-border: #d5d5d5;
+  --gray-border-2: #A7A7A7;
   --primary-text: #353535;
   --secondary: #666666;
   --mute: #666666;
@@ -45,6 +46,7 @@
   --color-primary-spectrum: var(--primary-spectrum);
   --color-button: var(--button);
   --color-gray-border: var(--gray-border);
+  --color-gray-border-2: var(--gray-border-2);
   --color-primary-text: var(--primary-text);
   --color-secondary: var(--secondary);
   --color-ads-platform-dark: var(--ads-platform-dark);

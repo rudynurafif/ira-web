@@ -367,8 +367,8 @@ function MapGeoapify({
   return (
     <div className="relative">
       {/* Input Alamat */}
-      <div className="absolute top-4 z-1000 w-full px-5">
-        <div className="relative w-full flex items-center justify-center gap-4">
+      <div className="absolute top-4 z-1000 w-full px-2 sm:px-5">
+        <div className="relative w-full flex items-center justify-center gap-2 sm:gap-4">
           <button
             type="button"
             onClick={() => {

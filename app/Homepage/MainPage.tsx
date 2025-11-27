@@ -41,19 +41,19 @@ function MainPage() {
           </div>
         </div>
         <div className="flex justify-center items-center">
-          <div className="w-[300px] sm:w-[300px] md:w-[400px] xl:w-[450px] 2xl:w-[550px]">
+          <div className="my-6 w-[300px] sm:w-[300px] md:w-[400px] xl:w-[450px] 2xl:w-[550px]">
             <Image src={modemIra} alt="modem2" className="w-full" />
           </div>
         </div>
         <div className="text-center">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
+          <h1 className="mb-6 text-xl sm:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
             <span className="font-bold">IRA Internet Rakyat -</span> Internet
             ngebut tanpa ribet pakai kabel.
           </h1>
-          <div className="flex gap-4 items-start justify-center mt-5">
+          {/* <div className="flex gap-4 items-start justify-center mt-5">
             <p>Supported by:</p>
             <Image src={starlite} width={120} alt="starlite" />
-          </div>
+          </div> */}
           {/* <p className="text-4xl font-bold mt-8">
             Nikmati internet ngebut tanpa ribet pakai kabel.
           </p>
