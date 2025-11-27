@@ -82,23 +82,6 @@ devel-job:       # This job runs in the build stage, which runs first.
         docker stop $CONT_NAME; \
         docker start $CONT_NAME; \
         echo 'Development - Docker Deployment Completed.'; \
-      else \
-        echo 'Development - Image $REGISTRY_URL:$DEV_VER not found, start building...'; \
-        docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
-        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
-        docker exec $CONT_NAME ssh-keyscan gitlab.com > ~/.ssh/known_hosts; \
-        docker exec $CONT_NAME apk update; \
-        docker exec $CONT_NAME apk add --no-cache curl vim git net-tools iputils-ping openssh-client; \
-        docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
-        docker exec $CONT_NAME git config --global user.name 'rizal'; \
-        docker exec $CONT_NAME git config --global credential.helper store; \
-        docker exec $CONT_NAME git branch --set-upstream-to=origin/development development; \
-        docker exec $CONT_NAME git pull origin development; \
-        docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
-        docker stop $CONT_NAME; \
-        docker start $CONT_NAME; \
-        echo 'Development - Docker Deployment Completed.'; \
       fi"
   artifacts:
     paths:
@@ -160,23 +143,6 @@ staging-job:       # This job runs in the build stage, which runs first.
         docker start $CONT_NAME; \
         echo 'Staging - Docker Deployment Completed.'; \
         exit 0; \
-      else \
-        echo 'Staging - Image $REGISTRY_URL:$IMG_VER not found, start building...'; \
-        docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
-        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
-        docker exec $CONT_NAME ssh-keyscan gitlab.com > ~/.ssh/known_hosts; \
-        docker exec $CONT_NAME apk update; \
-        docker exec $CONT_NAME apk add --no-cache curl vim git net-tools iputils-ping openssh-client; \
-        docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
-        docker exec $CONT_NAME git config --global user.name 'rizal'; \
-        docker exec $CONT_NAME git config --global credential.helper store; \
-        docker exec $CONT_NAME git branch --set-upstream-to=origin/stage stage; \
-        docker exec $CONT_NAME git pull origin stage; \
-        docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
-        docker stop $CONT_NAME; \
-        docker start $CONT_NAME; \
-        echo 'Staging - Docker Deployment Completed.'; \
       fi"
   artifacts:
     paths:
@@ -280,23 +246,6 @@ deploy-production:
         docker start $CONT_NAME; \
         echo 'Production - Docker Deployment Completed.'; \
         exit 0; \
-      else \
-        echo 'Production - Image $REGISTRY_URL:$PROD_VER not found, starting a container...'; \
-        docker compose -f $PROD_COMPOSE_FILE down $COMPOSE_SRV; \
-        docker compose -f $PROD_COMPOSE_FILE up -d --build $COMPOSE_SRV; \
-        docker exec $CONT_NAME ssh-keyscan gitlab.com > ~/.ssh/known_hosts; \
-        docker exec $CONT_NAME apt update; \
-        docker exec $CONT_NAME apt install -y curl vim git net-tools iputils-ping openssh-client; \
-        docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
-        docker exec $CONT_NAME git config --global user.name 'rizal'; \
-        docker exec $CONT_NAME git config --global credential.helper store; \
-        docker exec $CONT_NAME git branch --set-upstream-to=origin/main main; \
-        docker exec $CONT_NAME git pull origin main; \
-        docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
-        docker stop $CONT_NAME; \
-        docker start $CONT_NAME; \
-        echo 'Production - Docker Deployment Completed.'; \
       fi"
   artifacts:
     paths:
