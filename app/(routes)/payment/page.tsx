@@ -296,7 +296,7 @@ const Payment = () => {
           )}
         </div>
 
-        <div className="border border-gray-border my-5"></div>
+        <div className="border border-gray-border my-6"></div>
 
         <div className="mb-8">
           <div className="flex max-md:flex-col max-md:gap-3 justify-between mb-3">
