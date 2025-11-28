@@ -74,7 +74,7 @@ function Footer() {
             <div className="flex justify-start lg:justify-end gap-5 items-center mb-3">
               <Image src={iraIcon} alt="weave" className="w-[100px]" />
             </div>
-            <p className="mb-3">
+            <p className="mb-3 hover:underline">
               <span>
                 <Link href={"/terms-and-condition"} target="_blank">
                   Terms & Conditions
