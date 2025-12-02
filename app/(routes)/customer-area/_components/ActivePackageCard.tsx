@@ -22,6 +22,8 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   const router = useRouter();
   const { label, status, days } = packageCountdown(data.end_date ?? null);
 
+  console.log(data)
+
   return (
     <div className="bg-linear-to-b from-white via-white to-[#FFDCDC] rounded-xl shadow-lg p-6 max-sm:p-4">
       {/* Header */}

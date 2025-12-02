@@ -117,3 +117,16 @@ export const getOTCById = async (id: string) => {
     throw error;
   }
 };
+
+export const getPaymentStatus = async () => {
+  try {
+    const data = await FwaAxios({
+      url: `/app/transaction/status`,
+      method: "GET",
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
