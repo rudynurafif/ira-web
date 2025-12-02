@@ -32,15 +32,26 @@ const ActivePacket = () => {
   const router = useRouter();
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
 
-  // Ambil hanya paket aktif dari subHistory (indeks 0)
+  // Fetch paket aktif (hanya sekali, tidak dipengaruhi pagination)
   useEffect(() => {
-    if (subscriptionHistory?.[0]) {
-      // Cek apakah ini paket aktif (ada start_date dan belum expired)
-      const isActive =
-        subscriptionHistory[0]?.start_date && subscriptionHistory[0]?.end_date;
-      setActivePacketData(isActive ? subscriptionHistory?.[0] : null);
-    }
-  }, [subscriptionHistory]);
+    const fetchActivePackage = async () => {
+      try {
+        const res = await getSubscriptionHistory({
+          page: 1,
+          pageSize: 1,
+        });
+        const data = res.data?.data || [];
+        if (data[0]) {
+          const isActive = data[0].start_date && data[0].end_date;
+          setActivePacketData(isActive ? data[0] : null);
+        }
+      } catch (err) {
+        toastErrorFromAPI(err);
+      }
+    };
+
+    fetchActivePackage();
+  }, []);
 
   // Fetch riwayat dengan pagination
   const fetchHistory = async (page: number) => {
