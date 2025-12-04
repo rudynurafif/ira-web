@@ -70,7 +70,7 @@ export type ProfileInfo = {
   address: string;
   postal_code: string | null;
   nik: string | null;
-  status: string; // contoh: "waiting-for-installation"
+  status: string; 
   is_active: boolean;
   email_verified: boolean;
   phone_number_verified: boolean;

@@ -4,7 +4,6 @@ import eyeClose from "@/public/assets/Icons/eye-close.png";
 import eye from "@/public/assets/Icons/eye.png";
 import Image from "next/image";
 
-// --- KOMPONEN MODAL EDIT SSID ---
 interface EditSSIDModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -82,7 +81,11 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
                 {showPassword ? (
-                  <Image src={eye} className="w-6 h-6 cursor-pointer" alt="showPassword" />
+                  <Image
+                    src={eye}
+                    className="w-6 h-6 cursor-pointer"
+                    alt="showPassword"
+                  />
                 ) : (
                   <Image
                     src={eyeClose}

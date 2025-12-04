@@ -194,9 +194,9 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     const baseConfig: Html5QrcodeCameraScanConfig = {
       fps: 60,
       qrbox: (vw: number, vh: number): QrDimensions => {
-        const size = Math.floor(Math.min(vw, vh) * 0.75);
-        return qrBoxShape === "square"
-          ? { width: 200, height: 200 }
+        const size = Math.floor(Math.min(vw, vh) * 0.8);
+        return qrBoxShape === "rect"
+          ? { width: 300, height: 300 }
           : { width: size, height: 50 };
       },
     };
@@ -385,16 +385,41 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     qr.resume();
   }
 
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.innerHTML = `
+    #reader-container video,
+    #reader-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+  `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
     <>
-      <div className="max-w-[480px] mx-auto w-full text-center">
-        <h1 className="text-[24px] sm:text-[28px] font-bold ">Scan Barcode</h1>
+      <div className="max-w-[480px] p-6 mx-auto w-full text-center">
+        <h1 className="text-[24px] sm:text-[28px] font-bold mb-6">
+          Scan Barcode
+        </h1>
+
 
         <div style={{ display: "inline-block", position: "relative" }}>
           {/* html5-qrcode render video/canvas ke sini */}
           <div
             id={containerId}
-            className="md:w-[480px] w-[100vw] h-full bg-black rounded-[8px] overflow-hidden"
+            className={`md:w-[400px]  ${
+              isDesktop ? "h-[500px]" : "h-[70vh] min-h-[400px]"
+            } bg-black rounded-lg overflow-hidden relative`}
+            style={{
+              top: "-10%", // Adjust this value to move the box upwards
+            }}
           />
 
           {!starting && (
@@ -468,6 +493,18 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
               )} */}
             </>
           )}
+
+          <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 w-full px-4 max-w-[480px]">
+            <button
+              onClick={() => {
+                addUrlParam("section", "input");
+              }}
+              className="w-full bg-white border border-primary p-2 cursor-pointer text-primary font-bold rounded-xl"
+              type="button"
+            >
+              Input Manual Serial Number
+            </button>
+          </div>
         </div>
 
         {starting && (
@@ -475,17 +512,6 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
         )}
         {error && <p style={{ color: "crimson", marginTop: 8 }}>{error}</p>}
 
-        <div className="px-10 pt-3">
-          <button
-            onClick={() => {
-              addUrlParam("section", "input");
-            }}
-            className="bg-primary hover:bg-dark-primary-2 p-2 cursor-pointer text-white font-bold w-full rounded-[12px] "
-            type="button"
-          >
-            Input Manual
-          </button>
-        </div>
         {/* Kontrol tambahan */}
         {/* <div
           style={{

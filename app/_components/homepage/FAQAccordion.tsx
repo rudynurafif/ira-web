@@ -4,43 +4,17 @@ import { getFAQs } from "@/app/_api/Settings/Settings";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import { useEffect, useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa6";
+import FAQLoading from "./_components/FAQLoading";
 
 type FAQItem = {
   title: string;
   description: string;
 };
 
-const faqData: FAQItem[] = [
-  {
-    title: "1. Apa itu Internet Rakyat (IRA)?",
-    description:
-      "Internet Rakyat (IRA) adalah layanan internet rumah dan bisnis yang menggunakan jaringan nirkabel tetap untuk menghadirkan koneksi cepat dan stabil tanpa perlu kabel fiber.",
-  },
-  {
-    title: "2. Bagaimana cara kerja IRA?",
-    description:
-      "Internet dikirim melalui sinyal radio dari menara pemancar ke antena penerima di rumah pelanggan, lalu diteruskan ke modem/router agar bisa digunakan di semua perangkat.",
-  },
-  {
-    title: "3. Apakah sinyal IRA stabil saat hujan?",
-    description:
-      "Cuaca ekstrem seperti hujan lebat dapat sedikit memengaruhi kualitas sinyal, namun sistem jaringan Internet Rakyat dirancang agar tetap stabil dengan perangkat dan arah antena yang tepat.",
-  },
-  {
-    title: "4. Bagaimana cara mendaftar layanan IRA?",
-    description:
-      "Cukup isi formulir di website atau hubungi tim kami. Paket CPE (Modem) akan dikirim dari outlet terdekat, ketika sudah sampai bisa langsung diaktivasi lewat website Internet Rakyat.",
-  },
-  {
-    title: "5. Apakah tersedia berbagai pilihan paket?",
-    description:
-      "Ya. Internet Rakyat menyediakan beberapa paket internet dengan durasi masa aktif berbeda sesuai kebutuhan rumah atau bisnis Anda.",
-  },
-];
-
 export default function FAQAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = async () => {
     try {
@@ -56,6 +30,7 @@ export default function FAQAccordion() {
     } catch (err: any) {
       toastErrorFromAPI(err);
     } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,8 +42,10 @@ export default function FAQAccordion() {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  if (isLoading) return <FAQLoading />;
+
   return (
-    <div className="w-full ">
+    <div className="w-full">
       {faqs.map((faq, index) => (
         <div
           key={index}
