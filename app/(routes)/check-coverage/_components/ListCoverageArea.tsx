@@ -59,11 +59,10 @@ function ListCoverageArea() {
                     : ""
                 }
               >
-                {/* <FaMapLocationDot size={20} color="#0084DA" /> */}
                 <p className="text-base sm:text-base md:text-lg font-bold mb-5">
                   {area.province_name}
                 </p>
-                <div className="grid grid-cols-2 gap-5 px-5">
+                <div className="grid grid-cols-3 gap-5 px-5">
                   {area.cities.map((city, idx) => {
                     return (
                       <div

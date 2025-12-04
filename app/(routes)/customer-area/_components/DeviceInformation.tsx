@@ -7,6 +7,7 @@ import badSignal from "@/public/assets/Icons/bad-signal.svg";
 import disconnected from "@/public/assets/Icons/disconnected-signal.svg";
 import { FaRegEdit } from "react-icons/fa";
 import EditSSIDModal from "./Modal/EditSSIDModal";
+import { maskPassword } from "@/app/_shared/utils";
 
 type SignalLevel = "good" | "poor" | "bad" | "disconnected";
 
@@ -76,20 +77,17 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
   );
 };
 
-// --- KOMPONEN UTAMA ---
 const DeviceInformation = () => {
   const signalLevels = ["good", "poor", "bad", "disconnected"] as const;
   type SignalLevel = (typeof signalLevels)[number];
 
   const [signalLevel, setSignalLevel] = useState<SignalLevel>("good");
 
-  // Fungsi untuk generate level acak
   const generateRandomSignal = () => {
     const randomIndex = Math.floor(Math.random() * signalLevels.length);
     setSignalLevel(signalLevels[randomIndex]);
   };
 
-  // Jalankan sekali saat mount
   useEffect(() => {
     generateRandomSignal();
   }, []);
@@ -133,41 +131,46 @@ const DeviceInformation = () => {
     );
   };
 
-  // --- STATE UNTUK MODAL SSID ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSSID, setEditingSSID] = useState({
     type: "2.4 Ghz" as "2.4 Ghz" | "5 Ghz",
     ssid: "WiFi Rumah",
     password: "katasandi123",
   });
+  const [ssidData, setSsidData] = useState({
+    "2.4 Ghz": {
+      ssid: "WiFi Rumah",
+      password: "katasandi123",
+    },
+    "5 Ghz": {
+      ssid: "WiFi Rumah",
+      password: "katasandi123",
+    },
+  });
 
-  // --- FUNGSI UNTUK MEMBUKA MODAL ---
   const openEditModal = (type: "2.4 Ghz" | "5 Ghz") => {
-    // Di sini Anda bisa mengambil data dari state atau API jika ada
-    // Untuk contoh, kita gunakan nilai statis seperti di desain
-    let ssid = "WiFi Rumah";
-    let password = "katasandi123";
-
-    // Jika ingin membuat lebih dinamis, Anda bisa simpan data SSID di state terpisah
-    // Misalnya: const [ssidData, setSSIDData] = useState({ "2.4 Ghz": {...}, "5 Ghz": {...} })
-
+    const current = ssidData[type];
     setEditingSSID({
       type,
-      ssid,
-      password,
+      ssid: current.ssid,
+      password: current.password,
     });
     setIsModalOpen(true);
   };
 
-  // --- FUNGSI UNTUK MENYIMPAN PERUBAHAN ---
   const handleSaveSSID = (newSSID: string, newPassword: string) => {
-    // Di sini Anda bisa update state atau kirim ke API
-    console.log(
-      `Saved ${editingSSID.type}: SSID=${newSSID}, Password=${newPassword}`
-    );
+    if (!newSSID.trim() || !newPassword.trim()) {
+      alert("SSID dan Kata Sandi wajib diisi");
+      return;
+    }
 
-    // Contoh: update state jika Anda punya state untuk SSID
-    // setSSIDData(prev => ({ ...prev, [editingSSID.type]: { ssid: newSSID, password: newPassword } }));
+    setSsidData((prev) => ({
+      ...prev,
+      [editingSSID.type]: {
+        ssid: newSSID,
+        password: newPassword,
+      },
+    }));
   };
 
   return (
@@ -205,16 +208,15 @@ const DeviceInformation = () => {
           <div className="flex flex-col gap-4 md:grid md:grid-cols-2">
             <div className="md:col-span-1 text-sm sm:text-base">
               <div className="flex gap-2">
-                <p className="min-w-[120px]">SSID 2.4 Ghz:</p>
-                <p className="">Brand A</p>
+                <p className="min-w-[120px] font-bold">SSID 2.4 Ghz</p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">SSID:</p>
-                <p className="">WiFi Rumah</p>
+                <p className="">{ssidData["2.4 Ghz"].ssid}</p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">Kata Sandi:</p>
-                <p className="">******</p>
+                <p className="">{maskPassword(ssidData["2.4 Ghz"].password)}</p>
               </div>
               <button
                 onClick={() => openEditModal("2.4 Ghz")}
@@ -225,16 +227,15 @@ const DeviceInformation = () => {
             </div>
             <div className="md:col-span-1 text-sm sm:text-base">
               <div className="flex gap-2">
-                <p className="min-w-[120px]">SSID 5 Ghz:</p>
-                <p className="">Brand A</p>
+                <p className="min-w-[120px] font-bold">SSID 5 Ghz</p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">SSID:</p>
-                <p className="">WiFi Rumah</p>
+                <p className="">{ssidData["5 Ghz"].ssid}</p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">Kata Sandi:</p>
-                <p className="">*****</p>
+                <p className="">{maskPassword(ssidData["5 Ghz"].password)}</p>
               </div>
               <button
                 onClick={() => openEditModal("5 Ghz")}
@@ -328,7 +329,6 @@ const DeviceInformation = () => {
         </div>
       </div>
 
-      {/* RENDER MODAL */}
       <EditSSIDModal
         isOpen={isModalOpen}
         onClose={() => {

@@ -1,3 +1,5 @@
+import { PackageData } from "./customer-area";
+
 export interface PaymentChannel {
   id: string;
   code: string;

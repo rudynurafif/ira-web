@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
+import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
 import { useRouter } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
@@ -18,7 +18,7 @@ import empty from "@/public/assets/Images/Empty.svg";
 
 const PAGE_SIZE = 5;
 
-const ActivePacket = () => {
+const PackageAndHistory = () => {
   const [activePacketData, setActivePacketData] =
     useState<SubscriptionHistoryAPI | null>(null);
   const [subscriptionHistory, setSubscriptionHistory] = useState<
@@ -36,7 +36,7 @@ const ActivePacket = () => {
   useEffect(() => {
     const fetchActivePackage = async () => {
       try {
-        const res = await getSubscriptionHistory({
+        const res = await getCustomerPackage({
           page: 1,
           pageSize: 1,
         });
@@ -57,7 +57,7 @@ const ActivePacket = () => {
   const fetchHistory = async (page: number) => {
     setIsLoadingHistory(true);
     try {
-      const res = await getSubscriptionHistory({
+      const res = await getCustomerPackage({
         page,
         pageSize: PAGE_SIZE,
       });
@@ -92,6 +92,7 @@ const ActivePacket = () => {
 
   const hasHistory = subscriptionHistory[0]?.start_date ?? false;
 
+  // Komponen History Section
   const HistorySection = () => (
     <div>
       <p className="text-xl hidden sm:block font-bold text-black mb-4">
@@ -238,4 +239,4 @@ const ActivePacket = () => {
   );
 };
 
-export default ActivePacket;
+export default PackageAndHistory;

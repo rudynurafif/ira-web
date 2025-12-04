@@ -13,3 +13,17 @@ export const getFAQs = async (params: any) => {
     throw error;
   }
 };
+
+export const getDataTNC = async () => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/tnc",
+      method: "GET",
+      // params: params,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

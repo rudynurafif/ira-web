@@ -26,22 +26,13 @@ export default function Home() {
           duration: 7500,
           position: "top-center",
         });
-
-        // const token = res.data.data;
-        // if (token) {
-        //   localStorage.setItem("token-ira", token);
-        // }
-
-        // setTimeout(() => {
-        //   router.push("/customer-area");
-        // }, 1500);
       }
     } catch (err: any) {
       const errorMsg =
         err?.response?.data?.message ||
         "Kode OTP tidak valid atau telah kedaluwarsa.";
       toast.error(errorMsg, {
-        duration: 5000,
+        duration: 7500,
         position: "top-center",
       });
     } finally {

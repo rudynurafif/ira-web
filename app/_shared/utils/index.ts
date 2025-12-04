@@ -144,21 +144,18 @@ export function formatISODate(
   return `${day} ${month} ${year}, pukul ${hour}:${minute}:${second} WIB`;
 }
 
-// Parse "YYYY-MM-DD" jadi midnight lokal, lalu bandingkan dengan midnight lokal hari ini.
 export function daysUntil(dateISO: string): number {
   if (!dateISO) return 0;
-  
+
   const [y, m, d] = dateISO.split("-").map(Number);
-  const target = new Date(y, m - 1, d); // midnight lokal
+  const target = new Date(y, m - 1, d);
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // midnight lokal
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const msPerDay = 24 * 60 * 60 * 1000;
-  // karena keduanya midnight lokal, hasilnya pasti kelipatan 1 hari (integer)
   return Math.trunc((target.getTime() - today.getTime()) / msPerDay);
 }
 
-// Helper untuk UI: status & teks yang tepat untuk 0 / <0 / >0
 export function packageCountdown(endDateISO: string) {
   const days = daysUntil(endDateISO);
 
@@ -166,6 +163,14 @@ export function packageCountdown(endDateISO: string) {
     return {
       days,
       status: "active" as const,
+      label: `${days} Hari`,
+      note: `Berakhir dalam ${days} hari`,
+    };
+  }
+  if (days <= 3 && days > 0) {
+    return {
+      days,
+      status: "3_days_remaining" as const,
       label: `${days} Hari`,
       note: `Berakhir dalam ${days} hari`,
     };
@@ -178,7 +183,6 @@ export function packageCountdown(endDateISO: string) {
       note: "Paket berakhir hari ini",
     };
   }
-  // expired
   return {
     days: 0,
     status: "expired" as const,
@@ -229,3 +233,7 @@ export const formattedDate = (dateString: string) => {
 export function formatNamaWilayah(nama: string): string {
   return nama.replace(/^kab\./i, "kabupaten");
 }
+
+export const maskPassword = (password: string) => {
+  return "*".repeat(password.length);
+};

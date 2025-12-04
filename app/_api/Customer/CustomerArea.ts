@@ -42,7 +42,7 @@ export const updateProfileInfo = async (body: any) => {
   }
 };
 
-export const getSubscriptionHistory = async (params: any) => {
+export const getCustomerPackage = async (params: any) => {
   try {
     const data = await FwaAxios({
       url: "/app/billing/customer-package",

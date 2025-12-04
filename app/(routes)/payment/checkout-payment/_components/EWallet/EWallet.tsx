@@ -2,7 +2,7 @@
 
 import { EWalletPaymentData } from "@/app/_shared/types/payment";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { dataEWallet } from "./Data/dataEWallet";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
@@ -13,11 +13,11 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
   const [activeInstructions, setActiveInstructions] = useState<any>({});
   const [selectedInstructionList, setSelectedInstructionList] = useState([]);
   const params = useSearchParams();
+  const router = useRouter()
 
   useEffect(() => {
-    const type = params.get("type"); // ewallet
-    const selected = params.get("selected_payment"); // ID_DANA, ...
-
+    const type = params.get("type"); 
+    const selected = params.get("selected_payment");
     if (type && selected) {
       const matchedType = dataEWallet.find(
         (item) => item.route.toLowerCase() === type
@@ -45,7 +45,8 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
     setCheckOutUrl(url ?? null);
 
     if (url) {
-      window.location.href = url;
+      router.push(url)
+      // window.location.href = url;
     }
   };
 
