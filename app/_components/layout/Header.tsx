@@ -51,7 +51,18 @@ function Header() {
         }
       } catch (error: any) {
         toastErrorFromAPI(error, "Gagal memuat data pelanggan");
-        if (error?.response?.data?.statusCode === 401) {
+        const statusCode =
+          error?.response?.data?.statusCode || error?.response?.status;
+
+        if (statusCode === 500 && pathname !== "/500") {
+          toast.error(
+            "Terjadi gangguan pada server. Mengalihkan ke halaman error..."
+          );
+          router.push(`/500?from=${encodeURIComponent(pathname)}`);
+          return;
+        }
+
+        if (statusCode === 401) {
           toastErrorFromAPI(
             error,
             "Sesi Anda telah berakhir, silakan login kembali."
