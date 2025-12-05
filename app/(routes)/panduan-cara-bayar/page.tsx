@@ -2,7 +2,19 @@ import React from "react";
 
 const PanduanCaraBayar = () => {
   return (
-    <div className="text-white lg:bg-[url('/assets/Images/panduanVA.webp')] bg-[url('/assets/Images/panduanVAmobile.png')] bg-contain bg-center bg-no-repeat w-full h-screen"></div>
+    <div className="w-full">
+      <picture>
+        <source
+          media="(min-width: 1024px)"
+          srcSet="/assets/Images/panduanVA.webp"
+        />
+        <img
+          src="/assets/Images/panduanVAmobile.webp"
+          alt="Panduan Cara Bayar"
+          className="w-full h-auto"
+        />
+      </picture>
+    </div>
   );
 };
 

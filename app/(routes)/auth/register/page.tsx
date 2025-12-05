@@ -358,11 +358,11 @@ function Page() {
       errors.sub_district = "Kelurahan harus diisi";
     }
 
-    if (!formData.rw) {
+    if (!formData.rw || formData.rw === "0") {
       errors.rw = "RW harus diisi";
     }
 
-    if (!formData.rt) {
+    if (!formData.rt || formData.rw === "0") {
       errors.rt = "RT harus diisi";
     }
 
@@ -764,7 +764,7 @@ function Page() {
               name="rw"
               value={formData.rw}
               onChange={(value: string) => {
-                if (/^\d{0,5}$/.test(value)) {
+                if (/^\d{0,3}$/.test(value)) {
                   setFormData((prevData: any) => ({
                     ...prevData,
                     rw: value,
@@ -785,7 +785,7 @@ function Page() {
               name="rt"
               value={formData.rt}
               onChange={(value: string) => {
-                if (/^\d{0,5}$/.test(value)) {
+                if (/^\d{0,4}$/.test(value)) {
                   setFormData((prevData: any) => ({
                     ...prevData,
                     rt: value,
