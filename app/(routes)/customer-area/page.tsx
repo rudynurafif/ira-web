@@ -22,6 +22,7 @@ import { setShipmentStatus } from "@/app/store/slice/authSlice";
 import DeviceInformation from "./_components/DeviceInformation";
 import Image from "next/image";
 import iraLogo from "@/public/assets/Images/LogoIra.png";
+import CpeActivationStatus from "./_components/CpeActivation";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +42,7 @@ export default function AreaPelanggan() {
   const [animationData, setAnimationData] = useState<any>();
   const [successPayment, setSuccessPayment] = useState<boolean>(false);
   const [isActive, setIsActive] = useState<boolean>(false);
+  const [isActivating, setIsActivating] = useState(false);
   const dispatch = useAppDispatch();
 
   const [subscriptionHistory, setSubscriptionHistory] =
@@ -191,6 +193,7 @@ export default function AreaPelanggan() {
         </div>
       </div>
 
+      {/* Delivery Tracking */}
       {subscriptionHistory &&
         !subscriptionHistory?.[0]?.start_date &&
         !isLoading && (
@@ -201,6 +204,13 @@ export default function AreaPelanggan() {
             />
           </div>
         )}
+
+      {/* Banner Aktivasi CPE */}
+      {isActivating && (
+        <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
+          <CpeActivationStatus />
+        </div>
+      )}
 
       {/* TAB MENU */}
       <div className="max-w-[1329px] sm:px-8 px-5 mt-8 mx-auto">
