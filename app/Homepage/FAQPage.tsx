@@ -7,7 +7,6 @@ import faqImage from "@/public/assets/Images/faq-image.png";
 function FAQPage() {
   return (
     <div className="relative bg-faq py-16">
-
       <div className="container mx-auto px-5 text-black">
         <div className="max-sm:hidden grid grid-cols-2 items-center gap-5">
           <div className="col-span-1">

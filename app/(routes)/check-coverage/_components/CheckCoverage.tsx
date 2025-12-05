@@ -205,7 +205,7 @@ function CheckCoverage() {
             type="button"
             onClick={checkRadius}
             disabled={!dataChooseMap || isLoading}
-            className={`px-6 py-4 text-white font-semibold cursor-pointer rounded-xl text-base sm:text-xl text-center w-full ${
+            className={`px-6 py-4 text-white disabled:cursor-not-allowed font-semibold cursor-pointer rounded-xl text-base sm:text-xl text-center w-full ${
               dataChooseMap && !isLoading
                 ? "bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white hover:opacity-90"
                 : "bg-slate-500 cursor-not-allowed"
@@ -220,7 +220,7 @@ function CheckCoverage() {
       {modalResult && (
         <ModalTemplate
           closeModal={() => setModalResult(false)}
-          classNameModal="max-w-full w-[900px] max-md:!rounded-none"
+          classNameModal="max-md:!rounded-none"
         >
           <ModalCheckCoverage
             statusCoverage={isCoverage}

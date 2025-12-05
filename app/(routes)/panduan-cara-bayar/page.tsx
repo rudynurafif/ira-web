@@ -2,7 +2,19 @@ import React from "react";
 
 const PanduanCaraBayar = () => {
   return (
-    <div className="container mx-auto my-8">Halaman Panduan Cara Bayar</div>
+    <div className="w-full">
+      <picture>
+        <source
+          media="(min-width: 1024px)"
+          srcSet="/assets/Images/panduanVA.webp"
+        />
+        <img
+          src="/assets/Images/panduanVAmobile.webp"
+          alt="Panduan Cara Bayar"
+          className="w-full h-auto"
+        />
+      </picture>
+    </div>
   );
 };
 

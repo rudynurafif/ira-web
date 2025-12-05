@@ -31,7 +31,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "ShopeePay",
+        name: "ID_SHOPEEPAY",
         image: shopeePay,
         instructions: [
           {
@@ -65,7 +65,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "LinkAja",
+        name: "LINKAJA",
         image: linkAja,
         instructions: [
           {
@@ -82,7 +82,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "GoPay",
+        name: "GOPAY",
         image: gopay,
         instructions: [
           {
@@ -99,7 +99,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "AstraPay",
+        name: "ASTRAPAY",
         image: astraPay,
         instructions: [
           {
@@ -116,7 +116,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "JeniusPay",
+        name: "JENIUSPAY",
         image: jeniusPay,
         instructions: [
           {

@@ -113,7 +113,7 @@ function MapGeoapify({
   }, []);
 
   // === Fungsi start cooldown (dengan onFinish) ===
-  const startCooldown = (duration: number = 5, onFinish?: () => void) => {
+  const startCooldown = (duration: number = 10, onFinish?: () => void) => {
     if (cooldownRef.current) clearInterval(cooldownRef.current);
     setIsCooldown(true);
     setCooldownCount(duration);
@@ -138,14 +138,19 @@ function MapGeoapify({
       return;
     }
 
-    if (isCooldown) return;
+    if (isCooldown) {
+      toast.error(
+        `Harap tunggu ${cooldownCount} detik lagi sebelum mencari lagi`
+      );
+      return;
+    }
 
     if (lastAutocompleteQueryRef.current === query) return;
 
     lastAutocompleteQueryRef.current = query;
     setIsLoading(true);
 
-    startCooldown(5, async () => {
+    startCooldown(10, async () => {
       try {
         const res = await fetch(
           `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
@@ -168,19 +173,19 @@ function MapGeoapify({
     const value = e.target.value;
     setAddress(value);
 
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
+    // if (typingTimeoutRef.current) {
+    //   clearTimeout(typingTimeoutRef.current);
+    // }
 
-    if (value.length < 3) {
-      setPredictions([]);
-      return;
-    }
+    // if (value.length < 3) {
+    //   setPredictions([]);
+    //   return;
+    // }
 
-    // Gunakan debounce 3 detik
-    typingTimeoutRef.current = setTimeout(() => {
-      performAutocompleteSearch(value);
-    }, 5000);
+    // // Gunakan debounce sekian detik
+    // typingTimeoutRef.current = setTimeout(() => {
+    //   performAutocompleteSearch(value);
+    // }, 5000);
   };
 
   // === Pilih dari Dropdown ===
@@ -286,7 +291,7 @@ function MapGeoapify({
 
       setIsLoading(true);
 
-      startCooldown(5, async () => {
+      startCooldown(10, async () => {
         const last = lastReverseCoordsRef.current;
         if (last && last.lat === lat && last.lng === lng) {
           setIsLoading(false);
@@ -367,19 +372,19 @@ function MapGeoapify({
   return (
     <div className="relative">
       {/* Input Alamat */}
-      <div className="absolute top-4 z-1000 w-full px-5">
-        <div className="relative w-full flex items-center justify-center gap-4">
+      <div className="absolute top-4 z-1000 w-full px-2 sm:px-5">
+        <div className="relative w-full flex items-center justify-center gap-2 sm:gap-4">
           <button
             type="button"
             onClick={() => {
               if (inputRef.current) {
-                const query = inputRef.current.value;
+                const query = inputRef.current.value || "";
 
                 // Batalkan debounce yang sedang menunggu
-                if (typingTimeoutRef.current) {
-                  clearTimeout(typingTimeoutRef.current);
-                  typingTimeoutRef.current = null;
-                }
+                // if (typingTimeoutRef.current) {
+                //   clearTimeout(typingTimeoutRef.current);
+                //   typingTimeoutRef.current = null;
+                // }
 
                 // Jalankan pencarian langsung
                 performAutocompleteSearch(query);
@@ -395,7 +400,7 @@ function MapGeoapify({
             ref={inputRef}
             type="text"
             disabled={isLoading}
-            placeholder="Masukkan alamat Anda, tekan Enter untuk mencari"
+            placeholder="Masukkan alamat Anda, tekan Enter atau Tombol Cari untuk mencari.."
             value={address}
             onChange={handleInputChange}
             onKeyDown={(e) => {

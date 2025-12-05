@@ -11,7 +11,7 @@ import { addUrlParam, toastErrorFromAPI } from "@/app/_shared/utils";
 import ConnectToNetwork from "./_components/ConnectToNetwork";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import toast from "react-hot-toast";
-import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
+import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import { setShipmentStatus } from "@/app/store/slice/authSlice";
 
@@ -26,7 +26,7 @@ function Page() {
 
   const fetchData = async () => {
     try {
-      const resSubHistory = await getSubscriptionHistory({});
+      const resSubHistory = await getCustomerPackage({});
       const data = resSubHistory.data?.data;
       setSubscriptionHistory(data);
 

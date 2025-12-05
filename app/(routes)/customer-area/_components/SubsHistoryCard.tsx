@@ -8,6 +8,7 @@ import {
   formatISODate,
 } from "@/app/_shared/utils";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
+import toast from "react-hot-toast";
 
 const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   return (
@@ -59,6 +60,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           {convertToCurrency(data.package_id.price) ?? "-"}
         </p>
         <button
+          onClick={() => toast("Coming Soon!")}
           className={`${
             data.package_id.is_active
               ? "bg-primary hover:bg-dark-primary-2"

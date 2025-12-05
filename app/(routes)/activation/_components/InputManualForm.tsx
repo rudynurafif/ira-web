@@ -6,6 +6,8 @@ import { addUrlParam, toastErrorFromAPI } from "@/app/_shared/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
+import noSN from "@/public/assets/Images/no-sn.svg";
+import Image from "next/image";
 
 function InputManualForm() {
   const params = useSearchParams();
@@ -13,7 +15,6 @@ function InputManualForm() {
     params.get("serial_number") ? params.get("serial_number") : ""
   );
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isFailed, setIsFailed] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
   const router = useRouter();
@@ -98,7 +99,7 @@ function InputManualForm() {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]"
+              className="w-full hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary"
             >
               Submit
             </button>
@@ -109,7 +110,7 @@ function InputManualForm() {
                   addUrlParam("section", "scan");
                 }}
                 type="button"
-                className="w-fit hover:font-bold underline-animation-activation cursor-pointer text-primary font-semibold text-center pt-5"
+                className="w-fit hover:font-bold cursor-pointer bg-background-customer rounded-xl px-2 py-3 font-medium text-primary border border-primary mt-2"
               >
                 Scan Barcode
               </button>
@@ -126,13 +127,20 @@ function InputManualForm() {
           classNameModal="p-6 max-w-lg w-full mx-4 text-center"
         >
           {/* Modal Content */}
-          <h3 className="text-dark-primary font-bold text-lg">
-            {errors.serial_number ?? "Aktivasi Gagal!"}
+          <div className="flex justify-center items-center">
+            <Image
+              src={noSN}
+              width={200}
+              height={200}
+              alt="Nomor SN Invalid w-full"
+            />
+          </div>
+
+          <h3 className="text-dark-primary font-bold text-xl mt-6">
+            {errors.serial_number ?? "Serial Number salah atau tidak ditemukan"}
           </h3>
           <p className="mt-5 font-medium text-sm text-black">
-            Maaf, aktivasi Serial Number Anda gagal. Silakan periksa kembali
-            Serial Number yang Anda masukkan atau coba metode pemindaian
-            barcode.
+            Silakan input ulang Serial Number Anda
           </p>
 
           <div className="mt-5 flex justify-center">
@@ -141,7 +149,7 @@ function InputManualForm() {
               onClick={() => setOpenModalFailed(false)}
               className="inline-flex w-full items-center justify-center rounded-xl bg-button hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
             >
-              Tutup
+              Input Ulang
             </button>
           </div>
         </ModalTemplate>

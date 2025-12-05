@@ -1,20 +1,21 @@
 import Image from "next/image";
-import React from "react";
+import { useEffect, useState } from "react";
 
 import modem from "@/public/assets/Images/main-modem.svg";
 import modem2 from "@/public/assets/Images/main-modem-2.svg";
 import modemIra from "@/public/assets/Images/CPE-IRA.svg";
-import starlite from "@/public/assets/Icons/icon-starlite-white.svg";
-import CardPackage from "../_components/homepage/CardPackage";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Link from "next/link";
-import { FaWifi } from "react-icons/fa";
-import { TiWiFi } from "react-icons/ti";
 import wifiIcon from "@/public/assets/Icons/wifi.svg";
+import { getImageBanner } from "../Banner/Banner";
+import { toastErrorFromAPI } from "../_shared/utils";
 
 function MainPage() {
+  const [image, setImage] = useState<string[]>([]);
+  const [imageMobile, setImageMobile] = useState<string[]>([]);
+
   const settingsSlider = {
     infinite: true,
     slidesToShow: 1,
@@ -24,11 +25,72 @@ function MainPage() {
     autoplaySpeed: 5000,
   };
 
+  async function getBannerImage() {
+    try {
+      const params = {
+        flag: "desktop",
+      };
+
+      const res_banner = await getImageBanner(params);
+
+      const temp_desktop = res_banner.data.data.map((item: any) => {
+        return {
+          image: item.web_apps_image,
+          url: item.url,
+        };
+      });
+
+      const temp_mobile = res_banner.data.data.map((item: any) => {
+        return {
+          image: item.responsive_web_apps_image,
+          url: item.url,
+        };
+      });
+
+      setImage(temp_desktop);
+      setImageMobile(temp_mobile);
+    } catch (err: any) {
+      // toastErrorFromAPI(err);
+      console.log(err.response.data.message);
+    }
+  }
+
+  useEffect(() => {
+    getBannerImage();
+  }, []);
+
   return (
     <div className="relative bg-[url('/assets/Images/HERO-IRA.webp')] bg-cover bg-center bg-no-repeat text-white">
       <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
       <div className="container mx-auto px-5 py-25">
         <div className="text-center">
+          {/* <Slider {...settingsSlider}>
+            <div className="text-center">
+              {image.map((img, index) => (
+                <Image
+                  key={index}
+                  src={`${process.env.NEXT_PUBLIC_URL_OBS}${img}`}
+                  width={100}
+                  height={100}
+                  alt={`banner-${index}`}
+                  className="w-full"
+                />
+              ))}
+            </div>
+            <div className="text-center h-full">
+              {imageMobile.map((img, index) => (
+                <Image
+                  key={index}
+                  src={`${process.env.NEXT_PUBLIC_URL_OBS}${img}`}
+                  width={100}
+                  height={100}
+                  alt={`banner-${index}`}
+                  className="w-full"
+                />
+              ))}
+            </div>
+          </Slider> */}
+
           <Image
             src={wifiIcon}
             width={50}
@@ -41,19 +103,19 @@ function MainPage() {
           </div>
         </div>
         <div className="flex justify-center items-center">
-          <div className="w-[300px] sm:w-[300px] md:w-[400px] xl:w-[450px] 2xl:w-[550px]">
+          <div className="my-6 w-[300px] sm:w-[300px] md:w-[400px] xl:w-[450px] 2xl:w-[550px]">
             <Image src={modemIra} alt="modem2" className="w-full" />
           </div>
         </div>
         <div className="text-center">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
+          <h1 className="mb-6 text-xl sm:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
             <span className="font-bold">IRA Internet Rakyat -</span> Internet
             ngebut tanpa ribet pakai kabel.
           </h1>
-          <div className="flex gap-4 items-start justify-center mt-5">
+          {/* <div className="flex gap-4 items-start justify-center mt-5">
             <p>Supported by:</p>
             <Image src={starlite} width={120} alt="starlite" />
-          </div>
+          </div> */}
           {/* <p className="text-4xl font-bold mt-8">
             Nikmati internet ngebut tanpa ribet pakai kabel.
           </p>

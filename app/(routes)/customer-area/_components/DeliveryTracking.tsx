@@ -17,6 +17,7 @@ import { Shipment } from "@/app/_shared/data/shipment";
 import { BsExclamationTriangle } from "react-icons/bs";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import Link from "next/link";
+import ActivationScan from "@/public/assets/Images/scan-activation.png";
 
 const DeliveryTracking = ({
   data,
@@ -26,7 +27,8 @@ const DeliveryTracking = ({
   refetch: () => Promise<void>;
 }) => {
   const router = useRouter();
-  const [showQR, setShowQR] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [showActivationModal, setShowActivationModal] = useState(false);
   const [packageData, setPackageData] = useState<Shipment>();
   const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
     (state) => state.auth
@@ -64,7 +66,7 @@ const DeliveryTracking = ({
 
   const stepDefs = [
     {
-      title: "Pesanan Diterima",
+      title: "Pesanan Dalam Antrian",
       icon: <FaRegClock className="sm:w-6 sm:h-6 w-5 h-5" />,
     },
     {
@@ -108,9 +110,9 @@ const DeliveryTracking = ({
   }, [data?.shipment_status]);
 
   return (
-    <div className="flex max-lg:flex-col border border-gray-border justify-between gap-8 lg:gap-16 items-center bg-white rounded-xl max-sm:p-6 py-6 px-8">
+    <div className="flex max-lg:flex-col border border-gray-border justify-between gap-6 lg:gap-16 items-center bg-white rounded-xl max-sm:p-6 py-6 px-8">
       {/* Progress Steps */}
-      <div className="flex items-center max-w-2xl w-full max-sm:mb-6 relative">
+      <div className="flex items-center max-w-2xl w-full relative">
         {steps.map((step, index) => {
           return (
             <React.Fragment key={index}>
@@ -143,19 +145,19 @@ const DeliveryTracking = ({
         })}
       </div>
 
-      {/* Button Show QR */}
+      {/* Button Show Modal */}
       {currentRank === 2 ? (
         <button
-          onClick={() => router.push(`/activation`)}
+          onClick={() => setShowActivationModal(true)}
           className={`bg-button hover:bg-dark-primary-2 cursor-pointer max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
         >
-          Aktivasi Sekarang
+          Aktivasi Perangkat
         </button>
       ) : (
         <div className="flex-col max-sm:w-full text-end max-lg:text-center">
           <button
             className="py-3 mb-4 px-6 disabled:bg-slate-400 disabled:cursor-not-allowed font-bold max-sm:w-full bg-primary hover:bg-dark-primary-2 text-white rounded-lg cursor-pointer"
-            onClick={() => setShowQR(true)}
+            onClick={() => setShowQRModal(true)}
             disabled={!steps[1].isDone}
           >
             Tunjukkan Kode Booking
@@ -174,11 +176,11 @@ const DeliveryTracking = ({
       )}
 
       {/* Modal QR */}
-      {showQR && (
+      {showQRModal && (
         <ModalTemplate
           key="qr-modal"
           closeModal={() => {
-            setShowQR(false);
+            setShowQRModal(false);
             refetch();
             // window.location.reload();
           }}
@@ -270,6 +272,42 @@ const DeliveryTracking = ({
               </li>
             </ol>
           </div>
+        </ModalTemplate>
+      )}
+
+      {/* Modal Activation */}
+      {showActivationModal && (
+        <ModalTemplate
+          key="activation-modal"
+          closeModal={() => {
+            setShowActivationModal(false);
+          }}
+          classNameModal="p-6 max-w-3xl overflow w-full max-sm:mx-4 text-center rounded-xl shadow-lg"
+        >
+          <div className="my-6 flex justify-center">
+            <Image
+              src={ActivationScan}
+              alt="Activation Icon"
+              className="sm:w-64 sm:h-64 w-32 h-32 object-contain"
+              unoptimized
+            />
+          </div>
+
+          <h3 className="text-black sm:text-2xl text-xl font-bold mb-4">
+            Aktivasi Perangkat
+          </h3>
+
+          <p className="sm:text-base text-xs sm:px-8">
+            Pastikan perangkat Anda sudah siap. Scan serial number yang ada di
+            belakang perangkat.
+          </p>
+
+          <button
+            className="mt-6 py-3 px-6 disabled:bg-slate-400 disabled:cursor-not-allowed font-bold max-sm:w-full bg-primary hover:bg-dark-primary-2 text-white sm:rounded-lg rounded-full cursor-pointer"
+            onClick={() => router.push(`/activation`)}
+          >
+            Mulai Aktivasi Perangkat
+          </button>
         </ModalTemplate>
       )}
     </div>

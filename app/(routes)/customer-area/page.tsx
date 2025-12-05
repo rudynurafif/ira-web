@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import CustomerHeader from "./_components/CustomerHeader";
-import ActivePacket from "./_components/ActivePacket";
+import PackageAndHistory from "./_components/PackageAndHistory";
 import PersonalData from "./_components/PersonalData";
 import DeliveryTracking from "./_components/DeliveryTracking";
 import { getInitials, toastErrorFromAPI } from "@/app/_shared/utils";
@@ -15,32 +15,34 @@ import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Lottie from "lottie-react";
-import { getSubscriptionHistory } from "@/app/_api/Customer/CustomerArea";
+import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import toast from "react-hot-toast";
 import { setShipmentStatus } from "@/app/store/slice/authSlice";
+import DeviceInformation from "./_components/DeviceInformation";
+import Image from "next/image";
+import iraLogo from "@/public/assets/Images/LogoIra.png";
+import CpeActivationStatus from "./_components/CpeActivation";
 
 export default function AreaPelanggan() {
-  const [showQR, setShowQR] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
   const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
     (state) => state.auth
   );
-
-  const tabs = [
+  const [tabs, setTabs] = useState([
     "Informasi Paket dan Riwayat",
     "Data Pribadi",
-    // "Tracking Pengiriman",
-    // "Riwayat Berlangganan",
-  ];
+  ]);
 
   const initialTab = searchParams.get("tab") || "Informasi Paket dan Riwayat";
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
   const [animationData, setAnimationData] = useState<any>();
   const [successPayment, setSuccessPayment] = useState<boolean>(false);
+  const [isActive, setIsActive] = useState<boolean>(false);
+  const [isActivating, setIsActivating] = useState(false);
   const dispatch = useAppDispatch();
 
   const [subscriptionHistory, setSubscriptionHistory] =
@@ -48,12 +50,26 @@ export default function AreaPelanggan() {
 
   const fetchData = async () => {
     try {
-      const resSubHistory = await getSubscriptionHistory({});
+      const resSubHistory = await getCustomerPackage({});
       const data = resSubHistory.data?.data;
       setSubscriptionHistory(data);
 
+      const hasStartDate = !!data?.[0]?.start_date;
+      setIsActive(hasStartDate);
+
+      if (hasStartDate) {
+        setTabs((prev) => {
+          if (!prev.includes("Informasi Perangkat")) {
+            return [...prev, "Informasi Perangkat"];
+          }
+          return prev;
+        });
+      }
+
+      setIsActive(data[0]?.start_date);
+      if (isActive) tabs.push("Informasi Perangkat");
+
       const shipmentStatus = data?.[0]?.shipment_status || null;
-      // console.log(shipmentStatus)
       dispatch(setShipmentStatus(shipmentStatus));
     } catch (err: any) {
       toastErrorFromAPI(err);
@@ -142,7 +158,13 @@ export default function AreaPelanggan() {
           <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
             <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
               <span className="text-6xl max-sm:text-2xl font-bold">
-                {isFetching ? <SkeletonLarge /> : getInitials(userInfo?.name)}
+                {isFetching ? (
+                  <SkeletonLarge />
+                ) : userInfo?.name ? (
+                  getInitials(userInfo?.name)
+                ) : (
+                  <Image src={iraLogo} alt="Logo IRA" width={90} />
+                )}
               </span>
             </div>
 
@@ -171,8 +193,9 @@ export default function AreaPelanggan() {
         </div>
       </div>
 
+      {/* Delivery Tracking */}
       {subscriptionHistory &&
-        !subscriptionHistory?.[0].start_date &&
+        !subscriptionHistory?.[0]?.start_date &&
         !isLoading && (
           <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
             <DeliveryTracking
@@ -181,6 +204,13 @@ export default function AreaPelanggan() {
             />
           </div>
         )}
+
+      {/* Banner Aktivasi CPE */}
+      {isActivating && (
+        <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
+          <CpeActivationStatus />
+        </div>
+      )}
 
       {/* TAB MENU */}
       <div className="max-w-[1329px] sm:px-8 px-5 mt-8 mx-auto">
@@ -203,9 +233,13 @@ export default function AreaPelanggan() {
 
       {/* TAB CONTENT */}
       <div className="max-w-[1329px] sm:px-8 px-5 mx-auto mt-6">
-        {activeTab === "Informasi Paket dan Riwayat" && <ActivePacket />}
+        {activeTab === "Informasi Paket dan Riwayat" && <PackageAndHistory />}
 
         {activeTab === "Data Pribadi" && <PersonalData />}
+
+        {activeTab === "Informasi Perangkat" && isActive && (
+          <DeviceInformation />
+        )}
 
         {/* {activeTab === "Tracking Pengiriman" && <DeliveryTracking />} */}
 

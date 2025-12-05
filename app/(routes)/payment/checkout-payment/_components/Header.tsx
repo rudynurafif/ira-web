@@ -2,7 +2,7 @@
 import Image from "next/image";
 import React, { useState } from "react";
 
-import logoStarlite from "@/public/assets/icon/logo-starlite.webp";
+import logoIra from "@/public/assets/icon/logo-starlite.webp";
 import logoWeave from "@/public/assets/icon/logo-weave.webp";
 import userIcon from "@/public/assets/icon/user-icon.svg";
 
@@ -22,8 +22,8 @@ function Header() {
             onClick={() => router.push("/")}
           >
             <Image
-              alt="starlite-logo"
-              src={logoStarlite}
+              alt="ira-logo"
+              src={logoIra}
               className="w-[35px] md:w-[70px]"
             />
             <Image

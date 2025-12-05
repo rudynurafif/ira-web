@@ -11,10 +11,14 @@
   --red-primary: #ff0000;
   --green-primary: #1faf38;
   --green-2: #3fc700;
+  --green-3: #008e19;
   --nokia-blue: #0168ff;
+  --yellow: #ffc026;
+  --orange: #f46600;
   --primary-spectrum: #f7f9fd;
   --button: #d7201d;
   --gray-border: #d5d5d5;
+  --gray-border-2: #a7a7a7;
   --primary-text: #353535;
   --secondary: #666666;
   --mute: #666666;
@@ -41,10 +45,14 @@
   --color-red-primary: var(--red-primary);
   --color-green-primary: var(--green-primary);
   --color-green-2: var(--green-2);
+  --color-green-3: var(--green-3);
   --color-nokia-blue: var(--nokia-blue);
+  --color-yellow: var(--yellow);
+  --color-orange: var(--orange);
   --color-primary-spectrum: var(--primary-spectrum);
   --color-button: var(--button);
   --color-gray-border: var(--gray-border);
+  --color-gray-border-2: var(--gray-border-2);
   --color-primary-text: var(--primary-text);
   --color-secondary: var(--secondary);
   --color-ads-platform-dark: var(--ads-platform-dark);
@@ -257,7 +265,7 @@ body {
   /* border-bottom: 5px solid rgb(50, 50, 50); */
   /* background-image: linear-gradient(rgb(214, 202, 254), rgb(158, 129, 254)); */
   /* border: 2px solid rgb(50, 50, 50); */
-  box-shadow: 0px 3px 10px 0px #FF3BA0;
+  box-shadow: 0px 3px 10px 0px #ff3ba0;
 }
 
 .custom-click:active {
@@ -474,6 +482,6 @@ button.ghost {
 }
 
 .hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }

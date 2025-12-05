@@ -3,7 +3,10 @@ import Image from "next/image";
 import { FaChevronRight, FaStar } from "react-icons/fa";
 import { PackageData } from "@/app/_shared/types/customer-area";
 import logoIra from "@/public/assets/Icons/Logo-Ira-Red.svg";
-import confetti from "@/public/assets/Icons/confetti.svg";
+import greenConfetti from "@/public/assets/Icons/confetti-green.svg";
+import warningIcon from "@/public/assets/Icons/warning-icon.svg";
+import exclamationIcon from "@/public/assets/Icons/exclamation-icon.svg";
+import expiredIcon from "@/public/assets/Icons/expiredToday.svg";
 import packageIcon from "@/public/assets/Icons/hargaPaket.svg";
 import sandClock from "@/public/assets/Icons/jam-pasir.svg";
 import rocket from "@/public/assets/Icons/rocket.svg";
@@ -47,35 +50,90 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
 
       {/* Message */}
       <div className="pt-4">
-        <Image
-          src={confetti}
-          width={24}
-          height={24}
-          alt="confetti"
-          className="mb-1"
-        />
-        <p className="sm:text-sm text-xs font-bold text-gray-700">
-          Selamat paket {data.package_id.name ?? "-"} baru kamu sudah aktif!
-        </p>
         {status === "active" && (
-          <p className="sm:text-sm text-xs text-gray-700 mt-1">
-            Nikmati kecepatan hingga{" "}
-            <strong>{data.package_id.speed_mbps ?? "-"} Mbps</strong> penuh dan
-            koneksi stabil selama <strong>{days}</strong> hari ke depan.
-          </p>
+          <>
+            <Image
+              src={greenConfetti}
+              width={24}
+              height={24}
+              alt="confetti-icon"
+              className="mb-1"
+              color="#008E19"
+            />
+            <p className="sm:text-sm text-xs font-bold text-green-3">
+              Selamat paket {data.package_id.name ?? "-"} baru kamu sudah aktif!
+            </p>
+            <p className="sm:text-sm text-xs mt-1">
+              Nikmati Kuota Unlimited dan koneksi stabil selama{" "}
+              <strong>{days}</strong> hari ke depan.
+            </p>
+          </>
+        )}
+        {status === "3_days_remaining" && (
+          <>
+            <Image
+              src={warningIcon}
+              width={24}
+              height={24}
+              alt="warning-icon"
+              className="mb-1"
+              color="#008E19"
+            />
+            <p className="sm:text-sm text-xs font-bold text-yellow">
+              Tinggal {days} hari! Segera perpanjang sebelum
+              {formattedDate(data.end_date) ?? "-"} agar tidak terputus.
+            </p>
+            <p className="sm:text-sm text-xs text-green-3 mt-1">
+              Masa aktif hampir habis. Amankan akses internet keluarga dengan
+              memperpanjang paket sebelum tanggal
+              {formattedDate(data.end_date) ?? "-"}; proses cepat, layanan tetap
+              aktif tanpa putus. Nikmati Kuota Unlimited dan
+            </p>
+          </>
         )}
         {status === "expires_today" && (
-          <p className="sm:text-sm text-xs text-gray-700 mt-1">
-            Paket <strong>{data.package_id.name ?? "-"}</strong> berakhir{" "}
-            <strong>hari ini</strong>. Perpanjang sekarang agar layanan tetap
-            aktif.
-          </p>
+          <>
+            <Image
+              src={exclamationIcon}
+              width={24}
+              height={24}
+              alt="caution-icon"
+              className="mb-1"
+              color="#008E19"
+            />
+            <p className="sm:text-sm text-xs font-bold text-orange">
+              Paket berakhir hari ini! Segera perpanjang sebelum{" "}
+              {formattedDate(data.end_date) ?? "-"} agar tidak terisolir.
+            </p>
+            <p className="sm:text-sm text-xs text-green-3 mt-1">
+              Hari ini paket {data.package_id?.name} mencapai jatuh tempo.
+              Selesaikan pembayaran sebelum{" "}
+              {formattedDate(data.end_date) ?? "-"} agar layanan tetap aktif
+              tanpa jeda. Perpanjangan diproses otomatis begitu pembayaran
+              berhasil.
+            </p>
+          </>
         )}
         {status === "expired" && (
-          <p className="sm:text-sm text-xs text-gray-700 mt-1">
-            Masa aktif paket telah <strong>berakhir</strong>. Silakan perpanjang
-            untuk mengaktifkan kembali internet.
-          </p>
+          <>
+            <Image
+              src={expiredIcon}
+              width={24}
+              height={24}
+              alt="expired-icon"
+              className="mb-1"
+              color="#008E19"
+            />
+            <p className="sm:text-sm text-xs font-bold text-[#D6211E]">
+              Layanan nonaktif—bayar paket untuk aktif kembali seketika.
+            </p>
+            <p className="sm:text-sm text-xs text-green-3 mt-1">
+              Internet nonaktif sementara karena masa aktif sudah berakhir pada
+              {formattedDate(data.end_date) ?? "-"}. Pilih dan bayar paket yang
+              kamu inginkan agar koneksi Internet Rakyat segera aktif kembali;
+              hubungi bantuan jika membutuhkan panduan.
+            </p>
+          </>
         )}
       </div>
 
@@ -108,7 +166,9 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           <Image src={rocket} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Kecepatan Paket</p>
-            <p className="sm:text-lg text-base">{data.package_id.speed_mbps ?? "-"}Mpbs</p>
+            <p className="sm:text-lg text-base">
+              {data.package_id.speed_mbps ?? "-"}Mpbs
+            </p>
           </div>
         </div>
 
@@ -119,7 +179,9 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             <p className="text-xs font-bold mb-2 mt-3">
               Tanggal Berakhir Paket
             </p>
-            <p className="sm:text-lg text-base">{formattedDate(data.end_date) ?? "-"}</p>
+            <p className="sm:text-lg text-base">
+              {formattedDate(data.end_date) ?? "-"}
+            </p>
           </div>
         </div>
       </div>
