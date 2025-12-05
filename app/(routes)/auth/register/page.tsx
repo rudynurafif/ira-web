@@ -410,6 +410,8 @@ function Page() {
           sub_district_id: formData.sub_district ?? "",
           // postal_code_id: formData.postal_code ?? "",
           postal_code: formData.postal_code ?? "",
+          rw: formData.rw ?? "",
+          rt: formData.rt ?? "",
           address: addressArray ?? "",
           actual_address: formData.actual_address ?? "",
           ...(formData.latitude && { latitude: formData.latitude }),

@@ -15,7 +15,6 @@ function InputManualForm() {
     params.get("serial_number") ? params.get("serial_number") : ""
   );
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isFailed, setIsFailed] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
   const router = useRouter();
@@ -100,7 +99,7 @@ function InputManualForm() {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px] border border-primary"
+              className="w-full hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary"
             >
               Submit
             </button>
@@ -111,7 +110,7 @@ function InputManualForm() {
                   addUrlParam("section", "scan");
                 }}
                 type="button"
-                className="w-fit hover:font-bold cursor-pointer bg-background-customer cursor-pointer rounded-xl px-2 py-3 font-medium w-full text-primary border border-primary mt-2"
+                className="w-fit hover:font-bold cursor-pointer bg-background-customer rounded-xl px-2 py-3 font-medium text-primary border border-primary mt-2"
               >
                 Scan Barcode
               </button>

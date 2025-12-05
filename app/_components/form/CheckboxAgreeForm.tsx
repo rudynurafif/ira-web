@@ -24,7 +24,15 @@ function CheckboxAgreeForm({
           target="_blank"
           className="font-bold text-dark-primary-2 underline"
         >
-          Syarat dan Ketentuan serta Kebijakan Privasi
+          Syarat dan Ketentuan
+        </a>{" "}
+        serta{" "}
+        <a
+          href="/privacy-and-policy"
+          target="_blank"
+          className="font-bold text-dark-primary-2 underline"
+        >
+          Kebijakan Privasi
         </a>{" "}
         yang berlaku
       </label>

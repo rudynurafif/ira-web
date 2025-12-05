@@ -7,7 +7,7 @@ import { FaSquareFacebook, FaSquareInstagram } from "react-icons/fa6";
 import Image from "next/image";
 
 // image
-import iraIcon from "@/public/assets/Icons/IraIconFooter.png"
+import iraIcon from "@/public/assets/Icons/IraIconFooter.png";
 import moment from "moment";
 
 function Footer() {
@@ -74,15 +74,23 @@ function Footer() {
             <div className="flex justify-start lg:justify-end gap-5 items-center mb-3">
               <Image src={iraIcon} alt="weave" className="w-[100px]" />
             </div>
-            <p className="mb-3 hover:underline">
+            <p className="mb-3 ">
               <span>
-                <Link href={"/terms-and-condition"} target="_blank">
+                <Link
+                  href={"/terms-and-condition"}
+                  target="_blank"
+                  className="hover:underline"
+                >
                   Terms & Conditions
                 </Link>
               </span>{" "}
               |{" "}
               <span>
-                <Link href={"/terms-and-condition"} target="_blank">
+                <Link
+                  href={"/privacy-and-policy"}
+                  target="_blank"
+                  className="hover:underline"
+                >
                   Privacy Policy
                 </Link>
               </span>

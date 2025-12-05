@@ -27,3 +27,17 @@ export const getDataTNC = async () => {
     throw error;
   }
 };
+
+export const getPrivacyPolicy = async () => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/privacy-policy",
+      method: "GET",
+      // params: params,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

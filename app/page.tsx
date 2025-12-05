@@ -37,6 +37,13 @@ export default function Home() {
       });
     } finally {
       setIsVerifying(false);
+
+      if (!isVerifying) {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete("code");
+        newUrl.searchParams.delete("phone_number");
+        router.replace(newUrl.toString(), { scroll: false });
+      }
     }
   };
 
