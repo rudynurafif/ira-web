@@ -28,6 +28,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   return (
     <div className="bg-linear-to-b from-white via-white to-[#FFDCDC] rounded-xl shadow-lg p-6 max-sm:p-4">
       {/* Header */}
+      <div className="mb-3">Paket yang terakhir dibeli</div>
       <div className="flex items-center gap-4 mb-4">
         {/* Logo */}
         <div className="w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center">

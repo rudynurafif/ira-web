@@ -76,22 +76,20 @@ function Footer() {
             </div>
             <p className="mb-3 ">
               <span>
-                <Link
-                  href={"/terms-and-condition"}
-                  target="_blank"
-                  className="hover:underline"
-                >
+                <Link href={"/terms-and-condition"} className="hover:underline">
                   Terms & Conditions
                 </Link>
               </span>{" "}
               |{" "}
               <span>
-                <Link
-                  href={"/privacy-and-policy"}
-                  target="_blank"
-                  className="hover:underline"
-                >
+                <Link href={"/privacy-and-policy"} className="hover:underline">
                   Privacy Policy
+                </Link>
+              </span>{" "}
+              |{" "}
+              <span>
+                <Link href={"/refund-policy"} className="hover:underline">
+                  Refund Policy
                 </Link>
               </span>
             </p>
@@ -101,7 +99,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.0512.052</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.0812.053</div>
       </div>
     </div>
   );

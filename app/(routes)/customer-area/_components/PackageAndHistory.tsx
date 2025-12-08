@@ -15,6 +15,7 @@ import SubsHistoryCard from "./SubsHistoryCard";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import empty from "@/public/assets/Images/Empty.svg";
+import toast from "react-hot-toast";
 
 const PAGE_SIZE = 5;
 
@@ -87,6 +88,10 @@ const PackageAndHistory = () => {
     fetchHistory(page);
   };
 
+  const handleFilter = () => {
+    toast("Coming Soon!");
+  };
+
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
 
@@ -95,9 +100,17 @@ const PackageAndHistory = () => {
   // Komponen History Section
   const HistorySection = () => (
     <div>
-      <p className="text-xl hidden sm:block font-bold text-black mb-4">
-        Riwayat Tagihan
-      </p>
+      <div className="flex justify-between items-center mb-4">
+        <p className="sm:text-xl font-bold text-black">Riwayat Tagihan</p>
+        {subscriptionHistory && (
+          <div
+            onClick={handleFilter}
+            className="cursor-pointer sm:text-xl font-bold text-black"
+          >
+            Filter
+          </div>
+        )}
+      </div>
 
       {isLoadingHistory ? (
         <div className="space-y-4">
@@ -226,6 +239,16 @@ const PackageAndHistory = () => {
         </div>
 
         <div className="lg:col-span-7 col-span-12 flex flex-col gap-6">
+          {/* Paket terakhir dibeli */}
+          {activePacketData && (
+            <div className="flex flex-col gap-3">
+              <div className="font-bold text-xl text-black">
+                Paket yang terakhir dibeli
+              </div>
+              <SubsHistoryCard data={activePacketData!} />
+            </div>
+          )}
+
           <Image
             src={bannerPanduan}
             alt="Banner Panduan"
