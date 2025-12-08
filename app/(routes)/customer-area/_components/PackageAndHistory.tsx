@@ -102,7 +102,7 @@ const PackageAndHistory = () => {
     <div>
       <div className="flex justify-between items-center mb-4">
         <p className="sm:text-xl font-bold text-black">Riwayat Tagihan</p>
-        {subscriptionHistory && (
+        {hasHistory && (
           <div
             onClick={handleFilter}
             className="cursor-pointer sm:text-xl font-bold text-black"
