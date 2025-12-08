@@ -65,9 +65,9 @@ function buildDiffPayload(prev: Editable, next: Editable, otp?: string) {
 
     if (after !== before) {
       if (k === "email") {
-        if (after !== "") {
-          changed[k] = after;
-        }
+        // if (after !== "") {
+        changed[k] = after;
+        // }
       } else {
         changed[k] = after;
       }
@@ -95,15 +95,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (!open) return;
-
-    // Hanya ambil initial saat pertama kali modal dibuka, jangan tiap kali initial berubah!
-    if (
-      name === "" &&
-      phone_number === "" &&
-      email === "" &&
-      actualAddress === ""
-    ) {
+    if (open) {
       setName(initial?.name ?? "");
       setPhoneNumber(initial?.phone_number ?? "");
       setEmail(initial?.email ?? "");
@@ -115,14 +107,23 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         email: initial?.email ?? "",
         actual_address: initial?.actual_address ?? "",
       };
-    }
 
-    setOtp("");
-    setOtpStatus("idle");
-    setVerifiedPhone(null);
-    otpCacheRef.current = {};
-    setErrors({});
-  }, [open]);
+      setOtp("");
+      setOtpStatus("idle");
+      setVerifiedPhone(null);
+      otpCacheRef.current = {};
+      setErrors({});
+    } else {
+      // ✅ Opsional: reset juga saat ditutup (good hygiene)
+      // Tapi tidak wajib karena tidak dipakai
+    }
+  }, [
+    open,
+    initial?.name,
+    initial?.phone_number,
+    initial?.email,
+    initial?.actual_address,
+  ]);
 
   useEffect(() => {
     if (!open) return;
@@ -461,7 +462,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 }}
                 placeholder={
                   initial?.email
-                    ? "Masukkan email baru"
+                    ? "Email tidak bisa dihapus. Untuk mengganti, masukkan email baru."
                     : "contoh: nama@mail.com (opsional)"
                 }
                 error={errors.email}
@@ -509,7 +510,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer border-2 border-primary w-full rounded-lg bg-white p-2 text-lg font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-60"
+              className="cursor-pointer border-2 border-primary w-full rounded-lg bg-white hover:bg-red-50 p-2 text-lg font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
               Batal
             </button>

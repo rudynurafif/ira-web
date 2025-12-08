@@ -45,15 +45,14 @@ function Page() {
           <h1 className="text-white text-2xl md:text-4xl font-bold text-center mb-3">
             {title ?? "Terms dan Conditions IRA"}
           </h1>
-          {/* <h2 className="text-white text-xl md:text-2xl font-bold text-center">
+          <h2 className="text-white text-xl md:text-2xl font-bold text-center">
             {subTitle ?? "SYARAT DAN KETENTUAN PENGGUNA INTERNET RAKYAT (IRA)"}
-          </h2> */}
+          </h2>
         </div>
       </div>
       <div className="container mx-auto py-10">
         <div dangerouslySetInnerHTML={{ __html: content }}></div>
       </div>
-      {/* <Footer /> */}
     </div>
   );
 }
