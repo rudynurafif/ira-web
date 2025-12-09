@@ -13,7 +13,7 @@ import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import ActivePackageCard from "./ActivePackageCard";
 import SubsHistoryCard from "./SubsHistoryCard";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import { toastErrorFromAPI } from "@/app/_shared/utils";
+import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
 import empty from "@/public/assets/Images/Empty.svg";
 import toast from "react-hot-toast";
 
@@ -241,11 +241,99 @@ const PackageAndHistory = () => {
         <div className="lg:col-span-7 col-span-12 flex flex-col gap-6">
           {/* Paket terakhir dibeli */}
           {activePacketData && (
-            <div className="flex flex-col gap-3">
-              <div className="font-bold text-xl text-black">
-                Paket yang terakhir dibeli
+            <div className="hidden xl:block">
+              <div className="text-xl font-bold">Paket Terakhir Dibeli</div>
+              <div className="hidden lg:flex justify-between items-center gap-4">
+                <Image
+                  src="/assets/Images/gambar-latest.png"
+                  alt="gambar-latest"
+                  width={157}
+                  height={171}
+                  unoptimized
+                />
+
+                {/* Kode Kartu Paket Di Sini */}
+                <div className="bg-white rounded-lg shadow-lg p-0.5 w-full">
+                  {/* Header Merah */}
+                  <div
+                    className="bg-linear-to-r text-white text-center py-2 rounded-t-lg font-bold text-sm"
+                    style={{
+                      background: "linear-gradient(to right, #520201, #9C1816)",
+                    }}
+                  >
+                    {activePacketData.package_id.name ||
+                      "Paket Internet Rakyat"}
+                  </div>
+
+                  {/* Body: Speed & Price */}
+                  <div className="flex justify-between">
+                    <div className="flex flex-col justify-between items-center py-3 px-2">
+                      <div className="text-xs ">Internet sampai dengan</div>
+                      <div className="text-2xl font-extrabold text-gradient-red">
+                        {activePacketData.package_id.speed_mbps || "Speed"}{" "}
+                        <span className="text-base">Mbps</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col justify-between items-center py-3 px-2">
+                      <div className="text-xs ">Harga</div>
+                      <div className="text-2xl font-extrabold text-gradient-red">
+                        <span className="text-base font-semibold align-top">
+                          Rp{" "}
+                        </span>
+                        {activePacketData
+                          ? activePacketData.package_id.price
+                              .toLocaleString("id-ID")
+                              .replace(/,/g, ".")
+                          : "0"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fitur */}
+                  <div className="flex justify-between items-center bg-background-customer rounded-b-lg py-2 px-3">
+                    <div className="flex items-center gap-1 text-xs  font-medium">
+                      <Image
+                        src="/assets/Icons/icon-checklist.svg"
+                        alt="ico-checklist"
+                        width={18}
+                        height={18}
+                      />
+                      <p className="font-bold">
+                        <span className="text-gradient-red">GRATIS</span> SEWA
+                        MODEM
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs  font-medium">
+                      <Image
+                        src="/assets/Icons/icon-checklist.svg"
+                        alt="ico-checklist"
+                        width={18}
+                        height={18}
+                      />
+                      <p className="font-bold">
+                        <span className="text-gradient-red">UNLIMITED</span>{" "}
+                        DATA
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <Image
+                  src="/assets/Images/button-beli-lagi-home.png"
+                  alt="button-beli-lagi-home"
+                  width={157}
+                  height={171}
+                  // ambil latest paket dari activePacketData
+                  onClick={() => {
+                    sessionStorage.setItem(
+                      "selectedPackage",
+                      JSON.stringify(activePacketData.package_id)
+                    );
+                    router.push("payment/payment-methods");
+                  }}
+                  className="cursor-pointer hover:scale-110 transition-transform"
+                />
               </div>
-              <SubsHistoryCard data={activePacketData!} />
             </div>
           )}
 

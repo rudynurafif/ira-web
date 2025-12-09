@@ -15,6 +15,7 @@
   --nokia-blue: #0168ff;
   --yellow: #ffc026;
   --orange: #f46600;
+  --purple: #d640c4;
   --primary-spectrum: #f7f9fd;
   --button: #d7201d;
   --gray-border: #d5d5d5;
@@ -49,6 +50,7 @@
   --color-nokia-blue: var(--nokia-blue);
   --color-yellow: var(--yellow);
   --color-orange: var(--orange);
+  --color-purple: var(--purple);
   --color-primary-spectrum: var(--primary-spectrum);
   --color-button: var(--button);
   --color-gray-border: var(--gray-border);
@@ -476,7 +478,6 @@ button.ghost {
   background: rgba(13, 91, 215, 0.06);
 } */
 
-/* app/globals.css */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -484,4 +485,51 @@ button.ghost {
 .hide-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+@layer utilities {
+  .text-gradient-red {
+    background: linear-gradient(to right, #520201, #9c1816);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}
+
+.bg-gradient-red {
+  background: linear-gradient(180deg, #520201, #9c1816);
+}
+
+.text-outline {
+  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.7);
+  -webkit-text-fill-color: white;
+  text-shadow: 
+    /* Outline luar */ -1px -1px 0 rgba(0, 0, 0, 0.8),
+    1px -1px 0 rgba(0, 0, 0, 0.8), -1px 1px 0 rgba(0, 0, 0, 0.8),
+    1px 1px 0 rgba(0, 0, 0, 0.8),
+    /* Shadow utama ke kiri-bawah */ -3px 4px 6px rgba(0, 0, 0, 0.45);
+}
+
+.button-perpanjang {
+  display: inline-flex;
+  padding: 8px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 3.294px;
+  border-radius: 18.118px;
+  border: 0.824px solid var(--IRA-Gradient, #9c1816);
+  background: linear-gradient(0deg, #fff 30.67%, #d6211e 133.33%), #fff;
+}
+
+.test {
+  color: #FFF;
+text-shadow: -2px 2px 1.965px rgba(28, 28, 28, 0.7);
+-webkit-text-stroke-width: 1px;
+-webkit-text-stroke-color: var(--IRA-Dark, #520201);
+font-family: "Be Vietnam Pro";
+font-style: normal;
+font-weight: 800;
+line-height: 115%; /* 16.1px */
+text-transform: capitalize;
 }

@@ -9,8 +9,22 @@ import {
 } from "@/app/_shared/utils";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import toast from "react-hot-toast";
+import { useState } from "react";
 
 const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
+  const [isToastCooldown, setIsToastCooldown] = useState<boolean>(false);
+
+  const handleCoomingSoon = () => {
+    if (isToastCooldown) return;
+
+    setIsToastCooldown(true);
+    toast("Coming Soon!");
+
+    setTimeout(() => {
+      setIsToastCooldown(false);
+    }, 3000);
+  };
+
   return (
     <div className="flex-1 gap-4 bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] px-8 py-5 max-sm:p-4 flex justify-between items-center">
       <div className="flex items-center gap-2">
@@ -60,12 +74,15 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           {convertToCurrency(data.package_id.price) ?? "-"}
         </p>
         <button
-          onClick={() => toast("Coming Soon!")}
+          disabled={isToastCooldown}
+          onClick={handleCoomingSoon}
           className={`${
             data.package_id.is_active
               ? "bg-primary hover:bg-dark-primary-2"
               : "bg-red-primary hover:bg-dark-primary"
-          } text-white cursor-pointer whitespace-nowrap px-5 py-2 max-sm:p-2 rounded-lg text-sm max-sm:text-[10px]`}
+          } text-white cursor-pointer whitespace-nowrap px-5 py-2 max-sm:p-2 rounded-lg text-sm max-sm:text-[10px] ${
+            isToastCooldown ? "opacity-70 cursor-not-allowed" : ""
+          }`}
         >
           {data.package_id.is_active ? "Unduh Invoice" : "Bayar Invoice"}
         </button>

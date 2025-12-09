@@ -265,7 +265,7 @@ const PaymentMehods = () => {
 
         <button
           disabled={!selectedChannel}
-          onClick={() => router.back()}
+          onClick={() => router.push('/payment')}
           className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed disabled:bg-slate-400"
         >
           Pilih
