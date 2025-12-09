@@ -3,7 +3,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
 import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
@@ -16,6 +16,8 @@ import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
 import empty from "@/public/assets/Images/Empty.svg";
 import toast from "react-hot-toast";
+import DatePickerFilter from "@/app/_components/form/DatePickerFilter";
+import HistorySection from "./HistorySection";
 
 const PAGE_SIZE = 5;
 
@@ -28,10 +30,14 @@ const PackageAndHistory = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const searchParams = useSearchParams();
 
   const { userInfo } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+
+  const [startDateFilter, setStartDateFilter] = useState<any>();
+  const [endDateFilter, setEndDateFilter] = useState<any>();
 
   // Fetch paket aktif (hanya sekali, tidak dipengaruhi pagination)
   useEffect(() => {
@@ -82,126 +88,10 @@ const PackageAndHistory = () => {
     fetchHistory(1);
   }, []);
 
-  const handlePageChange = (page: number) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-    fetchHistory(page);
-  };
-
-  const handleFilter = () => {
-    toast("Coming Soon!");
-  };
-
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
 
   const hasHistory = subscriptionHistory[0]?.start_date ?? false;
-
-  // Komponen History Section
-  const HistorySection = () => (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <p className="sm:text-xl font-bold text-black">Riwayat Tagihan</p>
-        {hasHistory && (
-          <div
-            onClick={handleFilter}
-            className="cursor-pointer sm:text-xl font-bold text-black"
-          >
-            Filter
-          </div>
-        )}
-      </div>
-
-      {isLoadingHistory ? (
-        <div className="space-y-4">
-          {[...Array(PAGE_SIZE)].map((_, i) => (
-            <SkeletonLoadingCard key={i} />
-          ))}
-        </div>
-      ) : hasHistory ? (
-        <>
-          <div className="flex flex-col gap-6">
-            {subscriptionHistory.map((history) => (
-              <SubsHistoryCard data={history} key={history.id} />
-            ))}
-          </div>
-
-          {/* Pagination UI */}
-          {totalPages >= 1 && (
-            <div className="flex justify-center items-center gap-2 mt-6">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 cursor-pointer rounded-md bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300"
-              >
-                {"<"}
-              </button>
-
-              {[...Array(totalPages)].map((_, i) => {
-                const page = i + 1;
-                // Tampilkan semua halaman jika ≤ 5
-                // Jika > 5, tampilkan hanya first, last, dan ±2 di sekitar current
-                if (totalPages <= 5) {
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === page
-                          ? "bg-primary text-white"
-                          : "bg-gray-200 hover:bg-gray-300"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                } else {
-                  if (
-                    page === 1 ||
-                    page === totalPages ||
-                    (page >= currentPage - 1 && page <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === page
-                            ? "bg-primary text-white"
-                            : "bg-gray-200 hover:bg-gray-300"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  } else if (
-                    (page === 2 && currentPage > 3) ||
-                    (page === totalPages - 1 && currentPage < totalPages - 2)
-                  ) {
-                    return <span key={page}>...</span>;
-                  }
-                  return null;
-                }
-              })}
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 cursor-pointer rounded-md bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300"
-              >
-                {">"}
-              </button>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="flex text-secondary flex-col gap-4 justify-center items-center text-center py-10">
-          <Image src={empty} alt="empty" />
-          Anda belum memiliki riwayat pembelian paket Internet Rakyat.
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <>
