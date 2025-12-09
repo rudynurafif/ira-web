@@ -107,6 +107,12 @@ export function formatDate(expireAt: string): string {
   return `${formatted} WIB`;
 }
 
+export const formatDateFilter = (date: Date | null): string | undefined => {
+  if (!date) return undefined;
+  const d = new Date(date);
+  return d.toISOString().split("T")[0]; // "2025-12-01"
+};
+
 export function formatISODate(
   isoString: string | null,
   timezoneOffsetHours: number = 7
