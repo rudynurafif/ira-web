@@ -4,23 +4,25 @@ import React, { useEffect, useRef, useState } from "react";
 import { addUrlParam } from "@/app/_shared/utils";
 import { useSearchParams } from "next/navigation";
 import { FaWifi } from "react-icons/fa";
+import SignalArc from "./SignalWave";
+import Image from "next/image";
+import CPEIRA from "@/public/assets/Images/cpe-ira.png";
+import { MdHeadsetMic } from "react-icons/md";
+import toast from "react-hot-toast";
 
 type Screen = "loading" | "failed" | "failedFinal" | "success";
 
 const MAX_ATTEMPT = 3;
 
-// ---- Stub: ganti dengan call API aktivasi aslinya ----
 async function doActivation(
   serialNumber: string,
   force: string | null
 ): Promise<boolean> {
-  // simulasi durasi request
-  await new Promise((r) => setTimeout(r, 2500));
+  await new Promise((r) => setTimeout(r, 5000)); // simulasikan delay API
 
   if (force === "success") return true;
   if (force === "fail") return false;
 
-  // default: sukses 60%
   return Math.random() < 0.6;
 }
 
@@ -113,7 +115,8 @@ export default function ConnectToNetwork() {
       setProgress((p) => Math.min(94, p + Math.max(1, (100 - p) * 0.03)));
     }, 80);
 
-    const ok = await doActivation(serialNumber, force);
+    // const ok = await doActivation(serialNumber, "force");
+    const ok = await doActivation(serialNumber, "success");
 
     if (progressTimer.current) {
       window.clearInterval(progressTimer.current);
@@ -150,7 +153,9 @@ export default function ConnectToNetwork() {
       `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSN: ${serialNumber}`
     );
     const phone = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
-    window.location.href = `https://wa.me/${phone}?text=${msg}`;
+    const url = `https://wa.me/${phone}?text=${msg}`;
+
+    window.open(url, "_blank");
   }
 
   // ---- UI ----
@@ -161,19 +166,49 @@ export default function ConnectToNetwork() {
           Menghubungkan Perangkat ke Jaringan
         </h2>
 
-        <div className="pt-10">
-          <ProgressRing percent={progress} />
+        <div className="pt-10 flex flex-col items-center justify-center px-6 py-12 sm:px-6 lg:px-8">
+          {/* Progress Bar */}
+          {/* <ProgressRing percent={progress} /> */}
+          <div className="mb-8 relative flex justify-center items-center">
+            {/* Kiri */}
+            <div className="absolute left-[-90px] top-1/2 transform -translate-y-1/2 z-0">
+              <SignalArc isLeft={true} />
+            </div>
+
+            {/* Gambar CPE */}
+            <Image
+              src={CPEIRA}
+              alt="Activating CPE"
+              className="w-auto h-auto max-w-[150px] sm:max-w-[200px] z-10 relative"
+            />
+
+            {/* Kanan */}
+            <div className="absolute right-[-90px] top-1/2 transform -translate-y-1/2 z-0">
+              <SignalArc isLeft={false} />
+            </div>
+          </div>
         </div>
 
         <div className="pt-6">
           <div className="font-bold text-[#001D47]">
-            Aktivasi CPE Sedang Berlangsung
+            Hooray! Aktivasi CPE Sedang Berlangsung
           </div>
-          <p className="text-[#666] max-w-[680px] mx-auto mt-2">
-            Sistem sedang memverifikasi nomor seri dan mengatur konfigurasi
-            perangkat Anda. Proses ini mungkin memerlukan{" "}
-            <span className="font-semibold">waktu 1–2 menit</span>.
+          <p className="text-black max-w-4xl mx-auto mt-2">
+            Aktivasi CPE membutuhkan waktu sekitar 1 menit. Jangan khawatir,
+            setelah selesai kamu akan dapat notifikasi lewat WhatsApp atau bisa
+            langsung cek statusnya di aplikasi Internet Rakyat. Jika kamu punya
+            pertanyaan silakan hubungi customer service kami.
           </p>
+        </div>
+
+        <div className="pt-6 max-w-[480px] mx-auto">
+          <button
+            onClick={contactCS}
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
+            type="button"
+          >
+            Hubungi Customer Service <MdHeadsetMic size={20} />
+          </button>
         </div>
       </div>
     );
@@ -188,7 +223,7 @@ export default function ConnectToNetwork() {
 
         <div className="pt-8 flex justify-center items-center">
           {/* ikon wifi sederhana */}
-          <FaWifi size={40}/>
+          <FaWifi size={40} />
         </div>
 
         <div className="pt-4">
@@ -237,10 +272,10 @@ export default function ConnectToNetwork() {
         <div className="pt-6 max-w-[480px] mx-auto">
           <button
             onClick={contactCS}
-            className="w-full bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-[12px] py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
-            Hubungi Customer Service
+            Hubungi Customer Service <MdHeadsetMic size={20} />
           </button>
         </div>
       </div>

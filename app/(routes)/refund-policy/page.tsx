@@ -1,6 +1,6 @@
 "use client";
 
-import { getPrivacyPolicy } from "@/app/_api/Settings/Settings";
+import { getRefundPolicy } from "@/app/_api/Settings/Settings";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,18 +14,18 @@ function Page() {
   const [content, setContent] = useState<string>("");
 
   useEffect(() => {
-    getPrivacyPolicyData();
+    getRefundPolicyData();
   }, []);
 
-  async function getPrivacyPolicyData() {
+  async function getRefundPolicyData() {
     try {
-      const res_tnc = await getPrivacyPolicy();
+      const res_tnc = await getRefundPolicy();
 
-      setTitle(res_tnc.data.result?.[0].title);
-      setSubTitle(res_tnc.data.result?.[0].sub_title);
-      setContent(res_tnc.data.result?.[0].content);
+      setTitle(res_tnc.data.result?.[0].title ?? "");
+      setSubTitle(res_tnc.data.result?.[0].sub_title ?? "");
+      setContent(res_tnc.data.result?.[0].content ?? "");
     } catch (err: any) {
-      toastErrorFromAPI(err, "Gagal muat data Privacy Policy");
+      toastErrorFromAPI(err, "Gagal muat data Refund Policy");
     }
   }
 
@@ -40,10 +40,10 @@ function Page() {
             <FaArrowLeft size={20} /> Kembali
           </div>
           <h1 className="text-white text-2xl md:text-4xl font-bold text-center mb-3">
-            {title ?? "Privacy Policy IRA"}
+            {title ?? "Refund Policy IRA"}
           </h1>
           <h2 className="text-white text-xl md:text-2xl font-bold text-center">
-            {subTitle ?? "PRIVACY POLICY INTERNET RAKYAT (IRA)"}
+            {subTitle ?? "REFUND POLICY INTERNET RAKYAT (IRA)"}
           </h2>
         </div>
       </div>

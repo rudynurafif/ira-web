@@ -80,7 +80,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               className="mb-1"
               color="#008E19"
             />
-            <p className="sm:text-sm text-xs font-bold text-yellow">
+            <p className="sm:text-sm text-xs font-bold text-orange">
               Tinggal {days} hari! Segera perpanjang sebelum
               {formattedDate(data.end_date) ?? "-"} agar tidak terputus.
             </p>
@@ -102,7 +102,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               className="mb-1"
               color="#008E19"
             />
-            <p className="sm:text-sm text-xs font-bold text-orange">
+            <p className="sm:text-sm text-xs font-bold text-purple">
               Paket berakhir hari ini! Segera perpanjang sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar tidak terisolir.
             </p>

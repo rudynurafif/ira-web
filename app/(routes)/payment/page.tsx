@@ -20,6 +20,7 @@ import Loader from "@/app/_components/Loader";
 import ErrorFallback from "@/app/_components/ErrorFallback";
 import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
 import petir from "@/public/assets/Icons/petir.svg";
+import BannerLatest from "./_components/BannerLatest";
 
 function PackageCardMobile({
   pkg,
@@ -75,7 +76,9 @@ function PackageCardMobile({
             {/* badge harga */}
             <div className="shrink-0 ml-2">
               <span className="inline-flex flex-col sm:flex-row max-w-[400px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm text-black whitespace-nowrap">
-                <p className="max-sm:font-bold font-semibold">{convertToCurrency(pkg.price ?? 0)}</p>
+                <p className="max-sm:font-bold font-semibold">
+                  {convertToCurrency(pkg.price ?? 0)}
+                </p>
                 <p className="font-semibold">/{pkg.duration ?? 0} Hari</p>
               </span>
             </div>
@@ -95,7 +98,7 @@ function PackageCardMobile({
 
 const Payment = () => {
   const router = useRouter();
-  const selectedPackageFromLS = (() => {
+  const selectedPackageFromSession = (() => {
     if (typeof window === "undefined") return null;
     const item = sessionStorage.getItem("selectedPackage");
     if (!item) return null;
@@ -118,8 +121,9 @@ const Payment = () => {
 
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
-    selectedPackageFromLS
+    selectedPackageFromSession
   );
+
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
     selectedChannelFromLS
   );
@@ -217,11 +221,15 @@ const Payment = () => {
 
   return (
     <div className="container mx-auto my-8 max-md:p-4">
-      <div className="flex gap-2 items-center justify-center">
+      <div className="flex gap-2 items-center justify-center mb-7">
         <div className="font-bold text-primary-text text-3xl">
           Perpanjang Paket
         </div>
       </div>
+
+      {/* Banner Goes Here */}
+      <BannerLatest />
+
       <div className="sm:p-6 sm:shadow-lg my-8 rounded-lg">
         <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
           Pilih Paket

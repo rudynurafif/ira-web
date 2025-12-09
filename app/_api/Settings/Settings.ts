@@ -41,3 +41,17 @@ export const getPrivacyPolicy = async () => {
     throw error;
   }
 };
+
+export const getRefundPolicy = async () => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/refund-policy",
+      method: "GET",
+      // params: params,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
