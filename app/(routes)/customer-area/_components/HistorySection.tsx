@@ -53,12 +53,11 @@ const HistorySection = () => {
     if (startDateFilter && endDateFilter) {
       setCurrentPage(1);
       fetchHistory(1);
-    }
-    else if (!startDateFilter && !endDateFilter) {
+    } else if (!startDateFilter && !endDateFilter) {
       setCurrentPage(1);
       fetchHistory(1);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endDateFilter, startDateFilter]);
 
   const handlePageChange = (page: number) => {
@@ -67,26 +66,30 @@ const HistorySection = () => {
     fetchHistory(page);
   };
 
+  const hasHistory = subscriptionHistory[0]?.start_date ?? false;
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <p className="sm:text-xl font-bold text-black self-start">
+        <p className="sm:text-xl font-bold text-black">
           Riwayat Tagihan
         </p>
-        <DatePickerFilter
-          label="Filter berdasarkan tanggal"
-          onChangeDate={(val: any) => {
-            const [start, end] = val;
-            setStartDateFilter(start);
-            setEndDateFilter(end);
-          }}
-          deleteDate={() => {
-            setStartDateFilter(null);
-            setEndDateFilter(null);
-          }}
-          startDate={startDateFilter}
-          endDate={endDateFilter}
-        />
+        {hasHistory && (
+          <DatePickerFilter
+            label="Filter berdasarkan tanggal"
+            onChangeDate={(val: any) => {
+              const [start, end] = val;
+              setStartDateFilter(start);
+              setEndDateFilter(end);
+            }}
+            deleteDate={() => {
+              setStartDateFilter(null);
+              setEndDateFilter(null);
+            }}
+            startDate={startDateFilter}
+            endDate={endDateFilter}
+          />
+        )}
       </div>
 
       {isLoadingHistory ? (
@@ -95,7 +98,7 @@ const HistorySection = () => {
             <SkeletonLoadingCard key={i} />
           ))}
         </div>
-      ) : subscriptionHistory.length > 0 ? (
+      ) : hasHistory ? (
         <>
           <div className="flex flex-col gap-6">
             {subscriptionHistory.map((history) => (
