@@ -141,9 +141,9 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
       <div className="border-t border-gray-200 my-6"></div>
 
       {/* Info Grid */}
-      <div className="grid grid-cols-2 sm:gap-10 gap-2">
+      <div className="grid grid-cols-3 sm:gap-1 gap-2">
         {/* Harga Paket */}
-        <div className="flex flex-col items-start gap-3">
+        {/* <div className="flex flex-col items-start gap-3">
           <Image src={packageIcon} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Harga Paket</p>
@@ -151,14 +151,14 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               {convertToCurrency(data.package_id.price) ?? "-"}
             </p>
           </div>
-        </div>
+        </div> */}
 
         {/* Sisa Hari */}
         <div className="flex flex-col items-start gap-3">
           <Image src={sandClock} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Sisa Hari</p>
-            <p className="sm:text-lg text-base">{label}</p>
+            <p className="text-base">{label}</p>
           </div>
         </div>
 
@@ -167,7 +167,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           <Image src={rocket} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Kecepatan Paket</p>
-            <p className="sm:text-lg text-base">
+            <p className="text-base">
               {data.package_id.speed_mbps ?? "-"}Mpbs
             </p>
           </div>
@@ -180,7 +180,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             <p className="text-xs font-bold mb-2 mt-3">
               Tanggal Berakhir Paket
             </p>
-            <p className="sm:text-lg text-base">
+            <p className="text-base">
               {formattedDate(data.end_date) ?? "-"}
             </p>
           </div>

@@ -91,8 +91,6 @@ const PackageAndHistory = () => {
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
 
-  const hasHistory = subscriptionHistory[0]?.start_date ?? false;
-
   return (
     <>
       {/* MOBILE (< sm) */}
@@ -233,6 +231,7 @@ const PackageAndHistory = () => {
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
+
           <HistorySection />
         </div>
       </div>
