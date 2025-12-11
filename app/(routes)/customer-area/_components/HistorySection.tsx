@@ -76,23 +76,25 @@ const HistorySection = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <p className="sm:text-xl font-bold text-black">Riwayat Tagihan</p>
+      <div className="flex sm:flex-row flex-col justify-between sm:items-center gap-2 mb-4">
+        <p className="text-xl font-bold text-black">Riwayat Tagihan</p>
         {(hasHistory || isEmpty) && (
-          <DatePickerFilter
-            label="Filter berdasarkan tanggal"
-            onChangeDate={(val: any) => {
-              const [start, end] = val;
-              setStartDateFilter(start);
-              setEndDateFilter(end);
-            }}
-            deleteDate={() => {
-              setStartDateFilter(null);
-              setEndDateFilter(null);
-            }}
-            startDate={startDateFilter}
-            endDate={endDateFilter}
-          />
+          <div className="max-sm:self-end">
+            <DatePickerFilter
+              label="Filter berdasarkan tanggal"
+              onChangeDate={(val: any) => {
+                const [start, end] = val;
+                setStartDateFilter(start);
+                setEndDateFilter(end);
+              }}
+              deleteDate={() => {
+                setStartDateFilter(null);
+                setEndDateFilter(null);
+              }}
+              startDate={startDateFilter}
+              endDate={endDateFilter}
+            />
+          </div>
         )}
       </div>
 
