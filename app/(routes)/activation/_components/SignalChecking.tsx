@@ -112,7 +112,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
       <div className="w-full max-w-2xl rounded-2xl bg-white p-8">
         {/* Header */}
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <div className="col-start-2 text-center text-[32px] font-bold text-dark-primary">
+          <div className="col-start-2 text-center text-[32px] font-bold text-old-primary">
             Cek Kekuatan Sinyal
           </div>
           {/* <span className="col-start-3 justify-self-end text-sm text-gray-500">
@@ -195,7 +195,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                 closeModal={closePopup}
                 classNameModal="p-6 max-w-lg w-full mx-4 text-center"
               >
-                <h3 className="text-dark-primary font-bold text-lg">
+                <h3 className="text-old-primary mt-6 font-bold text-lg">
                   CPE Anda berhasil teraktivasi!
                 </h3>
                 <p className="mt-5 font-medium text-sm text-black">
@@ -245,7 +245,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleRetry}
             disabled={isScanning}
-            className="h-10 rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+            className="h-10 font-semibold rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
           >
             {retryLabel}
           </button>
@@ -253,7 +253,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleNext}
             disabled={isScanning}
-            className="h-10 rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50 cursor-pointer"
+            className="h-10 font-bold rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50 cursor-pointer"
           >
             {primaryLabel}
           </button>

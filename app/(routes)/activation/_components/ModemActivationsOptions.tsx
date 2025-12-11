@@ -8,7 +8,7 @@ import { addUrlParam } from "@/app/_shared/utils";
 function ModemActivationsOptions() {
   return (
     <div className="container mx-auto">
-      <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center text-[#001D47]">
+      <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center text-old-primary">
         Aktivasi Modem
       </h2>
 

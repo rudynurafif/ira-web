@@ -405,7 +405,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
   return (
     <>
       <div className="max-w-[480px] p-6 mx-auto w-full text-center">
-        <h1 className="text-[24px] sm:text-[28px] font-bold mb-6">
+        <h1 className="text-[24px] sm:text-[28px] text-old-primary font-bold mb-6">
           Scan Barcode
         </h1>
 

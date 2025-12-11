@@ -62,7 +62,7 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
           />
         </div>
         <div className="flex flex-col">
-          <p>Status Signal: {statusText}</p>
+          <p>Status Sinyal: {statusText}</p>
           <p>Status Internet: {internetText}</p>
         </div>
       </div>
@@ -71,7 +71,7 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
         onClick={onCheckSignal}
         className="py-2 cursor-pointer text-center w-full rounded-lg bg-primary hover:bg-dark-primary-2 text-white"
       >
-        Cek Signal
+        Cek Sinyal
       </button>
     </div>
   );
@@ -159,11 +159,6 @@ const DeviceInformation = () => {
   };
 
   const handleSaveSSID = (newSSID: string, newPassword: string) => {
-    if (!newSSID.trim() || !newPassword.trim()) {
-      alert("SSID dan Kata Sandi wajib diisi");
-      return;
-    }
-
     setSsidData((prev) => ({
       ...prev,
       [editingSSID.type]: {
@@ -222,7 +217,7 @@ const DeviceInformation = () => {
                 onClick={() => openEditModal("2.4 Ghz")}
                 className="flex cursor-pointer hover:bg-dark-primary-2 items-center justify-center rounded-lg gap-1 py-2 bg-primary text-white w-40 mt-3"
               >
-                Edit <FaRegEdit />
+                Edit 2.4 Ghz <FaRegEdit />
               </button>
             </div>
             <div className="md:col-span-1 text-sm sm:text-base">
@@ -241,7 +236,7 @@ const DeviceInformation = () => {
                 onClick={() => openEditModal("5 Ghz")}
                 className="flex cursor-pointer hover:bg-dark-primary-2 items-center justify-center rounded-lg gap-1 py-2 bg-primary text-white w-40 mt-3"
               >
-                Edit <FaRegEdit />
+                Edit 5 Ghz <FaRegEdit />
               </button>
             </div>
           </div>

@@ -65,7 +65,7 @@ function DatePickerFilter({
         selectsRange
         dateFormat="dd MMM yyyy"
         maxDate={new Date()}
-        popperPlacement="bottom"
+        popperPlacement="bottom-end"
         popperProps={{ strategy: "fixed" }}
         customInput={
           <CustomDateInput

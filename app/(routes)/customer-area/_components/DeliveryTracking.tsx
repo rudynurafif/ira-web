@@ -307,8 +307,8 @@ const DeliveryTracking = ({
           <div className="my-6 sm:px-8 text-start">
             <div className="space-y-4">
               {/* Langkah 1 */}
-              <div className="flex items-start gap-3">
-                <div className="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="bg-primary text-white rounded-full min-w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
                   1
                 </div>
                 <div>
@@ -323,8 +323,8 @@ const DeliveryTracking = ({
               </div>
 
               {/* Langkah 2 */}
-              <div className="flex items-start gap-3">
-                <div className="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="bg-primary text-white rounded-full min-w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
                   2
                 </div>
                 <div>
