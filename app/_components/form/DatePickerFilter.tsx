@@ -24,7 +24,7 @@ const CustomDateInput = React.forwardRef<
       onClick={onClick}
       className={`inline-flex cursor-pointer text-primary items-center gap-2 py-1.5 px-3 ${
         value && "pr-8"
-      } bg-white border border-primary rounded-lg text-sm hover:bg-red-50`}
+      } bg-white border font-semibold border-primary rounded-lg text-sm hover:bg-red-50`}
     >
       <LuSettings2 className="text-lg" color="#d7201d" />
       {value || placeholder || "Filter Tanggal"}

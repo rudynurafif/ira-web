@@ -204,11 +204,8 @@ const PackageAndHistory = () => {
         </div>
 
         <div className="relative w-full h-[60px] my-3 sm:hidden">
-          <Image
-            src="/assets/Images/beli-lagi-home-mobile.svg"
-            alt="button-beli-lagi-home"
-            fill
-            className="relative z-10 cursor-pointer object-contain"
+          <button
+            className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
             style={{
               filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
             }}
@@ -219,18 +216,26 @@ const PackageAndHistory = () => {
               );
               router.push("payment/payment-methods");
             }}
-          />
+          >
+            Beli Lagi
+            <Image
+              src="/assets/icons/thumb-click.png"
+              alt="button-beli-lagi-home"
+              width={24}
+              height={24}
+            />
+          </button>
 
           <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
             <div
               className="absolute top-0 h-full"
               style={{
-                width: "120px", // lebar kilat (sesuaikan)
+                width: "120px", 
                 background:
                   "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
                 transform: "skew(-20deg)",
                 animation: "sweep-mobile 3s infinite ease-out",
-                left: "-120px", // mulai dari kiri luar
+                left: "-120px",
               }}
             />
           </div>

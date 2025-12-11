@@ -6,7 +6,7 @@
   --background-customer: #f5f5f5;
   --foreground: #171717;
   --primary: #d7201d;
-  --old-primary: #001D47;
+  --old-primary: #001d47;
   --dark-primary: #520201;
   --dark-primary-2: #9a0806;
   --red-primary: #ff0000;
@@ -525,6 +525,10 @@ button.ghost {
 
 .bg-gradient-red {
   background: linear-gradient(180deg, #520201, #9c1816);
+}
+
+.bg-gradient-red-light {
+  background: linear-gradient(125.16deg, #520201 -30.23%, #d6211e 80.67%);
 }
 
 .text-outline {
