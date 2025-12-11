@@ -37,7 +37,7 @@ export default function TimeStream() {
           "Content-Type": "application/json",
           Connection: "keep-alive",
         },
-        body: JSON.stringify({ sourceClient: decodedToken?.id, message }),
+        body: JSON.stringify({ sourceClient: decodedToken?.customer_id, message }),
       });
 
       // Tambahkan pesan ke chat history
@@ -53,11 +53,11 @@ export default function TimeStream() {
   };
 
   useEffect(() => {
-    if (!decodedToken?.id) return; // Jangan buat EventSource jika tidak ada ID
+    if (!decodedToken?.customer_id) return;
 
     const eventSource = new EventSource(
       `https://g12qjjr8-4000.asse.devtunnels.ms/sse/events?clientName=${encodeURIComponent(
-        decodedToken.id
+        decodedToken.customer_id
       )}&replace=true`
     );
 
@@ -78,7 +78,7 @@ export default function TimeStream() {
     // return () => {
     //   eventSource.close();
     // };
-  }, [decodedToken?.id]);
+  }, [decodedToken?.customer_id]);
 
   return (
     <div className="mx-auto container p-6">

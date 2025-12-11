@@ -4,9 +4,14 @@ import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import DatePickerFilter from "@/app/_components/form/DatePickerFilter";
 import SubsHistoryCard from "./SubsHistoryCard";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
-import { formatDateFilter, toastErrorFromAPI } from "@/app/_shared/utils";
+import {
+  formatDateFilter,
+  formatDateFilter2,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import Image from "next/image";
 import empty from "@/public/assets/Images/Empty.svg";
+import emptyFilter from "@/public/assets/Images/empty-filter.svg";
 
 const HistorySection = () => {
   const [subscriptionHistory, setSubscriptionHistory] = useState<
@@ -66,15 +71,14 @@ const HistorySection = () => {
     fetchHistory(page);
   };
 
-  const hasHistory = subscriptionHistory[0]?.start_date ?? false;
+  const hasHistory = subscriptionHistory && subscriptionHistory[0]?.start_date;
+  const isEmpty = subscriptionHistory.length === 0;
 
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <p className="sm:text-xl font-bold text-black">
-          Riwayat Tagihan
-        </p>
-        {hasHistory && (
+        <p className="sm:text-xl font-bold text-black">Riwayat Tagihan</p>
+        {(hasHistory || isEmpty) && (
           <DatePickerFilter
             label="Filter berdasarkan tanggal"
             onChangeDate={(val: any) => {
@@ -172,6 +176,16 @@ const HistorySection = () => {
             </div>
           )}
         </>
+      ) : isEmpty ? (
+        <div className="flex text-secondary flex-col gap-4 justify-center items-center text-center py-10">
+          <Image src={emptyFilter} width={100} alt="empty-filter" />
+          Tidak ada riwayat pembelian paket Internet Rakyat pada rentang{" "}
+          {startDateFilter && endDateFilter
+            ? `tanggal ${formatDateFilter2(
+                startDateFilter
+              )} hingga ${formatDateFilter2(endDateFilter)}.`
+            : "tanggal yang dipilih."}
+        </div>
       ) : (
         <div className="flex text-secondary flex-col gap-4 justify-center items-center text-center py-10">
           <Image src={empty} alt="empty" />

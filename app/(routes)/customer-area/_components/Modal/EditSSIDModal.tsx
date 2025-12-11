@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import eyeClose from "@/public/assets/Icons/eye-close.png";
 import eye from "@/public/assets/Icons/eye.png";
 import Image from "next/image";
+import DynamicForm from "@/app/_components/form/DynamicForm";
 
 interface EditSSIDModalProps {
   isOpen: boolean;
@@ -24,18 +25,31 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
   const [ssid, setSSID] = useState(initialSSID);
   const [password, setPassword] = useState(initialPassword);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (isOpen) {
+      setSSID(initialSSID);
+      setPassword(initialPassword);
+      setErrors({});
       setShowPassword(false);
     }
-  }, [isOpen]);
+  }, [initialPassword, initialSSID, isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setShowPassword(false);
+
+    if (!ssid || !password) {
+      const newErrors: { [key: string]: string } = {};
+      if (!ssid) newErrors["ssid"] = "SSID tidak boleh kosong.";
+      if (!password) newErrors["password"] = "Kata Sandi tidak boleh kosong.";
+      setErrors(newErrors);
+      return;
+    }
+
+    // setShowPassword(false);
     onSave(ssid, password);
     onClose();
   };
@@ -51,50 +65,46 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              SSID*
-            </label>
-            <input
+            <DynamicForm
+              label="SSID"
+              isImportant={true}
+              name="ssid"
               type="text"
               value={ssid}
-              onChange={(e) => setSSID(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              required
+              onChange={setSSID}
+              error={errors.ssid || ""}
             />
           </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Kata Sandi*
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary pr-10"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {showPassword ? (
-                  <Image
-                    src={eye}
-                    className="w-6 h-6 cursor-pointer"
-                    alt="showPassword"
-                  />
-                ) : (
-                  <Image
-                    src={eyeClose}
-                    className="w-6 h-6 cursor-pointer"
-                    alt="hidePassword"
-                  />
-                )}
-              </button>
-            </div>
+          <div className="mb-6 relative">
+            <DynamicForm
+              label="Kata Sandi"
+              isImportant={true}
+              name="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={setPassword}
+              error={errors.password || ""}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-[45px] text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? (
+                <Image
+                  src={eye}
+                  className="w-6 h-6 cursor-pointer"
+                  alt="showPassword"
+                />
+              ) : (
+                <Image
+                  src={eyeClose}
+                  className="w-6 h-6 cursor-pointer"
+                  alt="hidePassword"
+                />
+              )}
+            </button>
           </div>
 
           <button

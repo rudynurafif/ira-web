@@ -89,7 +89,7 @@ function InputManualForm() {
 
   return (
     <div className="container mx-auto max-w-[480px] max-sm:px-8">
-      <h2 className="text-primary-text font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
+      <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Input Manual Serial Number
       </h2>
 
@@ -111,8 +111,9 @@ function InputManualForm() {
 
           <div className="mt-6">
             <button
+              disabled={isSubmitting || !serialNumber}
               type="submit"
-              className="w-full hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary"
+              className="w-full disabled:bg-slate-400 hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary disabled:border-slate-400 disabled:cursor-not-allowed"
             >
               Submit
             </button>

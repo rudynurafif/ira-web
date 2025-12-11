@@ -36,7 +36,7 @@ function ProgressRing({ percent }: { percent: number }) {
       }}
     >
       <div className="absolute inset-[10px] bg-white rounded-full flex items-center justify-center">
-        <span className="font-bold text-[#001D47]">{Math.floor(percent)}%</span>
+        <span className="font-bold text-old-primary">{Math.floor(percent)}%</span>
       </div>
     </div>
   );
@@ -162,7 +162,7 @@ export default function ConnectToNetwork() {
   if (screen === "loading") {
     return (
       <div className="container mx-auto px-6 text-center">
-        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-[#001D47]">
+        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-old-primary">
           Menghubungkan Perangkat ke Jaringan
         </h2>
 
@@ -190,7 +190,7 @@ export default function ConnectToNetwork() {
         </div>
 
         <div className="pt-6">
-          <div className="font-bold text-[#001D47]">
+          <div className="font-bold text-old-primary">
             Hooray! Aktivasi CPE Sedang Berlangsung
           </div>
           <p className="text-black max-w-4xl mx-auto mt-2">
@@ -217,7 +217,7 @@ export default function ConnectToNetwork() {
   if (screen === "success") {
     return (
       <div className="container mx-auto px-6 text-center">
-        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-[#001D47]">
+        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-old-primary">
           Menghubungkan Perangkat ke Jaringan
         </h2>
 
@@ -227,11 +227,11 @@ export default function ConnectToNetwork() {
         </div>
 
         <div className="pt-4">
-          <div className="text-[#001D47] font-bold">
+          <div className="text-old-primary font-bold">
             Proses Aktivasi
             <Badge color="green">Berhasil</Badge>
           </div>
-          <p className="text-[#666] max-w-[680px] mx-auto mt-2">
+          <p className="max-w-[680px] mx-auto mt-2">
             Perangkat Anda telah berhasil diaktifkan dan terhubung ke jaringan
             inti. Internet sekarang sudah siap digunakan.
           </p>
@@ -253,12 +253,12 @@ export default function ConnectToNetwork() {
   if (screen === "failedFinal") {
     return (
       <div className="container mx-auto px-6 text-center">
-        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-[#001D47]">
+        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-old-primary">
           Menghubungkan Perangkat ke Jaringan
         </h2>
 
         <div className="pt-8">
-          <div className="text-[#001D47] font-bold">
+          <div className="text-old-primary font-bold">
             Proses Aktivasi
             <Badge color="red">Tidak Berhasil</Badge>
           </div>
@@ -266,7 +266,7 @@ export default function ConnectToNetwork() {
             Aktivasi perangkat tidak berhasil dilakukan. Silakan coba kembali
             atau hubungi Customer Service kami untuk bantuan lebih lanjut.
           </p>
-          <div className="text-[#001D47] font-bold mt-1">(3/3)</div>
+          <div className="text-old-primary font-bold mt-1">(3/3)</div>
         </div>
 
         <div className="pt-6 max-w-[480px] mx-auto">
@@ -290,7 +290,7 @@ export default function ConnectToNetwork() {
       </h2>
 
       <div className="pt-8">
-        <div className="text-[#001D47] font-bold">
+        <div className="text-old-primary font-bold">
           Proses Aktivasi
           <Badge color="red">Tidak Berhasil</Badge>
         </div>
@@ -298,7 +298,7 @@ export default function ConnectToNetwork() {
           Aktivasi perangkat tidak berhasil dilakukan. Silakan coba kembali atau
           hubungi Customer Service kami untuk bantuan lebih lanjut.
         </p>
-        <div className="text-[#001D47] font-bold mt-1">
+        <div className="text-old-primary font-bold mt-1">
           ({attempt}/{MAX_ATTEMPT})
         </div>
       </div>

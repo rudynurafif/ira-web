@@ -109,8 +109,24 @@ export function formatDate(expireAt: string): string {
 
 export const formatDateFilter = (date: Date | null): string | undefined => {
   if (!date) return undefined;
+
   const d = new Date(date);
-  return d.toISOString().split("T")[0]; // "2025-12-01"
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0"); // bulan dimulai dari 0
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+export const formatDateFilter2 = (date: Date | null): string | undefined => {
+  if (!date) return undefined;
+
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0"); // bulan dimulai dari 0
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${day}-${month}-${year}`;
 };
 
 export function formatISODate(

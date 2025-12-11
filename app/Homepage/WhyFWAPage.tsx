@@ -5,6 +5,7 @@ import desc2 from "@/public/assets/Images/main-desc-why-2.svg";
 import desc3 from "@/public/assets/Images/main-desc-why-3.svg";
 import Image, { StaticImageData } from "next/image";
 import RegisterNowCard from "../_components/homepage/RegisterNowCard";
+import { useAppSelector } from "../store/store";
 
 interface descriptionListType {
   id: number;
@@ -30,6 +31,10 @@ function WhyFWAPage() {
       description: "Harian, mingguan, atau bulanan? Terserah kamu!",
     },
   ];
+
+  const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
+    (state) => state.auth
+  );
 
   return (
     <div className="container mx-auto px-5 text-black py-18 max-sm:py-9">
@@ -65,9 +70,11 @@ function WhyFWAPage() {
         </div>
       </div>
 
-      <div className="mt-[150px] max-sm:mt-[50px]">
-        <RegisterNowCard />
-      </div>
+      {!userInfo && (
+        <div className="mt-[150px] max-sm:mt-[50px]">
+          <RegisterNowCard />
+        </div>
+      )}
     </div>
   );
 }

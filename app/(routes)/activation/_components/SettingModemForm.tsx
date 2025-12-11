@@ -23,7 +23,8 @@ function SettingModemForm() {
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword2, setShowPassword2] = useState(false);
+  const [showPassword5, setShowPassword5] = useState(false);
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -124,7 +125,7 @@ function SettingModemForm() {
 
   return (
     <div className="container mx-auto max-w-[480px] max-sm:px-8">
-      <h2 className="text-[#001D47] font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
+      <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Atur Modem
       </h2>
 
@@ -156,13 +157,13 @@ function SettingModemForm() {
             error={errors.ssid_24ghz}
           />
           <p className="text-xs text-gray-500 mt-1">
-            SSID (2-32 karakter) bisa berisi huruf, angka, spasi, dan simbol.
+            SSID (2-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
           </p>
 
           <div className="pt-2 relative">
             <DynamicForm
               label="Kata Sandi"
-              type={showPassword ? "text" : "password"}
+              type={showPassword2 ? "text" : "password"}
               labelClass="text-[#666] text-sm"
               isImportant={true}
               name="password_24ghz"
@@ -186,10 +187,10 @@ function SettingModemForm() {
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowPassword2(!showPassword2)}
+              className="absolute right-3 top-[53px] text-gray-500 hover:text-gray-700"
             >
-              {showPassword ? (
+              {showPassword2 ? (
                 <Image
                   src={eye}
                   className="w-6 h-6 cursor-pointer"
@@ -205,7 +206,7 @@ function SettingModemForm() {
             </button>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Password (8-63 karakter) bisa berisi huruf, angka, dan simbol.
+            Password (8-63 karakter) dapat berisi huruf, angka, dan simbol.
           </p>
 
           <label htmlFor="ssid_24ghz" className="font-medium py-2 block mt-6">
@@ -235,13 +236,14 @@ function SettingModemForm() {
             error={errors.ssid_5ghz}
           />
           <p className="text-xs text-gray-500 mt-1">
-            SSID (2-32 karakter) bisa berisi huruf, angka, spasi, dan simbol.
+            SSID (2-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
           </p>
 
-          <div className="pt-2">
+          <div className="pt-2 relative">
             <DynamicForm
               label="Kata Sandi"
               labelClass="text-[#666] text-sm"
+              type={showPassword5 ? "text" : "password"}
               isImportant={true}
               name="password_5ghz"
               value={formData.password_5ghz}
@@ -263,9 +265,28 @@ function SettingModemForm() {
               placeholder="Masukkan kata sandi 5Ghz"
               error={errors.password_5ghz}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword5(!showPassword5)}
+              className="absolute right-3 top-[53px] text-gray-500 hover:text-gray-700"
+            >
+              {showPassword5 ? (
+                <Image
+                  src={eye}
+                  className="w-6 h-6 cursor-pointer"
+                  alt="showPassword"
+                />
+              ) : (
+                <Image
+                  src={eyeClose}
+                  className="w-6 h-6 cursor-pointer"
+                  alt="hidePassword"
+                />
+              )}
+            </button>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Password (8-63 karakter) bisa berisi huruf, angka, dan simbol.
+            Password (8-63 karakter) dapat berisi huruf, angka, dan simbol.
           </p>
 
           <div className="mt-8">
@@ -294,13 +315,13 @@ function SettingModemForm() {
                 onClick={() => {
                   if (
                     window.confirm(
-                      "Apakah Anda yakin ingin melewati pengaturan modem?"
+                      "Apakah Anda yakin ingin melewati pengaturan modem? Pengaturan modem akan menggunakan pengaturan default."
                     )
                   )
                     addUrlParam("section", "check_signal");
                 }}
                 type="button"
-                className="w-full cursor-pointer hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-[12px]"
+                className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-[12px]"
               >
                 Lewati
               </button>
