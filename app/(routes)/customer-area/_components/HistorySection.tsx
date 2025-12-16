@@ -77,7 +77,7 @@ const HistorySection = () => {
   return (
     <div>
       <div className="flex sm:flex-row flex-col justify-between sm:items-center gap-2 mb-4">
-        <p className="text-xl font-bold text-black">Riwayat Tagihan</p>
+        <p className="text-xl font-bold text-black">Riwayat Pembelian Paket</p>
         {(hasHistory || isEmpty) && (
           <div className="max-sm:self-end">
             <DatePickerFilter
@@ -130,9 +130,9 @@ const HistorySection = () => {
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 rounded-md ${
+                      className={`px-3 py-1 cursor-pointer rounded-md ${
                         currentPage === page
-                          ? "bg-primary text-white"
+                          ? "bg-primary  text-white"
                           : "bg-gray-200 hover:bg-gray-300"
                       }`}
                     >
@@ -149,9 +149,9 @@ const HistorySection = () => {
                       <button
                         key={page}
                         onClick={() => handlePageChange(page)}
-                        className={`px-3 py-1 rounded-md ${
+                        className={`px-3 cursor-pointer py-1 rounded-md ${
                           currentPage === page
-                            ? "bg-primary text-white"
+                            ? "bg-primary  text-white"
                             : "bg-gray-200 hover:bg-gray-300"
                         }`}
                       >

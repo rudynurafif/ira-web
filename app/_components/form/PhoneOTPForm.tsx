@@ -125,7 +125,7 @@ function PhoneOTPForm({
       // ✅ Jika parent menyediakan onSendOTP, delegasikan ke parent dan keluar.
       if (onSendOTP) {
         await Promise.resolve(onSendOTP());
-        return; 
+        return;
       }
 
       // === Fallback: child kirim OTP sendiri jika tidak ada onSendOTP ===
@@ -144,6 +144,9 @@ function PhoneOTPForm({
         // toastErrorFromAPI(error);
         startOtpTimer(seconds); // set cooldown sesuai server
       } else {
+        if (error?.response?.data?.statusCode === 409) {
+          // modal arahkan ke login
+        }
         toastErrorFromAPI(error, "Terjadi kesalahan saat mengirim OTP");
       }
     } finally {

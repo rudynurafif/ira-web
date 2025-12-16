@@ -18,6 +18,7 @@ import empty from "@/public/assets/Images/Empty.svg";
 import toast from "react-hot-toast";
 import DatePickerFilter from "@/app/_components/form/DatePickerFilter";
 import HistorySection from "./HistorySection";
+import thumbClick from "@/public/assets/Icons/thumb-click.png";
 
 const PAGE_SIZE = 5;
 
@@ -219,10 +220,11 @@ const PackageAndHistory = () => {
           >
             Beli Lagi
             <Image
-              src="/assets/icons/thumb-click.png"
-              alt="button-beli-lagi-home"
+              src={thumbClick}
+              alt="button-beli-lagi-home-mobile"
               width={24}
               height={24}
+              unoptimized
             />
           </button>
 
@@ -230,7 +232,7 @@ const PackageAndHistory = () => {
             <div
               className="absolute top-0 h-full"
               style={{
-                width: "120px", 
+                width: "120px",
                 background:
                   "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
                 transform: "skew(-20deg)",
