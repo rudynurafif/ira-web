@@ -1,3 +1,4 @@
+import { Level } from "@/app/(routes)/activation/_components/SignalChecking";
 import { jwtDecode } from "jwt-decode";
 import moment from "moment";
 import toast from "react-hot-toast";
@@ -258,4 +259,36 @@ export function formatNamaWilayah(nama: string): string {
 
 export const maskPassword = (password: string) => {
   return "*".repeat(password.length);
+};
+
+export const getSignalLevel = (
+  rsrp?: number,
+  rsrq?: number,
+  sinr?: number
+): "good" | "poor" | "bad" | "disconnected" => {
+  if (rsrp == null || rsrq == null || sinr == null) {
+    return "disconnected";
+  }
+
+  // Prioritaskan RSRP sebagai penentu utama
+  if (rsrp >= -85) return "good";
+  if (rsrp >= -100) return "poor";
+  if (rsrp >= -115) return "bad";
+  return "disconnected";
+};
+
+export const mapSignalToLevel = (
+  rsrp: number | null,
+  rsrq: number | null,
+  sinr: number | null
+): Level => {
+  if (rsrp === null || rsrq === null || sinr === null) return 0;
+
+  // Sesuaikan dengan rentang kualitas sinyal LTE
+  if (rsrp >= -85) return 5; // Excellent
+  if (rsrp >= -90) return 4; // Good
+  if (rsrp >= -95) return 3; // Fair
+  if (rsrp >= -100) return 2; // Poor
+  if (rsrp >= -110) return 1; // Bad
+  return 0; // No signal
 };

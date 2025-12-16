@@ -7,41 +7,40 @@ import badSignal from "@/public/assets/Icons/bad-signal.svg";
 import disconnected from "@/public/assets/Icons/disconnected-signal.svg";
 import { FaRegEdit } from "react-icons/fa";
 import EditSSIDModal from "./Modal/EditSSIDModal";
-import { maskPassword } from "@/app/_shared/utils";
+import { getSignalLevel, maskPassword } from "@/app/_shared/utils";
+import { getSignal } from "@/app/_api/CoreNetwork/CoreNetwork";
+import { listConnectedDevices } from "@/app/_shared/data/data";
 
 type SignalLevel = "good" | "poor" | "bad" | "disconnected";
 
 interface SignalStatusProps {
-  level: SignalLevel;
+  rsrp: number | null;
+  rsrq: number | null;
+  sinr: number | null;
+  level: "good" | "poor" | "bad" | "disconnected";
   onCheckSignal: () => void;
+  isLoading: boolean;
 }
 
 const SignalStatus: React.FC<SignalStatusProps> = ({
+  rsrp,
+  rsrq,
+  sinr,
   level,
   onCheckSignal,
+  isLoading,
 }) => {
-  const config: Record<
-    SignalLevel,
-    { icon: any; statusText: string; internetText: string }
-  > = {
+  const config = {
     good: {
       icon: goodSignal,
-      statusText: "Good",
+      statusText: "Excellent",
       internetText: "Connected",
     },
-    poor: {
-      icon: poorSignal,
-      statusText: "Poor",
-      internetText: "Connected",
-    },
-    bad: {
-      icon: badSignal,
-      statusText: "Bad",
-      internetText: "Connected",
-    },
+    poor: { icon: poorSignal, statusText: "Poor", internetText: "Connected" },
+    bad: { icon: badSignal, statusText: "Bad", internetText: "Connected" },
     disconnected: {
       icon: disconnected,
-      statusText: "Loss",
+      statusText: "No Signal",
       internetText: "Disconnected",
     },
   };
@@ -49,9 +48,7 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
   const { icon, statusText, internetText } = config[level];
 
   return (
-    <div
-      className={`flex flex-col gap-6 bg-linear-to-b from-white via-white to-[#FFDCDC] rounded-xl shadow-lg p-6 max-sm:p-4`}
-    >
+    <div className="flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 max-sm:p-4 border border-gray-200">
       <div className="flex items-center gap-6">
         <div className="w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center">
           <Image
@@ -62,64 +59,128 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
           />
         </div>
         <div className="flex flex-col">
-          <p>Status Sinyal: {statusText}</p>
+          <p className="font-medium">
+            Status Sinyal: <span className="font-bold">{statusText}</span>
+          </p>
           <p>Status Internet: {internetText}</p>
         </div>
       </div>
 
+      {/* Tampilkan metrik sinyal (opsional tapi sangat berguna) */}
+      {rsrp !== null && (
+        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
+          <div className="text-center">
+            <div className="font-bold text-primary">{rsrp} dBm</div>
+            <div>RSRP</div>
+          </div>
+          <div className="text-center">
+            <div className="font-bold text-primary">{rsrq} dB</div>
+            <div>RSRQ</div>
+          </div>
+          <div className="text-center">
+            <div className="font-bold text-primary">{sinr} dB</div>
+            <div>SINR</div>
+          </div>
+        </div>
+      )}
+
       <button
         onClick={onCheckSignal}
-        className="py-2 cursor-pointer text-center w-full rounded-lg bg-primary hover:bg-dark-primary-2 text-white"
+        disabled={isLoading}
+        className={`py-2 w-full cursor-pointer rounded-lg font-medium text-white transition ${
+          isLoading
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-primary hover:bg-dark-primary-2"
+        }`}
       >
-        Cek Sinyal
+        {isLoading ? "Memuat..." : "Cek Sinyal"}
       </button>
     </div>
   );
 };
 
 const DeviceInformation = () => {
-  const signalLevels = ["good", "poor", "bad", "disconnected"] as const;
-  type SignalLevel = (typeof signalLevels)[number];
+  const [signalData, setSignalData] = useState<{
+    rsrp: number | null;
+    rsrq: number | null;
+    sinr: number | null;
+    level: "good" | "poor" | "bad" | "disconnected";
+  }>({
+    rsrp: null,
+    rsrq: null,
+    sinr: null,
+    level: "disconnected",
+  });
 
-  const [signalLevel, setSignalLevel] = useState<SignalLevel>("good");
-
-  const generateRandomSignal = () => {
-    const randomIndex = Math.floor(Math.random() * signalLevels.length);
-    setSignalLevel(signalLevels[randomIndex]);
-  };
+  const [connectedDevices, setConnectedDevices] =
+    useState(listConnectedDevices);
+  const [isLoadingSignal, setIsLoadingSignal] = useState(true);
+  const [serialNumber, setSerialNumber] = useState<string | null>(null);
 
   useEffect(() => {
-    generateRandomSignal();
+    const sn =
+      localStorage.getItem("device-serial-number") || "T100000000000001";
+
+    if (sn) {
+      setSerialNumber(sn);
+      fetchSignal(sn);
+    } else {
+      setIsLoadingSignal(false);
+    }
   }, []);
 
-  const data = [
-    {
-      id: 1,
-      name: "Iphone 16",
-      ip: "192.168.1.23",
-      mac: "80:ab:2c:19:aa:12",
-      lastSeen: "1:30:25 PM",
-      isBlocked: false,
-    },
-    {
-      id: 2,
-      name: "Samsung S25 Ultra",
-      ip: "192.168.1.44",
-      mac: "90:ab:2c:19:aa:12",
-      lastSeen: "1:23:34 PM",
-      isBlocked: true,
-    },
-    {
-      id: 3,
-      name: "Macbook Pro",
-      ip: "192.168.1.51",
-      mac: "32:ab:2c:19:aa:12",
-      lastSeen: "2:34:09 PM",
-      isBlocked: false,
-    },
-  ];
+  const fetchSignal = async (sn: string) => {
+    setIsLoadingSignal(true);
+    try {
+      const res = await getSignal({ sn });
+      const data = res.data?.data;
+      const signalData = JSON.parse(
+        sessionStorage.getItem("SignalData") || "{}"
+      );
+      console.log("signal data", signalData);
 
-  const [connectedDevices, setConnectedDevices] = useState(data);
+      if (data) {
+        console.log("masuk");
+        const level = getSignalLevel(
+          signalData.rsrp,
+          signalData.rsrq,
+          signalData.sinr
+        );
+        // setSignalData({
+        //   rsrp: data.rsrp,
+        //   rsrq: data.rsrq,
+        //   sinr: data.sinr,
+        //   level,
+        // });
+        setSignalData({
+          rsrp: signalData.rsrp,
+          rsrq: signalData.rsrq,
+          sinr: signalData.sinr,
+          level,
+        });
+      } else {
+        setSignalData({
+          rsrp: null,
+          rsrq: null,
+          sinr: null,
+          level: "disconnected",
+        });
+      }
+    } catch (err) {
+      setSignalData({
+        rsrp: null,
+        rsrq: null,
+        sinr: null,
+        level: "disconnected",
+      });
+    } finally {
+      setIsLoadingSignal(false);
+    }
+  };
+
+  const handleCheckSignal = () => {
+    if (serialNumber) fetchSignal(serialNumber);
+  };
 
   const toggleBlockDevice = (deviceId: number) => {
     setConnectedDevices((prev) =>
@@ -172,8 +233,12 @@ const DeviceInformation = () => {
     <div className="flex md:w-full flex-col md:grid md:grid-cols-3 md:gap-6 items-start">
       <div className="md:col-span-1 w-full space-y-6 max-md:mb-6">
         <SignalStatus
-          level={signalLevel}
-          onCheckSignal={generateRandomSignal}
+          rsrp={signalData.rsrp}
+          rsrq={signalData.rsrq}
+          sinr={signalData.sinr}
+          level={signalData.level}
+          onCheckSignal={handleCheckSignal}
+          isLoading={isLoadingSignal}
         />
       </div>
 
