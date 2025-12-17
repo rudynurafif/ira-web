@@ -21,6 +21,8 @@ import ErrorFallback from "@/app/_components/ErrorFallback";
 import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
 import petir from "@/public/assets/Icons/petir.svg";
 import BannerLatest from "./_components/BannerLatest";
+import bannerPerpanjang from "@/public/assets/Images/banner-perpanjang-paket.png";
+import bannerPerpanjangMobile from "@/public/assets/Images/banner-perpanjangan-paket-mobile.png";
 
 function PackageCardMobile({
   pkg,
@@ -227,8 +229,17 @@ const Payment = () => {
         </div>
       </div>
 
-      {/* Banner Goes Here */}
-      <BannerLatest />
+      {/* <BannerLatest /> */}
+      <Image
+        src={bannerPerpanjang}
+        alt="banner-perpanjang-paket"
+        className="lg:block hidden w-full drop-shadow-xl mb-8"
+      />
+      <Image
+        src={bannerPerpanjangMobile}
+        alt="banner-perpanjang-paket"
+        className="lg:hidden block w-full drop-shadow-xl mb-8"
+      />
 
       <div className="sm:p-6 sm:shadow-lg my-8 rounded-lg">
         <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
@@ -268,10 +279,8 @@ const Payment = () => {
               {selectedChannel ? (
                 <Image
                   src={PAYMENT_LOGOS[selectedChannel.code] || ccSvg}
-                  width={100}
-                  height={100}
                   alt={selectedChannel.name}
-                  className="object-contain"
+                  className="w-full object-contain"
                 />
               ) : (
                 <Image

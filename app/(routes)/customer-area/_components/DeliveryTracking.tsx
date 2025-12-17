@@ -152,6 +152,7 @@ const DeliveryTracking = ({
           className={`bg-button hover:bg-dark-primary-2 cursor-pointer max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
         >
           Aktivasi Perangkat
+          {/* Masukkan informasi kapan diterima */}
         </button>
       ) : (
         <div className="flex-col max-sm:w-full text-end max-lg:text-center">

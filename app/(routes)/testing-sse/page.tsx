@@ -28,10 +28,13 @@ export default function TimeStream() {
   }, [token]);
 
   /* ================= REFS ================= */
-  const esRef = useRef<EventSourcePolyfill | null>(null);
-  const mountedOnceRef = useRef(false); // 🔥 StrictMode guard
+  const esRef = useRef<EventSource | null>(null);
+  const mountedOnceRef = useRef(false);
   const retryRef = useRef(0);
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const BASE_URL_SSE = process.env.NEXT_PUBLIC_API_URL_SSE_ZHAFIR;
+  const BASE_URL_WEBHOOK = process.env.NEXT_PUBLIC_API_URL_WEBHOOK_ZHAFIR;
 
   /* ================= SSE ================= */
   const connectSSE = (customerId: string) => {
@@ -40,16 +43,11 @@ export default function TimeStream() {
       return;
     }
 
-    const url = `https://g12qjjr8-4000.asse.devtunnels.ms/sse/events?clientName=${customerId}-web&replace=true`;
+    const url = `${BASE_URL_SSE}/sse/events?clientName=${customerId}-web&replace=true`;
 
     console.log("🔌 Connecting SSE:", url);
 
-    const es = new EventSourcePolyfill(url, {
-      headers: {
-        "x-sse-token": token1,
-      },
-      heartbeatTimeout: 60_000, // penting biar gak silent close
-    });
+    const es = new EventSource(url);
 
     esRef.current = es;
 
@@ -140,7 +138,7 @@ export default function TimeStream() {
     return () => {
       // ❗ Jangan close di dev StrictMode
       if (process.env.NODE_ENV === "production") {
-        cleanupSSE();
+        // cleanupSSE();
       }
     };
   }, [decodedToken?.customer_id]);
@@ -152,7 +150,7 @@ export default function TimeStream() {
 
     setIsSending(true);
     try {
-      await fetch("https://g12qjjr8-4001.asse.devtunnels.ms/webhook", {
+      await fetch(`${BASE_URL_WEBHOOK}/webhook`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

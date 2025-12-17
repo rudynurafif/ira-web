@@ -20,7 +20,7 @@ type SSEContextType = {
 };
 
 const SSEContext = createContext<SSEContextType | null>(null);
-const BASE_URL_SSE = process.env.NEXT_PUBLIC_API_URL_SSE;
+const BASE_URL_SSE = process.env.NEXT_PUBLIC_API_URL_SSE_ZHAFIR;
 
 export const useSSE = () => {
   const context = useContext(SSEContext);
@@ -31,7 +31,6 @@ export const useSSE = () => {
 export function SSEProvider({ children }: { children: React.ReactNode }) {
   const [serverTime, setServerTime] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<string[]>([]);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
   const token = getCookie("token-ira");
   const decodedToken = useMemo(() => {
@@ -39,53 +38,40 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     return decodeJwt(token as string) as DecodedToken | null;
   }, [token]);
 
-  // Ambil token dan buat SSE saat mount
+  // Subscribe SSE on mount
   useEffect(() => {
-    // sendMessage("");
-
     if (!decodedToken?.customer_id) return;
 
-    // const es = new EventSource(
-    //   `${BASE_URL_SSE}/sse/events?clientName=${encodeURIComponent(
-    //     decodedToken.customer_id
-    //   )}-web&replace=true`
-    // );
-    const es = new EventSource(
-      `${BASE_URL_SSE}/sse/events?clientName=${encodeURIComponent(
-        decodedToken.customer_id
-      )}-web&replace=true`
-    );
+    let es: EventSource | null = null;
+    let retryTimeout: NodeJS.Timeout;
 
-    es.onmessage = (event) => {
-      try {
+    const connect = () => {
+      es = new EventSource(
+        `${BASE_URL_SSE}/sse/events?clientName=${encodeURIComponent(
+          decodedToken.customer_id
+        )}-web&replace=true`
+      );
+
+      es.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data) {
-          sessionStorage.setItem("SignalData", JSON.stringify(data));
-        }
         if (data.time) setServerTime(data.time);
         if (data.message) {
           setChatMessages((prev) => [...prev, `Bot: ${data.message}`]);
         }
-      } catch (e) {
-        console.error("SSE parse error", e);
-      }
+      };
+
+      es.onerror = () => {
+        es?.close();
+        retryTimeout = setTimeout(connect, 3000);
+      };
     };
 
-    es.onerror = (err) => {
-      console.error("SSE error", err);
+    connect();
+
+    return () => {
+      es?.close();
+      clearTimeout(retryTimeout);
     };
-
-    setEventSource(es);
-
-    // Clean up saat tab ditutup
-    // const cleanup = () => {
-    //   es.close();
-    // };
-    // window.addEventListener("beforeunload", cleanup);
-    // return () => {
-    //   window.removeEventListener("beforeunload", cleanup);
-    //   es.close();
-    // };
   }, [decodedToken?.customer_id]);
 
   const sendMessage = async (message: string) => {

@@ -785,7 +785,7 @@ function Page() {
               name="rt"
               value={formData.rt}
               onChange={(value: string) => {
-                if (/^\d{0,4}$/.test(value)) {
+                if (/^\d{0,3}$/.test(value)) {
                   setFormData((prevData: any) => ({
                     ...prevData,
                     rt: value,
