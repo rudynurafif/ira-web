@@ -102,7 +102,7 @@ const PackageAndHistory = () => {
             alt="gambar-latest"
             width={140}
             height={152}
-            unoptimized
+            // unoptimized
           />
 
           {/* Kode Kartu Paket Di Sini */}
@@ -224,7 +224,7 @@ const PackageAndHistory = () => {
               alt="button-beli-lagi-home-mobile"
               width={24}
               height={24}
-              unoptimized
+              // unoptimized
             />
           </button>
 

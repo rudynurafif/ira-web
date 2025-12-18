@@ -27,3 +27,30 @@ export const Callback = async (body: any) => {
     throw error;
   }
 };
+
+export const getSSID = async (params: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/core-network/get-ssid",
+      method: "GET",
+      params: params,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getDetailCPE = async () => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/cpe/detail",
+      method: "GET",
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

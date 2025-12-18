@@ -1,103 +1,22 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
-import goodSignal from "@/public/assets/Icons/good-signal.svg";
-import poorSignal from "@/public/assets/Icons/poor-signal.svg";
-import badSignal from "@/public/assets/Icons/bad-signal.svg";
-import disconnected from "@/public/assets/Icons/disconnected-signal.svg";
 import { FaRegEdit } from "react-icons/fa";
 import EditSSIDModal from "./Modal/EditSSIDModal";
-import { getSignalLevel, maskPassword } from "@/app/_shared/utils";
-import { getSignal } from "@/app/_api/CoreNetwork/CoreNetwork";
+import {
+  getSignalLevel,
+  maskPassword,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
+import {
+  getDetailCPE,
+  getSignal,
+  getSSID,
+} from "@/app/_api/CoreNetwork/CoreNetwork";
 import { listConnectedDevices } from "@/app/_shared/data/data";
-
-type SignalLevel = "good" | "poor" | "bad" | "disconnected";
-
-interface SignalStatusProps {
-  rsrp: number | null;
-  rsrq: number | null;
-  sinr: number | null;
-  level: "good" | "poor" | "bad" | "disconnected";
-  onCheckSignal: () => void;
-  isLoading: boolean;
-}
-
-const SignalStatus: React.FC<SignalStatusProps> = ({
-  rsrp,
-  rsrq,
-  sinr,
-  level,
-  onCheckSignal,
-  isLoading,
-}) => {
-  const config = {
-    good: {
-      icon: goodSignal,
-      statusText: "Excellent",
-      internetText: "Connected",
-    },
-    poor: { icon: poorSignal, statusText: "Poor", internetText: "Connected" },
-    bad: { icon: badSignal, statusText: "Bad", internetText: "Connected" },
-    disconnected: {
-      icon: disconnected,
-      statusText: "No Signal",
-      internetText: "Disconnected",
-    },
-  };
-
-  const { icon, statusText, internetText } = config[level];
-
-  return (
-    <div className="flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 max-sm:p-4 border border-gray-200">
-      <div className="flex items-center gap-6">
-        <div className="w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center">
-          <Image
-            src={icon}
-            alt={`${level} signal icon`}
-            width={28}
-            height={28}
-          />
-        </div>
-        <div className="flex flex-col">
-          <p className="font-medium">
-            Status Sinyal: <span className="font-bold">{statusText}</span>
-          </p>
-          <p>Status Internet: {internetText}</p>
-        </div>
-      </div>
-
-      {/* Tampilkan metrik sinyal (opsional tapi sangat berguna) */}
-      {rsrp !== null && (
-        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
-          <div className="text-center">
-            <div className="font-bold text-primary">{rsrp} dBm</div>
-            <div>RSRP</div>
-          </div>
-          <div className="text-center">
-            <div className="font-bold text-primary">{rsrq} dB</div>
-            <div>RSRQ</div>
-          </div>
-          <div className="text-center">
-            <div className="font-bold text-primary">{sinr} dB</div>
-            <div>SINR</div>
-          </div>
-        </div>
-      )}
-
-      <button
-        onClick={onCheckSignal}
-        disabled={isLoading}
-        className={`py-2 w-full cursor-pointer rounded-lg font-medium text-white transition ${
-          isLoading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-primary hover:bg-dark-primary-2"
-        }`}
-      >
-        {isLoading ? "Memuat..." : "Cek Sinyal"}
-      </button>
-    </div>
-  );
-};
+import { CpeSimBinding } from "@/app/_shared/types/CoreNetwork";
+import { useSSE } from "@/app/_context/SSEContext";
+import SignalStatus from "./SignalStatus";
 
 const DeviceInformation = () => {
   const [signalData, setSignalData] = useState<{
@@ -116,6 +35,51 @@ const DeviceInformation = () => {
     useState(listConnectedDevices);
   const [isLoadingSignal, setIsLoadingSignal] = useState(true);
   const [serialNumber, setSerialNumber] = useState<string | null>(null);
+  const [cpeDetail, setCpeDetail] = useState<CpeSimBinding | null>(null);
+  const { lastEvent } = useSSE();
+
+  const fetchCPEDetail = async () => {
+    try {
+      const resCPE = await getDetailCPE();
+
+      if (resCPE) setCpeDetail(resCPE?.data?.data ?? {});
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+    } finally {
+    }
+  };
+
+  const sn = localStorage.getItem("device-serial-number") || "T100000000000001";
+
+  const fetchSSID = async () => {
+    try {
+      console.log("masuk SSE");
+      let params;
+
+      if (cpeDetail) {
+        params = {
+          sn: cpeDetail?.cpe_id?.serial_number,
+        };
+      }
+
+      console.log("SN:", params);
+      if (params) {
+        const resSSID = await getSSID({ sn });
+        console.log(resSSID.data);
+      }
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+    } finally {
+    }
+  };
+
+  useEffect(() => {
+    fetchCPEDetail();
+
+    // if (!cpeDetail?.cpe_id?.ssid) fetchSSID();
+    if (!lastEvent || lastEvent.type !== "get_wifi") fetchSSID();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cpeDetail?.cpe_id?.ssid]);
 
   useEffect(() => {
     const sn =
@@ -140,18 +104,12 @@ const DeviceInformation = () => {
       console.log("signal data", signalData);
 
       if (data) {
-        console.log("masuk");
+        console.log("masuk get signal");
         const level = getSignalLevel(
           signalData.rsrp,
           signalData.rsrq,
           signalData.sinr
         );
-        // setSignalData({
-        //   rsrp: data.rsrp,
-        //   rsrq: data.rsrq,
-        //   sinr: data.sinr,
-        //   level,
-        // });
         setSignalData({
           rsrp: signalData.rsrp,
           rsrq: signalData.rsrq,
@@ -249,15 +207,19 @@ const DeviceInformation = () => {
             <div className="text-sm sm:text-base">
               <div className="flex gap-2">
                 <p className="min-w-[120px]">Brand:</p>
-                <p className="">Brand A</p>
+                <p className="">
+                  {cpeDetail?.cpe_id.cpe_brand_model_id.name ?? "-"}
+                </p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">Tipe Model:</p>
-                <p className="">Model A</p>
+                <p className="">
+                  {cpeDetail?.cpe_id.cpe_brand_model_id.model ?? "-"}
+                </p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">Firmware:</p>
-                <p className="">Firmware 123</p>
+                <p className="">-</p>
               </div>
             </div>
           </div>
@@ -272,11 +234,19 @@ const DeviceInformation = () => {
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">SSID:</p>
-                <p className="">{ssidData["2.4 Ghz"].ssid}</p>
+                <p className="">
+                  {cpeDetail?.cpe_id?.ssid ?? lastEvent?.data?.ssid ?? "-"}
+                </p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">Kata Sandi:</p>
-                <p className="">{maskPassword(ssidData["2.4 Ghz"].password)}</p>
+                <p className="">
+                  {maskPassword(
+                    cpeDetail?.cpe_id?.password ??
+                      lastEvent?.data?.password ??
+                      "-"
+                  )}
+                </p>
               </div>
               <button
                 onClick={() => openEditModal("2.4 Ghz")}
@@ -291,11 +261,19 @@ const DeviceInformation = () => {
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">SSID:</p>
-                <p className="">{ssidData["5 Ghz"].ssid}</p>
+                <p className="">
+                  {cpeDetail?.cpe_id?.ssid5 ?? lastEvent?.data?.ssid5 ?? "-"}
+                </p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">Kata Sandi:</p>
-                <p className="">{maskPassword(ssidData["5 Ghz"].password)}</p>
+                <p className="">
+                  {maskPassword(
+                    cpeDetail?.cpe_id?.password5 ??
+                      lastEvent?.data?.password5 ??
+                      "-"
+                  )}
+                </p>
               </div>
               <button
                 onClick={() => openEditModal("5 Ghz")}

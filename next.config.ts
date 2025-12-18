@@ -1,11 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
-    domains: [
-      "ui-avatars.com",
-      "codify-fwa.obs.ap-southeast-4.myhuaweicloud.com",
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "codify-fwa.obs.ap-southeast-4.myhuaweicloud.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "ui-avatars.com",
+        pathname: "/**",
+      },
     ],
   },
 
