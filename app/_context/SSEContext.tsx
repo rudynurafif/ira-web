@@ -20,7 +20,7 @@ type SSEContextType = {
 };
 
 const SSEContext = createContext<SSEContextType | null>(null);
-const BASE_URL_SSE = process.env.NEXT_PUBLIC_API_URL_SSE_ZHAFIR;
+const BASE_URL_SSE = process.env.NEXT_PUBLIC_API_URL_SSE;
 
 export const useSSE = () => {
   const context = useContext(SSEContext);
@@ -39,40 +39,40 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   // Subscribe SSE on mount
-  useEffect(() => {
-    if (!decodedToken?.customer_id) return;
+  // useEffect(() => {
+  //   if (!decodedToken?.customer_id) return;
 
-    let es: EventSource | null = null;
-    let retryTimeout: NodeJS.Timeout;
+  //   let es: EventSource | null = null;
+  //   let retryTimeout: NodeJS.Timeout;
 
-    const connect = () => {
-      es = new EventSource(
-        `${BASE_URL_SSE}/sse/events?clientName=${encodeURIComponent(
-          decodedToken.customer_id
-        )}-web&replace=true`
-      );
+  //   const connect = () => {
+  //     es = new EventSource(
+  //       `${BASE_URL_SSE}/sse/events?clientName=${encodeURIComponent(
+  //         decodedToken.customer_id
+  //       )}-web&replace=true`
+  //     );
 
-      es.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.time) setServerTime(data.time);
-        if (data.message) {
-          setChatMessages((prev) => [...prev, `Bot: ${data.message}`]);
-        }
-      };
+  //     es.onmessage = (event) => {
+  //       const data = JSON.parse(event.data);
+  //       if (data.time) setServerTime(data.time);
+  //       if (data.message) {
+  //         setChatMessages((prev) => [...prev, `Bot: ${data.message}`]);
+  //       }
+  //     };
 
-      es.onerror = () => {
-        es?.close();
-        retryTimeout = setTimeout(connect, 3000);
-      };
-    };
+  //     es.onerror = () => {
+  //       es?.close();
+  //       retryTimeout = setTimeout(connect, 1000);
+  //     };
+  //   };
 
-    connect();
+  //   connect();
 
-    return () => {
-      es?.close();
-      clearTimeout(retryTimeout);
-    };
-  }, [decodedToken?.customer_id]);
+  //   return () => {
+  //     es?.close();
+  //     clearTimeout(retryTimeout);
+  //   };
+  // }, [decodedToken?.customer_id]);
 
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;

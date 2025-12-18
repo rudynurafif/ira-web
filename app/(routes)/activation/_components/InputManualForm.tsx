@@ -66,12 +66,24 @@ function InputManualForm() {
       }
     } catch (error: any) {
       setOpenModalFailed(true);
-      if (
-        error?.response?.data?.statusCode === 404 ||
-        error?.response?.data?.statusCode === 400
-      )
-        setIsSNNotFound(true);
-      if (error?.response?.data?.statusCode === 409) setIsSNUsed(true);
+
+      const statusCode = error?.response?.data?.statusCode;
+
+      switch (statusCode) {
+        case 409:
+          console.log("masuk yang pertama");
+          setIsSNUsed(true);
+          break;
+        case 404:
+        case 400:
+          console.log("masuk yang kedua");
+          setIsSNNotFound(true);
+          break;
+        default:
+          console.log("masuk default");
+          setIsSNNotFound(true);
+          break;
+      }
 
       setErrors({
         serial_number:
@@ -142,7 +154,11 @@ function InputManualForm() {
 
       {openModalFailed && (
         <ModalTemplate
-          closeModal={() => setOpenModalFailed(false)}
+          closeModal={() => {
+            setOpenModalFailed(false);
+            setIsSNNotFound(false);
+            setIsSNUsed(false);
+          }}
           classNameModal="p-6 max-w-lg w-full mx-4 text-center"
         >
           {/* Modal Content */}
