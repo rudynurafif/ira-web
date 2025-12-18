@@ -15,8 +15,6 @@ export default function TimeStream() {
   const [chatHistory, setChatHistory] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
 
-  const lastEventAtRef = useRef<number>(Date.now());
-  const heartbeatTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   /* ================= AUTH ================= */
   const token = getCookie("token-ira");
@@ -27,123 +25,8 @@ export default function TimeStream() {
     return decodeJwt(token as string) as DecodedToken;
   }, [token]);
 
-  /* ================= REFS ================= */
-  const esRef = useRef<EventSource | null>(null);
-  const mountedOnceRef = useRef(false);
-  const retryRef = useRef(0);
-  const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const BASE_URL_SSE = process.env.NEXT_PUBLIC_API_URL_SSE_ZHAFIR;
   const BASE_URL_WEBHOOK = process.env.NEXT_PUBLIC_API_URL_WEBHOOK_ZHAFIR;
 
-  /* ================= SSE ================= */
-  const connectSSE = (customerId: string) => {
-    if (esRef.current) {
-      console.log("🟡 SSE already connected");
-      return;
-    }
-
-    const url = `${BASE_URL_SSE}/sse/events?clientName=${customerId}-web&replace=true`;
-
-    console.log("🔌 Connecting SSE:", url);
-
-    const es = new EventSource(url);
-
-    esRef.current = es;
-
-    es.onopen = () => {
-      console.log("✅ SSE CONNECTED");
-      retryRef.current = 0;
-      lastEventAtRef.current = Date.now();
-      startHeartbeatWatch(customerId);
-    };
-
-    es.onmessage = (e) => {
-      lastEventAtRef.current = Date.now();
-
-      try {
-        const payload = JSON.parse(e.data);
-        setTime(payload.time);
-      } catch (err) {
-        console.warn("Invalid SSE payload", e.data);
-      }
-    };
-
-    es.onerror = (err) => {
-      console.warn("❌ SSE ERROR", err);
-      cleanupSSE();
-      scheduleReconnect(customerId);
-    };
-  };
-
-  /* ================= RECONNECT ================= */
-  const scheduleReconnect = (customerId: string) => {
-    if (reconnectTimerRef.current) return;
-
-    retryRef.current += 1;
-    const delay = Math.min(1000 * 2 ** retryRef.current, 30000);
-
-    console.log(`🔁 Reconnect SSE in ${delay}ms`);
-
-    reconnectTimerRef.current = setTimeout(() => {
-      reconnectTimerRef.current = null;
-      connectSSE(customerId);
-    }, delay);
-  };
-
-  const startHeartbeatWatch = (customerId: string) => {
-    stopHeartbeatWatch();
-
-    heartbeatTimerRef.current = setInterval(() => {
-      const diff = Date.now() - lastEventAtRef.current;
-
-      if (diff > 90_000) {
-        // 90 detik tanpa data
-        console.warn("💔 SSE heartbeat lost");
-
-        cleanupSSE();
-        scheduleReconnect(customerId);
-      }
-    }, 30_000);
-  };
-
-  const stopHeartbeatWatch = () => {
-    if (heartbeatTimerRef.current) {
-      clearInterval(heartbeatTimerRef.current);
-      heartbeatTimerRef.current = null;
-    }
-  };
-
-  /* ================= CLEANUP ================= */
-  const cleanupSSE = () => {
-    stopHeartbeatWatch();
-
-    if (esRef.current) {
-      console.log("🧹 Closing SSE");
-      esRef.current.close();
-      esRef.current = null;
-    }
-  };
-
-  /* ================= EFFECT ================= */
-  useEffect(() => {
-    if (!decodedToken?.customer_id) return;
-
-    // 🔥 STRICT MODE GUARD (INI KUNCI UTAMA)
-    if (mountedOnceRef.current) return;
-    mountedOnceRef.current = true;
-
-    connectSSE(decodedToken.customer_id);
-
-    return () => {
-      // ❗ Jangan close di dev StrictMode
-      if (process.env.NODE_ENV === "production") {
-        // cleanupSSE();
-      }
-    };
-  }, [decodedToken?.customer_id]);
-
-  /* ================= SEND MESSAGE ================= */
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;

@@ -62,7 +62,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
 
       es.onerror = () => {
         es?.close();
-        retryTimeout = setTimeout(connect, 3000);
+        retryTimeout = setTimeout(connect, 1000);
       };
     };
 

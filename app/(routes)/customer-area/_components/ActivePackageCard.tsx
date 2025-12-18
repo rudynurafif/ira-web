@@ -62,7 +62,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               color="#008E19"
             />
             <p className="sm:text-sm text-xs font-bold text-green-3">
-              Selamat paket {data.package_id.name ?? "-"} baru kamu sudah aktif!
+              Selamat {data.package_id.name ?? "-"} baru kamu sudah aktif!
             </p>
             <p className="sm:text-sm text-xs mt-1">
               Nikmati Kuota Unlimited dan koneksi stabil selama{" "}
