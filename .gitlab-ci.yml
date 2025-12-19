@@ -76,7 +76,7 @@ devel-job:       # This job runs in the build stage, which runs first.
         docker compose -f COMPOSE_FILE up -d --build $COMPOSE_SRV; \
         docker builder prune -a -f; \
         echo 'Development - Docker Deployment Completed.'; \
-      fi"
+      "
   artifacts:
     paths:
       - build/
@@ -128,7 +128,7 @@ staging-job:       # This job runs in the build stage, which runs first.
         docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
         docker builder prune -a -f; \
         echo 'Development - Docker Deployment Completed.'; \
-      fi"
+      "
   artifacts:
     paths:
       - build/
