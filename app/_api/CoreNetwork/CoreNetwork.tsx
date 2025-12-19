@@ -5,7 +5,7 @@ export const getSignal = async (params: any) => {
     const data = await FwaAxios({
       url: "/app/core-network/get-signal",
       method: "GET",
-      params: params, // ?sn=xxx
+      params: params, 
     });
 
     return data;

@@ -53,7 +53,6 @@ const DeviceInformation = () => {
 
   const fetchSSID = async () => {
     try {
-      console.log("masuk SSE");
       let params;
 
       if (cpeDetail) {
@@ -62,10 +61,9 @@ const DeviceInformation = () => {
         };
       }
 
-      console.log("SN:", params);
       if (params) {
+        console.log("SN:", params);
         const resSSID = await getSSID({ sn });
-        console.log(resSSID.data);
       }
     } catch (err: any) {
       toastErrorFromAPI(err);
@@ -208,13 +206,13 @@ const DeviceInformation = () => {
               <div className="flex gap-2">
                 <p className="min-w-[120px]">Brand:</p>
                 <p className="">
-                  {cpeDetail?.cpe_id.cpe_brand_model_id.name ?? "-"}
+                  {cpeDetail?.cpe_id?.cpe_brand_model_id?.name ?? "-"}
                 </p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-[120px]">Tipe Model:</p>
                 <p className="">
-                  {cpeDetail?.cpe_id.cpe_brand_model_id.model ?? "-"}
+                  {cpeDetail?.cpe_id?.cpe_brand_model_id?.model ?? "-"}
                 </p>
               </div>
               <div className="flex gap-2">
