@@ -199,7 +199,7 @@ const DeliveryTracking = ({
               width={256}
               height={256}
               className="w-64 h-64 object-contain"
-              unoptimized
+              // unoptimized
             />
           </div>
 
@@ -290,7 +290,7 @@ const DeliveryTracking = ({
               src={ActivationScan}
               alt="Activation Icon"
               className="sm:w-64 sm:h-64 w-32 h-32 object-contain"
-              unoptimized
+              // unoptimized
             />
           </div>
 

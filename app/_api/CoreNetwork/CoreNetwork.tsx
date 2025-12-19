@@ -5,7 +5,7 @@ export const getSignal = async (params: any) => {
     const data = await FwaAxios({
       url: "/app/core-network/get-signal",
       method: "GET",
-      params: params, // ?sn=xxx
+      params: params, 
     });
 
     return data;
@@ -20,6 +20,33 @@ export const Callback = async (body: any) => {
       url: "/webhook/acs",
       method: "POST",
       data: body,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSSID = async (params: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/core-network/get-ssid",
+      method: "GET",
+      params: params,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getDetailCPE = async () => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/cpe/detail",
+      method: "GET",
     });
 
     return data;

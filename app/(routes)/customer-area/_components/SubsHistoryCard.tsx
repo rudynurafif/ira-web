@@ -34,7 +34,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
         <div className="flex flex-col gap-1">
           <div
             className={`${
-              data.package_id.is_active
+              data?.billing_id[0]?.status === "PAID"
                 ? "text-green-primary"
                 : "text-red-primary"
             }  text-sm max-sm:text-xs font-semibold items-center flex gap-1`}
@@ -55,12 +55,20 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
                 {/* Informasi Pembayaran*/}
                 <div className="flex gap-1 max-sm:text-xs">
                   <Image
-                    src={data.package_id.is_active ? greenCheck : redAlert}
+                    src={
+                      data?.billing_id[0]?.status === "PAID"
+                        ? greenCheck
+                        : redAlert
+                    }
                     className="max-sm:hidden"
                     alt="alert"
                   />
                   <Image
-                    src={data.package_id.is_active ? greenCheck : redAlert}
+                    src={
+                      data?.billing_id[0]?.status === "PAID"
+                        ? greenCheck
+                        : redAlert
+                    }
                     className="sm:hidden"
                     height={12}
                     width={12}
@@ -95,19 +103,21 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           {convertToCurrency(data.package_id.price) ?? "-"}/bulan
         </p>
         {/* {!data.billing_id[0]?.is_free && ( */}
-          <button
-            disabled={isToastCooldown}
-            onClick={handleCoomingSoon}
-            className={`${
-              data.package_id.is_active
-                ? "bg-primary hover:bg-dark-primary-2"
-                : "bg-red-primary hover:bg-dark-primary"
-            } text-white font-medium cursor-pointer whitespace-nowrap px-5 py-2 max-sm:p-2 rounded-lg text-sm max-sm:text-[10px] ${
-              isToastCooldown ? "opacity-70 cursor-not-allowed" : ""
-            }`}
-          >
-            {data.package_id.is_active ? "Unduh Invoice" : "Bayar Invoice"}
-          </button>
+        <button
+          disabled={isToastCooldown}
+          onClick={handleCoomingSoon}
+          className={`${
+            data?.billing_id[0]?.status === "PAID"
+              ? "bg-primary hover:bg-dark-primary-2"
+              : "bg-red-primary hover:bg-dark-primary"
+          } text-white font-medium cursor-pointer whitespace-nowrap px-5 py-2 max-sm:p-2 rounded-lg text-sm max-sm:text-[10px] ${
+            isToastCooldown ? "opacity-70 cursor-not-allowed" : ""
+          }`}
+        >
+          {data?.billing_id[0]?.status === "PAID"
+            ? "Unduh Invoice"
+            : "Bayar Invoice"}
+        </button>
         {/* )} */}
       </div>
     </div>

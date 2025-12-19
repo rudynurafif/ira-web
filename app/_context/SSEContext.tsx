@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { getCookie } from "cookies-next";
 import { decodeJwt } from "@/app/_shared/utils";
+import { EventSourcePolyfill } from "event-source-polyfill";
+import { SSEPayload } from "../_shared/types/CoreNetwork";
 
 type DecodedToken = {
   phone_number: string;
@@ -16,7 +18,7 @@ type DecodedToken = {
 type SSEContextType = {
   serverTime: string | null;
   chatMessages: string[];
-  sendMessage: (msg: string) => Promise<void>;
+  lastEvent: SSEPayload | null;
 };
 
 const SSEContext = createContext<SSEContextType | null>(null);
@@ -31,6 +33,7 @@ export const useSSE = () => {
 export function SSEProvider({ children }: { children: React.ReactNode }) {
   const [serverTime, setServerTime] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<string[]>([]);
+  const [lastEvent, setLastEvent] = useState<SSEPayload | null>(null);
 
   const token = getCookie("token-ira");
   const decodedToken = useMemo(() => {
@@ -39,71 +42,61 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   // Subscribe SSE on mount
-  // useEffect(() => {
-  //   if (!decodedToken?.customer_id) return;
+  useEffect(() => {
+    if (!decodedToken?.customer_id) return;
 
-  //   let es: EventSource | null = null;
-  //   let retryTimeout: NodeJS.Timeout;
+    let es: EventSource | null = null;
+    let retryTimeout: NodeJS.Timeout;
+    let isFirstConnect = true;
 
-  //   const connect = () => {
-  //     es = new EventSource(
-  //       `${BASE_URL_SSE}/sse/events?clientName=${encodeURIComponent(
-  //         decodedToken.customer_id
-  //       )}-web&replace=true`
-  //     );
-
-  //     es.onmessage = (event) => {
-  //       const data = JSON.parse(event.data);
-  //       if (data.time) setServerTime(data.time);
-  //       if (data.message) {
-  //         setChatMessages((prev) => [...prev, `Bot: ${data.message}`]);
-  //       }
-  //     };
-
-  //     es.onerror = () => {
-  //       es?.close();
-  //       retryTimeout = setTimeout(connect, 1000);
-  //     };
-  //   };
-
-  //   connect();
-
-  //   return () => {
-  //     es?.close();
-  //     clearTimeout(retryTimeout);
-  //   };
-  // }, [decodedToken?.customer_id]);
-
-  const sendMessage = async (message: string) => {
-    if (!message.trim()) return;
-
-    try {
-      await fetch(`${BASE_URL_SSE}/webhook`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Connection: "keep-alive",
-        },
-        body: JSON.stringify({
-          type: "activate",
-          sn: "G20250200620",
-          result: 0,
-          message: "Success",
-          data: {
-            cellID: 131,
-            PCI: 1,
+    const connect = () => {
+      es = new EventSourcePolyfill(
+        `${BASE_URL_SSE}/sse/events?clientName=${encodeURIComponent(
+          decodedToken.customer_id
+        )}-web&replace=true`,
+        {
+          headers: {
+            "x-sse-token": "LOCALWEAVE",
           },
-        }),
-      });
+          heartbeatTimeout: 45000,
+        }
+      );
 
-      setChatMessages((prev) => [...prev, `You: ${message}`]);
-    } catch (err) {
-      console.error("Failed to send message", err);
-    }
-  };
+      es.onopen = () => {
+        if (isFirstConnect) {
+          console.log("🟢 [SSE] Connected");
+          isFirstConnect = false;
+        } else {
+          console.log("🔄 [SSE] Reconnected");
+        }
+      };
+
+      es.onmessage = (event) => {
+        const payload: SSEPayload = JSON.parse(event.data);
+        setLastEvent(payload);
+
+        const data = JSON.parse(event.data);
+        console.log(data);
+      };
+
+      es.onerror = () => {
+        console.log("🔴 [SSE] Disconnected, retrying in 3s...");
+        es?.close();
+        retryTimeout = setTimeout(connect, 3000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      console.log("⚪ [SSE] Connection closed (cleanup)");
+      es?.close();
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
+  }, [decodedToken?.customer_id]);
 
   return (
-    <SSEContext.Provider value={{ serverTime, chatMessages, sendMessage }}>
+    <SSEContext.Provider value={{ serverTime, chatMessages, lastEvent }}>
       {children}
     </SSEContext.Provider>
   );
