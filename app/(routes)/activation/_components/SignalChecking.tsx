@@ -96,7 +96,8 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
 
   const router = useRouter();
 
-  const sn = localStorage.getItem("device-serial-number") || "T100000000000001";
+  const sn =
+    localStorage.getItem("ira-cpe-serial-number") || "T100000000000001";
 
   const fetchSignal = async () => {
     setIsScanning(true);

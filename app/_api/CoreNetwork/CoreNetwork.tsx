@@ -1,3 +1,4 @@
+import { SetSSIDBody } from "@/app/_shared/types/CoreNetwork";
 import FwaAxios from "../FwaAxios";
 
 export const getSignal = async (params: any) => {
@@ -5,7 +6,7 @@ export const getSignal = async (params: any) => {
     const data = await FwaAxios({
       url: "/app/core-network/get-signal",
       method: "GET",
-      params: params, 
+      params: params,
     });
 
     return data;
@@ -28,6 +29,19 @@ export const Callback = async (body: any) => {
   }
 };
 
+export const getDetailCPE = async () => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/cpe/detail",
+      method: "GET",
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getSSID = async (params: any) => {
   try {
     const data = await FwaAxios({
@@ -42,11 +56,12 @@ export const getSSID = async (params: any) => {
   }
 };
 
-export const getDetailCPE = async () => {
+export const setSSID = async (body: SetSSIDBody) => {
   try {
     const data = await FwaAxios({
-      url: "/app/cpe/detail",
-      method: "GET",
+      url: "/app/core-network/set-ssid",
+      method: "POST",
+      data: body,
     });
 
     return data;

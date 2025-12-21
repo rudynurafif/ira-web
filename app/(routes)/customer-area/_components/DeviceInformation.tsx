@@ -12,9 +12,10 @@ import {
   getDetailCPE,
   getSignal,
   getSSID,
+  setSSID,
 } from "@/app/_api/CoreNetwork/CoreNetwork";
 import { listConnectedDevices } from "@/app/_shared/data/data";
-import { CpeSimBinding } from "@/app/_shared/types/CoreNetwork";
+import { CpeSimBinding, SetSSIDBody } from "@/app/_shared/types/CoreNetwork";
 import { useSSE } from "@/app/_context/SSEContext";
 import SignalStatus from "./SignalStatus";
 
@@ -36,7 +37,14 @@ const DeviceInformation = () => {
   const [isLoadingSignal, setIsLoadingSignal] = useState(true);
   const [serialNumber, setSerialNumber] = useState<string | null>(null);
   const [cpeDetail, setCpeDetail] = useState<CpeSimBinding | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSSID, setEditingSSID] = useState({
+    type: "2.4 Ghz" as "2.4 Ghz" | "5 Ghz",
+    ssid: "WiFi Rumah",
+    password: "katasandi123",
+  });
   const { lastEvent } = useSSE();
+  const [isSaving, setIsSaving] = useState(false);
 
   const fetchCPEDetail = async () => {
     try {
@@ -49,7 +57,8 @@ const DeviceInformation = () => {
     }
   };
 
-  const sn = localStorage.getItem("device-serial-number") || "T100000000000001";
+  const sn =
+    localStorage.getItem("ira-cpe-serial-number") || "T100000000000001";
 
   const fetchSSID = async () => {
     try {
@@ -73,15 +82,24 @@ const DeviceInformation = () => {
 
   useEffect(() => {
     fetchCPEDetail();
+  }, []);
 
-    // if (!cpeDetail?.cpe_id?.ssid) fetchSSID();
-    if (!lastEvent || lastEvent.type !== "get_wifi") fetchSSID();
+  useEffect(() => {
+    if (!cpeDetail?.cpe_id?.ssid) {
+      fetchSSID();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cpeDetail?.cpe_id?.ssid]);
 
   useEffect(() => {
+    if (lastEvent?.type === "get_wifi") {
+      // Optional: sync UI atau refetch
+    }
+  }, [lastEvent]);
+
+  useEffect(() => {
     const sn =
-      localStorage.getItem("device-serial-number") || "T100000000000001";
+      localStorage.getItem("ira-cpe-serial-number") || "T100000000000001";
 
     if (sn) {
       setSerialNumber(sn);
@@ -96,6 +114,7 @@ const DeviceInformation = () => {
     try {
       const res = await getSignal({ sn });
       const data = res.data?.data;
+      console.log("signal data", data);
       const signalData = JSON.parse(
         sessionStorage.getItem("SignalData") || "{}"
       );
@@ -148,41 +167,83 @@ const DeviceInformation = () => {
     );
   };
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSSID, setEditingSSID] = useState({
-    type: "2.4 Ghz" as "2.4 Ghz" | "5 Ghz",
-    ssid: "WiFi Rumah",
-    password: "katasandi123",
-  });
-  const [ssidData, setSsidData] = useState({
-    "2.4 Ghz": {
-      ssid: "WiFi Rumah",
-      password: "katasandi123",
-    },
-    "5 Ghz": {
-      ssid: "WiFi Rumah",
-      password: "katasandi123",
-    },
-  });
-
   const openEditModal = (type: "2.4 Ghz" | "5 Ghz") => {
-    const current = ssidData[type];
-    setEditingSSID({
-      type,
-      ssid: current.ssid,
-      password: current.password,
-    });
+    if (!cpeDetail?.cpe_id) return;
+
+    if (type === "2.4 Ghz") {
+      setEditingSSID({
+        type,
+        ssid: cpeDetail.cpe_id.ssid || lastEvent?.data?.ssid || "",
+        password: cpeDetail.cpe_id.password || lastEvent?.data?.password || "",
+      });
+    }
+
+    if (type === "5 Ghz") {
+      setEditingSSID({
+        type,
+        ssid: cpeDetail.cpe_id.ssid5 || lastEvent?.data?.ssid5 || "",
+        password:
+          cpeDetail.cpe_id.password5 || lastEvent?.data?.password5 || "",
+      });
+    }
+
     setIsModalOpen(true);
   };
 
-  const handleSaveSSID = (newSSID: string, newPassword: string) => {
-    setSsidData((prev) => ({
-      ...prev,
-      [editingSSID.type]: {
-        ssid: newSSID,
-        password: newPassword,
-      },
-    }));
+  const handleSaveSSID = async (newSSID: string, newPassword: string) => {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    try {
+      const sn =
+        cpeDetail?.cpe_id?.serial_number ||
+        localStorage.getItem("device-serial-number");
+
+      if (!sn) {
+        throw new Error("Serial number tidak ditemukan");
+      }
+
+      let body: SetSSIDBody = { sn };
+
+      if (editingSSID.type === "2.4 Ghz") {
+        body = {
+          ...body,
+          ssid: newSSID,
+          password: newPassword,
+        };
+      }
+
+      if (editingSSID.type === "5 Ghz") {
+        body = {
+          ...body,
+          ssid5: newSSID,
+          password5: newPassword,
+        };
+      }
+
+      await setSSID(body);
+
+      // fallback kalau SSE delay
+      setCpeDetail((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          cpe_id: {
+            ...prev.cpe_id,
+            ...(editingSSID.type === "2.4 Ghz"
+              ? { ssid: newSSID, password: newPassword }
+              : { ssid5: newSSID, password5: newPassword }),
+          },
+        };
+      });
+
+      setIsModalOpen(false);
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -204,19 +265,19 @@ const DeviceInformation = () => {
             <div className="font-bold text-xl mb-2">Ringkasan Perangkat</div>
             <div className="text-sm sm:text-base">
               <div className="flex gap-2">
-                <p className="min-w-[120px]">Brand:</p>
+                <p className="min-w-30">Brand:</p>
                 <p className="">
                   {cpeDetail?.cpe_id?.cpe_brand_model_id?.name ?? "-"}
                 </p>
               </div>
               <div className="flex gap-2">
-                <p className="min-w-[120px]">Tipe Model:</p>
+                <p className="min-w-30">Tipe Model:</p>
                 <p className="">
                   {cpeDetail?.cpe_id?.cpe_brand_model_id?.model ?? "-"}
                 </p>
               </div>
               <div className="flex gap-2">
-                <p className="min-w-[120px]">Firmware:</p>
+                <p className="min-w-30">Firmware:</p>
                 <p className="">-</p>
               </div>
             </div>
@@ -228,16 +289,16 @@ const DeviceInformation = () => {
           <div className="flex flex-col gap-4 md:grid md:grid-cols-2">
             <div className="md:col-span-1 text-sm sm:text-base">
               <div className="flex gap-2">
-                <p className="min-w-[120px] font-bold">SSID 2.4 Ghz</p>
+                <p className="min-w-30 font-bold">SSID 2.4 Ghz</p>
               </div>
               <div className="flex gap-2">
-                <p className="min-w-[120px]">SSID:</p>
+                <p className="min-w-30">SSID:</p>
                 <p className="">
                   {cpeDetail?.cpe_id?.ssid ?? lastEvent?.data?.ssid ?? "-"}
                 </p>
               </div>
               <div className="flex gap-2">
-                <p className="min-w-[120px]">Kata Sandi:</p>
+                <p className="min-w-30">Kata Sandi:</p>
                 <p className="">
                   {maskPassword(
                     cpeDetail?.cpe_id?.password ??
@@ -255,16 +316,16 @@ const DeviceInformation = () => {
             </div>
             <div className="md:col-span-1 text-sm sm:text-base">
               <div className="flex gap-2">
-                <p className="min-w-[120px] font-bold">SSID 5 Ghz</p>
+                <p className="min-w-30 font-bold">SSID 5 Ghz</p>
               </div>
               <div className="flex gap-2">
-                <p className="min-w-[120px]">SSID:</p>
+                <p className="min-w-30">SSID:</p>
                 <p className="">
                   {cpeDetail?.cpe_id?.ssid5 ?? lastEvent?.data?.ssid5 ?? "-"}
                 </p>
               </div>
               <div className="flex gap-2">
-                <p className="min-w-[120px]">Kata Sandi:</p>
+                <p className="min-w-30">Kata Sandi:</p>
                 <p className="">
                   {maskPassword(
                     cpeDetail?.cpe_id?.password5 ??
@@ -298,7 +359,7 @@ const DeviceInformation = () => {
                   <th className="py-2 px-4">IP</th>
                   <th className="py-2 px-4">MAC</th>
                   <th className="py-2 px-4">Last Seen</th>
-                  <th className="py-2 px-4 min-w-[150px]">Action</th>
+                  <th className="py-2 px-4 min-w-37.5">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -374,6 +435,7 @@ const DeviceInformation = () => {
         initialSSID={editingSSID.ssid}
         initialPassword={editingSSID.password}
         onSave={handleSaveSSID}
+        isSaving={isSaving}
       />
     </div>
   );

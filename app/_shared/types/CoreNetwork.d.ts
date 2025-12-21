@@ -76,3 +76,11 @@ export type SSEPayload = {
   data?: SSIDPayload;
   customer_code?: string;
 };
+
+export type SetSSIDBody = {
+  sn: string;
+  ssid?: string;
+  password?: string;
+  ssid5?: string;
+  password5?: string;
+};

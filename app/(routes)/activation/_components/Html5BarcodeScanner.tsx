@@ -197,7 +197,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
         const size = Math.floor(Math.min(vw, vh) * 0.8);
         return qrBoxShape === "rect"
           ? { width: 300, height: 300 }
-          : { width: size, height: 50 };
+          : { width: size, height: 100 };
       },
     };
     const config: any = {
