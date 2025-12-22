@@ -100,7 +100,7 @@ const HistorySection = () => {
 
       {isLoadingHistory ? (
         <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <SkeletonLoadingCard key={i} />
           ))}
         </div>

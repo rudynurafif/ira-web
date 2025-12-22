@@ -171,7 +171,7 @@ function Header() {
         } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white shadow-sm transition`}
       >
         <FaRegUser />
-        Login/Register
+        Masuk/Daftar
       </Link>
     );
   };
@@ -314,7 +314,7 @@ function Header() {
                   } text-white rounded-full px-5 py-2.5 font-medium`}
                   onClick={() => setIsOpenMenu(false)}
                 >
-                  <FaRegUser /> Login/Register
+                  <FaRegUser /> Masuk/Daftar
                 </Link>
               )}
             </div>

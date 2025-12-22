@@ -122,7 +122,7 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
       <button
         type="button"
         onClick={handleOpenCheckoutUrl}
-        className="bg-primary mt-6 hover:bg-dark-primary-2 cursor-pointer rounded-lg font-bold text-white w-full text-sm sm:text-xl py-3"
+        className="bg-primary mt-6 hover:bg-dark-primary-2 cursor-pointer rounded-full sm:rounded-lg font-bold text-white w-full text-sm sm:text-xl py-4"
       >
         Bayar Disini
       </button>

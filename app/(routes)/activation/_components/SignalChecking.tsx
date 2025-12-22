@@ -9,6 +9,7 @@ import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { useRouter } from "next/navigation";
 import { getSignal } from "@/app/_api/CoreNetwork/CoreNetwork";
 import { getSignalLevel } from "@/app/_shared/utils";
+import { useSSE } from "@/app/_context/SSEContext";
 
 export type Level = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -57,11 +58,11 @@ const mapSignalLevelToBar = (
 ): Level => {
   switch (level) {
     case "good":
-      return 5;
+      return 4; // Good / Excellent → hijau
     case "poor":
-      return 2;
+      return 3; // Fair to Poor → kuning
     case "bad":
-      return 1;
+      return 1; // Poor → merah
     case "disconnected":
       return 0;
     default:
@@ -95,60 +96,45 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   const [isLoadingSignal, setIsLoadingSignal] = useState(true);
 
   const router = useRouter();
+  const { lastEvent } = useSSE();
+
+  const cell_id = localStorage.getItem("ira-cpe-cell-id");
+
+  useEffect(() => {
+    getSignal({ sn: sn });
+  }, []);
+
+  useEffect(() => {
+    if (!lastEvent) return;
+
+    // Pastikan event-nya get_signal
+    if (lastEvent.type !== "get_signal") return;
+
+    const payload = lastEvent.data;
+    if (!payload) return;
+
+    const { rsrp, rsrq, sinr } = payload;
+
+    // Mapping level (pakai util yang sudah ada)
+    const signalQuality = getSignalLevel(rsrp, rsrq, sinr);
+    const barLevel = mapSignalLevelToBar(signalQuality);
+
+    setSignalData({
+      rsrp,
+      rsrq,
+      sinr,
+      level: signalQuality,
+    });
+
+    setResultLevel(barLevel);
+    setIsScanning(false);
+  }, [lastEvent]);
 
   const sn =
     localStorage.getItem("ira-cpe-serial-number") || "T100000000000001";
 
-  const fetchSignal = async () => {
-    setIsScanning(true);
-    try {
-      const res = await getSignal({ sn });
-      const data = res.data?.data;
-
-      if (data && data.rsrp != null && data.rsrq != null && data.sinr != null) {
-        const signalLevel = getSignalLevel(data.rsrp, data.rsrq, data.sinr);
-        const barLevel = mapSignalLevelToBar(signalLevel);
-        setResultLevel(barLevel);
-      } else {
-        setResultLevel(0);
-      }
-    } catch (err) {
-      console.error("Gagal fetch sinyal", err);
-      setResultLevel(0);
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
-  // useEffect(() => {
-  //   if (!isScanning) return;
-  //   const id = setTimeout(() => {
-  //     const final: Level =
-  //       typeof level === "number"
-  //         ? (level as Level)
-  //         : ((Math.floor(Math.random() * 5) + 1) as Level);
-  //     setResultLevel(final);
-  //     setIsScanning(false);
-  //   }, autoDurationMs);
-  //   return () => clearTimeout(id);
-  // }, [isScanning, autoDurationMs, level]);
-
-  useEffect(() => {
-    if (mode === "auto") {
-      // Tampilkan animasi scanning selama autoDurationMs, lalu fetch
-      const id = setTimeout(() => {
-        fetchSignal();
-      }, autoDurationMs);
-      return () => clearTimeout(id);
-    } else {
-      // Jika mode result, langsung fetch
-      fetchSignal();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, autoDurationMs, sn]);
-
   const handleRetry = () => {
-    fetchSignal();
+    setIsScanning(true);
     onRetry?.();
   };
 
@@ -302,6 +288,18 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                 : levelAdvice[resultLevel]}
             </div>
           </div>
+
+          {!isScanning && (
+            <div className="flex flex-col gap-6">
+              <div className="text-xs text-gray-500 mt-2">
+                RSRP: {signalData.rsrp} dBm · RSRQ: {signalData.rsrq} dB · SINR:{" "}
+                {signalData.sinr} dB
+              </div>
+              <div className="text-xs text-gray-500 mt-2">
+                Cell ID: {cell_id}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions */}

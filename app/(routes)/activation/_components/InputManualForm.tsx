@@ -1,14 +1,15 @@
-import { activation } from "@/app/_api/Activation/Activation";
+import { Activation } from "@/app/_api/Activation/Activation";
 import DynamicForm from "@/app/_components/form/DynamicForm";
 import LoadingModal from "@/app/_components/modal/LoadingModal";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { addUrlParam, toastErrorFromAPI } from "@/app/_shared/utils";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import noSN from "@/public/assets/Images/no-sn.svg";
 import SNUsed from "@/public/assets/Images/sn-used.svg";
 import iconScan from "@/public/assets/Icons/icon-scan.svg";
+
 import Image from "next/image";
 
 function InputManualForm() {
@@ -33,9 +34,9 @@ function InputManualForm() {
         errors.serial_number = "Serial Number harus diisi";
       }
 
-      const res = await activation({ serial_number: serialNumber });
+      const res = await Activation({ serial_number: serialNumber });
 
-      if (res.data.statusCode === 200) {
+      if (res.data.statusCode === 200 || res.data.statusCode === 201) {
         toast.success(
           res.data.message || "Serial Number berhasil diverifikasi"
         );

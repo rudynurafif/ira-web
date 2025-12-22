@@ -73,7 +73,7 @@ export type SSEPayload = {
   taskId?: string;
   result?: string;
   message?: string;
-  data?: SSIDPayload;
+  data?: SSIDPayload | any;
   customer_code?: string;
 };
 

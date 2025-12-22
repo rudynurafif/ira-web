@@ -9,58 +9,12 @@ import Image from "next/image";
 import CPEIRA from "@/public/assets/Images/cpe-ira.png";
 import { MdHeadsetMic } from "react-icons/md";
 import toast from "react-hot-toast";
+import { useSSE } from "@/app/_context/SSEContext";
+import Badge from "@/app/_components/Badge";
 
 type Screen = "loading" | "failed" | "failedFinal" | "success";
 
 const MAX_ATTEMPT = 3;
-
-async function doActivation(
-  serialNumber: string,
-  force: string | null
-): Promise<boolean> {
-  await new Promise((r) => setTimeout(r, 5000)); // simulasikan delay API
-
-  if (force === "success") return true;
-  if (force === "fail") return false;
-
-  return Math.random() < 0.6;
-}
-
-function ProgressRing({ percent }: { percent: number }) {
-  const angle = Math.min(100, Math.max(0, percent)) * 3.6;
-  return (
-    <div
-      className="w-[110px] h-[110px] mx-auto rounded-full relative"
-      style={{
-        background: `conic-gradient(#005FB8 ${angle}deg, #E5E7EB 0deg)`,
-      }}
-    >
-      <div className="absolute inset-[10px] bg-white rounded-full flex items-center justify-center">
-        <span className="font-bold text-old-primary">
-          {Math.floor(percent)}%
-        </span>
-      </div>
-    </div>
-  );
-}
-
-const Badge = ({
-  color,
-  children,
-}: {
-  color: "green" | "red";
-  children: React.ReactNode;
-}) => (
-  <span
-    className={`ml-2 inline-flex items-center rounded-full px-3 py-1 text-sm font-bold ${
-      color === "green"
-        ? "bg-[#22C55E]/15 text-green-primary border border-[#22C55E]/30"
-        : "bg-[#EF4444]/15 text-red-primary border border-[#EF4444]/30"
-    }`}
-  >
-    {children}
-  </span>
-);
 
 export default function ConnectToNetwork() {
   const params = useSearchParams();
@@ -77,6 +31,54 @@ export default function ConnectToNetwork() {
 
   const [cooldown, setCooldown] = useState(CHECK_COOLDOWN);
   const [isCooldownActive, setIsCooldownActive] = useState(true);
+  const [activationConfirmed, setActivationConfirmed] = useState(false);
+
+  const { lastEvent } = useSSE();
+
+  useEffect(() => {
+    if (!lastEvent) return;
+    if (activationConfirmed) return;
+
+    if (
+      lastEvent.type === "activate" &&
+      lastEvent.sn === serialNumber &&
+      (lastEvent.message === "Success" || lastEvent.result === "processed")
+    ) {
+      localStorage.setItem(
+        "ira-cpe-serial-number",
+        lastEvent.sn ?? "SN not found"
+      );
+      localStorage.setItem(
+        "ira-cpe-cell-id",
+        lastEvent.data?.cell_id ?? "Cell ID not found"
+      );
+      toast.success("Berhasil aktivasi perangkat");
+      console.log("✅ Aktivasi sukses via SSE", lastEvent);
+
+      // stop progress
+      if (progressTimer.current) {
+        window.clearInterval(progressTimer.current);
+        progressTimer.current = null;
+      }
+
+      setProgress(100);
+      resetAttempt();
+      setActivationConfirmed(true);
+      setScreen("success");
+    }
+  }, [lastEvent, serialNumber]);
+
+  useEffect(() => {
+    startActivation();
+
+    return () => {
+      if (progressTimer.current) {
+        window.clearInterval(progressTimer.current);
+        progressTimer.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attempt]);
 
   useEffect(() => {
     if (!isCooldownActive) return;
@@ -112,16 +114,24 @@ export default function ConnectToNetwork() {
   }, [serialNumber]);
 
   useEffect(() => {
-    startActivation();
+    if (screen !== "loading") return;
 
-    return () => {
-      if (progressTimer.current) {
-        window.clearInterval(progressTimer.current);
-        progressTimer.current = null;
+    const timeout = setTimeout(() => {
+      if (!activationConfirmed) {
+        const failedSoFar = attempt;
+
+        if (failedSoFar >= MAX_ATTEMPT) {
+          saveFailedAttempt(MAX_ATTEMPT);
+          setScreen("failedFinal");
+        } else {
+          saveFailedAttempt(failedSoFar);
+          setScreen("failed");
+        }
       }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attempt]);
+    }, 60_000); // 60 detik
+
+    return () => clearTimeout(timeout);
+  }, [screen, activationConfirmed, attempt]);
 
   function saveFailedAttempt(countFailed: number) {
     const key = `activation_attempt:${serialNumber || "default"}`;
@@ -134,42 +144,16 @@ export default function ConnectToNetwork() {
   }
 
   async function startActivation() {
-    if (!serialNumber) {
-      setScreen("failed");
-      return;
-    }
+    if (!serialNumber || activationConfirmed) return;
 
     setScreen("loading");
     setProgress(0);
 
-    // animasi progress ke ~94% sambil nunggu API
+    // progress animation
     if (progressTimer.current) window.clearInterval(progressTimer.current);
     progressTimer.current = window.setInterval(() => {
       setProgress((p) => Math.min(94, p + Math.max(1, (100 - p) * 0.03)));
     }, 80);
-
-    // const ok = await doActivation(serialNumber, "force");
-    const ok = await doActivation(serialNumber, "success");
-
-    if (progressTimer.current) {
-      window.clearInterval(progressTimer.current);
-      progressTimer.current = null;
-    }
-    setProgress(100);
-
-    if (ok) {
-      resetAttempt();
-      setScreen("success");
-    } else {
-      const failedSoFar = attempt; // attempt ini gagal
-      if (failedSoFar >= MAX_ATTEMPT) {
-        saveFailedAttempt(MAX_ATTEMPT);
-        setScreen("failedFinal");
-      } else {
-        saveFailedAttempt(failedSoFar);
-        setScreen("failed");
-      }
-    }
   }
 
   function retry() {
@@ -273,12 +257,12 @@ export default function ConnectToNetwork() {
           <FaWifi size={40} />
         </div>
 
-        <div className="pt-4">
+        <div className="my-6">
           <div className="text-old-primary font-bold">
             Proses Aktivasi
             <Badge color="green">Berhasil</Badge>
           </div>
-          <p className="max-w-[680px] mx-auto mt-2">
+          <p className="max-w-170 mx-auto mt-2">
             Perangkat Anda telah berhasil diaktifkan dan terhubung ke jaringan
             inti. Internet sekarang sudah siap digunakan.
           </p>

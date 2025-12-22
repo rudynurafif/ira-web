@@ -266,15 +266,15 @@ export const getSignalLevel = (
   rsrq?: number,
   sinr?: number
 ): "good" | "poor" | "bad" | "disconnected" => {
-  if (rsrp == null || rsrq == null || sinr == null) {
+  if (rsrp == null) {
     return "disconnected";
   }
 
-  // Prioritaskan RSRP sebagai penentu utama
-  if (rsrp >= -85) return "good";
-  if (rsrp >= -100) return "poor";
-  if (rsrp >= -115) return "bad";
-  return "disconnected";
+  // Sesuai tabel RSRP
+  if (rsrp >= -80) return "good"; // Excellent
+  if (rsrp >= -90) return "good"; // Good
+  if (rsrp >= -100) return "poor"; // Fair to Poor
+  return "bad"; // Poor
 };
 
 export const mapSignalToLevel = (
@@ -282,13 +282,11 @@ export const mapSignalToLevel = (
   rsrq: number | null,
   sinr: number | null
 ): Level => {
-  if (rsrp === null || rsrq === null || sinr === null) return 0;
+  if (rsrp === null) return 0;
 
-  // Sesuaikan dengan rentang kualitas sinyal LTE
-  if (rsrp >= -85) return 5; // Excellent
+  // Sesuai tabel RSRP
+  if (rsrp >= -80) return 5; // Excellent
   if (rsrp >= -90) return 4; // Good
-  if (rsrp >= -95) return 3; // Fair
-  if (rsrp >= -100) return 2; // Poor
-  if (rsrp >= -110) return 1; // Bad
-  return 0; // No signal
+  if (rsrp >= -100) return 3; // Fair to Poor
+  return 1; // Poor
 };

@@ -141,7 +141,8 @@ const DeviceInformation = () => {
           level: "disconnected",
         });
       }
-    } catch (err) {
+    } catch (err: any) {
+      toastErrorFromAPI(err);
       setSignalData({
         rsrp: null,
         rsrq: null,

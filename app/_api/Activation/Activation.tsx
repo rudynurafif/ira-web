@@ -1,10 +1,10 @@
 import FwaAxios from "../FwaAxios";
 
-export const activation = async (body: any) => {
+export const Activation = async (body: any) => {
   try {
     const data = await FwaAxios({
       url: "/app/customer/activation",
-      method: "PUT",
+      method: "POST",
       data: body,
     });
 

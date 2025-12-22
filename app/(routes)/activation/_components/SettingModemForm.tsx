@@ -5,6 +5,10 @@ import { useSearchParams } from "next/navigation";
 import React, { FormEvent, useEffect, useState } from "react";
 import eyeClose from "@/public/assets/Icons/eye-close.png";
 import eye from "@/public/assets/Icons/eye.png";
+import { setSSID } from "@/app/_api/CoreNetwork/CoreNetwork";
+import { SetSSIDBody } from "@/app/_shared/types/CoreNetwork";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
+import toast from "react-hot-toast";
 
 interface FormType {
   ssid_24ghz: string;
@@ -25,6 +29,11 @@ function SettingModemForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [showPassword5, setShowPassword5] = useState(false);
+
+  const sn =
+    typeof window !== "undefined"
+      ? localStorage.getItem("ira-cpe-serial-number")
+      : null;
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -73,9 +82,37 @@ function SettingModemForm() {
 
         return;
       } else {
-        setErrors({});
+        if (!sn) {
+          toast.error("Serial number CPE tidak ditemukan");
+          return;
+        }
 
+        const body: SetSSIDBody = {
+          sn,
+          ssid: formData.ssid_24ghz,
+          password: formData.password_24ghz,
+          ssid5: formData.ssid_5ghz,
+          password5: formData.password_5ghz,
+        };
+
+        await setSSID(body);
+
+        // optional: simpan lokal untuk fallback
+        sessionStorage.setItem(
+          "wifi-config",
+          JSON.stringify({
+            ssid: formData.ssid_24ghz,
+            password: formData.password_24ghz,
+            ssid5: formData.ssid_5ghz,
+            password5: formData.password_5ghz,
+          })
+        );
+
+        toast.success("Setting SSID berhasil disimpan");
+
+        // lanjut ke step berikutnya
         addUrlParam("section", "check_signal");
+
         // addUrlParam("ssid_24", formData.ssid_24ghz);
         // addUrlParam("password_24", formData.password_24ghz);
         // addUrlParam("ssid_5", formData.ssid_5ghz);
@@ -124,7 +161,7 @@ function SettingModemForm() {
   }, [params]);
 
   return (
-    <div className="container mx-auto max-w-[480px] max-sm:px-8">
+    <div className="container mx-auto max-w-120 max-sm:px-8">
       <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Atur Modem
       </h2>
