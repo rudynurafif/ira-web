@@ -58,7 +58,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
           headers: {
             "x-sse-token": "LOCALWEAVE",
           },
-          heartbeatTimeout: 45000,
+          heartbeatTimeout: 600000,
         }
       );
 

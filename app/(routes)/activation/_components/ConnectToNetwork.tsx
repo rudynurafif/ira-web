@@ -36,7 +36,9 @@ function ProgressRing({ percent }: { percent: number }) {
       }}
     >
       <div className="absolute inset-[10px] bg-white rounded-full flex items-center justify-center">
-        <span className="font-bold text-old-primary">{Math.floor(percent)}%</span>
+        <span className="font-bold text-old-primary">
+          {Math.floor(percent)}%
+        </span>
       </div>
     </div>
   );
@@ -70,6 +72,37 @@ export default function ConnectToNetwork() {
   const [attempt, setAttempt] = useState(1);
 
   const progressTimer = useRef<number | null>(null);
+
+  const CHECK_COOLDOWN = 60;
+
+  const [cooldown, setCooldown] = useState(CHECK_COOLDOWN);
+  const [isCooldownActive, setIsCooldownActive] = useState(true);
+
+  useEffect(() => {
+    if (!isCooldownActive) return;
+
+    if (cooldown <= 0) {
+      setIsCooldownActive(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCooldown((c) => c - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [cooldown, isCooldownActive]);
+
+  function handleCheckAgain() {
+    // reset cooldown
+    setCooldown(CHECK_COOLDOWN);
+    setIsCooldownActive(true);
+
+    // kalau mau trigger ulang aktivasi, bisa:
+    startActivation();
+
+    toast.success("Mengecek ulang status aktivasi...");
+  }
 
   // restore attempt dari sessionStorage
   useEffect(() => {
@@ -171,7 +204,7 @@ export default function ConnectToNetwork() {
           {/* <ProgressRing percent={progress} /> */}
           <div className="mb-8 relative flex justify-center items-center">
             {/* Kiri */}
-            <div className="absolute left-[-90px] top-1/2 transform -translate-y-1/2 z-0">
+            <div className="absolute -left-22.5 top-1/2 transform -translate-y-1/2 z-0">
               <SignalArc isLeft={true} />
             </div>
 
@@ -179,11 +212,11 @@ export default function ConnectToNetwork() {
             <Image
               src={CPEIRA}
               alt="Activating CPE"
-              className="w-auto h-auto max-w-[150px] sm:max-w-[200px] z-10 relative"
+              className="w-auto h-auto max-w-37.5 sm:max-w-50 z-10 relative"
             />
 
             {/* Kanan */}
-            <div className="absolute right-[-90px] top-1/2 transform -translate-y-1/2 z-0">
+            <div className="absolute -right-22.5 top-1/2 transform -translate-y-1/2 z-0">
               <SignalArc isLeft={false} />
             </div>
           </div>
@@ -201,13 +234,27 @@ export default function ConnectToNetwork() {
           </p>
         </div>
 
-        <div className="pt-6 max-w-[480px] mx-auto">
+        <div className="pt-6 max-w-120 mx-auto flex flex-col gap-6">
           <button
             onClick={contactCS}
             className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
             Hubungi Customer Service <MdHeadsetMic size={20} />
+          </button>
+
+          <button
+            onClick={handleCheckAgain}
+            disabled={isCooldownActive}
+            className={`w-full border-2 font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]
+            ${
+              isCooldownActive
+                ? "bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed"
+                : "bg-white border-primary text-primary hover:bg-red-50 cursor-pointer"
+            }`}
+            type="button"
+          >
+            {isCooldownActive ? `Cek ulang (${cooldown}s)` : "Cek ulang"}
           </button>
         </div>
       </div>
@@ -237,10 +284,10 @@ export default function ConnectToNetwork() {
           </p>
         </div>
 
-        <div className="pt-6 max-w-[480px] mx-auto">
+        <div className="pt-6 flex flex-col gap-6 max-w-120 mx-auto">
           <button
             onClick={goNextSetting}
-            className="w-full bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-[12px] py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
+            className="w-full bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
             Selanjutnya
@@ -262,14 +309,14 @@ export default function ConnectToNetwork() {
             Proses Aktivasi
             <Badge color="red">Tidak Berhasil</Badge>
           </div>
-          <p className="text-[#666] max-w-[680px] mx-auto mt-2">
+          <p className="text-[#666] max-w-170 mx-auto mt-2">
             Aktivasi perangkat tidak berhasil dilakukan. Silakan coba kembali
             atau hubungi Customer Service kami untuk bantuan lebih lanjut.
           </p>
           <div className="text-old-primary font-bold mt-1">(3/3)</div>
         </div>
 
-        <div className="pt-6 max-w-[480px] mx-auto">
+        <div className="pt-6 max-w-120 mx-auto flex flex-col gap-6">
           <button
             onClick={contactCS}
             className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"

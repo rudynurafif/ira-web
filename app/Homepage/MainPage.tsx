@@ -151,7 +151,7 @@ function MainPage() {
           <CardPackage />
         </div> */}
         {!userInfo && (
-          <div className="text-center relative z-10 text-xl space-y-2 mt-4 2xl:mt-6">
+          <div className="text-center relative z-10 text-sm sm:text-xl space-y-2 mt-4 2xl:mt-6">
             <p className="text-[#828282] font-medium">Sudah punya akun?</p>
             <p className="text-primary">
               Yuk,{" "}

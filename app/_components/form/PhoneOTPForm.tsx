@@ -6,6 +6,8 @@ import {
 } from "@/app/_shared/utils";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import ModalTemplate from "../modal/ModalTemplate";
+import ModalLoginRedirect from "@/app/(routes)/auth/register/_components/ModalLoginRedirect";
 
 function PhoneOTPForm({
   label,
@@ -45,6 +47,7 @@ function PhoneOTPForm({
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [timerReset, setTimerReset] = useState(0);
+  const [openModalLogin, setOpenModalLogin] = useState(false);
 
   // ✅ key dinamis (fallback ke name)
   const key = storageKey ?? `otp:${name}`;
@@ -145,7 +148,7 @@ function PhoneOTPForm({
         startOtpTimer(seconds); // set cooldown sesuai server
       } else {
         if (error?.response?.data?.statusCode === 409) {
-          // modal arahkan ke login
+          setOpenModalLogin(true);
         }
         toastErrorFromAPI(error, "Terjadi kesalahan saat mengirim OTP");
       }
@@ -230,6 +233,12 @@ function PhoneOTPForm({
       )}
 
       {error && <p className="text-red-500 p-0 m-0">{error}</p>}
+
+      {openModalLogin && (
+        <ModalTemplate closeModal={() => setOpenModalLogin(false)}>
+          <ModalLoginRedirect onClose={() => setOpenModalLogin(false)} />
+        </ModalTemplate>
+      )}
     </div>
   );
 }

@@ -81,12 +81,12 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               color="#008E19"
             />
             <p className="sm:text-sm text-xs font-bold text-orange">
-              Tinggal {days} hari! Segera perpanjang sebelum
+              Tinggal {days} hari! Segera perpanjang sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar tidak terputus.
             </p>
-            <p className="sm:text-sm text-xs text-green-3 mt-1">
+            <p className="sm:text-sm text-xs mt-1">
               Masa aktif hampir habis. Amankan akses internet keluarga dengan
-              memperpanjang paket sebelum tanggal
+              memperpanjang paket sebelum tanggal{" "}
               {formattedDate(data.end_date) ?? "-"}; proses cepat, layanan tetap
               aktif tanpa putus. Nikmati Kuota Unlimited dan
             </p>
@@ -106,7 +106,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               Paket berakhir hari ini! Segera perpanjang sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar tidak terisolir.
             </p>
-            <p className="sm:text-sm text-xs text-green-3 mt-1">
+            <p className="sm:text-sm text-xs mt-1">
               Hari ini paket {data.package_id?.name} mencapai jatuh tempo.
               Selesaikan pembayaran sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar layanan tetap aktif
@@ -128,8 +128,8 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             <p className="sm:text-sm text-xs font-bold text-[#D6211E]">
               Layanan nonaktif—bayar paket untuk aktif kembali seketika.
             </p>
-            <p className="sm:text-sm text-xs text-green-3 mt-1">
-              Internet nonaktif sementara karena masa aktif sudah berakhir pada
+            <p className="sm:text-sm text-xs mt-1">
+              Internet nonaktif sementara karena masa aktif sudah berakhir pada{" "}
               {formattedDate(data.end_date) ?? "-"}. Pilih dan bayar paket yang
               kamu inginkan agar koneksi Internet Rakyat segera aktif kembali;
               hubungi bantuan jika membutuhkan panduan.
