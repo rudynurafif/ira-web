@@ -72,7 +72,6 @@ devel-job:       # This job runs in the build stage, which runs first.
         cd $PATH_DIR; \
         git pull origin development; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
-        docker rmi $IMG_NAME:$DEV_VER; \
         docker compose -f COMPOSE_FILE up -d --build $COMPOSE_SRV; \
         docker builder prune -a -f; \
         echo 'Development - Docker Deployment Completed.'; \
@@ -105,7 +104,7 @@ staging-job:       # This job runs in the build stage, which runs first.
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
       "echo 'Stage - Reset and clean the repository to avoid stale changes in container'; \
-      cd /apps/stage/website; \
+      cd $PATH_DIR; \
       git reset --hard; \
       git clean -fd; \
       echo 'Stage - Fetch and reset to match the remote branch'; \
@@ -114,20 +113,19 @@ staging-job:       # This job runs in the build stage, which runs first.
       echo 'Stage - Local Repository in container was cleaned.'"
   script:
     - mkdir -p ~/.ssh
-    - echo "Development - Compiling and update the Code..."
+    - echo "Stage - Compiling and update the Code..."
     - echo "$FWA_STAGE_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
       ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
-      "echo "Development - Update code and Deployment starting"; \
-        cd /apps/stage/website; \
+      "echo "Stage - Update code and Deployment starting"; \
+        cd $PATH_DIR; \
         git pull origin stage; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
-        docker rmi $IMG_NAME:$STAGE_VER; \
         docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
         docker builder prune -a -f; \
-        echo 'Development - Docker Deployment Completed.'; \
+        echo 'Stage - Docker Deployment Completed.'; \
       "
   artifacts:
     paths:
@@ -191,50 +189,39 @@ deploy-production:
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: always # Pipeline akan berjalan jika file ada perubahan.
   before_script:
-    - apt update && apt install -y git && apt install -y vim
+    - apt update && apt install -y git
+    - apt install -y curl vim
+    - apt install -y openssh-client
     - mkdir -p ~/.ssh
     - echo "$FWA_PROD_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
-      ssh -o StrictHostKeyChecking=no -p 9922 $PROD_SSH_CON \
+      ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
       "echo 'Production - Reset and clean the repository to avoid stale changes in container'; \
-      docker exec $CONT_NAME ssh-keyscan -H gitlab.com > ~/.ssh/known_hosts; \
-      docker exec $CONT_NAME chmod 0644 ~/.ssh/known_hosts; \
-      docker exec $CONT_NAME git reset --hard; \
-      docker exec $CONT_NAME git clean -fd; \
+      cd $PATH_DIR; \
+      git reset --hard; \
+      git clean -fd; \
       echo 'Production - Fetch and reset to match the remote branch'; \
-      docker exec $CONT_NAME git fetch --all; \
-      docker exec $CONT_NAME git reset --hard origin/main; \
+      git fetch --all; \
+      git reset --hard origin/main; \
       echo 'Production - Local Repository in container was cleaned.'"
   script:
-    - echo "Production - Deployment starting..."
     - mkdir -p ~/.ssh
-    - echo "$FWA_PROD_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - echo "Production - Compiling and update the Code..."
+    - echo "$FWA_PROD_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
-      ssh -o StrictHostKeyChecking=no -p 9922 $PROD_SSH_CON \
-      "docker ps --filter 'name=$CONT_NAME' --format '{{.Names}}' | grep -w $CONT_NAME > /dev/null; \
-      if [ \$? -eq 0 ]; then \
-        echo 'Production - Container $CONT_NAME is already running.'; \
-        docker exec $CONT_NAME apt update; \
-        docker exec $CONT_NAME apt install -y curl vim git net-tools iputils-ping openssh-client; \
-        docker exec $CONT_NAME git config --global user.email 'rizal@weave.co.id'; \
-        docker exec $CONT_NAME git config --global user.name 'rizal'; \
-        docker exec $CONT_NAME git config --global credential.helper store; \
-        docker exec $CONT_NAME git branch --set-upstream-to=origin/main main; \
-        docker exec $CONT_NAME git pull origin main; \
-        docker exec $CONT_NAME npm install; \
-        docker exec $CONT_NAME sh -c 'NODE_OPTIONS=--max_old_space_size=1024 GENERATE_SOURCEMAP=false npm run build --prod'; \
-        docker stop $CONT_NAME; \
-        docker start $CONT_NAME; \
+      ssh -o StrictHostKeyChecking=no -p $SSH_PORT $PROD_SSH_CON \
+      "echo "Production - Update code and Deployment starting"; \
+        cd $PATH_DIR; \
+        git pull origin main; \
+        docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
+        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
+        docker builder prune -a -f; \
         echo 'Production - Docker Deployment Completed.'; \
-        exit 0; \
-      fi"
+      "
   artifacts:
     paths:
       - build/
-  environment:
-    name: production
-
