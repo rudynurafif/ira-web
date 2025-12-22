@@ -26,6 +26,7 @@ function Header() {
   const router = useRouter();
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isActive, setIsActive] = useState(true);
   const [customerData, setCustomerData] = useState<ProfileInfo>();
   const dispatch = useAppDispatch();
   const { token: tokenfromState } = useAppSelector((state) => state.auth);
@@ -47,6 +48,7 @@ function Header() {
           dispatch(getUser(customer));
           setCustomerData(customer);
           setIsLoggedIn(true);
+          if (customer) setIsActive(customer?.is_active);
           setShowDropdown(false);
         }
       } catch (error: any) {
@@ -215,7 +217,7 @@ function Header() {
                 Cek Jangkauan
               </Link>
 
-              {isLoggedIn && (
+              {isLoggedIn && isActive && (
                 <Link
                   href="/payment"
                   className={`${

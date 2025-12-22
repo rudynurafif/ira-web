@@ -465,7 +465,7 @@ function Page() {
 
   return (
     <div className="container mx-auto xl:px-42 lg:px-22 px-6 sm:my-22 my-6">
-      <h1 className="text-center sm:text-[32px] text-2xl text-black font-bold">
+      <h1 className="text-center sm:text-[32px] text-2xl text-old-primary font-bold">
         Registrasi Internet Rakyat (IRA)
       </h1>
 
@@ -785,7 +785,7 @@ function Page() {
               name="rt"
               value={formData.rt}
               onChange={(value: string) => {
-                if (/^\d{0,4}$/.test(value)) {
+                if (/^\d{0,3}$/.test(value)) {
                   setFormData((prevData: any) => ({
                     ...prevData,
                     rt: value,

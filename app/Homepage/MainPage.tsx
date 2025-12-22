@@ -11,10 +11,13 @@ import Link from "next/link";
 import wifiIcon from "@/public/assets/Icons/wifi.svg";
 import { getImageBanner } from "../Banner/Banner";
 import { toastErrorFromAPI } from "../_shared/utils";
+import { useAppSelector } from "../store/store";
+import { useRouter } from "next/navigation";
 
 function MainPage() {
   const [image, setImage] = useState<string[]>([]);
   const [imageMobile, setImageMobile] = useState<string[]>([]);
+  const router = useRouter();
 
   const settingsSlider = {
     infinite: true,
@@ -24,6 +27,10 @@ function MainPage() {
     autoplay: true,
     autoplaySpeed: 5000,
   };
+
+  const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
+    (state) => state.auth
+  );
 
   async function getBannerImage() {
     try {
@@ -108,7 +115,7 @@ function MainPage() {
           </div>
         </div>
         <div className="text-center">
-          <h1 className="mb-6 text-xl sm:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
             <span className="font-bold">IRA Internet Rakyat -</span> Internet
             ngebut tanpa ribet pakai kabel.
           </h1>
@@ -143,6 +150,21 @@ function MainPage() {
         {/* <div className="mt-10">
           <CardPackage />
         </div> */}
+        {!userInfo && (
+          <div className="text-center relative z-10 text-sm sm:text-xl space-y-2 mt-4 2xl:mt-6">
+            <p className="text-[#828282] font-medium">Sudah punya akun?</p>
+            <p className="text-primary">
+              Yuk,{" "}
+              <span
+                className="font-bold cursor-pointer underline underline-animation-register"
+                onClick={() => router.push("/auth/login")}
+              >
+                login disini
+              </span>{" "}
+              dan lanjutkan prosesnya!
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

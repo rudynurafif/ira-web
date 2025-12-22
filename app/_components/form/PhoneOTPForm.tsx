@@ -6,6 +6,8 @@ import {
 } from "@/app/_shared/utils";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import ModalTemplate from "../modal/ModalTemplate";
+import ModalLoginRedirect from "@/app/(routes)/auth/register/_components/ModalLoginRedirect";
 
 function PhoneOTPForm({
   label,
@@ -45,6 +47,7 @@ function PhoneOTPForm({
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [timerReset, setTimerReset] = useState(0);
+  const [openModalLogin, setOpenModalLogin] = useState(false);
 
   // ✅ key dinamis (fallback ke name)
   const key = storageKey ?? `otp:${name}`;
@@ -125,7 +128,7 @@ function PhoneOTPForm({
       // ✅ Jika parent menyediakan onSendOTP, delegasikan ke parent dan keluar.
       if (onSendOTP) {
         await Promise.resolve(onSendOTP());
-        return; 
+        return;
       }
 
       // === Fallback: child kirim OTP sendiri jika tidak ada onSendOTP ===
@@ -144,6 +147,9 @@ function PhoneOTPForm({
         // toastErrorFromAPI(error);
         startOtpTimer(seconds); // set cooldown sesuai server
       } else {
+        if (error?.response?.data?.statusCode === 409) {
+          setOpenModalLogin(true);
+        }
         toastErrorFromAPI(error, "Terjadi kesalahan saat mengirim OTP");
       }
     } finally {
@@ -227,6 +233,12 @@ function PhoneOTPForm({
       )}
 
       {error && <p className="text-red-500 p-0 m-0">{error}</p>}
+
+      {openModalLogin && (
+        <ModalTemplate closeModal={() => setOpenModalLogin(false)}>
+          <ModalLoginRedirect onClose={() => setOpenModalLogin(false)} />
+        </ModalTemplate>
+      )}
     </div>
   );
 }

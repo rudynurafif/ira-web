@@ -35,7 +35,7 @@ function Page() {
   return (
     <div>
       <div className="pt-10 pb-10 bg-linear-to-r from-[#ba2424] to-[#ff6666]">
-        <div className="container mx-auto">
+        <div className="container px-5 mx-auto">
           <div
             className="flex items-center gap-2 text-white mb-5 cursor-pointer px-3"
             onClick={() => router.push("/")}
@@ -45,15 +45,14 @@ function Page() {
           <h1 className="text-white text-2xl md:text-4xl font-bold text-center mb-3">
             {title ?? "Terms dan Conditions IRA"}
           </h1>
-          {/* <h2 className="text-white text-xl md:text-2xl font-bold text-center">
+          <h2 className="text-white text-xl md:text-2xl font-bold text-center">
             {subTitle ?? "SYARAT DAN KETENTUAN PENGGUNA INTERNET RAKYAT (IRA)"}
-          </h2> */}
+          </h2>
         </div>
       </div>
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-10 px-5 sm:px-6 overflow-hidden">
         <div dangerouslySetInnerHTML={{ __html: content }}></div>
       </div>
-      {/* <Footer /> */}
     </div>
   );
 }

@@ -197,7 +197,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
         const size = Math.floor(Math.min(vw, vh) * 0.8);
         return qrBoxShape === "rect"
           ? { width: 300, height: 300 }
-          : { width: size, height: 50 };
+          : { width: size, height: 100 };
       },
     };
     const config: any = {
@@ -405,10 +405,9 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
   return (
     <>
       <div className="max-w-[480px] p-6 mx-auto w-full text-center">
-        <h1 className="text-[24px] sm:text-[28px] font-bold mb-6">
+        <h1 className="text-[24px] sm:text-[28px] text-old-primary font-bold mb-6">
           Scan Barcode
         </h1>
-
 
         <div style={{ display: "inline-block", position: "relative" }}>
           {/* html5-qrcode render video/canvas ke sini */}
@@ -426,7 +425,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
             <>
               {/* tombol torch */}
               {hasTorch && (
-                <div className="absolute top-2 right-2 z-10">
+                <div className="absolute flex items-center top-2 right-2 z-10">
                   {torchOn ? (
                     <IoFlashOff
                       onClick={toggleTorch}
@@ -444,7 +443,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
               )}
 
               {/* slider zoom */}
-              {hasZoom && (
+              {/* {hasZoom && (
                 <div className="absolute bottom-2 left-0 px-2 w-full z-10">
                   <label
                     className="text-white"
@@ -466,7 +465,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
                     style={{ width: "100%" }}
                   />
                 </div>
-              )}
+              )} */}
 
               {/* Tombol Scan Barcode: DISSEMBUNYIKAN di desktop */}
               {/* {!isDesktop && (
@@ -494,17 +493,19 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
             </>
           )}
 
-          <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 w-full px-4 max-w-[480px]">
-            <button
-              onClick={() => {
-                addUrlParam("section", "input");
-              }}
-              className="w-full bg-white border border-primary p-2 cursor-pointer text-primary font-bold rounded-xl"
-              type="button"
-            >
-              Input Manual Serial Number
-            </button>
-          </div>
+          {!starting && (
+            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 w-full px-4 max-w-[480px]">
+              <button
+                onClick={() => {
+                  addUrlParam("section", "input");
+                }}
+                className="w-full bg-white border border-primary p-2 cursor-pointer text-primary font-bold rounded-xl"
+                type="button"
+              >
+                Input Manual Serial Number
+              </button>
+            </div>
+          )}
         </div>
 
         {starting && (

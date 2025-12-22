@@ -8,6 +8,7 @@ import { Suspense } from "react";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import ClientProvider from "./_components/ClientProvider";
+import { SSEProvider } from "./_context/SSEContext";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin"], // Gunakan subset latin
@@ -57,8 +58,12 @@ export default function RootLayout({
         <Suspense>
           <ClientProvider>
             {/* {!maintenanceMode && <Header />} */}
-             <Header />
-            <main className="flex-1">{children}</main>
+            <Header />
+            <main className="flex-1">
+              <SSEProvider>
+              {children}
+              </SSEProvider>
+            </main>
             <Footer />
             <Toaster
               position="top-right"

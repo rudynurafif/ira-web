@@ -7,8 +7,10 @@ import checkSignalHome from "@/public/assets/Images/check-signal-home.webp";
 import Swal from "sweetalert2";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { useRouter } from "next/navigation";
+import { getSignal } from "@/app/_api/CoreNetwork/CoreNetwork";
+import { getSignalLevel } from "@/app/_shared/utils";
 
-type Level = 0 | 1 | 2 | 3 | 4 | 5;
+export type Level = 0 | 1 | 2 | 3 | 4 | 5;
 
 type SignalCheckingProps = {
   mode?: "auto" | "result";
@@ -50,6 +52,23 @@ const levelAdvice: Record<Level, string> = {
   5: "Posisi modem sudah optimal untuk koneksi yang stabil.",
 };
 
+const mapSignalLevelToBar = (
+  level: "good" | "poor" | "bad" | "disconnected"
+): Level => {
+  switch (level) {
+    case "good":
+      return 5;
+    case "poor":
+      return 2;
+    case "bad":
+      return 1;
+    case "disconnected":
+      return 0;
+    default:
+      return 0;
+  }
+};
+
 const SignalChecking: React.FC<SignalCheckingProps> = ({
   mode = "auto",
   level,
@@ -62,30 +81,79 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   const [isScanning, setIsScanning] = useState(mode === "auto");
   const [resultLevel, setResultLevel] = useState<Level>(level ?? 0);
   const [showPopup, setShowPopup] = useState(false);
+  const [signalData, setSignalData] = useState<{
+    rsrp: number | null;
+    rsrq: number | null;
+    sinr: number | null;
+    level: "good" | "poor" | "bad" | "disconnected";
+  }>({
+    rsrp: null,
+    rsrq: null,
+    sinr: null,
+    level: "disconnected",
+  });
+  const [isLoadingSignal, setIsLoadingSignal] = useState(true);
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isScanning) return;
-    const id = setTimeout(() => {
-      const final: Level =
-        typeof level === "number"
-          ? (level as Level)
-          : ((Math.floor(Math.random() * 5) + 1) as Level);
-      setResultLevel(final);
+  const sn =
+    localStorage.getItem("ira-cpe-serial-number") || "T100000000000001";
+
+  const fetchSignal = async () => {
+    setIsScanning(true);
+    try {
+      const res = await getSignal({ sn });
+      const data = res.data?.data;
+
+      if (data && data.rsrp != null && data.rsrq != null && data.sinr != null) {
+        const signalLevel = getSignalLevel(data.rsrp, data.rsrq, data.sinr);
+        const barLevel = mapSignalLevelToBar(signalLevel);
+        setResultLevel(barLevel);
+      } else {
+        setResultLevel(0);
+      }
+    } catch (err) {
+      console.error("Gagal fetch sinyal", err);
+      setResultLevel(0);
+    } finally {
       setIsScanning(false);
-    }, autoDurationMs);
-    return () => clearTimeout(id);
-  }, [isScanning, autoDurationMs, level]);
+    }
+  };
+
+  // useEffect(() => {
+  //   if (!isScanning) return;
+  //   const id = setTimeout(() => {
+  //     const final: Level =
+  //       typeof level === "number"
+  //         ? (level as Level)
+  //         : ((Math.floor(Math.random() * 5) + 1) as Level);
+  //     setResultLevel(final);
+  //     setIsScanning(false);
+  //   }, autoDurationMs);
+  //   return () => clearTimeout(id);
+  // }, [isScanning, autoDurationMs, level]);
+
+  useEffect(() => {
+    if (mode === "auto") {
+      // Tampilkan animasi scanning selama autoDurationMs, lalu fetch
+      const id = setTimeout(() => {
+        fetchSignal();
+      }, autoDurationMs);
+      return () => clearTimeout(id);
+    } else {
+      // Jika mode result, langsung fetch
+      fetchSignal();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, autoDurationMs, sn]);
 
   const handleRetry = () => {
-    setResultLevel(0);
-    setIsScanning(true);
+    fetchSignal();
     onRetry?.();
   };
 
   const closePopup = useCallback(() => {
-    console.log("selesai");
+    // console.log("selesai");
     setShowPopup(false);
     onNext?.(resultLevel);
     router.replace("/customer-area");
@@ -112,12 +180,9 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
       <div className="w-full max-w-2xl rounded-2xl bg-white p-8">
         {/* Header */}
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <div className="col-start-2 text-center text-[32px] font-bold text-dark-primary">
+          <div className="col-start-2 text-center text-[32px] font-bold text-old-primary">
             Cek Kekuatan Sinyal
           </div>
-          {/* <span className="col-start-3 justify-self-end text-sm text-gray-500">
-            {isScanning ? "Memindai..." : "Hasil"}
-          </span> */}
         </div>
 
         {/* Ilustrasi Rumah + Bars */}
@@ -195,7 +260,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                 closeModal={closePopup}
                 classNameModal="p-6 max-w-lg w-full mx-4 text-center"
               >
-                <h3 className="text-dark-primary font-bold text-lg">
+                <h3 className="text-old-primary mt-6 font-bold text-lg">
                   CPE Anda berhasil teraktivasi!
                 </h3>
                 <p className="mt-5 font-medium text-sm text-black">
@@ -245,7 +310,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleRetry}
             disabled={isScanning}
-            className="h-10 rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+            className="h-10 font-semibold rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
           >
             {retryLabel}
           </button>
@@ -253,7 +318,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleNext}
             disabled={isScanning}
-            className="h-10 rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50 cursor-pointer"
+            className="h-10 font-bold rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50 cursor-pointer"
           >
             {primaryLabel}
           </button>

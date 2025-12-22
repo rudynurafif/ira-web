@@ -222,3 +222,30 @@ export const content_terms = [
     ],
   },
 ];
+
+export const listConnectedDevices = [
+    {
+      id: 1,
+      name: "Iphone 16",
+      ip: "192.168.1.23",
+      mac: "80:ab:2c:19:aa:12",
+      lastSeen: "1:30:25 PM",
+      isBlocked: false,
+    },
+    {
+      id: 2,
+      name: "Samsung S25 Ultra",
+      ip: "192.168.1.44",
+      mac: "90:ab:2c:19:aa:12",
+      lastSeen: "1:23:34 PM",
+      isBlocked: true,
+    },
+    {
+      id: 3,
+      name: "Macbook Pro",
+      ip: "192.168.1.51",
+      mac: "32:ab:2c:19:aa:12",
+      lastSeen: "2:34:09 PM",
+      isBlocked: false,
+    },
+  ];

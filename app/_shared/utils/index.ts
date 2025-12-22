@@ -1,3 +1,4 @@
+import { Level } from "@/app/(routes)/activation/_components/SignalChecking";
 import { jwtDecode } from "jwt-decode";
 import moment from "moment";
 import toast from "react-hot-toast";
@@ -106,6 +107,28 @@ export function formatDate(expireAt: string): string {
   // Ganti titik dengan titik dua jika perlu, dan tambahkan "WIB"
   return `${formatted} WIB`;
 }
+
+export const formatDateFilter = (date: Date | null): string | undefined => {
+  if (!date) return undefined;
+
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0"); // bulan dimulai dari 0
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+export const formatDateFilter2 = (date: Date | null): string | undefined => {
+  if (!date) return undefined;
+
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0"); // bulan dimulai dari 0
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${day}-${month}-${year}`;
+};
 
 export function formatISODate(
   isoString: string | null,
@@ -236,4 +259,36 @@ export function formatNamaWilayah(nama: string): string {
 
 export const maskPassword = (password: string) => {
   return "*".repeat(password.length);
+};
+
+export const getSignalLevel = (
+  rsrp?: number,
+  rsrq?: number,
+  sinr?: number
+): "good" | "poor" | "bad" | "disconnected" => {
+  if (rsrp == null || rsrq == null || sinr == null) {
+    return "disconnected";
+  }
+
+  // Prioritaskan RSRP sebagai penentu utama
+  if (rsrp >= -85) return "good";
+  if (rsrp >= -100) return "poor";
+  if (rsrp >= -115) return "bad";
+  return "disconnected";
+};
+
+export const mapSignalToLevel = (
+  rsrp: number | null,
+  rsrq: number | null,
+  sinr: number | null
+): Level => {
+  if (rsrp === null || rsrq === null || sinr === null) return 0;
+
+  // Sesuaikan dengan rentang kualitas sinyal LTE
+  if (rsrp >= -85) return 5; // Excellent
+  if (rsrp >= -90) return 4; // Good
+  if (rsrp >= -95) return 3; // Fair
+  if (rsrp >= -100) return 2; // Poor
+  if (rsrp >= -110) return 1; // Bad
+  return 0; // No signal
 };

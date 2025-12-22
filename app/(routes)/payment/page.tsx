@@ -20,6 +20,9 @@ import Loader from "@/app/_components/Loader";
 import ErrorFallback from "@/app/_components/ErrorFallback";
 import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
 import petir from "@/public/assets/Icons/petir.svg";
+import BannerLatest from "./_components/BannerLatest";
+import bannerPerpanjang from "@/public/assets/Images/banner-perpanjang-paket.png";
+import bannerPerpanjangMobile from "@/public/assets/Images/banner-perpanjangan-paket-mobile.png";
 
 function PackageCardMobile({
   pkg,
@@ -75,7 +78,9 @@ function PackageCardMobile({
             {/* badge harga */}
             <div className="shrink-0 ml-2">
               <span className="inline-flex flex-col sm:flex-row max-w-[400px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm text-black whitespace-nowrap">
-                <p className="max-sm:font-bold font-semibold">{convertToCurrency(pkg.price ?? 0)}</p>
+                <p className="max-sm:font-bold font-semibold">
+                  {convertToCurrency(pkg.price ?? 0)}
+                </p>
                 <p className="font-semibold">/{pkg.duration ?? 0} Hari</p>
               </span>
             </div>
@@ -95,7 +100,7 @@ function PackageCardMobile({
 
 const Payment = () => {
   const router = useRouter();
-  const selectedPackageFromLS = (() => {
+  const selectedPackageFromSession = (() => {
     if (typeof window === "undefined") return null;
     const item = sessionStorage.getItem("selectedPackage");
     if (!item) return null;
@@ -118,8 +123,9 @@ const Payment = () => {
 
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
-    selectedPackageFromLS
+    selectedPackageFromSession
   );
+
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
     selectedChannelFromLS
   );
@@ -217,11 +223,24 @@ const Payment = () => {
 
   return (
     <div className="container mx-auto my-8 max-md:p-4">
-      <div className="flex gap-2 items-center justify-center">
+      <div className="flex gap-2 items-center justify-center mb-7">
         <div className="font-bold text-primary-text text-3xl">
           Perpanjang Paket
         </div>
       </div>
+
+      {/* <BannerLatest /> */}
+      <Image
+        src={bannerPerpanjang}
+        alt="banner-perpanjang-paket"
+        className="lg:block hidden w-full drop-shadow-xl mb-8"
+      />
+      <Image
+        src={bannerPerpanjangMobile}
+        alt="banner-perpanjang-paket"
+        className="lg:hidden block w-full drop-shadow-xl mb-8"
+      />
+
       <div className="sm:p-6 sm:shadow-lg my-8 rounded-lg">
         <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
           Pilih Paket
@@ -260,10 +279,8 @@ const Payment = () => {
               {selectedChannel ? (
                 <Image
                   src={PAYMENT_LOGOS[selectedChannel.code] || ccSvg}
-                  width={100}
-                  height={100}
                   alt={selectedChannel.name}
-                  className="object-contain"
+                  className="w-full object-contain"
                 />
               ) : (
                 <Image

@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 import noSN from "@/public/assets/Images/no-sn.svg";
+import SNUsed from "@/public/assets/Images/sn-used.svg";
+import iconScan from "@/public/assets/Icons/icon-scan.svg";
 import Image from "next/image";
 
 function InputManualForm() {
@@ -17,6 +19,8 @@ function InputManualForm() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
+  const [isSNUsed, setIsSNUsed] = useState(false);
+  const [isSNNotFound, setIsSNNotFound] = useState(false);
   const router = useRouter();
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
@@ -47,19 +51,40 @@ function InputManualForm() {
         setErrors(errors);
 
         return;
-      } else {
+      }
+      // jika berhasil
+      else {
         setErrors({});
 
         addUrlParam("section", "connect");
         addUrlParam("serial_number", serialNumber);
 
         // Untuk keperluan simulasi, redirect ke customer-area setelah submit
-        setTimeout(() => {
-          window.location.href = "/customer-area";
-        }, 3000);
+        // setTimeout(() => {
+        //   window.location.href = "/customer-area";
+        // }, 3000);
       }
     } catch (error: any) {
       setOpenModalFailed(true);
+
+      const statusCode = error?.response?.data?.statusCode;
+
+      switch (statusCode) {
+        case 409:
+          console.log("masuk yang pertama");
+          setIsSNUsed(true);
+          break;
+        case 404:
+        case 400:
+          console.log("masuk yang kedua");
+          setIsSNNotFound(true);
+          break;
+        default:
+          console.log("masuk default");
+          setIsSNNotFound(true);
+          break;
+      }
+
       setErrors({
         serial_number:
           error.response?.data?.message ||
@@ -76,7 +101,7 @@ function InputManualForm() {
 
   return (
     <div className="container mx-auto max-w-[480px] max-sm:px-8">
-      <h2 className="text-primary-text font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
+      <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Input Manual Serial Number
       </h2>
 
@@ -96,10 +121,11 @@ function InputManualForm() {
             error={errors.serial_number}
           />
 
-          <div className="pt-4">
+          <div className="mt-6">
             <button
+              disabled={isSubmitting || !serialNumber}
               type="submit"
-              className="w-full hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary"
+              className="w-full disabled:bg-slate-400 hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary disabled:border-slate-400 disabled:cursor-not-allowed"
             >
               Submit
             </button>
@@ -110,8 +136,13 @@ function InputManualForm() {
                   addUrlParam("section", "scan");
                 }}
                 type="button"
-                className="w-fit hover:font-bold cursor-pointer bg-background-customer rounded-xl px-2 py-3 font-medium text-primary border border-primary mt-2"
+                className="w-full flex items-center justify-center hover:font-bold cursor-pointer bg-white hover:bg-red-50 rounded-xl px-2 py-3 font-medium text-primary border border-primary mt-2"
               >
+                <Image
+                  src={iconScan}
+                  alt="icon scan"
+                  className="inline-block mr-2"
+                />
                 Scan Barcode
               </button>
             </div>
@@ -123,17 +154,31 @@ function InputManualForm() {
 
       {openModalFailed && (
         <ModalTemplate
-          closeModal={() => setOpenModalFailed(false)}
+          closeModal={() => {
+            setOpenModalFailed(false);
+            setIsSNNotFound(false);
+            setIsSNUsed(false);
+          }}
           classNameModal="p-6 max-w-lg w-full mx-4 text-center"
         >
           {/* Modal Content */}
           <div className="flex justify-center items-center">
-            <Image
-              src={noSN}
-              width={200}
-              height={200}
-              alt="Nomor SN Invalid w-full"
-            />
+            {isSNNotFound && (
+              <Image
+                src={noSN}
+                width={200}
+                height={200}
+                alt="Nomor SN Invalid w-full"
+              />
+            )}
+            {isSNUsed && (
+              <Image
+                src={SNUsed}
+                width={200}
+                height={200}
+                alt="Nomor SN Invalid w-full"
+              />
+            )}
           </div>
 
           <h3 className="text-dark-primary font-bold text-xl mt-6">

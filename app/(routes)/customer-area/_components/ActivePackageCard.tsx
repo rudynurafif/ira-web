@@ -28,6 +28,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   return (
     <div className="bg-linear-to-b from-white via-white to-[#FFDCDC] rounded-xl shadow-lg p-6 max-sm:p-4">
       {/* Header */}
+      <div className="mb-3">Paket yang terakhir dibeli</div>
       <div className="flex items-center gap-4 mb-4">
         {/* Logo */}
         <div className="w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center">
@@ -61,7 +62,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               color="#008E19"
             />
             <p className="sm:text-sm text-xs font-bold text-green-3">
-              Selamat paket {data.package_id.name ?? "-"} baru kamu sudah aktif!
+              Selamat {data.package_id.name ?? "-"} baru kamu sudah aktif!
             </p>
             <p className="sm:text-sm text-xs mt-1">
               Nikmati Kuota Unlimited dan koneksi stabil selama{" "}
@@ -79,13 +80,13 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               className="mb-1"
               color="#008E19"
             />
-            <p className="sm:text-sm text-xs font-bold text-yellow">
-              Tinggal {days} hari! Segera perpanjang sebelum
+            <p className="sm:text-sm text-xs font-bold text-orange">
+              Tinggal {days} hari! Segera perpanjang sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar tidak terputus.
             </p>
-            <p className="sm:text-sm text-xs text-green-3 mt-1">
+            <p className="sm:text-sm text-xs mt-1">
               Masa aktif hampir habis. Amankan akses internet keluarga dengan
-              memperpanjang paket sebelum tanggal
+              memperpanjang paket sebelum tanggal{" "}
               {formattedDate(data.end_date) ?? "-"}; proses cepat, layanan tetap
               aktif tanpa putus. Nikmati Kuota Unlimited dan
             </p>
@@ -101,11 +102,11 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               className="mb-1"
               color="#008E19"
             />
-            <p className="sm:text-sm text-xs font-bold text-orange">
+            <p className="sm:text-sm text-xs font-bold text-purple">
               Paket berakhir hari ini! Segera perpanjang sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar tidak terisolir.
             </p>
-            <p className="sm:text-sm text-xs text-green-3 mt-1">
+            <p className="sm:text-sm text-xs mt-1">
               Hari ini paket {data.package_id?.name} mencapai jatuh tempo.
               Selesaikan pembayaran sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar layanan tetap aktif
@@ -127,8 +128,8 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             <p className="sm:text-sm text-xs font-bold text-[#D6211E]">
               Layanan nonaktif—bayar paket untuk aktif kembali seketika.
             </p>
-            <p className="sm:text-sm text-xs text-green-3 mt-1">
-              Internet nonaktif sementara karena masa aktif sudah berakhir pada
+            <p className="sm:text-sm text-xs mt-1">
+              Internet nonaktif sementara karena masa aktif sudah berakhir pada{" "}
               {formattedDate(data.end_date) ?? "-"}. Pilih dan bayar paket yang
               kamu inginkan agar koneksi Internet Rakyat segera aktif kembali;
               hubungi bantuan jika membutuhkan panduan.
@@ -140,9 +141,9 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
       <div className="border-t border-gray-200 my-6"></div>
 
       {/* Info Grid */}
-      <div className="grid grid-cols-2 sm:gap-10 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {/* Harga Paket */}
-        <div className="flex flex-col items-start gap-3">
+        {/* <div className="flex flex-col items-start gap-3">
           <Image src={packageIcon} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Harga Paket</p>
@@ -150,14 +151,14 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               {convertToCurrency(data.package_id.price) ?? "-"}
             </p>
           </div>
-        </div>
+        </div> */}
 
         {/* Sisa Hari */}
         <div className="flex flex-col items-start gap-3">
           <Image src={sandClock} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Sisa Hari</p>
-            <p className="sm:text-lg text-base">{label}</p>
+            <p className="text-sm sm:text-base">{label}</p>
           </div>
         </div>
 
@@ -166,7 +167,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           <Image src={rocket} alt="packageIcon" />
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Kecepatan Paket</p>
-            <p className="sm:text-lg text-base">
+            <p className="text-sm sm:text-base">
               {data.package_id.speed_mbps ?? "-"}Mpbs
             </p>
           </div>
@@ -179,7 +180,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             <p className="text-xs font-bold mb-2 mt-3">
               Tanggal Berakhir Paket
             </p>
-            <p className="sm:text-lg text-base">
+            <p className="text-sm sm:text-base">
               {formattedDate(data.end_date) ?? "-"}
             </p>
           </div>

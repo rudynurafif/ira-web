@@ -152,6 +152,7 @@ const DeliveryTracking = ({
           className={`bg-button hover:bg-dark-primary-2 cursor-pointer max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
         >
           Aktivasi Perangkat
+          {/* Masukkan informasi kapan diterima */}
         </button>
       ) : (
         <div className="flex-col max-sm:w-full text-end max-lg:text-center">
@@ -198,7 +199,7 @@ const DeliveryTracking = ({
               width={256}
               height={256}
               className="w-64 h-64 object-contain"
-              unoptimized
+              // unoptimized
             />
           </div>
 
@@ -239,7 +240,7 @@ const DeliveryTracking = ({
               Informasi Kode Booking
             </h4>
 
-            <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+            <ol className="list-decimal list-inside space-y-2 text-sm text-black">
               <li>
                 <span className="font-medium">Kode Booking</span> bersifat
                 rahasia dan hanya digunakan untuk verifikasi penerima paket.
@@ -289,7 +290,7 @@ const DeliveryTracking = ({
               src={ActivationScan}
               alt="Activation Icon"
               className="sm:w-64 sm:h-64 w-32 h-32 object-contain"
-              unoptimized
+              // unoptimized
             />
           </div>
 
@@ -297,14 +298,55 @@ const DeliveryTracking = ({
             Aktivasi Perangkat
           </h3>
 
-          <p className="sm:text-base text-xs sm:px-8">
-            Pastikan perangkat Anda sudah siap. Scan serial number yang ada di
-            belakang perangkat.
+          <p className="sm:text-base text-start text-xs sm:px-8">
+            Biar proses aktivasi kamu lancar tanpa kendala, yuk pastikan
+            perangkat CPE-nya sudah dalam kondisi siap digunakan. Cek dulu
+            beberapa hal penting berikut ya:
           </p>
 
+          {/* Tutorial, your code here */}
+          <div className="my-6 sm:px-8 text-start">
+            <div className="space-y-4">
+              {/* Langkah 1 */}
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="bg-primary text-white rounded-full min-w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                  1
+                </div>
+                <div>
+                  <p className="font-bold text-primary">
+                    CPE sudah dicolok ke listrik
+                  </p>
+                  <p className="text-sm text-black mt-1">
+                    Pastikan adaptor terpasang dengan benar dan colokan listrik
+                    dalam kondisi aktif.
+                  </p>
+                </div>
+              </div>
+
+              {/* Langkah 2 */}
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="bg-primary text-white rounded-full min-w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                  2
+                </div>
+                <div>
+                  <p className="font-bold text-primary">
+                    Lampu indikator pada CPE sudah menyala
+                  </p>
+                  <p className="text-sm text-black mt-1">
+                    Lampu yang menyala menandakan perangkat sudah aktif dan siap
+                    diproses untuk aktivasi.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button
-            className="mt-6 py-3 px-6 disabled:bg-slate-400 disabled:cursor-not-allowed font-bold max-sm:w-full bg-primary hover:bg-dark-primary-2 text-white sm:rounded-lg rounded-full cursor-pointer"
-            onClick={() => router.push(`/activation`)}
+            className="my-6 py-3 px-6 disabled:bg-slate-400 disabled:cursor-not-allowed font-bold max-sm:w-full bg-primary hover:bg-dark-primary-2 text-white sm:rounded-lg rounded-full cursor-pointer"
+            onClick={() => {
+              router.push(`/activation`);
+              // router.push(`/activation/activating-cpe`); // manual activation page
+            }}
           >
             Mulai Aktivasi Perangkat
           </button>

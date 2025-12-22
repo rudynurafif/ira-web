@@ -3,7 +3,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
 import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
@@ -13,8 +13,12 @@ import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import ActivePackageCard from "./ActivePackageCard";
 import SubsHistoryCard from "./SubsHistoryCard";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import { toastErrorFromAPI } from "@/app/_shared/utils";
+import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
 import empty from "@/public/assets/Images/Empty.svg";
+import toast from "react-hot-toast";
+import DatePickerFilter from "@/app/_components/form/DatePickerFilter";
+import HistorySection from "./HistorySection";
+import thumbClick from "@/public/assets/Icons/thumb-click.png";
 
 const PAGE_SIZE = 5;
 
@@ -27,10 +31,14 @@ const PackageAndHistory = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const searchParams = useSearchParams();
 
   const { userInfo } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+
+  const [startDateFilter, setStartDateFilter] = useState<any>();
+  const [endDateFilter, setEndDateFilter] = useState<any>();
 
   // Fetch paket aktif (hanya sekali, tidak dipengaruhi pagination)
   useEffect(() => {
@@ -81,114 +89,162 @@ const PackageAndHistory = () => {
     fetchHistory(1);
   }, []);
 
-  const handlePageChange = (page: number) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-    fetchHistory(page);
-  };
-
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
 
-  const hasHistory = subscriptionHistory[0]?.start_date ?? false;
+  const LatestPackage = () => {
+    return (
+      <div className="">
+        <div className="text-xl font-bold mb-5">Paket Terakhir Dibeli</div>
+        <div className="flex justify-between items-center gap-2">
+          <Image
+            src="/assets/Images/gambar-latest.png"
+            alt="gambar-latest"
+            width={140}
+            height={152}
+            // unoptimized
+          />
 
-  // Komponen History Section
-  const HistorySection = () => (
-    <div>
-      <p className="text-xl hidden sm:block font-bold text-black mb-4">
-        Riwayat Tagihan
-      </p>
+          {/* Kode Kartu Paket Di Sini */}
+          <div className="bg-white rounded-lg shadow-lg p-0.5 w-full">
+            {/* Header Merah */}
+            <div
+              className="bg-linear-to-r text-white text-center py-2 rounded-t-lg font-bold text-sm"
+              style={{
+                background: "linear-gradient(to right, #520201, #9C1816)",
+              }}
+            >
+              {activePacketData?.package_id.name || "Paket Internet Rakyat"}
+            </div>
 
-      {isLoadingHistory ? (
-        <div className="space-y-4">
-          {[...Array(PAGE_SIZE)].map((_, i) => (
-            <SkeletonLoadingCard key={i} />
-          ))}
-        </div>
-      ) : hasHistory ? (
-        <>
-          <div className="flex flex-col gap-6">
-            {subscriptionHistory.map((history) => (
-              <SubsHistoryCard data={history} key={history.id} />
-            ))}
+            {/* Body: Speed & Price */}
+            <div className="flex flex-col [@media(max-width:480px)]:flex-col [@media(min-width:481px)]:flex-row justify-evenly">
+              <div className="flex flex-col justify-between items-center py-3 px-2">
+                <div className="text-xs text-center">
+                  Internet sampai dengan
+                </div>
+                <div className="text-2xl font-extrabold text-gradient-red">
+                  {activePacketData?.package_id.speed_mbps || "Speed"}{" "}
+                  <span className="sm:text-base text-xs">Mbps</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-between items-center py-3 px-2">
+                <div className="text-xs ">Harga</div>
+                <div className="sm:text-2xl font-extrabold text-gradient-red">
+                  <span className="sm:text-base text-xs font-semibold align-top">
+                    Rp{" "}
+                  </span>
+                  {activePacketData
+                    ? activePacketData.package_id.price
+                        .toLocaleString("id-ID")
+                        .replace(/,/g, ".")
+                    : "0"}
+                </div>
+              </div>
+            </div>
+
+            {/* Fitur */}
+            <div className="flex flex-col sm:flex-row gap-2 justify-evenly items-start sm:items-center bg-background-customer rounded-b-lg py-2 px-3">
+              <div className="flex items-center gap-1 text-xs  font-medium">
+                <Image
+                  src="/assets/Icons/icon-checklist.svg"
+                  alt="ico-checklist"
+                  width={18}
+                  height={18}
+                />
+                <p className="font-bold">
+                  <span className="text-gradient-red">GRATIS</span> SEWA MODEM
+                </p>
+              </div>
+              <div className="flex items-center gap-1 text-xs  font-medium">
+                <Image
+                  src="/assets/Icons/icon-checklist.svg"
+                  alt="ico-checklist"
+                  width={18}
+                  height={18}
+                />
+                <p className="font-bold">
+                  <span className="text-gradient-red">UNLIMITED</span> DATA
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Pagination UI */}
-          {totalPages >= 1 && (
-            <div className="flex justify-center items-center gap-2 mt-6">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 cursor-pointer rounded-md bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300"
-              >
-                {"<"}
-              </button>
-
-              {[...Array(totalPages)].map((_, i) => {
-                const page = i + 1;
-                // Tampilkan semua halaman jika ≤ 5
-                // Jika > 5, tampilkan hanya first, last, dan ±2 di sekitar current
-                if (totalPages <= 5) {
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === page
-                          ? "bg-primary text-white"
-                          : "bg-gray-200 hover:bg-gray-300"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                } else {
-                  if (
-                    page === 1 ||
-                    page === totalPages ||
-                    (page >= currentPage - 1 && page <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === page
-                            ? "bg-primary text-white"
-                            : "bg-gray-200 hover:bg-gray-300"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  } else if (
-                    (page === 2 && currentPage > 3) ||
-                    (page === totalPages - 1 && currentPage < totalPages - 2)
-                  ) {
-                    return <span key={page}>...</span>;
-                  }
-                  return null;
-                }
-              })}
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 cursor-pointer rounded-md bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300"
-              >
-                {">"}
-              </button>
+          <div className="relative min-w-[100px] cursor-pointer hidden sm:block hover:scale-110 transition-transform">
+            <Image
+              src="/assets/Images/button-beli-lagi-home.png"
+              alt="button-beli-lagi-home"
+              width={100}
+              height={152}
+              onClick={() => {
+                sessionStorage.setItem(
+                  "selectedPackage",
+                  JSON.stringify(activePacketData?.package_id)
+                );
+                router.push("payment/payment-methods");
+              }}
+              className="relative z-10"
+              style={{
+                filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
+              }}
+            />
+            <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+              <div
+                className="absolute top-0 h-full"
+                style={{
+                  width: "100px",
+                  background:
+                    "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                  transform: "skew(-20deg)",
+                  animation: "sweep-narrow 2.5s infinite ease-out",
+                }}
+              />
             </div>
-          )}
-        </>
-      ) : (
-        <div className="flex text-secondary flex-col gap-4 justify-center items-center text-center py-10">
-          <Image src={empty} alt="empty" />
-          Anda belum memiliki riwayat pembelian paket Internet Rakyat.
+          </div>
         </div>
-      )}
-    </div>
-  );
+
+        <div className="relative w-full h-[60px] my-3 sm:hidden">
+          <button
+            className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
+            style={{
+              filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
+            }}
+            onClick={() => {
+              sessionStorage.setItem(
+                "selectedPackage",
+                JSON.stringify(activePacketData?.package_id)
+              );
+              router.push("payment/payment-methods");
+            }}
+          >
+            Beli Lagi
+            <Image
+              src={thumbClick}
+              alt="button-beli-lagi-home-mobile"
+              width={24}
+              height={24}
+              // unoptimized
+            />
+          </button>
+
+          <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+            <div
+              className="absolute top-0 h-full"
+              style={{
+                width: "120px",
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                transform: "skew(-20deg)",
+                animation: "sweep-mobile 3s infinite ease-out",
+                left: "-120px",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -202,6 +258,8 @@ const PackageAndHistory = () => {
           className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
           onClick={() => window.open(`https://wa.me/${phoneCS}`, "_blank")}
         />
+
+        {activePacketData && <LatestPackage />}
 
         <Image
           src={bannerPanduanMobile}
@@ -226,12 +284,16 @@ const PackageAndHistory = () => {
         </div>
 
         <div className="lg:col-span-7 col-span-12 flex flex-col gap-6">
+          {/* Paket terakhir dibeli */}
+          {activePacketData && <LatestPackage />}
+
           <Image
             src={bannerPanduan}
             alt="Banner Panduan"
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
+
           <HistorySection />
         </div>
       </div>
