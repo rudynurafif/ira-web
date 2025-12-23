@@ -46,6 +46,11 @@ const DeviceInformation = () => {
   const { lastEvent } = useSSE();
   const [isSaving, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    const sn = localStorage.getItem("ira-cpe-serial-number");
+    if (sn) setSerialNumber(sn);
+  }, []);
+
   const fetchCPEDetail = async () => {
     try {
       const resCPE = await getDetailCPE();
@@ -56,9 +61,6 @@ const DeviceInformation = () => {
     } finally {
     }
   };
-
-  const sn =
-    localStorage.getItem("ira-cpe-serial-number") || "T100000000000001";
 
   const fetchSSID = async () => {
     try {
@@ -72,7 +74,7 @@ const DeviceInformation = () => {
 
       if (params) {
         console.log("SN:", params);
-        const resSSID = await getSSID({ sn });
+        const resSSID = await getSSID({ sn: serialNumber });
       }
     } catch (err: any) {
       toastErrorFromAPI(err);
@@ -92,66 +94,77 @@ const DeviceInformation = () => {
   }, [cpeDetail?.cpe_id?.ssid]);
 
   useEffect(() => {
-    if (lastEvent?.type === "get_wifi") {
-      // Optional: sync UI atau refetch
-    }
-  }, [lastEvent]);
-
-  useEffect(() => {
-    const sn =
-      localStorage.getItem("ira-cpe-serial-number") || "T100000000000001";
-
-    if (sn) {
-      setSerialNumber(sn);
-      fetchSignal(sn);
+    if (serialNumber) {
+      setSerialNumber(serialNumber);
+      fetchSignal(serialNumber);
     } else {
       setIsLoadingSignal(false);
     }
   }, []);
 
   const fetchSignal = async (sn: string) => {
-    setIsLoadingSignal(true);
     try {
-      const res = await getSignal({ sn });
-      const data = res.data?.data;
-      console.log("signal data", data);
-      const signalData = JSON.parse(
-        sessionStorage.getItem("SignalData") || "{}"
-      );
-      console.log("signal data", signalData);
-
-      if (data) {
-        console.log("masuk get signal");
-        const level = getSignalLevel(
-          signalData.rsrp,
-          signalData.rsrq,
-          signalData.sinr
-        );
-        setSignalData({
-          rsrp: signalData.rsrp,
-          rsrq: signalData.rsrq,
-          sinr: signalData.sinr,
-          level,
-        });
-      } else {
-        setSignalData({
-          rsrp: null,
-          rsrq: null,
-          sinr: null,
-          level: "disconnected",
-        });
-      }
-    } catch (err) {
-      setSignalData({
-        rsrp: null,
-        rsrq: null,
-        sinr: null,
-        level: "disconnected",
-      });
+      setIsLoadingSignal(true);
+      await getSignal({ sn });
+    } catch (err: any) {
+      toastErrorFromAPI(err);
     } finally {
       setIsLoadingSignal(false);
     }
   };
+
+  useEffect(() => {
+    if (!lastEvent) return;
+
+    switch (lastEvent.type) {
+      case "get_signal": {
+        const { rsrp, rsrq, sinr } = lastEvent.data || {};
+
+        if (
+          typeof rsrp !== "number" ||
+          typeof rsrq !== "number" ||
+          typeof sinr !== "number"
+        ) {
+          setSignalData({
+            rsrp: null,
+            rsrq: null,
+            sinr: null,
+            level: "disconnected",
+          });
+          setIsLoadingSignal(false);
+          return;
+        }
+
+        setSignalData({
+          rsrp,
+          rsrq,
+          sinr,
+          level: getSignalLevel(rsrp, rsrq, sinr),
+        });
+
+        setIsLoadingSignal(false);
+        break;
+      }
+
+      case "get_wifi": {
+        setCpeDetail((prev) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            cpe_id: {
+              ...prev.cpe_id,
+              ...lastEvent.data,
+            },
+          };
+        });
+        break;
+      }
+
+      default:
+        break;
+    }
+  }, [lastEvent]);
 
   const handleCheckSignal = () => {
     if (serialNumber) fetchSignal(serialNumber);
@@ -195,9 +208,7 @@ const DeviceInformation = () => {
     setIsSaving(true);
 
     try {
-      const sn =
-        cpeDetail?.cpe_id?.serial_number ||
-        localStorage.getItem("device-serial-number");
+      const sn = cpeDetail?.cpe_id?.serial_number || serialNumber;
 
       if (!sn) {
         throw new Error("Serial number tidak ditemukan");

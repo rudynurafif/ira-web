@@ -54,20 +54,18 @@ export default function AreaPelanggan() {
       const data = resSubHistory.data?.data;
       setSubscriptionHistory(data);
 
-      const hasStartDate = !!data?.[0]?.start_date;
-      setIsActive(hasStartDate);
+      const hasStartDate = Boolean(data?.[0]?.start_date);
+      const active = hasStartDate || userInfo?.status === "active";
+
+      setIsActive(active);
 
       if (hasStartDate) {
-        setTabs((prev) => {
-          if (!prev.includes("Informasi Perangkat")) {
-            return [...prev, "Informasi Perangkat"];
-          }
-          return prev;
-        });
+        setTabs((prev) =>
+          prev.includes("Informasi Perangkat")
+            ? prev
+            : [...prev, "Informasi Perangkat"]
+        );
       }
-
-      setIsActive(data[0]?.start_date);
-      if (isActive) tabs.push("Informasi Perangkat");
 
       const shipmentStatus = data?.[0]?.shipment_status || null;
       dispatch(setShipmentStatus(shipmentStatus));
@@ -77,9 +75,7 @@ export default function AreaPelanggan() {
   };
 
   useEffect(() => {
-    // if (!shipmentStatus)
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

@@ -9,8 +9,9 @@ import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { useRouter } from "next/navigation";
 import { getSignal } from "@/app/_api/CoreNetwork/CoreNetwork";
 import { getSignalLevel } from "@/app/_shared/utils";
+import { useSSE } from "@/app/_context/SSEContext";
 
-export type Level = 0 | 1 | 2 | 3 | 4 | 5;
+export type Level = 0 | 1 | 2 | 3 | 4;
 
 type SignalCheckingProps = {
   mode?: "auto" | "result";
@@ -25,31 +26,31 @@ type SignalCheckingProps = {
 const levelColor: Record<Level, string> = {
   0: "bg-gray-300",
   1: "bg-red-500",
-  2: "bg-orange-500",
-  3: "bg-yellow-500",
-  4: "bg-green-500",
-  5: "bg-emerald-600",
+  2: "bg-yellow-500",
+  3: "bg-green-500",
+  4: "bg-emerald-600",
+  // 5: "bg-emerald-600",
 };
 
 const barHeight = (b: number) =>
-  (["0%", "24%", "48%", "72%", "88%", "100%"] as const)[b];
+  (["25%", "50%", "75%", "100%"] as const)[b - 1];
 
 const levelTitle: Record<Level, string> = {
   0: "Tidak Terdeteksi",
   1: "Buruk",
-  2: "Kurang",
-  3: "Cukup",
-  4: "Baik",
-  5: "Sempurna",
+  2: "Cukup",
+  3: "Baik",
+  4: "Sempurna",
+  // 5: "Sempurna",
 };
 
 const levelAdvice: Record<Level, string> = {
   0: "Sinyal tidak terdeteksi. Pindahkan modem ke area terbuka atau dekat jendela, lalu coba lagi.",
   1: "Sinyal buruk. Silakan pindahkan modem ke lokasi yang lebih tinggi atau dekat jendela untuk meningkatkan koneksi, lalu lakukan Cek Ulang.",
-  2: "Sinyal kurang. Geser ke area yang lebih terbuka untuk kualitas lebih baik.",
-  3: "Koneksi internet bisa lebih baik. Silakan pindahkan modem ke lokasi yang lebih tinggi atau dekat jendela untuk meningkatkan koneksi, lalu lakukan Cek Ulang.",
-  4: "Sinyal baik. Tidak perlu perubahan posisi.",
-  5: "Posisi modem sudah optimal untuk koneksi yang stabil.",
+  2: "Koneksi internet bisa lebih baik. Silakan pindahkan modem ke lokasi yang lebih tinggi atau dekat jendela untuk meningkatkan koneksi, lalu lakukan Cek Ulang.",
+  3: "Sinyal baik. Tidak perlu perubahan posisi.",
+  4: "Posisi modem sudah optimal untuk koneksi yang stabil",
+  // 5: "Posisi modem sudah optimal untuk koneksi yang stabil.",
 };
 
 const mapSignalLevelToBar = (
@@ -57,9 +58,9 @@ const mapSignalLevelToBar = (
 ): Level => {
   switch (level) {
     case "good":
-      return 5;
+      return 4;
     case "poor":
-      return 2;
+      return 3;
     case "bad":
       return 1;
     case "disconnected":
@@ -93,62 +94,59 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
     level: "disconnected",
   });
   const [isLoadingSignal, setIsLoadingSignal] = useState(true);
+  const [sn, setSn] = useState<string | null>(null);
+  const [cellId, setCellId] = useState<string | null>(null);
 
   const router = useRouter();
-
-  const sn =
-    localStorage.getItem("ira-cpe-serial-number") || "T100000000000001";
-
-  const fetchSignal = async () => {
-    setIsScanning(true);
-    try {
-      const res = await getSignal({ sn });
-      const data = res.data?.data;
-
-      if (data && data.rsrp != null && data.rsrq != null && data.sinr != null) {
-        const signalLevel = getSignalLevel(data.rsrp, data.rsrq, data.sinr);
-        const barLevel = mapSignalLevelToBar(signalLevel);
-        setResultLevel(barLevel);
-      } else {
-        setResultLevel(0);
-      }
-    } catch (err) {
-      console.error("Gagal fetch sinyal", err);
-      setResultLevel(0);
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
-  // useEffect(() => {
-  //   if (!isScanning) return;
-  //   const id = setTimeout(() => {
-  //     const final: Level =
-  //       typeof level === "number"
-  //         ? (level as Level)
-  //         : ((Math.floor(Math.random() * 5) + 1) as Level);
-  //     setResultLevel(final);
-  //     setIsScanning(false);
-  //   }, autoDurationMs);
-  //   return () => clearTimeout(id);
-  // }, [isScanning, autoDurationMs, level]);
+  const { lastEvent } = useSSE();
 
   useEffect(() => {
-    if (mode === "auto") {
-      // Tampilkan animasi scanning selama autoDurationMs, lalu fetch
-      const id = setTimeout(() => {
-        fetchSignal();
-      }, autoDurationMs);
-      return () => clearTimeout(id);
-    } else {
-      // Jika mode result, langsung fetch
-      fetchSignal();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, autoDurationMs, sn]);
+    setSn(localStorage.getItem("ira-cpe-serial-number"));
+    setCellId(localStorage.getItem("ira-cpe-cell-id"));
+  }, []);
+
+  const triggerGetSignal = useCallback(() => {
+    setIsScanning(true);
+    getSignal({ sn });
+  }, [sn]);
+
+  useEffect(() => {
+    triggerGetSignal();
+  }, [triggerGetSignal]);
+
+  useEffect(() => {
+    if (!lastEvent) return;
+
+    // Pastikan event-nya get_signal
+    if (lastEvent.type !== "get_signal") return;
+
+    const payload = lastEvent.data;
+    if (!payload) return;
+
+    const { rsrp, rsrq, sinr, cell_id } = payload;
+
+    localStorage.setItem(
+      "ira-cpe-cell-id",
+      cell_id ?? "Cell ID from type = get_signal not found"
+    );
+
+    // Mapping level (pakai util yang sudah ada)
+    const signalQuality = getSignalLevel(rsrp, rsrq, sinr);
+    const barLevel = mapSignalLevelToBar(signalQuality);
+
+    setSignalData({
+      rsrp,
+      rsrq,
+      sinr,
+      level: signalQuality,
+    });
+
+    setResultLevel(barLevel);
+    setIsScanning(false);
+  }, [lastEvent]);
 
   const handleRetry = () => {
-    fetchSignal();
+    triggerGetSignal();
     onRetry?.();
   };
 
@@ -228,7 +226,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                   },
                 }}
               >
-                {[1, 2, 3, 4, 5].map((bar) => (
+                {[1, 2, 3, 4].map((bar) => (
                   <motion.div
                     key={bar}
                     variants={{
@@ -244,9 +242,6 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                         bar <= resultLevel
                           ? levelColor[resultLevel]
                           : "bg-gray-200",
-                        resultLevel === 5 && bar === 5
-                          ? "ring-2 ring-emerald-300"
-                          : "",
                       ].join(" ")}
                     />
                   </motion.div>
@@ -293,7 +288,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
           <div className="text-center space-y-1">
             <div className="font-tertiary text-black text-xl font-bold">
               {isScanning
-                ? "Mohon tunggu beberapa detik..."
+                ? "Mohon tunggu beberapa saat..."
                 : levelTitle[resultLevel]}
             </div>
             <div className="font-tertiary text-sm text-black font-medium">
@@ -302,6 +297,18 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                 : levelAdvice[resultLevel]}
             </div>
           </div>
+
+          {!isScanning && (
+            <div className="flex flex-col gap-6">
+              {/* <div className="text-xs text-gray-500 mt-2">
+                RSRP: {signalData.rsrp} dBm · RSRQ: {signalData.rsrq} dB · SINR:{" "}
+                {signalData.sinr} dB
+              </div> */}
+              <div className="text-xs text-gray-500 mt-2">
+                Cell ID: {cellId}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions */}

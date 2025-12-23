@@ -15,10 +15,18 @@ type DecodedToken = {
   exp: number;
 };
 
+interface WifiConfig {
+  ssid?: string;
+  password?: string;
+  ssid5?: string;
+  password5?: string;
+}
+
 type SSEContextType = {
   serverTime: string | null;
   chatMessages: string[];
   lastEvent: SSEPayload | null;
+  wifiConfig: WifiConfig;
 };
 
 const SSEContext = createContext<SSEContextType | null>(null);
@@ -34,6 +42,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const [serverTime, setServerTime] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [lastEvent, setLastEvent] = useState<SSEPayload | null>(null);
+  const [wifiConfig, setWifiConfig] = useState<WifiConfig>({});
 
   const token = getCookie("token-ira");
   const decodedToken = useMemo(() => {
@@ -58,7 +67,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
           headers: {
             "x-sse-token": "LOCALWEAVE",
           },
-          heartbeatTimeout: 600000,
+          heartbeatTimeout: 1_800_000, // 30 menit
         }
       );
 
@@ -74,9 +83,10 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       es.onmessage = (event) => {
         const payload: SSEPayload = JSON.parse(event.data);
         setLastEvent(payload);
+        console.log(payload);
 
-        const data = JSON.parse(event.data);
-        console.log(data);
+        // const data = JSON.parse(event.data);
+        // console.log(data);
       };
 
       es.onerror = () => {
@@ -96,7 +106,9 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   }, [decodedToken?.customer_id]);
 
   return (
-    <SSEContext.Provider value={{ serverTime, chatMessages, lastEvent }}>
+    <SSEContext.Provider
+      value={{ serverTime, chatMessages, lastEvent, wifiConfig }}
+    >
       {children}
     </SSEContext.Provider>
   );

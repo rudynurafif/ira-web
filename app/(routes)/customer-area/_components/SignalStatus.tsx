@@ -15,8 +15,6 @@ interface SignalStatusProps {
   isLoading: boolean;
 }
 
-type SignalLevel = "good" | "poor" | "bad" | "disconnected";
-
 const SignalStatus: React.FC<SignalStatusProps> = ({
   rsrp,
   rsrq,
@@ -40,6 +38,16 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
     },
   };
 
+  const isScanning = isLoading;
+
+  const displayConfig = isScanning
+    ? {
+        icon: goodSignal, // atau icon khusus loading
+        statusText: "Mengecek Sinyal...",
+        internetText: "Sedang memindai",
+      }
+    : config[level];
+
   const { icon, statusText, internetText } = config[level];
 
   return (
@@ -55,14 +63,17 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
         </div>
         <div className="flex flex-col">
           <p className="font-medium">
-            Status Sinyal: <span className="font-bold">{statusText}</span>
+            Status Sinyal:{" "}
+            <span className="font-bold">
+              {isLoading ? "Mengecek..." : statusText}
+            </span>
           </p>
-          <p>Status Internet: {internetText}</p>
+          <p>Status Internet: {isLoading ? "Sedang memindai" : internetText}</p>
         </div>
       </div>
 
       {/* Tampilkan metrik sinyal (opsional tapi sangat berguna) */}
-      {rsrp !== null && (
+      {/* {rsrp !== null && (
         <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
           <div className="text-center">
             <div className="font-bold text-primary">{rsrp} dBm</div>
@@ -77,7 +88,7 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
             <div>SINR</div>
           </div>
         </div>
-      )}
+      )} */}
 
       <button
         onClick={onCheckSignal}

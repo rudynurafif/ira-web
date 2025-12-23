@@ -296,7 +296,7 @@ const Page = () => {
               href="/auth/register"
               className="underline-animation-register font-semibold text-primary"
             >
-              Register
+              Daftar disini
             </Link>
           </p>
         </div>

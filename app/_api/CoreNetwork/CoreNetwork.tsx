@@ -69,3 +69,17 @@ export const setSSID = async (body: SetSSIDBody) => {
     throw error;
   }
 };
+
+export const refreshTask = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/core-network/refresh-task",
+      method: "POST",
+      data: body,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

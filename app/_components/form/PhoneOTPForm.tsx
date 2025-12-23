@@ -200,7 +200,7 @@ function PhoneOTPForm({
 
         <div>
           <button
-            type="button"
+            type="submit"
             disabled={disabledButton}
             className={`text-white py-3 px-3 rounded-xl  ${
               disabledButton
@@ -222,6 +222,7 @@ function PhoneOTPForm({
           </button>
         </div>
       </div>
+
       {hint && (
         <p className="text-xs md:text-sm mt-1">
           <span className="text-red-500">*</span>Gunakan{" "}

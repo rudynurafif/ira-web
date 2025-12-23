@@ -171,7 +171,7 @@ function Header() {
         } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white shadow-sm transition`}
       >
         <FaRegUser />
-        Login/Register
+        Masuk/Daftar
       </Link>
     );
   };
@@ -181,7 +181,11 @@ function Header() {
       <div
         className={
           pathname === "/"
-            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white bg-[rgba(118,18,0,0.5)]`
+            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white ${
+                isOpenMenu
+                  ? "bg-[#910E04]"
+                  : "bg-[rgba(118,18,0,0.5)]"
+              }`
             : "text-black bg-white shadow-sm"
         }
       >
@@ -314,7 +318,7 @@ function Header() {
                   } text-white rounded-full px-5 py-2.5 font-medium`}
                   onClick={() => setIsOpenMenu(false)}
                 >
-                  <FaRegUser /> Login/Register
+                  <FaRegUser /> Masuk/Daftar
                 </Link>
               )}
             </div>

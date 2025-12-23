@@ -1,14 +1,15 @@
-import { activation } from "@/app/_api/Activation/Activation";
+import { Activation } from "@/app/_api/Activation/Activation";
 import DynamicForm from "@/app/_components/form/DynamicForm";
 import LoadingModal from "@/app/_components/modal/LoadingModal";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { addUrlParam, toastErrorFromAPI } from "@/app/_shared/utils";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import noSN from "@/public/assets/Images/no-sn.svg";
 import SNUsed from "@/public/assets/Images/sn-used.svg";
 import iconScan from "@/public/assets/Icons/icon-scan.svg";
+
 import Image from "next/image";
 
 function InputManualForm() {
@@ -33,9 +34,9 @@ function InputManualForm() {
         errors.serial_number = "Serial Number harus diisi";
       }
 
-      const res = await activation({ serial_number: serialNumber });
+      const res = await Activation({ serial_number: serialNumber });
 
-      if (res.data.statusCode === 200) {
+      if (res.data.statusCode === 200 || res.data.statusCode === 201) {
         toast.success(
           res.data.message || "Serial Number berhasil diverifikasi"
         );
@@ -52,8 +53,8 @@ function InputManualForm() {
 
         return;
       }
-      // jika berhasil
       else {
+        // jika berhasil
         setErrors({});
 
         addUrlParam("section", "connect");
@@ -71,16 +72,13 @@ function InputManualForm() {
 
       switch (statusCode) {
         case 409:
-          console.log("masuk yang pertama");
           setIsSNUsed(true);
           break;
         case 404:
         case 400:
-          console.log("masuk yang kedua");
           setIsSNNotFound(true);
           break;
         default:
-          console.log("masuk default");
           setIsSNNotFound(true);
           break;
       }
@@ -100,7 +98,7 @@ function InputManualForm() {
   }
 
   return (
-    <div className="container mx-auto max-w-[480px] max-sm:px-8">
+    <div className="container mx-auto max-w-120 max-sm:px-8">
       <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Input Manual Serial Number
       </h2>

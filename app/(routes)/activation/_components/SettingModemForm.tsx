@@ -5,6 +5,11 @@ import { useSearchParams } from "next/navigation";
 import React, { FormEvent, useEffect, useState } from "react";
 import eyeClose from "@/public/assets/Icons/eye-close.png";
 import eye from "@/public/assets/Icons/eye.png";
+import { getDetailCPE, setSSID } from "@/app/_api/CoreNetwork/CoreNetwork";
+import { CpeSimBinding, SetSSIDBody } from "@/app/_shared/types/CoreNetwork";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
+import toast from "react-hot-toast";
+import { useSSE } from "@/app/_context/SSEContext";
 
 interface FormType {
   ssid_24ghz: string;
@@ -15,6 +20,7 @@ interface FormType {
 
 function SettingModemForm() {
   const params = useSearchParams();
+  const [cpeDetail, setCpeDetail] = useState<CpeSimBinding | null>(null);
   const [formData, setFormData] = useState<FormType>({
     ssid_24ghz: "",
     password_24ghz: "",
@@ -25,6 +31,48 @@ function SettingModemForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [showPassword5, setShowPassword5] = useState(false);
+  const { wifiConfig } = useSSE();
+  const sn =
+    typeof window !== "undefined"
+      ? localStorage.getItem("ira-cpe-serial-number")
+      : null;
+
+  useEffect(() => {
+    async function fetchCPE() {
+      try {
+        const res = await getDetailCPE();
+        setCpeDetail(res?.data?.data ?? null);
+      } catch (e) {
+        toastErrorFromAPI(e);
+      }
+    }
+
+    fetchCPE();
+  }, []);
+
+  useEffect(() => {
+    if (!cpeDetail?.cpe_id || Object.keys(wifiConfig).length > 0) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      ssid_24ghz: cpeDetail.cpe_id.ssid ?? "",
+      password_24ghz: cpeDetail.cpe_id.password ?? "",
+      ssid_5ghz: cpeDetail.cpe_id.ssid5 ?? "",
+      password_5ghz: cpeDetail.cpe_id.password5 ?? "",
+    }));
+  }, [cpeDetail, wifiConfig]);
+
+  useEffect(() => {
+    if (!wifiConfig) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      ssid_24ghz: wifiConfig.ssid ?? prev.ssid_24ghz,
+      password_24ghz: wifiConfig.password ?? prev.password_24ghz,
+      ssid_5ghz: wifiConfig.ssid5 ?? prev.ssid_5ghz,
+      password_5ghz: wifiConfig.password5 ?? prev.password_5ghz,
+    }));
+  }, [wifiConfig]);
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,7 +108,7 @@ function SettingModemForm() {
       }
 
       if (!formData.password_5ghz.trim()) {
-        errors.password_5ghz = "Password 2.4GHz tidak boleh kosong";
+        errors.password_5ghz = "Password 5GHz tidak boleh kosong";
       } else if (
         formData.password_5ghz.length < 8 ||
         formData.password_5ghz.length > 63
@@ -73,58 +121,52 @@ function SettingModemForm() {
 
         return;
       } else {
-        setErrors({});
+        if (!sn) {
+          toast.error("Serial number CPE tidak ditemukan");
+          return;
+        }
 
+        const body: SetSSIDBody = {
+          sn,
+          ssid: formData.ssid_24ghz,
+          password: formData.password_24ghz,
+          ssid5: formData.ssid_5ghz,
+          password5: formData.password_5ghz,
+        };
+
+        const setSSIDRes = await setSSID(body);
+
+        // optional: simpan lokal untuk fallback
+        sessionStorage.setItem(
+          "wifi-config",
+          JSON.stringify({
+            ssid: formData.ssid_24ghz,
+            password: formData.password_24ghz,
+            ssid5: formData.ssid_5ghz,
+            password5: formData.password_5ghz,
+          })
+        );
+
+        if (
+          setSSIDRes.data.statusCode === 201 ||
+          setSSIDRes.data.statusCode === 200
+        ) {
+          toast.success("Setting SSID berhasil disimpan");
+        }
+
+        // lanjut ke step berikutnya
         addUrlParam("section", "check_signal");
-        // addUrlParam("ssid_24", formData.ssid_24ghz);
-        // addUrlParam("password_24", formData.password_24ghz);
-        // addUrlParam("ssid_5", formData.ssid_5ghz);
-        // addUrlParam("password_5", formData.password_5ghz);
       }
     } catch (err: any) {
+      toastErrorFromAPI(err);
       console.error(err);
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  useEffect(() => {
-    const spSsid24 = params.get("ssid_24");
-    const spPassword24 = params.get("password_24");
-    const spSsid5 = params.get("ssid_5");
-    const spPassword5 = params.get("password_5");
-
-    if (spSsid24) {
-      setFormData((prevData: any) => ({
-        ...prevData,
-        ssid_24ghz: spSsid24 || "",
-      }));
-    }
-
-    if (spPassword24) {
-      setFormData((prevData: any) => ({
-        ...prevData,
-        password_24ghz: spPassword24 || "",
-      }));
-    }
-
-    if (spSsid5) {
-      setFormData((prevData: any) => ({
-        ...prevData,
-        ssid_5ghz: spSsid5 || "",
-      }));
-    }
-
-    if (spPassword5) {
-      setFormData((prevData: any) => ({
-        ...prevData,
-        password_5ghz: spPassword5 || "",
-      }));
-    }
-  }, [params]);
-
   return (
-    <div className="container mx-auto max-w-[480px] max-sm:px-8">
+    <div className="container mx-auto max-w-120 max-sm:px-8">
       <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Atur Modem
       </h2>
@@ -146,12 +188,6 @@ function SettingModemForm() {
                 ssid_24ghz: value,
               }));
               setErrors((prev) => ({ ...prev, ssid_24ghz: "" }));
-
-              // if (value) {
-              //   addUrlParam("ssid_24", value);
-              // } else {
-              //   resetUrlParam("ssid_24");
-              // }
             }}
             placeholder="Masukkan SSID 2.4Ghz"
             error={errors.ssid_24ghz}
@@ -175,12 +211,6 @@ function SettingModemForm() {
                   password_24ghz: noSpacesValue,
                 }));
                 setErrors((prev) => ({ ...prev, password_24ghz: "" }));
-
-                // if (value) {
-                //   addUrlParam("password_24", value);
-                // } else {
-                //   resetUrlParam("password_24");
-                // }
               }}
               placeholder="Masukkan kata sandi 2.4Ghz "
               error={errors.password_24ghz}
@@ -225,12 +255,6 @@ function SettingModemForm() {
                 ssid_5ghz: value,
               }));
               setErrors((prev) => ({ ...prev, ssid_5ghz: "" }));
-
-              // if (value) {
-              //   addUrlParam("ssid_5", value);
-              // } else {
-              //   resetUrlParam("ssid_5");
-              // }
             }}
             placeholder="Masukkan SSID 5Ghz"
             error={errors.ssid_5ghz}
