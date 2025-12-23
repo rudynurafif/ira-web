@@ -181,7 +181,11 @@ function Header() {
       <div
         className={
           pathname === "/"
-            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white bg-[rgba(118,18,0,0.5)]`
+            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white ${
+                isOpenMenu
+                  ? "bg-[#910E04]"
+                  : "bg-[rgba(118,18,0,0.5)]"
+              }`
             : "text-black bg-white shadow-sm"
         }
       >

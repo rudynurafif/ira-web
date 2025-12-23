@@ -101,7 +101,7 @@ function InputManualForm() {
   }
 
   return (
-    <div className="container mx-auto max-w-[480px] max-sm:px-8">
+    <div className="container mx-auto max-w-120 max-sm:px-8">
       <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Input Manual Serial Number
       </h2>

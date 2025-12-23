@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { addUrlParam } from "@/app/_shared/utils";
+import { addUrlParam, toastErrorFromAPI } from "@/app/_shared/utils";
 import { useSearchParams } from "next/navigation";
 import { FaWifi } from "react-icons/fa";
 import SignalArc from "./SignalWave";
@@ -11,6 +11,7 @@ import { MdHeadsetMic } from "react-icons/md";
 import toast from "react-hot-toast";
 import { useSSE } from "@/app/_context/SSEContext";
 import Badge from "@/app/_components/Badge";
+import { refreshTask } from "@/app/_api/CoreNetwork/CoreNetwork";
 
 type Screen = "loading" | "failed" | "failedFinal" | "success";
 
@@ -19,25 +20,36 @@ const MAX_ATTEMPT = 3;
 export default function ConnectToNetwork() {
   const params = useSearchParams();
   const serialNumber = params.get("serial_number") || "";
-  const force = params.get("force"); // optional: "success" | "fail" (untuk uji tampilan)
 
   const [screen, setScreen] = useState<Screen>("loading");
-  const [progress, setProgress] = useState(0);
   const [attempt, setAttempt] = useState(1);
 
   const progressTimer = useRef<number | null>(null);
 
   const CHECK_COOLDOWN = 60;
+  const COOLDOWN_KEY = "activation_cooldown_end";
 
-  const [cooldown, setCooldown] = useState(CHECK_COOLDOWN);
-  const [isCooldownActive, setIsCooldownActive] = useState(true);
+  const [cooldown, setCooldown] = useState(0);
+  const [isCooldownActive, setIsCooldownActive] = useState(false);
   const [activationConfirmed, setActivationConfirmed] = useState(false);
 
   const { lastEvent } = useSSE();
 
-  useEffect(() => {
-    if (!lastEvent) return;
+  function handleActivationSuccess(source: "sse" | "api") {
     if (activationConfirmed) return;
+
+    localStorage.setItem(
+      "ira-cpe-serial-number",
+      serialNumber || "SN not found"
+    );
+
+    resetAttempt();
+    setActivationConfirmed(true);
+    setScreen("success");
+  }
+
+  useEffect(() => {
+    if (!lastEvent || activationConfirmed) return;
 
     if (
       lastEvent.type === "activate" &&
@@ -48,25 +60,10 @@ export default function ConnectToNetwork() {
         "ira-cpe-serial-number",
         lastEvent.sn ?? "SN not found"
       );
-      localStorage.setItem(
-        "ira-cpe-cell-id",
-        lastEvent.data?.cell_id ?? "Cell ID not found"
-      );
-      toast.success("Berhasil aktivasi perangkat");
-      console.log("✅ Aktivasi sukses via SSE", lastEvent);
-
-      // stop progress
-      if (progressTimer.current) {
-        window.clearInterval(progressTimer.current);
-        progressTimer.current = null;
-      }
-
-      setProgress(100);
-      resetAttempt();
-      setActivationConfirmed(true);
-      setScreen("success");
+      toast.success("Perangkat berhasil diaktivasi");
+      handleActivationSuccess("sse");
     }
-  }, [lastEvent, serialNumber]);
+  }, [lastEvent, serialNumber, activationConfirmed]);
 
   useEffect(() => {
     startActivation();
@@ -81,12 +78,7 @@ export default function ConnectToNetwork() {
   }, [attempt]);
 
   useEffect(() => {
-    if (!isCooldownActive) return;
-
-    if (cooldown <= 0) {
-      setIsCooldownActive(false);
-      return;
-    }
+    if (!isCooldownActive || cooldown <= 0) return;
 
     const timer = setTimeout(() => {
       setCooldown((c) => c - 1);
@@ -95,16 +87,63 @@ export default function ConnectToNetwork() {
     return () => clearTimeout(timer);
   }, [cooldown, isCooldownActive]);
 
-  function handleCheckAgain() {
-    // reset cooldown
-    setCooldown(CHECK_COOLDOWN);
-    setIsCooldownActive(true);
+  useEffect(() => {
+    if (cooldown <= 0 && isCooldownActive) {
+      setIsCooldownActive(false);
+      localStorage.removeItem(COOLDOWN_KEY);
+    }
+  }, [cooldown, isCooldownActive]);
 
-    // kalau mau trigger ulang aktivasi, bisa:
-    startActivation();
+  async function startActivation() {
+    if (!serialNumber || activationConfirmed) return;
 
-    toast.success("Mengecek ulang status aktivasi...");
+    setScreen("loading");
   }
+
+  async function handleCheckAgain() {
+    if (!serialNumber || activationConfirmed) return;
+
+    const endAt = Date.now() + CHECK_COOLDOWN * 1000;
+    localStorage.setItem(COOLDOWN_KEY, String(endAt));
+    setIsCooldownActive(true);
+    setCooldown(CHECK_COOLDOWN);
+
+    try {
+      toast.loading("Mengecek ulang status aktivasi...", { id: "refresh" });
+
+      const res = await refreshTask({ type: "activate" });
+
+      toast.success("Permintaan cek status dikirim", { id: "refresh" });
+
+      // sesuaikan lagi
+      if (res?.data?.code === 0) {
+        handleActivationSuccess("api");
+        toast.success("Perangkat berhasil diaktivasi");
+      } else if (res?.data?.code === 1) {
+        setScreen("failed");
+      } else if (res?.data?.code === 2) {
+        setScreen("loading");
+      }
+    } catch (err: any) {
+      toastErrorFromAPI(err, "refresh");
+    }
+  }
+
+  useEffect(() => {
+    const savedEndAt = localStorage.getItem(COOLDOWN_KEY);
+    if (!savedEndAt) return;
+
+    const remaining = Math.ceil((Number(savedEndAt) - Date.now()) / 1000);
+
+    if (remaining > 0) {
+      setCooldown(remaining);
+      setIsCooldownActive(true);
+    } else {
+      localStorage.removeItem(COOLDOWN_KEY);
+      setCooldown(0);
+      setIsCooldownActive(false);
+    }
+  }, []);
 
   // restore attempt dari sessionStorage
   useEffect(() => {
@@ -112,26 +151,6 @@ export default function ConnectToNetwork() {
     const saved = Number(sessionStorage.getItem(key) || "0"); // jumlah gagal
     setAttempt(saved + 1); // attempt yang sedang berjalan (1..3)
   }, [serialNumber]);
-
-  useEffect(() => {
-    if (screen !== "loading") return;
-
-    const timeout = setTimeout(() => {
-      if (!activationConfirmed) {
-        const failedSoFar = attempt;
-
-        if (failedSoFar >= MAX_ATTEMPT) {
-          saveFailedAttempt(MAX_ATTEMPT);
-          setScreen("failedFinal");
-        } else {
-          saveFailedAttempt(failedSoFar);
-          setScreen("failed");
-        }
-      }
-    }, 60_000); // 60 detik
-
-    return () => clearTimeout(timeout);
-  }, [screen, activationConfirmed, attempt]);
 
   function saveFailedAttempt(countFailed: number) {
     const key = `activation_attempt:${serialNumber || "default"}`;
@@ -141,19 +160,6 @@ export default function ConnectToNetwork() {
   function resetAttempt() {
     const key = `activation_attempt:${serialNumber || "default"}`;
     sessionStorage.removeItem(key);
-  }
-
-  async function startActivation() {
-    if (!serialNumber || activationConfirmed) return;
-
-    setScreen("loading");
-    setProgress(0);
-
-    // progress animation
-    if (progressTimer.current) window.clearInterval(progressTimer.current);
-    progressTimer.current = window.setInterval(() => {
-      setProgress((p) => Math.min(94, p + Math.max(1, (100 - p) * 0.03)));
-    }, 80);
   }
 
   function retry() {
@@ -219,13 +225,13 @@ export default function ConnectToNetwork() {
         </div>
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-6">
-          <button
+          {/* <button
             onClick={contactCS}
             className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
             Hubungi Customer Service <MdHeadsetMic size={20} />
-          </button>
+          </button> */}
 
           <button
             onClick={handleCheckAgain}
@@ -238,7 +244,9 @@ export default function ConnectToNetwork() {
             }`}
             type="button"
           >
-            {isCooldownActive ? `Cek ulang (${cooldown}s)` : "Cek ulang"}
+            {isCooldownActive
+              ? `Cek Status Aktivasi (${cooldown}s)`
+              : "Cek Status Aktivasi"}
           </button>
         </div>
       </div>
@@ -325,7 +333,7 @@ export default function ConnectToNetwork() {
           Proses Aktivasi
           <Badge color="red">Tidak Berhasil</Badge>
         </div>
-        <p className="text-[#666] max-w-[680px] mx-auto mt-2">
+        <p className="text-[#666] max-w-170 mx-auto mt-2">
           Aktivasi perangkat tidak berhasil dilakukan. Silakan coba kembali atau
           hubungi Customer Service kami untuk bantuan lebih lanjut.
         </p>

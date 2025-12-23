@@ -234,10 +234,7 @@ export const copyToClipboard = (text: string) => {
     });
 };
 
-export const toastErrorFromAPI = (
-  error: any,
-  defaultMessage = "Terjadi kesalahan"
-) => {
+export const toastErrorFromAPI = (error: any, id?: string | undefined) => {
   // const errorStatusCode = error?.response?.data?.statusCode ?? "(status code)";
   const errorMsg =
     error?.response?.data?.message ??
@@ -245,7 +242,7 @@ export const toastErrorFromAPI = (
     "Terjadi kesalahan, silakan coba lagi.";
 
   // toast.error(`Error ${errorStatusCode}: ${errorMsg}`);
-  toast.error(errorMsg);
+  toast.error(errorMsg, { id });
 };
 
 export const formattedDate = (dateString: string) => {
@@ -285,8 +282,8 @@ export const mapSignalToLevel = (
   if (rsrp === null) return 0;
 
   // Sesuai tabel RSRP
-  if (rsrp >= -80) return 5; // Excellent
-  if (rsrp >= -90) return 4; // Good
-  if (rsrp >= -100) return 3; // Fair to Poor
+  if (rsrp >= -80) return 4; // Excellent
+  if (rsrp >= -90) return 3; // Good
+  if (rsrp >= -100) return 2; // Fair to Poor
   return 1; // Poor
 };

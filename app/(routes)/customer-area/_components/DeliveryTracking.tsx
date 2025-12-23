@@ -301,7 +301,7 @@ const DeliveryTracking = ({
             </div>
 
             <h3 className="text-black sm:text-2xl text-xl font-bold mb-4">
-              Aktivasi Perangkat
+              Aktivasi Perangkat (CPE)
             </h3>
 
             <p className="sm:text-base text-start text-xs sm:px-8">

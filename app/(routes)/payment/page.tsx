@@ -299,7 +299,7 @@ const Payment = () => {
             className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
             // onClick={handleCreatePayment}
             onClick={() => router.push("/payment/payment-methods")}
-            disabled={!selectedPackage || !selectedChannel}
+            disabled={!selectedPackage}
           >
             Pilih Metode Pembayaran
           </button>
