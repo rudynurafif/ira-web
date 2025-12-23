@@ -53,8 +53,8 @@ function InputManualForm() {
 
         return;
       }
-      // jika berhasil
       else {
+        // jika berhasil
         setErrors({});
 
         addUrlParam("section", "connect");
@@ -72,16 +72,13 @@ function InputManualForm() {
 
       switch (statusCode) {
         case 409:
-          console.log("masuk yang pertama");
           setIsSNUsed(true);
           break;
         case 404:
         case 400:
-          console.log("masuk yang kedua");
           setIsSNNotFound(true);
           break;
         default:
-          console.log("masuk default");
           setIsSNNotFound(true);
           break;
       }

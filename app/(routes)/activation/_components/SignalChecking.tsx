@@ -38,9 +38,9 @@ const barHeight = (b: number) =>
 const levelTitle: Record<Level, string> = {
   0: "Tidak Terdeteksi",
   1: "Buruk",
-  2: "Kurang",
-  3: "Cukup",
-  4: "Baik",
+  2: "Cukup",
+  3: "Baik",
+  4: "Sempurna",
   // 5: "Sempurna",
 };
 

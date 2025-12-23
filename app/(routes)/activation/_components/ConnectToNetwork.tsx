@@ -173,11 +173,6 @@ export default function ConnectToNetwork() {
     sessionStorage.removeItem(key);
   }
 
-  function retry() {
-    // naikkan attempt dan mulai ulang
-    setAttempt((a) => Math.min(MAX_ATTEMPT, a + 1));
-  }
-
   function goNextSetting() {
     addUrlParam("section", "setting");
   }
