@@ -103,10 +103,16 @@ export default function ConnectToNetwork() {
   async function handleCheckAgain() {
     if (!serialNumber || activationConfirmed) return;
 
+    if (attempt >= MAX_ATTEMPT) {
+      setScreen("failedFinal");
+      return;
+    }
+
     const endAt = Date.now() + CHECK_COOLDOWN * 1000;
     localStorage.setItem(COOLDOWN_KEY, String(endAt));
     setIsCooldownActive(true);
     setCooldown(CHECK_COOLDOWN);
+    setAttempt((a) => Math.min(MAX_ATTEMPT, a + 1));
 
     try {
       toast.loading("Mengecek ulang status aktivasi...", { id: "refresh" });
@@ -120,7 +126,12 @@ export default function ConnectToNetwork() {
         handleActivationSuccess("api");
         toast.success("Perangkat berhasil diaktivasi");
       } else if (res?.data?.code === 1) {
-        setScreen("failed");
+        saveFailedAttempt(attempt);
+        if (attempt >= MAX_ATTEMPT) {
+          setScreen("failedFinal");
+        } else {
+          setScreen("failed");
+        }
       } else if (res?.data?.code === 2) {
         setScreen("loading");
       }
@@ -321,36 +332,37 @@ export default function ConnectToNetwork() {
     );
   }
 
-  // screen === "failed"
-  return (
-    <div className="container mx-auto px-6 text-center">
-      <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-dark-primary">
-        Menghubungkan Perangkat ke Jaringan
-      </h2>
+  if (screen === "failed") {
+    return (
+      <div className="container mx-auto px-6 text-center">
+        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-dark-primary">
+          Menghubungkan Perangkat ke Jaringan
+        </h2>
 
-      <div className="pt-8">
-        <div className="text-old-primary font-bold">
-          Proses Aktivasi
-          <Badge color="red">Tidak Berhasil</Badge>
+        <div className="pt-8">
+          <div className="text-old-primary font-bold">
+            Proses Aktivasi
+            <Badge color="red">Tidak Berhasil</Badge>
+          </div>
+          <p className="text-[#666] max-w-170 mx-auto mt-2">
+            Aktivasi perangkat tidak berhasil dilakukan. Silakan coba kembali
+            atau hubungi Customer Service kami untuk bantuan lebih lanjut.
+          </p>
+          <div className="text-old-primary font-bold mt-1">
+            ({attempt}/{MAX_ATTEMPT})
+          </div>
         </div>
-        <p className="text-[#666] max-w-170 mx-auto mt-2">
-          Aktivasi perangkat tidak berhasil dilakukan. Silakan coba kembali atau
-          hubungi Customer Service kami untuk bantuan lebih lanjut.
-        </p>
-        <div className="text-old-primary font-bold mt-1">
-          ({attempt}/{MAX_ATTEMPT})
+
+        <div className="pt-6">
+          <button
+            onClick={handleCheckAgain}
+            className="text-primary cursor-pointer font-semibold underline-animation-activation"
+            type="button"
+          >
+            Ulangi Proses Aktivasi
+          </button>
         </div>
       </div>
-
-      <div className="pt-6">
-        <button
-          onClick={retry}
-          className="text-primary cursor-pointer font-semibold underline-animation-activation"
-          type="button"
-        >
-          Ulangi Proses Aktivasi
-        </button>
-      </div>
-    </div>
-  );
+    );
+  }
 }
