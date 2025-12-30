@@ -114,6 +114,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
     triggerGetSignal();
   }, [triggerGetSignal]);
 
+  // consume SSE
   useEffect(() => {
     if (!lastEvent) return;
 

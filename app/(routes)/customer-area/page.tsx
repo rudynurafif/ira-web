@@ -23,12 +23,13 @@ import DeviceInformation from "./_components/DeviceInformation";
 import Image from "next/image";
 import iraLogo from "@/public/assets/Images/LogoIra.png";
 import CpeActivationStatus from "./_components/CpeActivation";
+import Link from "next/link";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
+  const { userInfo, isLoggedIn, shipmentStatus, is_coverage } = useAppSelector(
     (state) => state.auth
   );
   const [tabs, setTabs] = useState([
@@ -119,128 +120,198 @@ export default function AreaPelanggan() {
 
   return (
     <div className="min-h-screen bg-background-customer pb-10">
-      {showPaymentSuccessModal && (
-        <ModalTemplate
-          closeModal={closePaymentSuccessModal}
-          classNameModal="max-w-md p-6 text-center w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3"
-        >
-          <h2 className="text-xl font-bold text-primary mb-2">
-            {successPayment ? "Pembayaran Berhasil" : "Pembayaran Gagal"}
-          </h2>
-
-          <div className="flex justify-center">
-            <Lottie
-              width={104}
-              height={104}
-              className="w-[170px] sm:w-[190px] md:w-[200px] lg:w-60 lg:h-60"
-              animationData={animationData}
-            />
-          </div>
-
-          <p className="text-gray-700">
-            {successPayment
-              ? "Terima kasih! Paket langganan Anda telah aktif."
-              : "Silahkan lakukan pembayaran ulang"}
-          </p>
-        </ModalTemplate>
-      )}
-
-      {/* HEADER */}
-      <CustomerHeader />
-
-      <div className="relative z-10 max-w-[1329px] mx-auto px-8 -mt-28">
-        {/* Avatar + Info */}
-        <div className="flex flex-col md:flex-row items-center gap-6 md:items-end justify-between">
-          <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
-            <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
-              <span className="text-6xl max-sm:text-2xl font-bold">
-                {isFetching ? (
-                  <SkeletonLarge />
-                ) : userInfo?.name ? (
-                  getInitials(userInfo?.name)
-                ) : (
-                  <Image src={iraLogo} alt="Logo IRA" width={90} />
-                )}
-              </span>
-            </div>
-
-            {/* Info */}
-            <div className="flex justify-between items-center">
-              <div className="text-center md:text-left select-none">
-                <div className="">
-                  {isLoading ? (
-                    <SkeletonBase />
-                  ) : (
-                    <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
-                      {userInfo?.name}
-                    </div>
-                  )}
+      {is_coverage === false ? (
+        <>
+          <CustomerHeader />
+          <div className="relative z-10 max-w-332.25 mx-auto px-8 -mt-28">
+            {/* Avatar + Info */}
+            <div className="flex flex-col md:flex-row items-center gap-6 md:items-end justify-between">
+              <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
+                <div className="h-42.5 w-42.5 max-sm:h-25 max-sm:w-25 max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
+                  <span className="text-6xl max-sm:text-2xl font-bold">
+                    {isFetching ? (
+                      <SkeletonLarge />
+                    ) : userInfo?.name ? (
+                      getInitials(userInfo?.name)
+                    ) : (
+                      <Image src={iraLogo} alt="Logo IRA" width={90} />
+                    )}
+                  </span>
                 </div>
-                <div className="text-xl max-sm:text-[16px] text-ads-platform-dark">
-                  {isFetching ? (
-                    <SkeletonBase />
-                  ) : (
-                    <span>ID: {userInfo?.customer_code}</span>
-                  )}
+
+                {/* Info */}
+                <div className="flex justify-between items-center">
+                  <div className="text-center md:text-left select-none">
+                    <div className="">
+                      {isLoading ? (
+                        <SkeletonBase />
+                      ) : (
+                        <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
+                          {userInfo?.name}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-xl max-sm:text-[16px] text-ads-platform-dark">
+                      {isFetching ? (
+                        <SkeletonBase />
+                      ) : (
+                        <span>ID: {userInfo?.customer_code ?? "-"}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Delivery Tracking */}
-      {subscriptionHistory &&
-        !subscriptionHistory?.[0]?.start_date &&
-        !isLoading && (
           <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
-            <DeliveryTracking
-              refetch={fetchData}
-              data={subscriptionHistory?.[0]}
-            />
+            <div className="bg-white rounded-2xl shadow-lg p-8">
+              <h1 className="text-2xl font-bold text-primary mb-4">
+                Kami sedang menyiapkan layanan di area kamu
+              </h1>
+              <p className="text-gray-600 mb-6">
+                Jangan khawatir! Kami akan segera memberi tahu kamu melalui
+                WhatsApp dan Aplikasi IRA jika layanan kami tersedia di
+                daerahmu.
+              </p>
+              <Link
+                href="/check-coverage"
+                className="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-dark-primary-2"
+              >
+                Cek Jangkauan Terbaru
+              </Link>
+            </div>
           </div>
-        )}
+        </>
+      ) : (
+        <>
+          {showPaymentSuccessModal && (
+            <ModalTemplate
+              closeModal={closePaymentSuccessModal}
+              classNameModal="max-w-md p-6 text-center w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3"
+            >
+              <h2 className="text-xl font-bold text-primary mb-2">
+                {successPayment ? "Pembayaran Berhasil" : "Pembayaran Gagal"}
+              </h2>
 
-      {/* Banner Aktivasi CPE */}
-      {isActivating && (
-        <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
-          <CpeActivationStatus />
-        </div>
+              <div className="flex justify-center">
+                <Lottie
+                  width={104}
+                  height={104}
+                  className="w-[170px] sm:w-[190px] md:w-[200px] lg:w-60 lg:h-60"
+                  animationData={animationData}
+                />
+              </div>
+
+              <p className="text-gray-700">
+                {successPayment
+                  ? "Terima kasih! Paket langganan Anda telah aktif."
+                  : "Silahkan lakukan pembayaran ulang"}
+              </p>
+            </ModalTemplate>
+          )}
+          <CustomerHeader />
+
+          <div className="relative z-10 max-w-[1329px] mx-auto px-8 -mt-28">
+            {/* Avatar + Info */}
+            <div className="flex flex-col md:flex-row items-center gap-6 md:items-end justify-between">
+              <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
+                <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
+                  <span className="text-6xl max-sm:text-2xl font-bold">
+                    {isFetching ? (
+                      <SkeletonLarge />
+                    ) : userInfo?.name ? (
+                      getInitials(userInfo?.name)
+                    ) : (
+                      <Image src={iraLogo} alt="Logo IRA" width={90} />
+                    )}
+                  </span>
+                </div>
+
+                {/* Info */}
+                <div className="flex justify-between items-center">
+                  <div className="text-center md:text-left select-none">
+                    <div className="">
+                      {isLoading ? (
+                        <SkeletonBase />
+                      ) : (
+                        <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
+                          {userInfo?.name}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-xl max-sm:text-[16px] text-ads-platform-dark">
+                      {isFetching ? (
+                        <SkeletonBase />
+                      ) : (
+                        <span>ID: {userInfo?.customer_code}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Delivery Tracking */}
+          {subscriptionHistory &&
+            !subscriptionHistory?.[0]?.start_date &&
+            !isLoading && (
+              <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
+                <DeliveryTracking
+                  refetch={fetchData}
+                  data={subscriptionHistory?.[0]}
+                />
+              </div>
+            )}
+
+          {/* Banner Aktivasi CPE */}
+          {isActivating && (
+            <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
+              <CpeActivationStatus />
+            </div>
+          )}
+
+          {/* TAB MENU */}
+          <div className="max-w-[1329px] sm:px-8 px-5 mt-8 mx-auto">
+            <div className="flex space-x-6 overflow-x-auto scrollbar-hide border-b-2 border-gray-border">
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-2 underline-animation-register whitespace-nowrap text-sm sm:text-xl cursor-pointer ${
+                    activeTab === tab
+                      ? "text-black font-bold border-b-2 border-primary"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* TAB CONTENT */}
+          <div className="max-w-[1329px] sm:px-8 px-5 mx-auto mt-6">
+            {activeTab === "Informasi Paket dan Riwayat" && (
+              <PackageAndHistory />
+            )}
+
+            {activeTab === "Data Pribadi" && <PersonalData />}
+
+            {activeTab === "Informasi Perangkat" && isActive && (
+              <DeviceInformation />
+            )}
+
+            {/* {activeTab === "Tracking Pengiriman" && <DeliveryTracking />} */}
+
+            {/* {activeTab === "Riwayat Berlangganan" && <SubscriptionHistory />} */}
+          </div>
+        </>
       )}
 
-      {/* TAB MENU */}
-      <div className="max-w-[1329px] sm:px-8 px-5 mt-8 mx-auto">
-        <div className="flex space-x-6 overflow-x-auto scrollbar-hide border-b-2 border-gray-border">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-2 underline-animation-register whitespace-nowrap text-sm sm:text-xl cursor-pointer ${
-                activeTab === tab
-                  ? "text-black font-bold border-b-2 border-primary"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* TAB CONTENT */}
-      <div className="max-w-[1329px] sm:px-8 px-5 mx-auto mt-6">
-        {activeTab === "Informasi Paket dan Riwayat" && <PackageAndHistory />}
-
-        {activeTab === "Data Pribadi" && <PersonalData />}
-
-        {activeTab === "Informasi Perangkat" && isActive && (
-          <DeviceInformation />
-        )}
-
-        {/* {activeTab === "Tracking Pengiriman" && <DeliveryTracking />} */}
-
-        {/* {activeTab === "Riwayat Berlangganan" && <SubscriptionHistory />} */}
-      </div>
+      {/* {is_coverage === true && (
+       
+      )} */}
     </div>
   );
 }

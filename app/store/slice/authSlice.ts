@@ -7,6 +7,7 @@ interface AuthState {
   token: string | Promise<CookieValueTypes> | null;
   userInfo: ProfileInfo | null;
   shipmentStatus: string | null;
+  is_coverage: boolean | null;
 }
 
 const tokenFromCookie = getCookie("token-ira");
@@ -16,6 +17,7 @@ const initialState: AuthState = {
   token: getCookie("token-ira") || null,
   userInfo: null,
   shipmentStatus: null,
+  is_coverage: null,
 };
 
 const authSlice = createSlice({
@@ -37,6 +39,9 @@ const authSlice = createSlice({
     setShipmentStatus(state, action: PayloadAction<string | null>) {
       state.shipmentStatus = action.payload;
     },
+    setCoverageStatus(state, action: PayloadAction<boolean>) {
+      state.is_coverage = action.payload;
+    },
     logout(state) {
       state.isLoggedIn = false;
       state.token = null;
@@ -46,5 +51,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { login, getUser, setShipmentStatus, logout } = authSlice.actions;
+export const { login, getUser, setShipmentStatus, setCoverageStatus, logout } = authSlice.actions;
 export default authSlice.reducer;

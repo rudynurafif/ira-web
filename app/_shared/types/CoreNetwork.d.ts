@@ -1,10 +1,10 @@
 export interface CpeSimBinding {
-  id: string;
+  id?: string;
   cpe_id: Cpe;
-  sim_id: SimCard;
-  binding_date: string; // ISO date string
-  binding_by: "manufacture" | "system" | "admin" | string;
-  customer_id: Customer;
+  sim_id?: SimCard;
+  binding_date?: string; // ISO date string
+  binding_by?: "manufacture" | "system" | "admin" | string;
+  customer_id?: Customer;
 }
 
 export interface CPEBrand {
@@ -14,17 +14,17 @@ export interface CPEBrand {
 }
 
 export interface Cpe {
-  id: string;
-  name: string;
-  cpe_brand_model_id: CPEBrand;
-  serial_number: string;
-  mac_address: string;
-  imei: string;
+  id?: string;
+  name?: string;
+  cpe_brand_model_id?: CPEBrand;
+  serial_number?: string;
+  mac_address?: string;
+  imei?: string;
   ssid: string;
   ssid5: string;
   password: string;
   password5: string;
-  status: "ok" | "inactive" | "error" | string;
+  status?: "ok" | "inactive" | "error" | string;
 }
 
 export interface SimCard {

@@ -17,19 +17,33 @@ import { getCookie } from "cookies-next";
 import toast from "react-hot-toast";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
-import { getFirstTwoWords, toastErrorFromAPI } from "@/app/_shared/utils";
+import {
+  decodeJwt,
+  getFirstTwoWords,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { getUser, logout } from "@/app/store/slice/authSlice";
+import {
+  getUser,
+  logout,
+  setCoverageStatus,
+} from "@/app/store/slice/authSlice";
+import { DecodedToken } from "@/app/_context/sse.type";
+import SkeletonLarge from "../skeletons/SkeletonLarge";
+import SkeletonBase from "../skeletons/SkeletonBase";
 
 function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isActive, setIsActive] = useState(true);
   const [customerData, setCustomerData] = useState<ProfileInfo>();
   const dispatch = useAppDispatch();
-  const { token: tokenfromState } = useAppSelector((state) => state.auth);
+  const { token: tokenfromState, is_coverage } = useAppSelector(
+    (state) => state.auth
+  );
   // const token = getCookie("token-ira") ?? tokenfromState;
   const [token, setToken] = useState<string | null>(null);
 
@@ -42,11 +56,13 @@ function Header() {
     const fetchData = async () => {
       try {
         if (finalToken) {
+          const decoded = decodeJwt(finalToken) as DecodedToken;
           const resProfile = await getProfileInfo({});
           const customer = resProfile.data.data.customer;
 
-          dispatch(getUser(customer));
-          setCustomerData(customer);
+          dispatch(getUser(customer ?? decoded));
+          dispatch(setCoverageStatus(decoded.is_coverage));
+          setCustomerData(customer ?? decoded);
           setIsLoggedIn(true);
           if (customer) setIsActive(customer?.is_active);
           setShowDropdown(false);
@@ -73,11 +89,13 @@ function Header() {
           setIsLoggedIn(false);
           window.location.href = "/auth/login";
         }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [dispatch, tokenfromState]);
+  }, [dispatch, pathname, router, tokenfromState]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -143,7 +161,7 @@ function Header() {
                     {getFirstTwoWords(customerData?.name ?? "Nama Customer")}
                   </div>
                   <div className="text-muted text-xs">
-                    {customerData?.customer_code ?? "ID"}
+                    ID: {customerData?.customer_code ?? "-"}
                   </div>
                 </div>
               </Link>
@@ -161,10 +179,15 @@ function Header() {
       );
     }
 
-    return (
-      <Link
-        href="/auth/login"
-        className={`flex gap-1 items-center ${
+    return isLoading ? (
+      <div className="h-11 w-50 max-sm:h-8 max-sm:w-8 rounded-full">
+        <SkeletonBase height="h-11" />
+      </div>
+    ) : (
+      <button
+        onClick={() => router.push("/auth/login")}
+        disabled={isLoading}
+        className={`flex gap-1 items-center disabled:bg-slate-400 disabled:cursor-not-allowed ${
           pathname === "/"
             ? "bg-button-login"
             : "bg-primary hover:bg-dark-primary-2"
@@ -172,7 +195,7 @@ function Header() {
       >
         <FaRegUser />
         Masuk/Daftar
-      </Link>
+      </button>
     );
   };
 
@@ -182,9 +205,7 @@ function Header() {
         className={
           pathname === "/"
             ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white ${
-                isOpenMenu
-                  ? "bg-[#910E04]"
-                  : "bg-[rgba(118,18,0,0.5)]"
+                isOpenMenu ? "bg-[#910E04]" : "bg-[rgba(118,18,0,0.5)]"
               }`
             : "text-black bg-white shadow-sm"
         }
@@ -221,7 +242,7 @@ function Header() {
                 Cek Jangkauan
               </Link>
 
-              {isLoggedIn && isActive && (
+              {isLoggedIn && isActive && is_coverage && (
                 <Link
                   href="/payment"
                   className={`${
@@ -275,7 +296,7 @@ function Header() {
               Cek Jangkauan
             </Link>
 
-            {isLoggedIn && (
+            {isLoggedIn && isActive && is_coverage && (
               <Link
                 href="/payment"
                 className={` ${pathname === "/payment" && "font-bold"}`}

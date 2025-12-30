@@ -65,6 +65,39 @@ export interface EWalletPaymentData {
   raw_payload: string;
 }
 
+export interface OtcPaymentData {
+  id: string;
+  customer_id: Customer;
+  channel_payment_id: ChannelPayment;
+  package_id: PackageDetail;
+  va: string;
+  xendit_id: string;
+  expire_at: string; // ISO 8601 datetime string
+  amount: string; // "100000.00"
+}
+
+export interface QRISPaymentData {
+  id: string;
+  customer_id: Customer;
+  package_id: PackageDetail;
+  gateway: string; // e.g. "xendit"
+  method_category: "qris";
+  channel_code: "QRIS";
+  amount: string; // "100000.00"
+  currency: "IDR";
+  payment_number: string | null;
+  status: string; // e.g. "pending", "paid", "expired"
+  failure_code: string | null;
+  failure_message: string | null;
+  xendit_event_id: string; // e.g. "qr_44ba7987-..."
+  expires_at: string; // ISO 8601 datetime string
+  desktop_web_checkout_url: string | null;
+  mobile_web_checkout_url: string | null;
+  mobile_deeplink_checkout_url: string | null;
+  qr_checkout_string: string; // Base64 atau string QR
+  raw_payload: string; // JSON string dari Xendit (bisa di-parse terpisah jika perlu)
+}
+
 export interface Customer {
   id: string;
   customer_code: string;
@@ -131,17 +164,17 @@ export interface PackageDetail {
 export interface BillingItem {
   id: string;
   billing_period: string;
-  billing_year: number; 
-  amount: string; 
+  billing_year: number;
+  amount: string;
   tax: string;
-  discount_price: string; 
-  discount_rate: string; 
+  discount_price: string;
+  discount_rate: string;
   total_due: string;
   voucher_code: string | null;
   is_free: boolean;
-  status: string; 
-  billing_issued_at: string; 
-  billing_start_at: string; 
+  status: string;
+  billing_issued_at: string;
+  billing_start_at: string;
   billing_deadline_at: string;
   remarks: string | null;
   description: string | null;
@@ -187,5 +220,5 @@ export interface SubscriptionHistoryAPI {
   start_date: string; // format: "YYYY-MM-DD"
   end_date: string; // format: "YYYY-MM-DD"
   billing_id: BillingItem[]; // array of billing records
-  shipment_status: string
+  shipment_status: string;
 }
