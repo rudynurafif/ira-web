@@ -98,7 +98,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   const [cellId, setCellId] = useState<string | null>(null);
 
   const router = useRouter();
-  const { lastEvent } = useSSE();
+  const { lastEvent } = useSSE(); // ganti
 
   useEffect(() => {
     setSn(localStorage.getItem("ira-cpe-serial-number"));

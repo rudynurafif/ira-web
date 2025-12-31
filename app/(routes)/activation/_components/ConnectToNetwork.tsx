@@ -36,7 +36,7 @@ export default function ConnectToNetwork() {
   const [isCooldownActive, setIsCooldownActive] = useState(false);
   const [activationConfirmed, setActivationConfirmed] = useState(false);
 
-  const { lastEvent } = useSSE();
+  // const { lastEvent } = useSSE();
 
   function handleActivationSuccess(source: "sse" | "api") {
     if (activationConfirmed) return;
@@ -57,6 +57,23 @@ export default function ConnectToNetwork() {
     return decodeJwt(token as string) as DecodedToken | null;
   }, [token]);
   const customer_id = decodedToken?.customer_id;
+
+  useEffect(() => {
+    // Hanya aktifkan konfirmasi saat proses aktivasi belum selesai
+    if (screen === "loading" && !activationConfirmed) {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [screen, activationConfirmed]);
 
   // consume SSE
   useSSEOneTime(

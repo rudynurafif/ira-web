@@ -29,11 +29,13 @@ const DeviceInformation = () => {
     rsrq: number | null;
     sinr: number | null;
     level: "good" | "poor" | "bad" | "disconnected";
+    message: string | null;
   }>({
     rsrp: null,
     rsrq: null,
     sinr: null,
     level: "disconnected",
+    message: null
   });
 
   const [connectedDevices, setConnectedDevices] =
@@ -62,6 +64,7 @@ const DeviceInformation = () => {
     customer_id || "",
     (payload) => {
       const { rsrp, rsrq, sinr } = payload.data || {};
+      const errorMessage = payload.message || null
       if (
         typeof rsrp === "number" &&
         typeof rsrq === "number" &&
@@ -72,6 +75,7 @@ const DeviceInformation = () => {
           rsrq,
           sinr,
           level: getSignalLevel(rsrp, rsrq, sinr),
+          message: errorMessage
         });
       } else {
         setSignalData({
@@ -79,6 +83,7 @@ const DeviceInformation = () => {
           rsrq: null,
           sinr: null,
           level: "disconnected",
+          message: errorMessage || "Device tidak merespon"
         });
       }
       setIsLoadingSignal(false);
@@ -112,19 +117,28 @@ const DeviceInformation = () => {
     (payload) => payload.type === "get_wifi" && payload.sn === serialNumber
   );
 
-  useEffect(() => {
-    const sn = localStorage.getItem("ira-cpe-serial-number") || "TEST";
-    if (sn) setSerialNumber(sn);
-  }, []);
-
   const fetchCPEDetail = async () => {
     try {
       const resCPE = await getDetailCPE();
 
-      if (resCPE) setCpeDetail(resCPE?.data?.data ?? {});
+      if (resCPE?.data?.data) {
+        const cpeData = resCPE.data.data;
+        setCpeDetail(cpeData);
+
+        const sn = cpeData.cpe_id?.serial_number ?? "-";
+        setSerialNumber(sn);
+        localStorage.setItem("ira-cpe-serial-number", sn);
+      } else {
+        setCpeDetail(null);
+        setSerialNumber("-");
+        localStorage.setItem("ira-cpe-serial-number", "-");
+      }
     } catch (err: any) {
       toastErrorFromAPI(err);
-    } finally {
+      // Opsional: reset state saat error
+      setCpeDetail(null);
+      setSerialNumber("-");
+      localStorage.setItem("ira-cpe-serial-number", "-");
     }
   };
 
@@ -337,6 +351,7 @@ const DeviceInformation = () => {
           level={signalData.level}
           onCheckSignal={handleCheckSignal}
           isLoading={isLoadingSignal}
+          message={signalData.message!}
         />
       </div>
 

@@ -99,13 +99,13 @@ function QRIS({ data }: { data: QRISPaymentData }) {
       <div className="mt-4 w-full bg-[#F7F9FD] border border-[#949AA3] rounded-xl p-5">
         <div className="flex flex-col gap-4 justify-center items-center">
           {/* QR Code Container */}
-          <div className="relative w-58.5 h-58.5 bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden">
+          <div className="relative w-64 h-64 bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden">
             {/* QR Code */}
             <Image
               src={qrDataUrl}
               alt="QRIS"
-              width={200}
-              height={200}
+              width={256}
+              height={256}
               className="w-full h-full object-contain relative z-10"
             />
 
@@ -124,7 +124,7 @@ function QRIS({ data }: { data: QRISPaymentData }) {
 
           {/* Label QR Code */}
           <div className="text-center">
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-lg">
               Scan untuk pembayaran via QRIS
             </p>
           </div>
