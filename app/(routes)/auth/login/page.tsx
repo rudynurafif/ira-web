@@ -171,7 +171,7 @@ const Page = () => {
       if (cooldownSec) startResendTimer(cooldownSec);
 
       setStep("enterOtp");
-      toast.success(res.data.message ?? "OTP terkirim");
+      toast.success(`${res?.data?.message ?? "OTP terkirim"} ke ${phone}`);
     } catch (error: any) {
       const seconds = error?.response?.data?.data?.second;
 
