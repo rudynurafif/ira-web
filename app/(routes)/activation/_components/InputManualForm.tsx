@@ -34,6 +34,7 @@ function InputManualForm() {
         errors.serial_number = "Serial Number harus diisi";
       }
 
+      // trigger SSE
       const res = await Activation({ serial_number: serialNumber });
 
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
@@ -52,8 +53,7 @@ function InputManualForm() {
         setErrors(errors);
 
         return;
-      }
-      else {
+      } else {
         // jika berhasil
         setErrors({});
 
@@ -112,7 +112,10 @@ function InputManualForm() {
             name="serialNumber"
             value={serialNumber ? serialNumber : ""}
             onChange={(value: string) => {
-              setSerialNumber(value.toUpperCase());
+              const sanitizedValue = value
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, "");
+              setSerialNumber(sanitizedValue);
               setErrors({ ...errors, serial_number: "" });
             }}
             placeholder="Masukkan Serial Number"

@@ -23,12 +23,13 @@ import DeviceInformation from "./_components/DeviceInformation";
 import Image from "next/image";
 import iraLogo from "@/public/assets/Images/LogoIra.png";
 import CpeActivationStatus from "./_components/CpeActivation";
+import Link from "next/link";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
+  const { userInfo, isLoggedIn, shipmentStatus, is_coverage } = useAppSelector(
     (state) => state.auth
   );
   const [tabs, setTabs] = useState([
@@ -119,35 +120,7 @@ export default function AreaPelanggan() {
 
   return (
     <div className="min-h-screen bg-background-customer pb-10">
-      {showPaymentSuccessModal && (
-        <ModalTemplate
-          closeModal={closePaymentSuccessModal}
-          classNameModal="max-w-md p-6 text-center w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3"
-        >
-          <h2 className="text-xl font-bold text-primary mb-2">
-            {successPayment ? "Pembayaran Berhasil" : "Pembayaran Gagal"}
-          </h2>
-
-          <div className="flex justify-center">
-            <Lottie
-              width={104}
-              height={104}
-              className="w-[170px] sm:w-[190px] md:w-[200px] lg:w-60 lg:h-60"
-              animationData={animationData}
-            />
-          </div>
-
-          <p className="text-gray-700">
-            {successPayment
-              ? "Terima kasih! Paket langganan Anda telah aktif."
-              : "Silahkan lakukan pembayaran ulang"}
-          </p>
-        </ModalTemplate>
-      )}
-
-      {/* HEADER */}
       <CustomerHeader />
-
       <div className="relative z-10 max-w-[1329px] mx-auto px-8 -mt-28">
         {/* Avatar + Info */}
         <div className="flex flex-col md:flex-row items-center gap-6 md:items-end justify-between">
@@ -180,7 +153,7 @@ export default function AreaPelanggan() {
                   {isFetching ? (
                     <SkeletonBase />
                   ) : (
-                    <span>ID: {userInfo?.customer_code}</span>
+                    <span>ID: {userInfo?.customer_code ?? "-"}</span>
                   )}
                 </div>
               </div>
@@ -191,6 +164,7 @@ export default function AreaPelanggan() {
 
       {/* Delivery Tracking */}
       {subscriptionHistory &&
+        is_coverage &&
         !subscriptionHistory?.[0]?.start_date &&
         !isLoading && (
           <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
@@ -233,14 +207,36 @@ export default function AreaPelanggan() {
 
         {activeTab === "Data Pribadi" && <PersonalData />}
 
-        {activeTab === "Informasi Perangkat" && isActive && (
-          <DeviceInformation />
-        )}
-
-        {/* {activeTab === "Tracking Pengiriman" && <DeliveryTracking />} */}
-
-        {/* {activeTab === "Riwayat Berlangganan" && <SubscriptionHistory />} */}
+        {activeTab === "Informasi Perangkat" &&
+          isActive &&
+          is_coverage && <DeviceInformation />}
       </div>
+
+      {showPaymentSuccessModal && is_coverage && (
+        <ModalTemplate
+          closeModal={closePaymentSuccessModal}
+          classNameModal="max-w-md p-6 text-center w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3"
+        >
+          <h2 className="text-xl font-bold text-primary mb-2">
+            {successPayment ? "Pembayaran Berhasil" : "Pembayaran Gagal"}
+          </h2>
+
+          <div className="flex justify-center">
+            <Lottie
+              width={104}
+              height={104}
+              className="w-[170px] sm:w-[190px] md:w-[200px] lg:w-60 lg:h-60"
+              animationData={animationData}
+            />
+          </div>
+
+          <p className="text-gray-700">
+            {successPayment
+              ? "Terima kasih! Paket langganan Anda telah aktif."
+              : "Silahkan lakukan pembayaran ulang"}
+          </p>
+        </ModalTemplate>
+      )}
     </div>
   );
 }

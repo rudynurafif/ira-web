@@ -16,7 +16,11 @@ import {
 } from "@/app/_api/CoreNetwork/CoreNetwork";
 import { listConnectedDevices } from "@/app/_shared/data/data";
 import { CpeSimBinding, SetSSIDBody } from "@/app/_shared/types/CoreNetwork";
-import { useSSE } from "@/app/_context/SSEContext";
+// import { useSSE } from "@/app/_context/SSEContext";
+import { useSSEOneTime } from "@/app/hooks/useSSEOneTime";
+import { getCookie } from "cookies-next";
+import { decodeJwt } from "@/app/_shared/utils";
+import { DecodedToken } from "@/app/_context/sse.type";
 import SignalStatus from "./SignalStatus";
 
 const DeviceInformation = () => {
@@ -25,11 +29,13 @@ const DeviceInformation = () => {
     rsrq: number | null;
     sinr: number | null;
     level: "good" | "poor" | "bad" | "disconnected";
+    message: string | null;
   }>({
     rsrp: null,
     rsrq: null,
     sinr: null,
     level: "disconnected",
+    message: null
   });
 
   const [connectedDevices, setConnectedDevices] =
@@ -43,42 +49,130 @@ const DeviceInformation = () => {
     ssid: "WiFi Rumah",
     password: "katasandi123",
   });
-  const { lastEvent } = useSSE();
+  // const { lastEvent } = useSSE();
+  const token = getCookie("token-ira");
+  const decodedToken = token
+    ? (decodeJwt(token as string) as DecodedToken)
+    : null;
+  const customer_id = decodedToken?.customer_id;
+  const [isWaitingForSignal, setIsWaitingForSignal] = useState(false);
+  const [isWaitingForWifi, setIsWaitingForWifi] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    const sn = localStorage.getItem("ira-cpe-serial-number");
-    if (sn) setSerialNumber(sn);
-  }, []);
+  // 🔥 Dengarkan SSE hanya saat menunggu sinyal
+  useSSEOneTime(
+    customer_id || "",
+    (payload) => {
+      const { rsrp, rsrq, sinr } = payload.data || {};
+      const errorMessage = payload.message || null
+      if (
+        typeof rsrp === "number" &&
+        typeof rsrq === "number" &&
+        typeof sinr === "number"
+      ) {
+        setSignalData({
+          rsrp,
+          rsrq,
+          sinr,
+          level: getSignalLevel(rsrp, rsrq, sinr),
+          message: errorMessage
+        });
+      } else {
+        setSignalData({
+          rsrp: null,
+          rsrq: null,
+          sinr: null,
+          level: "disconnected",
+          message: errorMessage || "Device tidak merespon"
+        });
+      }
+      setIsLoadingSignal(false);
+      setIsWaitingForSignal(false);
+    },
+    isWaitingForSignal,
+    (payload) => payload.type === "get_signal"
+  );
+
+  // 🔥 Dengarkan SSE untuk get_wifi
+  useSSEOneTime(
+    customer_id || "",
+    (payload) => {
+      // Perbarui state cpeDetail dengan data dari SSE
+      setCpeDetail((prev) => {
+        if (!prev || !prev.cpe_id) return prev;
+        return {
+          ...prev,
+          cpe_id: {
+            ...prev.cpe_id,
+            ssid: payload.data?.ssid ?? prev.cpe_id.ssid,
+            password: payload.data?.password ?? prev.cpe_id.password,
+            ssid5: payload.data?.ssid5 ?? prev.cpe_id.ssid5,
+            password5: payload.data?.password5 ?? prev.cpe_id.password5,
+          },
+        };
+      });
+      setIsWaitingForWifi(false);
+    },
+    isWaitingForWifi,
+    (payload) => payload.type === "get_wifi" && payload.sn === serialNumber
+  );
 
   const fetchCPEDetail = async () => {
     try {
       const resCPE = await getDetailCPE();
 
-      if (resCPE) setCpeDetail(resCPE?.data?.data ?? {});
+      if (resCPE?.data?.data) {
+        const cpeData = resCPE.data.data;
+        setCpeDetail(cpeData);
+
+        const sn = cpeData.cpe_id?.serial_number ?? "-";
+        setSerialNumber(sn);
+        localStorage.setItem("ira-cpe-serial-number", sn);
+      } else {
+        setCpeDetail(null);
+        setSerialNumber("-");
+        localStorage.setItem("ira-cpe-serial-number", "-");
+      }
     } catch (err: any) {
       toastErrorFromAPI(err);
-    } finally {
+      // Opsional: reset state saat error
+      setCpeDetail(null);
+      setSerialNumber("-");
+      localStorage.setItem("ira-cpe-serial-number", "-");
     }
   };
 
   const fetchSSID = async () => {
+    if (!customer_id || !serialNumber) return;
+
+    setIsWaitingForWifi(true);
+
     try {
-      let params;
+      // Panggil API untuk trigger backend kirim SSE
+      await getSSID({ sn: serialNumber });
+    } catch (err) {
+      toastErrorFromAPI(err);
+      setIsWaitingForWifi(false);
+    }
+  };
 
-      if (cpeDetail) {
-        params = {
-          sn: cpeDetail?.cpe_id?.serial_number,
-        };
-      }
+  const fetchSignal = async (sn: string) => {
+    if (!customer_id) {
+      toastErrorFromAPI(new Error("User tidak terautentikasi"));
+      setIsLoadingSignal(false);
+      return;
+    }
 
-      if (params) {
-        console.log("SN:", params);
-        const resSSID = await getSSID({ sn: serialNumber });
-      }
+    setIsLoadingSignal(true);
+    setIsWaitingForSignal(true); // 🔥 Aktifkan listener SSE
+
+    try {
+      // Panggil API untuk trigger backend kirim SSE
+      await getSignal({ sn });
     } catch (err: any) {
       toastErrorFromAPI(err);
-    } finally {
+      setIsLoadingSignal(false);
+      setIsWaitingForSignal(false);
     }
   };
 
@@ -100,73 +194,64 @@ const DeviceInformation = () => {
     } else {
       setIsLoadingSignal(false);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serialNumber]);
 
-  const fetchSignal = async (sn: string) => {
-    try {
-      setIsLoadingSignal(true);
-      await getSignal({ sn });
-    } catch (err: any) {
-      toastErrorFromAPI(err);
-    } finally {
-      setIsLoadingSignal(false);
-    }
-  };
+  // useEffect(() => {
+  //   if (!lastEvent) return;
 
-  useEffect(() => {
-    if (!lastEvent) return;
+  //   switch (lastEvent.type) {
+  //     case "get_signal": {
+  //       const { rsrp, rsrq, sinr } = lastEvent.data || {};
 
-    switch (lastEvent.type) {
-      case "get_signal": {
-        const { rsrp, rsrq, sinr } = lastEvent.data || {};
+  //       if (
+  //         typeof rsrp !== "number" ||
+  //         typeof rsrq !== "number" ||
+  //         typeof sinr !== "number"
+  //       ) {
+  //         setSignalData({
+  //           rsrp: null,
+  //           rsrq: null,
+  //           sinr: null,
+  //           level: "disconnected",
+  //         });
+  //         setIsLoadingSignal(false);
+  //         return;
+  //       }
 
-        if (
-          typeof rsrp !== "number" ||
-          typeof rsrq !== "number" ||
-          typeof sinr !== "number"
-        ) {
-          setSignalData({
-            rsrp: null,
-            rsrq: null,
-            sinr: null,
-            level: "disconnected",
-          });
-          setIsLoadingSignal(false);
-          return;
-        }
+  //       setSignalData({
+  //         rsrp,
+  //         rsrq,
+  //         sinr,
+  //         level: getSignalLevel(rsrp, rsrq, sinr),
+  //       });
 
-        setSignalData({
-          rsrp,
-          rsrq,
-          sinr,
-          level: getSignalLevel(rsrp, rsrq, sinr),
-        });
+  //       setIsLoadingSignal(false);
+  //       break;
+  //     }
 
-        setIsLoadingSignal(false);
-        break;
-      }
+  //     case "get_wifi": {
+  //       setCpeDetail((prev) => {
+  //         if (!prev) return prev;
 
-      case "get_wifi": {
-        setCpeDetail((prev) => {
-          if (!prev) return prev;
+  //         return {
+  //           ...prev,
+  //           cpe_id: {
+  //             ...prev.cpe_id,
+  //             ...lastEvent.data,
+  //           },
+  //         };
+  //       });
+  //       break;
+  //     }
 
-          return {
-            ...prev,
-            cpe_id: {
-              ...prev.cpe_id,
-              ...lastEvent.data,
-            },
-          };
-        });
-        break;
-      }
-
-      default:
-        break;
-    }
-  }, [lastEvent]);
+  //     default:
+  //       break;
+  //   }
+  // }, [lastEvent]);
 
   const handleCheckSignal = () => {
+    console.log(serialNumber);
     if (serialNumber) fetchSignal(serialNumber);
   };
 
@@ -181,22 +266,21 @@ const DeviceInformation = () => {
   };
 
   const openEditModal = (type: "2.4 Ghz" | "5 Ghz") => {
-    if (!cpeDetail?.cpe_id) return;
+    // if (!cpeDetail?.cpe_id) return;
 
     if (type === "2.4 Ghz") {
       setEditingSSID({
         type,
-        ssid: cpeDetail.cpe_id.ssid || lastEvent?.data?.ssid || "",
-        password: cpeDetail.cpe_id.password || lastEvent?.data?.password || "",
+        ssid: cpeDetail?.cpe_id?.ssid || "",
+        password: cpeDetail?.cpe_id?.password || "",
       });
     }
 
     if (type === "5 Ghz") {
       setEditingSSID({
         type,
-        ssid: cpeDetail.cpe_id.ssid5 || lastEvent?.data?.ssid5 || "",
-        password:
-          cpeDetail.cpe_id.password5 || lastEvent?.data?.password5 || "",
+        ssid: cpeDetail?.cpe_id?.ssid5 || "",
+        password: cpeDetail?.cpe_id?.password5 || "",
       });
     }
 
@@ -267,6 +351,7 @@ const DeviceInformation = () => {
           level={signalData.level}
           onCheckSignal={handleCheckSignal}
           isLoading={isLoadingSignal}
+          message={signalData.message!}
         />
       </div>
 
@@ -304,18 +389,12 @@ const DeviceInformation = () => {
               </div>
               <div className="flex gap-2">
                 <p className="min-w-30">SSID:</p>
-                <p className="">
-                  {cpeDetail?.cpe_id?.ssid ?? lastEvent?.data?.ssid ?? "-"}
-                </p>
+                <p className="">{cpeDetail?.cpe_id?.ssid ?? "-"}</p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-30">Kata Sandi:</p>
                 <p className="">
-                  {maskPassword(
-                    cpeDetail?.cpe_id?.password ??
-                      lastEvent?.data?.password ??
-                      "-"
-                  )}
+                  {maskPassword(cpeDetail?.cpe_id?.password ?? "-")}
                 </p>
               </div>
               <button
@@ -331,18 +410,12 @@ const DeviceInformation = () => {
               </div>
               <div className="flex gap-2">
                 <p className="min-w-30">SSID:</p>
-                <p className="">
-                  {cpeDetail?.cpe_id?.ssid5 ?? lastEvent?.data?.ssid5 ?? "-"}
-                </p>
+                <p className="">{cpeDetail?.cpe_id?.ssid5 ?? "-"}</p>
               </div>
               <div className="flex gap-2">
                 <p className="min-w-30">Kata Sandi:</p>
                 <p className="">
-                  {maskPassword(
-                    cpeDetail?.cpe_id?.password5 ??
-                      lastEvent?.data?.password5 ??
-                      "-"
-                  )}
+                  {maskPassword(cpeDetail?.cpe_id?.password5 ?? "-")}
                 </p>
               </div>
               <button

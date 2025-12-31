@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { addUrlParam, toastErrorFromAPI } from "@/app/_shared/utils";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { addUrlParam, decodeJwt, toastErrorFromAPI } from "@/app/_shared/utils";
 import { useSearchParams } from "next/navigation";
 import { FaWifi } from "react-icons/fa";
 import SignalArc from "./SignalWave";
@@ -12,6 +12,9 @@ import toast from "react-hot-toast";
 import { useSSE } from "@/app/_context/SSEContext";
 import Badge from "@/app/_components/Badge";
 import { refreshTask } from "@/app/_api/CoreNetwork/CoreNetwork";
+import { getCookie } from "cookies-next";
+import { useSSEOneTime } from "@/app/hooks/useSSEOneTime";
+import { DecodedToken } from "@/app/_context/sse.type";
 
 type Screen = "loading" | "failed" | "failedFinal" | "success";
 
@@ -33,7 +36,7 @@ export default function ConnectToNetwork() {
   const [isCooldownActive, setIsCooldownActive] = useState(false);
   const [activationConfirmed, setActivationConfirmed] = useState(false);
 
-  const { lastEvent } = useSSE();
+  // const { lastEvent } = useSSE();
 
   function handleActivationSuccess(source: "sse" | "api") {
     if (activationConfirmed) return;
@@ -48,22 +51,68 @@ export default function ConnectToNetwork() {
     setScreen("success");
   }
 
-  useEffect(() => {
-    if (!lastEvent || activationConfirmed) return;
+  const token = getCookie("token-ira");
+  const decodedToken = useMemo(() => {
+    if (!token) return null;
+    return decodeJwt(token as string) as DecodedToken | null;
+  }, [token]);
+  const customer_id = decodedToken?.customer_id;
 
-    if (
-      lastEvent.type === "activate" &&
-      lastEvent.sn === serialNumber &&
-      (lastEvent.message === "Success" || lastEvent.result === "processed")
-    ) {
-      localStorage.setItem(
-        "ira-cpe-serial-number",
-        lastEvent.sn ?? "SN not found"
-      );
-      toast.success("Perangkat berhasil diaktivasi");
-      handleActivationSuccess("sse");
+  useEffect(() => {
+    // Hanya aktifkan konfirmasi saat proses aktivasi belum selesai
+    if (screen === "loading" && !activationConfirmed) {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
     }
-  }, [lastEvent, serialNumber, activationConfirmed]);
+  }, [screen, activationConfirmed]);
+
+  // consume SSE
+  useSSEOneTime(
+    customer_id || "",
+    (payload) => {
+      if (
+        payload.type === "activate" &&
+        payload.sn === serialNumber &&
+        (payload.message === "Success" || payload.result === "processed")
+      ) {
+        toast.success("Perangkat berhasil diaktivasi");
+        setActivationConfirmed(true);
+        resetAttempt();
+        setScreen("success");
+        localStorage.setItem(
+          "ira-cpe-serial-number",
+          payload.sn ?? "No SN from activation SSE"
+        );
+      }
+    },
+    screen === "loading" && !activationConfirmed
+  );
+  // useEffect(() => {
+  //   if (!lastEvent || activationConfirmed) return;
+
+  //   if (
+  //     lastEvent.type === "activate" &&
+  //     lastEvent.sn === serialNumber &&
+  //     (lastEvent.message === "Success" || lastEvent.result === "processed")
+  //   ) {
+  //     localStorage.setItem(
+  //       "ira-cpe-serial-number",
+  //       lastEvent.sn ?? "SN not found"
+  //     );
+  //     toast.success("Perangkat berhasil diaktivasi");
+  //     handleActivationSuccess("sse");
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [lastEvent, serialNumber, activationConfirmed]);
 
   useEffect(() => {
     startActivation();

@@ -5,29 +5,7 @@ import { getCookie } from "cookies-next";
 import { decodeJwt } from "@/app/_shared/utils";
 import { EventSourcePolyfill } from "event-source-polyfill";
 import { SSEPayload } from "../_shared/types/CoreNetwork";
-
-type DecodedToken = {
-  phone_number: string;
-  id: string;
-  customer_id: string;
-  name: string;
-  iat: number;
-  exp: number;
-};
-
-interface WifiConfig {
-  ssid?: string;
-  password?: string;
-  ssid5?: string;
-  password5?: string;
-}
-
-type SSEContextType = {
-  serverTime: string | null;
-  chatMessages: string[];
-  lastEvent: SSEPayload | null;
-  wifiConfig: WifiConfig;
-};
+import { DecodedToken, SSEContextType, WifiConfig } from "./sse.type";
 
 const SSEContext = createContext<SSEContextType | null>(null);
 const BASE_URL_SSE = process.env.NEXT_PUBLIC_API_URL_SSE;
