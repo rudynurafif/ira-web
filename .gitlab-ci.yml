@@ -11,7 +11,7 @@ variables:
   ENV_FILE: "/apps/fwa_website.env"
   CONT_PATH: "/app"
   COMPOSE_FILE: "/apps/docker-compose.yml"
-  COMPOSE_SVC: "fwa-website"
+  COMPOSE_SRV: "fwa-website"
   DEV_VER: "devel"
   STAGE_VER: "stage"
   PROD_VER: "prod"
