@@ -2,6 +2,8 @@ import { Level } from "@/app/(routes)/activation/_components/SignalChecking";
 import { jwtDecode } from "jwt-decode";
 import moment from "moment";
 import toast from "react-hot-toast";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
 export const PHONE_REGEX2 = /^\d{8,15}$/;
@@ -305,4 +307,50 @@ export const mapSignalToLevel = (
   if (rsrp >= -90) return 3; // Good
   if (rsrp >= -100) return 2; // Fair to Poor
   return 1; // Poor
+};
+
+export const htmlToPdf = async (
+  htmlString: string,
+  filename: string = "invoice.pdf"
+) => {
+  // Buat elemen div sementara di DOM
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = htmlString;
+  tempDiv.style.position = "absolute";
+  tempDiv.style.left = "-9999px";
+  tempDiv.style.top = "-9999px";
+  // tempDiv.style.width = "700px"; // sesuaikan dengan lebar invoice
+  document.body.appendChild(tempDiv);
+
+  try {
+    // Ambil screenshot dari elemen
+    const canvas = await html2canvas(tempDiv, {
+      scale: 2, // kualitas lebih baik
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "px",
+      format: [canvas.width, canvas.height],
+    });
+
+    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    pdf.save(filename);
+
+    // Alternatif: buka di tab baru
+    const pdfBlob = pdf.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl, "_blank");
+
+    // Bersihkan
+    document.body.removeChild(tempDiv);
+    URL.revokeObjectURL(pdfUrl);
+  } catch (err) {
+    console.error("Gagal generate PDF:", err);
+    document.body.removeChild(tempDiv);
+    throw err;
+  }
 };
