@@ -55,3 +55,18 @@ export const getCustomerPackage = async (params: any) => {
     throw error;
   }
 };
+
+
+export const downloadInvoice = async (params: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/billing/pdf",
+      method: "GET",
+      params: params,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
