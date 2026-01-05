@@ -22,19 +22,18 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
 
     try {
       setIsToastCooldown(true);
-      // Panggil API → dapatkan HTML string
       const htmlResponse = await downloadInvoice({
         invoice_no: data.billing_id[0].invoice_id[0].invoice_no,
       });
 
-      // console.log(htmlResponse);
-
       if (typeof htmlResponse.data === "string") {
-        const filename = `Invoice-${data.billing_id[0].invoice_id[0].invoice_no}.pdf`;
+        const filename = `InvoiceIRA-${data.billing_id[0].invoice_id[0].invoice_no}.pdf`;
+
+        const htmlBlob = new Blob([htmlResponse.data], { type: "text/html" });
+        const htmlUrl = URL.createObjectURL(htmlBlob);
+        window.open(htmlUrl, "_blank");
+
         await htmlToPdf(htmlResponse.data, filename);
-        // const blob = new Blob([htmlResponse.data], { type: "text/html" });
-        // const blobUrl = URL.createObjectURL(blob);
-        // window.open(blobUrl, "_blank");
       } else {
         toast.error("Gagal memuat invoice.");
       }

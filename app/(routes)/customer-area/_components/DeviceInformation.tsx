@@ -22,20 +22,23 @@ import { getCookie } from "cookies-next";
 import { decodeJwt } from "@/app/_shared/utils";
 import { DecodedToken } from "@/app/_context/sse.type";
 import SignalStatus from "./SignalStatus";
+import toast from "react-hot-toast";
 
 const DeviceInformation = () => {
   const [signalData, setSignalData] = useState<{
     rsrp: number | null;
     rsrq: number | null;
     sinr: number | null;
+    cell_id: string | null;
     level: "good" | "poor" | "bad" | "disconnected";
     message: string | null;
   }>({
     rsrp: null,
     rsrq: null,
     sinr: null,
+    cell_id: null,
     level: "disconnected",
-    message: null
+    message: null,
   });
 
   const [connectedDevices, setConnectedDevices] =
@@ -57,40 +60,50 @@ const DeviceInformation = () => {
   const customer_id = decodedToken?.customer_id;
   const [isWaitingForSignal, setIsWaitingForSignal] = useState(false);
   const [isWaitingForWifi, setIsWaitingForWifi] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isWaitingForSetWifi, setIsWaitingForSetWifi] = useState(false);
+  const isSaving = isWaitingForSetWifi;
 
   // 🔥 Dengarkan SSE hanya saat menunggu sinyal
   useSSEOneTime(
     customer_id || "",
     (payload) => {
-      const { rsrp, rsrq, sinr } = payload.data || {};
-      const errorMessage = payload.message || null
+      const { rsrp, rsrq, sinr, cell_id } = payload.data || {};
+      const errorMessage = payload.message || null;
       if (
         typeof rsrp === "number" &&
         typeof rsrq === "number" &&
-        typeof sinr === "number"
+        typeof sinr === "number" &&
+        typeof cell_id === "string"
       ) {
         setSignalData({
           rsrp,
           rsrq,
           sinr,
+          cell_id,
           level: getSignalLevel(rsrp, rsrq, sinr),
-          message: errorMessage
+          message: errorMessage,
         });
       } else {
         setSignalData({
           rsrp: null,
           rsrq: null,
           sinr: null,
+          cell_id: null,
           level: "disconnected",
-          message: errorMessage || "Device tidak merespon"
+          message: errorMessage || "Device tidak merespon",
         });
       }
       setIsLoadingSignal(false);
       setIsWaitingForSignal(false);
     },
     isWaitingForSignal,
-    (payload) => payload.type === "get_signal"
+    (payload) => payload.type === "get_signal",
+    undefined,
+    () => {
+      setIsLoadingSignal(false);
+      setIsWaitingForSignal(false);
+      toast.error("Gagal mendapatkan sinyal. Coba lagi.");
+    }
   );
 
   // 🔥 Dengarkan SSE untuk get_wifi
@@ -115,6 +128,39 @@ const DeviceInformation = () => {
     },
     isWaitingForWifi,
     (payload) => payload.type === "get_wifi" && payload.sn === serialNumber
+  );
+
+  // 🔥 Dengarkan SSE untuk set_wifi
+  useSSEOneTime(
+    customer_id || "",
+    async (payload) => {
+      const { result, message } = payload;
+      if (result === "processed") {
+        toast.success("SSID berhasil diperbarui");
+
+        try {
+          const resCPE = await getDetailCPE();
+          if (resCPE?.data?.data) {
+            const updatedCpeData = resCPE.data.data;
+            setCpeDetail(updatedCpeData);
+
+            const sn = updatedCpeData.cpe_id?.serial_number ?? "-";
+            setSerialNumber(sn);
+            localStorage.setItem("ira-cpe-serial-number", sn);
+          }
+        } catch (err) {
+          console.warn("Gagal fetch ulang CPE setelah set_wifi:", err);
+          // Tetap tutup modal, data lama tetap ditampilkan
+        }
+
+        setIsModalOpen(false);
+      } else {
+        toast.error(message || "Gagal memperbarui SSID");
+      }
+      setIsWaitingForSetWifi(false);
+    },
+    isWaitingForSetWifi,
+    (payload) => payload.type === "set_wifi" && payload.sn === serialNumber
   );
 
   const fetchCPEDetail = async () => {
@@ -142,6 +188,7 @@ const DeviceInformation = () => {
     }
   };
 
+  // trigger SSE
   const fetchSSID = async () => {
     if (!customer_id || !serialNumber) return;
 
@@ -160,6 +207,7 @@ const DeviceInformation = () => {
     if (!customer_id) {
       toastErrorFromAPI(new Error("User tidak terautentikasi"));
       setIsLoadingSignal(false);
+      setIsWaitingForSignal(false);
       return;
     }
 
@@ -180,6 +228,7 @@ const DeviceInformation = () => {
     fetchCPEDetail();
   }, []);
 
+  // trigger SSE jika data dari db null
   useEffect(() => {
     if (!cpeDetail?.cpe_id?.ssid) {
       fetchSSID();
@@ -197,61 +246,7 @@ const DeviceInformation = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serialNumber]);
 
-  // useEffect(() => {
-  //   if (!lastEvent) return;
-
-  //   switch (lastEvent.type) {
-  //     case "get_signal": {
-  //       const { rsrp, rsrq, sinr } = lastEvent.data || {};
-
-  //       if (
-  //         typeof rsrp !== "number" ||
-  //         typeof rsrq !== "number" ||
-  //         typeof sinr !== "number"
-  //       ) {
-  //         setSignalData({
-  //           rsrp: null,
-  //           rsrq: null,
-  //           sinr: null,
-  //           level: "disconnected",
-  //         });
-  //         setIsLoadingSignal(false);
-  //         return;
-  //       }
-
-  //       setSignalData({
-  //         rsrp,
-  //         rsrq,
-  //         sinr,
-  //         level: getSignalLevel(rsrp, rsrq, sinr),
-  //       });
-
-  //       setIsLoadingSignal(false);
-  //       break;
-  //     }
-
-  //     case "get_wifi": {
-  //       setCpeDetail((prev) => {
-  //         if (!prev) return prev;
-
-  //         return {
-  //           ...prev,
-  //           cpe_id: {
-  //             ...prev.cpe_id,
-  //             ...lastEvent.data,
-  //           },
-  //         };
-  //       });
-  //       break;
-  //     }
-
-  //     default:
-  //       break;
-  //   }
-  // }, [lastEvent]);
-
   const handleCheckSignal = () => {
-    console.log(serialNumber);
     if (serialNumber) fetchSignal(serialNumber);
   };
 
@@ -288,56 +283,27 @@ const DeviceInformation = () => {
   };
 
   const handleSaveSSID = async (newSSID: string, newPassword: string) => {
-    if (isSaving) return;
-    setIsSaving(true);
+    if (isWaitingForSetWifi || isSaving) return;
+
+    setIsWaitingForSetWifi(true); // 🔥 Aktifkan listener SSE
 
     try {
       const sn = cpeDetail?.cpe_id?.serial_number || serialNumber;
-
-      if (!sn) {
-        throw new Error("Serial number tidak ditemukan");
-      }
+      if (!sn) throw new Error("Serial number tidak ditemukan");
 
       let body: SetSSIDBody = { sn };
-
       if (editingSSID.type === "2.4 Ghz") {
-        body = {
-          ...body,
-          ssid: newSSID,
-          password: newPassword,
-        };
+        body = { ...body, ssid: newSSID, password: newPassword };
+      } else {
+        body = { ...body, ssid5: newSSID, password5: newPassword };
       }
 
-      if (editingSSID.type === "5 Ghz") {
-        body = {
-          ...body,
-          ssid5: newSSID,
-          password5: newPassword,
-        };
-      }
-
-      await setSSID(body);
-
-      // fallback kalau SSE delay
-      setCpeDetail((prev) => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          cpe_id: {
-            ...prev.cpe_id,
-            ...(editingSSID.type === "2.4 Ghz"
-              ? { ssid: newSSID, password: newPassword }
-              : { ssid5: newSSID, password5: newPassword }),
-          },
-        };
-      });
-
-      setIsModalOpen(false);
+      // Panggil API → backend akan kirim SSE `set_wifi`
+      const res = await setSSID(body);
+      toast.success(res.data?.message || "Mohon menunggu...");
     } catch (err: any) {
       toastErrorFromAPI(err);
-    } finally {
-      setIsSaving(false);
+      setIsWaitingForSetWifi(false);
     }
   };
 
@@ -348,6 +314,7 @@ const DeviceInformation = () => {
           rsrp={signalData.rsrp}
           rsrq={signalData.rsrq}
           sinr={signalData.sinr}
+          cellId={signalData.cell_id}
           level={signalData.level}
           onCheckSignal={handleCheckSignal}
           isLoading={isLoadingSignal}
@@ -356,7 +323,7 @@ const DeviceInformation = () => {
       </div>
 
       <div className="md:col-span-2 w-full space-y-6">
-        <div className="p-4 sm:p-6 bg-white rounded-lg shadow-lg">
+        <div className="p-4 sm:p-6 bg-white rounded-lg shadow-lg border border-gray-200">
           <div>
             <div className="font-bold text-xl mb-2">Ringkasan Perangkat</div>
             <div className="text-sm sm:text-base">
@@ -372,10 +339,10 @@ const DeviceInformation = () => {
                   {cpeDetail?.cpe_id?.cpe_brand_model_id?.model ?? "-"}
                 </p>
               </div>
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <p className="min-w-30">Firmware:</p>
                 <p className="">-</p>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -428,7 +395,7 @@ const DeviceInformation = () => {
           </div>
         </div>
 
-        <div className="col-span-2 p-4 sm:p-6 bg-white rounded-lg shadow-lg">
+        <div className="col-span-2 p-4 sm:p-6 bg-white rounded-lg shadow-lg border border-gray-200">
           <div className="font-bold text-xl mb-4">
             Perangkat Tersambung ({connectedDevices.length})
           </div>
@@ -513,13 +480,14 @@ const DeviceInformation = () => {
       <EditSSIDModal
         isOpen={isModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
+          if (isWaitingForSetWifi) toast("Mohon menunggu perubahan SSID");
+          if (!isWaitingForSetWifi) setIsModalOpen(false);
         }}
         ssidType={editingSSID.type}
         initialSSID={editingSSID.ssid}
         initialPassword={editingSSID.password}
         onSave={handleSaveSSID}
-        isSaving={isSaving}
+        isSaving={isWaitingForSetWifi}
       />
     </div>
   );

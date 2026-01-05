@@ -22,7 +22,7 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
   initialSSID,
   initialPassword,
   onSave,
-  isSaving
+  isSaving,
 }) => {
   const [ssid, setSSID] = useState(initialSSID);
   const [password, setPassword] = useState(initialPassword);
@@ -53,7 +53,7 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
 
     // setShowPassword(false);
     onSave(ssid, password);
-    onClose();
+    // onClose();
   };
 
   return (
@@ -112,9 +112,9 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
           <button
             type="submit"
             disabled={isSaving}
-            className="w-full disabled:cursor-not-allowed cursor-pointer py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+            className="w-full disabled:cursor-not-allowed disabled:bg-slate-400 cursor-pointer py-3 bg-primary text-white font-medium rounded-lg hover:bg-dark-primary-2 transition-colors"
           >
-            Simpan Perubahan
+            {isSaving ? "Mohon menunggu..." : "Simpan Perubahan"}
           </button>
         </form>
       </div>

@@ -55,6 +55,14 @@ function SettingModemForm() {
   }, [token]);
   const customer_id = decodedToken?.customer_id;
 
+  const hasNullWifiConfig = (cpe: CpeSimBinding | null): boolean => {
+    if (!cpe?.cpe_id) return true;
+    const { ssid, ssid5, password, password5 } = cpe.cpe_id;
+    return (
+      ssid === null && ssid5 === null && password === null && password5 === null
+    );
+  };
+
   // 🔥 1. Dengarkan SSE untuk `get_wifi` jika API null
   useSSEOneTime(
     customer_id || "",
@@ -71,7 +79,7 @@ function SettingModemForm() {
       setCpeDetail(fakeCpeDetail);
       setIsLoadingCPE(false);
     },
-    isLoadingCPE && !cpeDetail?.cpe_id, // hanya dengarkan jika belum dapat data
+    isLoadingCPE && hasNullWifiConfig(cpeDetail), // hanya dengarkan jika belum dapat data
     (payload: SSEPayload) => payload.type === "get_wifi" && payload.sn === sn // filter event
   );
 
@@ -105,17 +113,6 @@ function SettingModemForm() {
     fetchCPE();
   }, []);
 
-  useEffect(() => {
-    if (!cpeDetail?.cpe_id) return;
-
-    setFormData({
-      ssid_24ghz: cpeDetail.cpe_id.ssid ?? "",
-      password_24ghz: cpeDetail.cpe_id.password ?? "",
-      ssid_5ghz: cpeDetail.cpe_id.ssid5 ?? "",
-      password_5ghz: cpeDetail.cpe_id.password5 ?? "",
-    });
-  }, [cpeDetail]);
-
   // useEffect(() => {
   //   if (!cpeDetail?.cpe_id || Object.keys(wifiConfig).length > 0) return;
 
@@ -145,13 +142,11 @@ function SettingModemForm() {
     const errors: { [key: string]: string } = {};
     setIsSubmitting(true);
 
-    if (!formData.ssid_24ghz.trim()) {
+    const ssid24 = formData.ssid_24ghz.trim();
+    if (!ssid24) {
       errors.ssid_24ghz = "SSID 2.4GHz tidak boleh kosong";
-    } else if (
-      formData.ssid_24ghz.length < 2 ||
-      formData.ssid_24ghz.length > 32
-    ) {
-      errors.ssid_24ghz = "SSID harus 2–32 karakter";
+    } else if (ssid24.length < 5 || ssid24.length > 32) {
+      errors.ssid_24ghz = "SSID harus 5–32 karakter";
     }
 
     if (!formData.password_24ghz.trim()) {
@@ -163,13 +158,11 @@ function SettingModemForm() {
       errors.password_24ghz = "Password harus 8–63 karakter";
     }
 
-    if (!formData.ssid_5ghz.trim()) {
+    const ssid5 = formData.ssid_5ghz.trim();
+    if (!ssid5) {
       errors.ssid_5ghz = "SSID 5GHz tidak boleh kosong";
-    } else if (
-      formData.ssid_5ghz.length < 2 ||
-      formData.ssid_5ghz.length > 32
-    ) {
-      errors.ssid_5ghz = "SSID harus 2–32 karakter";
+    } else if (ssid5.length < 5 || ssid5.length > 32) {
+      errors.ssid_5ghz = "SSID harus 5–32 karakter";
     }
 
     if (!formData.password_5ghz.trim()) {
@@ -222,6 +215,30 @@ function SettingModemForm() {
     }
   }
 
+  useEffect(() => {
+    if (!cpeDetail?.cpe_id) return;
+
+    setFormData({
+      ssid_24ghz: (cpeDetail.cpe_id.ssid ?? "").trim(),
+      password_24ghz: (cpeDetail.cpe_id.password ?? "").replace(/\s/g, ""),
+      ssid_5ghz: (cpeDetail.cpe_id.ssid5 ?? "").trim(),
+      password_5ghz: (cpeDetail.cpe_id.password5 ?? "").replace(/\s/g, ""),
+    });
+
+    setErrors({});
+  }, [cpeDetail]);
+
+  const isFormValid =
+    formData.ssid_24ghz.trim().length >= 5 &&
+    formData.ssid_24ghz.trim().length <= 32 &&
+    formData.password_24ghz.length >= 8 &&
+    formData.password_24ghz.length <= 63 &&
+    formData.ssid_5ghz.trim().length >= 5 &&
+    formData.ssid_5ghz.trim().length <= 32 &&
+    formData.password_5ghz.length >= 8 &&
+    formData.password_5ghz.length <= 63 &&
+    Object.keys(errors).length === 0;
+
   if (isLoadingCPE) {
     return <Loader />;
   }
@@ -254,7 +271,7 @@ function SettingModemForm() {
             error={errors.ssid_24ghz}
           />
           <p className="text-xs text-gray-500 mt-1">
-            SSID (2-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
+            SSID (5-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
           </p>
 
           <div className="pt-2 relative">
@@ -321,7 +338,7 @@ function SettingModemForm() {
             error={errors.ssid_5ghz}
           />
           <p className="text-xs text-gray-500 mt-1">
-            SSID (2-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
+            SSID (5-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
           </p>
 
           <div className="pt-2 relative">
@@ -370,26 +387,13 @@ function SettingModemForm() {
 
           <div className="mt-8">
             <button
-              disabled={
-                !formData.ssid_24ghz ||
-                !formData.password_24ghz ||
-                !formData.ssid_5ghz ||
-                !formData.password_5ghz ||
-                isSubmitting ||
-                isWaitingForSetWifi ||
-                Object.keys(errors).length > 0
-              }
+              disabled={!isFormValid || isSubmitting || isWaitingForSetWifi}
               type="submit"
               className={`w-full ${
-                !formData.ssid_24ghz ||
-                !formData.password_24ghz ||
-                !formData.ssid_5ghz ||
-                !formData.password_5ghz ||
-                isSubmitting ||
-                isWaitingForSetWifi
-                  ? "bg-primary/50"
+                !isFormValid || isSubmitting || isWaitingForSetWifi
+                  ? "bg-primary/50 cursor-not-allowed"
                   : "cursor-pointer bg-primary hover:bg-dark-primary-2"
-              }    shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]`}
+              } shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]`}
             >
               {isWaitingForSetWifi
                 ? "Menunggu konfirmasi"

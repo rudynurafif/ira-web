@@ -29,7 +29,7 @@ export default function ConnectToNetwork() {
 
   const progressTimer = useRef<number | null>(null);
 
-  const CHECK_COOLDOWN = 60;
+  const CHECK_COOLDOWN = 120;
   const COOLDOWN_KEY = "activation_cooldown_end";
 
   const [cooldown, setCooldown] = useState(0);
@@ -114,17 +114,17 @@ export default function ConnectToNetwork() {
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [lastEvent, serialNumber, activationConfirmed]);
 
-  useEffect(() => {
-    startActivation();
+  // useEffect(() => {
+  //   startActivation();
 
-    return () => {
-      if (progressTimer.current) {
-        window.clearInterval(progressTimer.current);
-        progressTimer.current = null;
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attempt]);
+  //   return () => {
+  //     if (progressTimer.current) {
+  //       window.clearInterval(progressTimer.current);
+  //       progressTimer.current = null;
+  //     }
+  //   };
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [attempt]);
 
   useEffect(() => {
     if (!isCooldownActive || cooldown <= 0) return;
@@ -152,10 +152,12 @@ export default function ConnectToNetwork() {
   async function handleCheckAgain() {
     if (!serialNumber || activationConfirmed) return;
 
-    if (attempt >= MAX_ATTEMPT) {
-      setScreen("failedFinal");
-      return;
-    }
+    // if (attempt >= MAX_ATTEMPT) {
+    //   setScreen("failedFinal");
+    //   return;
+    // }
+
+    setScreen("loading");
 
     const endAt = Date.now() + CHECK_COOLDOWN * 1000;
     localStorage.setItem(COOLDOWN_KEY, String(endAt));

@@ -53,11 +53,11 @@ function Page() {
       return;
     }
 
-    console.log(userInfo.status);
-    console.log(shipmentStatus);
+    // console.log(userInfo.status);
+    // console.log(shipmentStatus);
 
     // pastikan belum aktif dan sudah siap aktivasi
-    if (userInfo.status === "active" || shipmentStatus !== "done") {
+    if (shipmentStatus !== "done") {
       router.replace("/customer-area");
       toast.error(
         "Pastikan anda sudah melakukan proses penerimaan perangkat CPE sebelum melakukan aktivasi."

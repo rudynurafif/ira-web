@@ -9,7 +9,8 @@ export function useSSEOneTime(
   onEvent: SSECallback,
   shouldListen: boolean = true,
   filter?: (payload: SSEPayload) => boolean,
-  onOpen?: () => void
+  onOpen?: () => void,
+  onError?: () => void
 ) {
   const esRef = useRef<EventSourcePolyfill | null>(null);
 
@@ -40,7 +41,7 @@ export function useSSEOneTime(
     const handleMessage = (event: any) => {
       try {
         const payload: SSEPayload = JSON.parse(event.data);
-        console.log("📥 [SSE] Received:", payload);
+        // console.log("📥 [SSE] Received:", payload);
         if (filter && !filter(payload)) return;
 
         onEvent(payload);
@@ -54,6 +55,7 @@ export function useSSEOneTime(
     es.onmessage = handleMessage;
     es.onerror = () => {
       console.warn("🔴 [SSE] Connection error");
+      onError?.();
       es.close();
     };
 
@@ -65,5 +67,5 @@ export function useSSEOneTime(
         esRef.current = null;
       }
     };
-  }, [customer_id, filter, onEvent, onOpen, shouldListen]);
+  }, [customer_id, shouldListen]);
 }
