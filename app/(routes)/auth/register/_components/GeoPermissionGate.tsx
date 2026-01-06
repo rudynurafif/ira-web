@@ -62,7 +62,7 @@ export default function GeoPermissionGate({ onGotLocation, className }: Props) {
           </p>
           <ol className="text-sm text-red-800 list-decimal pl-4 space-y-1">
             <li>
-              Buka ikon <strong>kunci (🔒)</strong> di address bar →{" "}
+              Buka ikon <strong>kunci (🔒) atau ⓘ</strong> di address bar →{" "}
               <strong>Site settings</strong> / <strong>Izin</strong>.
             </li>
             <li>

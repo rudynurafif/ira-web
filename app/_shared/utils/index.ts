@@ -313,19 +313,17 @@ export const htmlToPdf = async (
   htmlString: string,
   filename: string = "invoice.pdf"
 ) => {
-  // Buat elemen div sementara di DOM
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = htmlString;
   tempDiv.style.position = "absolute";
   tempDiv.style.left = "-9999px";
   tempDiv.style.top = "-9999px";
-  // tempDiv.style.width = "700px"; // sesuaikan dengan lebar invoice
+  tempDiv.style.width = "700px"; // sesuaikan dengan desain invoice
   document.body.appendChild(tempDiv);
 
   try {
-    // Ambil screenshot dari elemen
     const canvas = await html2canvas(tempDiv, {
-      scale: 2, // kualitas lebih baik
+      scale: 2,
       useCORS: true,
       allowTaint: true,
     });
@@ -338,16 +336,12 @@ export const htmlToPdf = async (
     });
 
     pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    
+    // ✅ Langsung download, jangan buka tab baru
     pdf.save(filename);
 
-    // Alternatif: buka di tab baru
-    const pdfBlob = pdf.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    window.open(pdfUrl, "_blank");
-
-    // Bersihkan
+    // Cleanup
     document.body.removeChild(tempDiv);
-    URL.revokeObjectURL(pdfUrl);
   } catch (err) {
     console.error("Gagal generate PDF:", err);
     document.body.removeChild(tempDiv);
