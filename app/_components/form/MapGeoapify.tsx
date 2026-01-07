@@ -98,7 +98,9 @@ function MapGeoapify({
         },
         (error) => {
           console.error("Gagal dapat lokasi:", error);
-          toast.error("Tidak bisa mengakses lokasi Anda. Silakan isi manual.");
+          toast.error(
+            "Tidak bisa mengakses lokasi Anda. Silakan isi manual atau izinkan akses lokasi."
+          );
           setIsLoading(false);
         },
         {

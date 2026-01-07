@@ -6,23 +6,42 @@ import {
   convertToCurrency,
   formatDate,
   formatISODate,
+  htmlToPdf,
+  toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import toast from "react-hot-toast";
 import { useState } from "react";
+import { downloadInvoice } from "@/app/_api/Customer/CustomerArea";
 
 const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   const [isToastCooldown, setIsToastCooldown] = useState<boolean>(false);
 
-  const handleCoomingSoon = () => {
+  const handleDownloadInvoice = async () => {
     if (isToastCooldown) return;
 
-    setIsToastCooldown(true);
-    toast("Coming Soon!");
+    try {
+      setIsToastCooldown(true);
+      const htmlResponse = await downloadInvoice({
+        invoice_no: data.billing_id[0].invoice_id[0].invoice_no,
+      });
 
-    setTimeout(() => {
-      setIsToastCooldown(false);
-    }, 3000);
+      if (typeof htmlResponse.data === "string") {
+        const filename = `InvoiceIRA-${data.billing_id[0].invoice_id[0].invoice_no}.pdf`;
+
+        const htmlBlob = new Blob([htmlResponse.data], { type: "text/html" });
+        const htmlUrl = URL.createObjectURL(htmlBlob);
+        window.open(htmlUrl, "_blank");
+
+        await htmlToPdf(htmlResponse.data, filename);
+      } else {
+        toast.error("Gagal memuat invoice.");
+      }
+    } catch (err: any) {
+      toastErrorFromAPI(err || "Terjadi kesalahan saat mengunduh invoice.");
+    } finally {
+      setTimeout(() => setIsToastCooldown(false), 3000);
+    }
   };
 
   return (
@@ -105,7 +124,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
         {/* {!data.billing_id[0]?.is_free && ( */}
         <button
           disabled={isToastCooldown}
-          onClick={handleCoomingSoon}
+          onClick={handleDownloadInvoice}
           className={`${
             data?.billing_id[0]?.status === "PAID"
               ? "bg-primary hover:bg-dark-primary-2"
@@ -114,7 +133,9 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             isToastCooldown ? "opacity-70 cursor-not-allowed" : ""
           }`}
         >
-          {data?.billing_id[0]?.status === "PAID"
+          {isToastCooldown
+            ? "Mohon menunggu.."
+            : data?.billing_id[0]?.status === "PAID"
             ? "Unduh Invoice"
             : "Bayar Invoice"}
         </button>

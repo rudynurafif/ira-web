@@ -3,7 +3,13 @@
 import React, { useEffect, useState } from "react";
 
 import toast from "react-hot-toast";
-import { getPaymentChannel } from "@/app/_api/Payment/Payment";
+import {
+  createPaymentRequestEWallet,
+  createPaymentRequestOTC,
+  createPaymentRequestQRIS,
+  createPaymentRequestVA,
+  getPaymentChannel,
+} from "@/app/_api/Payment/Payment";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PaymentChannel } from "@/app/_shared/types/payment";
 import { useAppSelector } from "@/app/store/store";
@@ -12,6 +18,7 @@ import ButtonChannel from "../_components/ButtonChannel";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
+import { PackageData } from "@/app/_shared/types/customer-area";
 
 // Mapping code API -> gambar lokal
 
@@ -33,7 +40,21 @@ const PaymentMehods = () => {
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
     selectedChannelFromLS
   );
+  const selectedPackageFromSession = (() => {
+    if (typeof window === "undefined") return null;
+    const item = sessionStorage.getItem("selectedPackage");
+    if (!item) return null;
+    try {
+      return JSON.parse(item) as PackageData;
+    } catch {
+      return null;
+    }
+  })();
+  const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
+    selectedPackageFromSession
+  );
   const { isLoggedIn } = useAppSelector((state) => state.auth);
+  const [isCreatePayment, setIsCreatePayment] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -92,6 +113,60 @@ const PaymentMehods = () => {
     if (isLoggedIn) fetchData();
   }, [isLoggedIn]);
 
+  const handleCreatePayment = async () => {
+    if (!selectedChannel) return;
+    setIsCreatePayment(true);
+
+    try {
+      let createRes;
+
+      const payload = {
+        package_id: selectedPackage?.id,
+        payment_channel_id: selectedChannel?.id,
+      };
+
+      switch (selectedChannel.category) {
+        case "va":
+          createRes = createPaymentRequestVA(payload);
+          break;
+        case "qris":
+          createRes = createPaymentRequestQRIS(payload);
+          break;
+        case "ewallet":
+          createRes = createPaymentRequestEWallet(payload);
+          break;
+        case "otc":
+          createRes = createPaymentRequestOTC(payload);
+          break;
+        case "card":
+          toast.error(
+            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`
+          );
+          return;
+        default:
+          throw new Error("Metode Pembayaran Tidak Didukung");
+      }
+
+      const paymentReqID = (await createRes)?.data?.data?.id;
+      sessionStorage.setItem(
+        "paymentInfo",
+        JSON.stringify((await createRes).data.data)
+      );
+
+      if (!paymentReqID) {
+        throw new Error("Gagal mendapatkan ID pembayaran");
+      }
+
+      router.push(
+        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`
+      );
+    } catch (error: any) {
+      toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
+    } finally {
+      setIsCreatePayment(false);
+    }
+  };
+
   if (isLoading) return <ChannelsSkeleton />;
 
   return (
@@ -102,7 +177,9 @@ const PaymentMehods = () => {
           onClick={() => router.back()}
           size={30}
         />
-        <h2 className="sm:text-3xl text-xl font-bold text-gray-800">Metode Pembayaran</h2>
+        <h2 className="sm:text-3xl text-xl font-bold text-gray-800">
+          Metode Pembayaran
+        </h2>
       </div>
       {/* Modal Header */}
       <div className="bg-white rounded-xl shadow-lg p-6 ">
@@ -264,11 +341,12 @@ const PaymentMehods = () => {
         </div>
 
         <button
-          disabled={!selectedChannel}
-          onClick={() => router.push('/payment')}
-          className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed disabled:bg-slate-400"
+          disabled={!selectedChannel || isCreatePayment}
+          // onClick={() => router.push("/payment")}
+          onClick={handleCreatePayment}
+          className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-full sm:rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          Pilih
+          {isCreatePayment ? "Mohon menunggu.." : "Bayar"}
         </button>
       </div>
     </div>

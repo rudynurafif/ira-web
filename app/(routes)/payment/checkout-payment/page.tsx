@@ -8,6 +8,7 @@ import { convertToCurrency } from "@/app/_shared/utils";
 import Outlet from "./_components/Outlet/Outlet";
 import {
   EWalletPaymentData,
+  OtcPaymentData,
   QRISPaymentData,
   VAPaymentData,
 } from "@/app/_shared/types/payment";
@@ -72,15 +73,15 @@ function Page() {
     <div className="">
       <div className="container mx-auto p-6 my-8">
         <div className="flex gap-2 items-center justify-center">
-          <div className="font-bold text-primary-text md:text-3xl text-2xl">Pembayaran</div>
+          <div className="font-bold text-primary-text md:text-3xl text-2xl">
+            Pembayaran
+          </div>
         </div>
 
         <div className="mt-5 bg-white shadow-[0px_4px_20px_0px_rgba(0,0,0,0.12)] rounded-xl p-6">
           <div className="grid grid-cols-2 gap-y-2 sm:text-base text-xs">
             <div>Nama Paket</div>
-            <div className="text-right">
-              {paymentInfo?.package_id.name}
-            </div>
+            <div className="text-right">{paymentInfo?.package_id.name}</div>
 
             <div>Deskripsi</div>
             <div className="text-right">
@@ -109,7 +110,7 @@ function Page() {
 
           {params.get("type") &&
           params.get("type")?.toLowerCase() === "qris" ? (
-            <QRIS />
+            <QRIS data={paymentInfo as QRISPaymentData} />
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "va" ? (
             paymentInfo ? (
@@ -117,7 +118,7 @@ function Page() {
             ) : null
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "otc" ? (
-            <Outlet />
+            <Outlet data={paymentInfo as OtcPaymentData} />
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "ewallet" ? (
             <EWallet data={paymentInfo as EWalletPaymentData} />

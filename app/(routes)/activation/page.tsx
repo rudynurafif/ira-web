@@ -14,17 +14,19 @@ import toast from "react-hot-toast";
 import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import { setShipmentStatus } from "@/app/store/slice/authSlice";
+import Loader from "@/app/_components/Loader";
 
 function Page() {
   const params = useSearchParams();
   const [activeSection, setActiveSection] = useState("scan");
-  const { shipmentStatus } = useAppSelector((state) => state.auth);
+  const { shipmentStatus, userInfo } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const [subscriptionHistory, setSubscriptionHistory] =
     useState<SubscriptionHistoryAPI[]>();
   const dispatch = useAppDispatch();
+  const [isDataReady, setIsDataReady] = useState(false);
 
-  const fetchData = async () => {
+  const fetchCustPackage = async () => {
     try {
       const resSubHistory = await getCustomerPackage({});
       const data = resSubHistory.data?.data;
@@ -38,27 +40,46 @@ function Page() {
   };
 
   useEffect(() => {
-    if (shipmentStatus && shipmentStatus !== "done") {
+    // Jika userInfo belum tersedia, jangan lakukan apa-apa
+    if (userInfo === null) {
+      setIsDataReady(false);
+      return;
+    }
+
+    // Jika shipmentStatus belum tersedia, fetch
+    if (shipmentStatus === null) {
+      fetchCustPackage();
+      setIsDataReady(false);
+      return;
+    }
+
+    // console.log(userInfo.status);
+    // console.log(shipmentStatus);
+
+    // pastikan belum aktif dan sudah siap aktivasi
+    if (shipmentStatus !== "done") {
       router.replace("/customer-area");
       toast.error(
         "Pastikan anda sudah melakukan proses penerimaan perangkat CPE sebelum melakukan aktivasi."
       );
+      return;
     }
-  }, [router, shipmentStatus]);
+
+    setIsDataReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo, shipmentStatus, router]);
 
   useEffect(() => {
-    if (!shipmentStatus) fetchData();
+    if (!shipmentStatus) fetchCustPackage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shipmentStatus]);
 
   useEffect(() => {
     const sSection = params.get("section");
-    if (sSection) {
-      setActiveSection(sSection);
-    } else {
-      setActiveSection("scan");
-    }
+    setActiveSection(sSection || "scan");
   }, [params]);
+
+  if (!isDataReady) return <Loader />;
 
   return (
     <div className="py-10">

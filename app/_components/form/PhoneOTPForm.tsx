@@ -8,6 +8,7 @@ import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import ModalTemplate from "../modal/ModalTemplate";
 import ModalLoginRedirect from "@/app/(routes)/auth/register/_components/ModalLoginRedirect";
+import { usePathname } from "next/navigation";
 
 function PhoneOTPForm({
   label,
@@ -48,6 +49,7 @@ function PhoneOTPForm({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [timerReset, setTimerReset] = useState(0);
   const [openModalLogin, setOpenModalLogin] = useState(false);
+  const pathname = usePathname();
 
   // ✅ key dinamis (fallback ke name)
   const key = storageKey ?? `otp:${name}`;
@@ -138,7 +140,9 @@ function PhoneOTPForm({
           ? await sendOtpLogin(body)
           : await sendOtpRegister(body);
 
-      toast.success(res_sendOTP.data.message ?? "OTP telah dikirim!");
+      toast.success(
+        `${res_sendOTP?.data?.message ?? "OTP terkirim"} ke ${value}`
+      );
       startOtpTimer();
     } catch (error: any) {
       let seconds = error?.response?.data?.data?.second;
@@ -147,7 +151,10 @@ function PhoneOTPForm({
         // toastErrorFromAPI(error);
         startOtpTimer(seconds); // set cooldown sesuai server
       } else {
-        if (error?.response?.data?.statusCode === 409) {
+        if (
+          error?.response?.data?.statusCode === 409 &&
+          pathname === "/auth/register"
+        ) {
           setOpenModalLogin(true);
         }
         toastErrorFromAPI(error, "Terjadi kesalahan saat mengirim OTP");
@@ -200,7 +207,7 @@ function PhoneOTPForm({
 
         <div>
           <button
-            type="button"
+            type="submit"
             disabled={disabledButton}
             className={`text-white py-3 px-3 rounded-xl  ${
               disabledButton
@@ -222,6 +229,7 @@ function PhoneOTPForm({
           </button>
         </div>
       </div>
+
       {hint && (
         <p className="text-xs md:text-sm mt-1">
           <span className="text-red-500">*</span>Gunakan{" "}

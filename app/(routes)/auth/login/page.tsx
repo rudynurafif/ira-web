@@ -171,7 +171,7 @@ const Page = () => {
       if (cooldownSec) startResendTimer(cooldownSec);
 
       setStep("enterOtp");
-      toast.success(res.data.message ?? "OTP terkirim");
+      toast.success(`${res?.data?.message ?? "OTP terkirim"} ke ${phone}`);
     } catch (error: any) {
       const seconds = error?.response?.data?.data?.second;
 
@@ -296,7 +296,7 @@ const Page = () => {
               href="/auth/register"
               className="underline-animation-register font-semibold text-primary"
             >
-              Register
+              Daftar disini
             </Link>
           </p>
         </div>

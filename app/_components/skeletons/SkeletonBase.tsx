@@ -13,7 +13,7 @@ const SkeletonBase: React.FC<SkeletonBaseProps> = ({
 }) => {
   return (
     <div
-      className={`bg-gray-200 rounded animate-pulse ${width} ${height} ${
+      className={`bg-gray-200 rounded-full animate-pulse ${width} ${height} ${
         className ?? ""
       }`}
     ></div>

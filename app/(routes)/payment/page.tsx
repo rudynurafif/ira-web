@@ -5,10 +5,16 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { PackageData } from "@/app/_shared/types/customer-area";
-import { getPackageList } from "@/app/_api/Customer/CustomerArea";
+import {
+  getCustomerPackage,
+  getPackageList,
+} from "@/app/_api/Customer/CustomerArea";
 import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
 import ccSvg from "@/public/assets/Icons/payment-method/credit-card-svg.svg";
-import { PaymentChannel } from "@/app/_shared/types/payment";
+import {
+  PaymentChannel,
+  SubscriptionHistoryAPI,
+} from "@/app/_shared/types/payment";
 import {
   createPaymentRequestEWallet,
   createPaymentRequestOTC,
@@ -19,84 +25,10 @@ import { IoIosArrowForward } from "react-icons/io";
 import Loader from "@/app/_components/Loader";
 import ErrorFallback from "@/app/_components/ErrorFallback";
 import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
-import petir from "@/public/assets/Icons/petir.svg";
 import BannerLatest from "./_components/BannerLatest";
 import bannerPerpanjang from "@/public/assets/Images/banner-perpanjang-paket.png";
 import bannerPerpanjangMobile from "@/public/assets/Images/banner-perpanjangan-paket-mobile.png";
-
-function PackageCardMobile({
-  pkg,
-  selected,
-  onSelect,
-  convertToCurrency,
-}: {
-  pkg: PackageData;
-  selected: boolean;
-  onSelect: (p: PackageData) => void;
-  convertToCurrency: (v: number) => string;
-}) {
-  const isUnlimited = !pkg.quota_mb || Number(pkg.quota_mb) === 0;
-
-  return (
-    <div
-      onClick={() => onSelect(pkg)}
-      className={[
-        "rounded-xl border bg-[url('/assets/Images/packageBackground.svg')] bg-cover bg-center cursor-pointer transition px-4 pt-3 pb-4",
-        selected
-          ? "border-[#D7201D] ring-1 ring-[#D7201D]/30 shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
-          : "border-gray-200 active:scale-[0.99]",
-      ].join(" ")}
-    >
-      {/* judul */}
-      <div className="flex items-center gap-1">
-        <span className="text-base">
-          <Image src={petir} alt="icon" />
-        </span>
-        <h3 className="text-base sm:text-xl font-semibold text-secondary">
-          {pkg.name ?? "-"}
-        </h3>
-      </div>
-
-      {/* body */}
-      <div className="mt-2 ">
-        {/* speed block */}
-        <div className="w-full rounded-md overflow-hidden">
-          <div className="flex items-start justify-between w-full relative text-dark-primary-2 whitespace-nowrap">
-            <div className="flex gap-2">
-              <div className="text-xs sm:text-sm">Up to</div>
-              <div className="flex pt-2 gap-1">
-                <div className="text-3xl sm:text-4xl leading-none font-extrabold tracking-tight">
-                  {pkg.speed_mbps}
-                </div>
-                <div className="flex flex-col items-start">
-                  <div className="text-xs sm:text-sm font-semibold">Mbps</div>
-                  <div className="text-[10px] sm:text-xs">Unlimited Kuota</div>
-                </div>
-              </div>
-            </div>
-
-            {/* badge harga */}
-            <div className="shrink-0 ml-2">
-              <span className="inline-flex flex-col sm:flex-row max-w-[400px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm text-black whitespace-nowrap">
-                <p className="max-sm:font-bold font-semibold">
-                  {convertToCurrency(pkg.price ?? 0)}
-                </p>
-                <p className="font-semibold">/{pkg.duration ?? 0} Hari</p>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* remarks optional */}
-      {pkg.remarks ? (
-        <div className="mt-2 text-[10px] sm:text-xs text-dark-primary">
-          {pkg.remarks}
-        </div>
-      ) : null}
-    </div>
-  );
-}
+import PackageCardMobile from "./_components/PackageCardMobile";
 
 const Payment = () => {
   const router = useRouter();
@@ -125,6 +57,8 @@ const Payment = () => {
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
     selectedPackageFromSession
   );
+  const [latestPackage, setLatestPackage] =
+    useState<SubscriptionHistoryAPI | null>(null);
 
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
     selectedChannelFromLS
@@ -156,6 +90,38 @@ const Payment = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchLatestPackage = async () => {
+      try {
+        const res = await getCustomerPackage({
+          page: 1,
+          pageSize: 1,
+        });
+
+        const data = res.data?.data || [];
+        if (!data[0]) return;
+
+        const latest = data[0];
+        const isActive = latest.start_date && latest.end_date;
+
+        if (isActive) {
+          setLatestPackage(latest);
+
+          // ✅ jadikan default selectedPackage
+          setSelectedPackage(latest.package_id);
+          sessionStorage.setItem(
+            "selectedPackage",
+            JSON.stringify(latest.package_id)
+          );
+        }
+      } catch (err) {
+        toastErrorFromAPI(err);
+      }
+    };
+
+    fetchLatestPackage();
+  }, []);
 
   useEffect(() => {
     fetchPackages();
@@ -243,7 +209,28 @@ const Payment = () => {
 
       <div className="sm:p-6 sm:shadow-lg my-8 rounded-lg">
         <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
-          Pilih Paket
+          Paket yang terakhir dibeli
+        </h2>
+
+        <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
+          {latestPackage ? (
+            <PackageCardMobile
+              pkg={latestPackage.package_id}
+              selected={selectedPackage?.id === latestPackage.package_id.id}
+              onSelect={handleSelect}
+              convertToCurrency={convertToCurrency}
+            />
+          ) : (
+            <div className="text-gray-500 italic">
+              Anda belum memiliki paket aktif
+            </div>
+          )}
+        </div>
+
+        <div className="border border-gray-border my-6"></div>
+
+        <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
+          Paket lainnya
         </h2>
 
         <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
@@ -262,15 +249,7 @@ const Payment = () => {
           )}
         </div>
 
-        <div className="border border-gray-border my-6"></div>
-
-        <div className="mb-8">
-          <div className="flex max-md:flex-col max-md:gap-3 justify-between mb-3">
-            <h2 className="font-bold sm:text-2xl text-lg text-primary-text">
-              Metode Pembayaran
-            </h2>
-          </div>
-
+        {/* <div className="my-8">
           <div
             className="flex cursor-pointer mt-6 justify-between border border-gray-border shadow-md gap-4 rounded-lg p-4 items-center"
             onClick={() => router.push("/payment/payment-methods")}
@@ -313,15 +292,16 @@ const Payment = () => {
               />
             </button>
           </div>
-        </div>
+        </div> */}
 
-        <div>
+        <div className="mt-6">
           <button
-            className="rounded-lg shadow-lg sm:text-2xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-3"
-            onClick={handleCreatePayment}
-            disabled={!selectedPackage || !selectedChannel}
+            className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+            // onClick={handleCreatePayment}
+            onClick={() => router.push("/payment/payment-methods")}
+            disabled={!selectedPackage}
           >
-            Bayar
+            Pilih Metode Pembayaran
           </button>
         </div>
       </div>

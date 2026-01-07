@@ -5,21 +5,7 @@ import { getCookie } from "cookies-next";
 import { decodeJwt } from "@/app/_shared/utils";
 import { EventSourcePolyfill } from "event-source-polyfill";
 import { SSEPayload } from "../_shared/types/CoreNetwork";
-
-type DecodedToken = {
-  phone_number: string;
-  id: string;
-  customer_id: string;
-  name: string;
-  iat: number;
-  exp: number;
-};
-
-type SSEContextType = {
-  serverTime: string | null;
-  chatMessages: string[];
-  lastEvent: SSEPayload | null;
-};
+import { DecodedToken, SSEContextType, WifiConfig } from "./sse.type";
 
 const SSEContext = createContext<SSEContextType | null>(null);
 const BASE_URL_SSE = process.env.NEXT_PUBLIC_API_URL_SSE;
@@ -34,6 +20,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const [serverTime, setServerTime] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [lastEvent, setLastEvent] = useState<SSEPayload | null>(null);
+  const [wifiConfig, setWifiConfig] = useState<WifiConfig>({});
 
   const token = getCookie("token-ira");
   const decodedToken = useMemo(() => {
@@ -58,7 +45,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
           headers: {
             "x-sse-token": "LOCALWEAVE",
           },
-          heartbeatTimeout: 600000,
+          heartbeatTimeout: 1_800_000, // 30 menit
         }
       );
 
@@ -74,9 +61,10 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       es.onmessage = (event) => {
         const payload: SSEPayload = JSON.parse(event.data);
         setLastEvent(payload);
+        console.log(payload);
 
-        const data = JSON.parse(event.data);
-        console.log(data);
+        // const data = JSON.parse(event.data);
+        // console.log(data);
       };
 
       es.onerror = () => {
@@ -96,7 +84,9 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   }, [decodedToken?.customer_id]);
 
   return (
-    <SSEContext.Provider value={{ serverTime, chatMessages, lastEvent }}>
+    <SSEContext.Provider
+      value={{ serverTime, chatMessages, lastEvent, wifiConfig }}
+    >
       {children}
     </SSEContext.Provider>
   );

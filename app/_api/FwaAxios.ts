@@ -8,7 +8,7 @@ const baseURL =
     : process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
 const FwaAxios = axios.create({
-  // baseURL: process.env.NEXT_PUBLIC_API_URL, // local
+  // baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // local
   baseURL: baseURL, // dev/staging/production
   headers: {
     "x-api-key": "280999!FTTH",

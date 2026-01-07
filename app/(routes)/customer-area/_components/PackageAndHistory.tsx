@@ -19,6 +19,8 @@ import toast from "react-hot-toast";
 import DatePickerFilter from "@/app/_components/form/DatePickerFilter";
 import HistorySection from "./HistorySection";
 import thumbClick from "@/public/assets/Icons/thumb-click.png";
+import Link from "next/link";
+import { FaSearchLocation } from "react-icons/fa";
 
 const PAGE_SIZE = 5;
 
@@ -33,7 +35,7 @@ const PackageAndHistory = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const searchParams = useSearchParams();
 
-  const { userInfo } = useAppSelector((state) => state.auth);
+  const { userInfo, is_coverage } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
 
@@ -92,6 +94,7 @@ const PackageAndHistory = () => {
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
 
+  // Komponen Paket Terakhir Dibeli
   const LatestPackage = () => {
     return (
       <div className="">
@@ -248,6 +251,25 @@ const PackageAndHistory = () => {
 
   return (
     <>
+      {!is_coverage && (
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <h1 className="text-2xl font-bold text-primary mb-4">
+            Kami sedang menyiapkan layanan di area kamu
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Jangan khawatir! Kami akan segera memberi tahu kamu melalui WhatsApp
+            dan Aplikasi IRA jika layanan kami tersedia di daerahmu.
+          </p>
+          <Link
+            href="/check-coverage"
+            className="flex max-w-fit items-center gap-2 font-bold bg-primary text-white px-6 py-2 rounded-lg hover:bg-dark-primary-2"
+          >
+            <FaSearchLocation />
+            Cek Jangkauan Terbaru
+          </Link>
+        </div>
+      )}
+
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
         {activePacketData && <ActivePackageCard data={activePacketData} />}
@@ -268,7 +290,7 @@ const PackageAndHistory = () => {
           onClick={() => window.open("/pandaan-cara-bayar", "_blank")}
         />
 
-        <HistorySection />
+        {is_coverage && <HistorySection />}
       </div>
 
       {/* DESKTOP (≥ sm) */}
@@ -294,7 +316,7 @@ const PackageAndHistory = () => {
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
 
-          <HistorySection />
+          {is_coverage && <HistorySection />}
         </div>
       </div>
     </>

@@ -2,6 +2,8 @@ import { Level } from "@/app/(routes)/activation/_components/SignalChecking";
 import { jwtDecode } from "jwt-decode";
 import moment from "moment";
 import toast from "react-hot-toast";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
 export const PHONE_REGEX2 = /^\d{8,15}$/;
@@ -170,7 +172,9 @@ export function formatISODate(
 export function daysUntil(dateISO: string): number {
   if (!dateISO) return 0;
 
-  const [y, m, d] = dateISO.split("-").map(Number);
+  // Ambil hanya bagian tanggal (YYYY-MM-DD) untuk menghindari zona waktu
+  const datePart = dateISO.split("T")[0];
+  const [y, m, d] = datePart.split("-").map(Number);
   const target = new Date(y, m - 1, d);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -180,37 +184,54 @@ export function daysUntil(dateISO: string): number {
 }
 
 export function packageCountdown(endDateISO: string) {
-  const days = daysUntil(endDateISO);
+  const totalDays = daysUntil(endDateISO);
 
-  if (days > 0) {
+  // Handle expired or today
+  if (totalDays < 0) {
     return {
-      days,
-      status: "active" as const,
-      label: `${days} Hari`,
-      note: `Berakhir dalam ${days} hari`,
+      days: totalDays,
+      status: "expired" as const,
+      label: "Sudah berakhir",
+      note: "Masa aktif telah berakhir",
     };
   }
-  if (days <= 3 && days > 0) {
+
+  if (totalDays === 0) {
     return {
-      days,
-      status: "3_days_remaining" as const,
-      label: `${days} Hari`,
-      note: `Berakhir dalam ${days} hari`,
-    };
-  }
-  if (days === 0) {
-    return {
-      days,
+      days: 0,
       status: "expires_today" as const,
       label: "Berakhir hari ini",
       note: "Paket berakhir hari ini",
     };
   }
+
+  // Hitung tahun dan hari sisa
+  const years = Math.floor(totalDays / 365);
+  const remainingDays = totalDays % 365;
+
+  let label: string;
+  let note: string;
+  let status: "active" | "3_days_remaining" = "active";
+
+  if (totalDays <= 3) {
+    status = "3_days_remaining";
+    label = `${totalDays} Hari`;
+    note = `Berakhir dalam ${totalDays} hari`;
+  } else if (years > 0) {
+    // Format: "X Tahun Y Hari"
+    label = `${years} Tahun ${remainingDays} Hari`;
+    note = `Berakhir dalam ${years} tahun dan ${remainingDays} hari`;
+  } else {
+    // Kurang dari 1 tahun, hanya hari
+    label = `${totalDays} Hari`;
+    note = `Berakhir dalam ${totalDays} hari`;
+  }
+
   return {
-    days: 0,
-    status: "expired" as const,
-    label: "Sudah berakhir",
-    note: "Masa aktif telah berakhir",
+    days: totalDays,
+    status,
+    label,
+    note,
   };
 }
 
@@ -234,10 +255,7 @@ export const copyToClipboard = (text: string) => {
     });
 };
 
-export const toastErrorFromAPI = (
-  error: any,
-  defaultMessage = "Terjadi kesalahan"
-) => {
+export const toastErrorFromAPI = (error: any, id?: string | undefined) => {
   // const errorStatusCode = error?.response?.data?.statusCode ?? "(status code)";
   const errorMsg =
     error?.response?.data?.message ??
@@ -245,7 +263,7 @@ export const toastErrorFromAPI = (
     "Terjadi kesalahan, silakan coba lagi.";
 
   // toast.error(`Error ${errorStatusCode}: ${errorMsg}`);
-  toast.error(errorMsg);
+  toast.error(errorMsg, { id });
 };
 
 export const formattedDate = (dateString: string) => {
@@ -266,15 +284,15 @@ export const getSignalLevel = (
   rsrq?: number,
   sinr?: number
 ): "good" | "poor" | "bad" | "disconnected" => {
-  if (rsrp == null || rsrq == null || sinr == null) {
+  if (rsrp == null) {
     return "disconnected";
   }
 
-  // Prioritaskan RSRP sebagai penentu utama
-  if (rsrp >= -85) return "good";
-  if (rsrp >= -100) return "poor";
-  if (rsrp >= -115) return "bad";
-  return "disconnected";
+  // Sesuai tabel RSRP
+  if (rsrp >= -80) return "good"; // Excellent
+  if (rsrp >= -90) return "good"; // Good
+  if (rsrp >= -100) return "poor"; // Fair to Poor
+  return "bad"; // Poor
 };
 
 export const mapSignalToLevel = (
@@ -282,13 +300,51 @@ export const mapSignalToLevel = (
   rsrq: number | null,
   sinr: number | null
 ): Level => {
-  if (rsrp === null || rsrq === null || sinr === null) return 0;
+  if (rsrp === null) return 0;
 
-  // Sesuaikan dengan rentang kualitas sinyal LTE
-  if (rsrp >= -85) return 5; // Excellent
-  if (rsrp >= -90) return 4; // Good
-  if (rsrp >= -95) return 3; // Fair
-  if (rsrp >= -100) return 2; // Poor
-  if (rsrp >= -110) return 1; // Bad
-  return 0; // No signal
+  // Sesuai tabel RSRP
+  if (rsrp >= -80) return 4; // Excellent
+  if (rsrp >= -90) return 3; // Good
+  if (rsrp >= -100) return 2; // Fair to Poor
+  return 1; // Poor
+};
+
+export const htmlToPdf = async (
+  htmlString: string,
+  filename: string = "invoice.pdf"
+) => {
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = htmlString;
+  tempDiv.style.position = "absolute";
+  tempDiv.style.left = "-9999px";
+  tempDiv.style.top = "-9999px";
+  tempDiv.style.width = "700px"; // sesuaikan dengan desain invoice
+  document.body.appendChild(tempDiv);
+
+  try {
+    const canvas = await html2canvas(tempDiv, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "px",
+      format: [canvas.width, canvas.height],
+    });
+
+    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    
+    // ✅ Langsung download, jangan buka tab baru
+    pdf.save(filename);
+
+    // Cleanup
+    document.body.removeChild(tempDiv);
+  } catch (err) {
+    console.error("Gagal generate PDF:", err);
+    document.body.removeChild(tempDiv);
+    throw err;
+  }
 };

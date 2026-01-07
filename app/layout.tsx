@@ -60,9 +60,10 @@ export default function RootLayout({
             {/* {!maintenanceMode && <Header />} */}
             <Header />
             <main className="flex-1">
-              <SSEProvider>
+              {/* Non-aktif perubahan consume SSE behaviour */}
+              {/* <SSEProvider> */}
               {children}
-              </SSEProvider>
+              {/* </SSEProvider> */}
             </main>
             <Footer />
             <Toaster
