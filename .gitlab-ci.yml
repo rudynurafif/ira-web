@@ -15,6 +15,7 @@ variables:
   DEV_VER: "devel"
   STAGE_VER: "stage"
   PROD_VER: "prod"
+  SSH_PORT: "9922"
 
 stages:          # List of stages for jobs, and their order of execution
   - Release
@@ -51,7 +52,7 @@ devel-job:       # This job runs in the build stage, which runs first.
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
-      ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
+      ssh -o StrictHostKeyChecking=no -p $SSH_PORT $DEV_SSH_CON \
       "echo 'Development - Reset and clean the repository to avoid stale changes in container'; \
       cd $PATH_DIR; \
       git reset --hard; \
@@ -67,7 +68,7 @@ devel-job:       # This job runs in the build stage, which runs first.
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
-      ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
+      ssh -o StrictHostKeyChecking=no -p $SSH_PORT $DEV_SSH_CON \
       "echo "Development - Update code and Deployment starting"; \
         cd $PATH_DIR; \
         git pull origin development; \
@@ -75,6 +76,8 @@ devel-job:       # This job runs in the build stage, which runs first.
         docker rmi $IMG_NAME:$DEV_VER; \
         docker compose -f COMPOSE_FILE up -d --build $COMPOSE_SRV; \
         docker builder prune -a -f; \
+        docker image prune -a -f; \
+        npm outdate; \
         echo 'Development - Docker Deployment Completed.'; \
       "
   artifacts:
@@ -103,15 +106,15 @@ staging-job:       # This job runs in the build stage, which runs first.
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
-      ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
-      "echo 'Stage - Reset and clean the repository to avoid stale changes in container'; \
+      ssh -o StrictHostKeyChecking=no -p $SSH_PORT $STAGE_SSH_CON \
+      "echo 'Staging - Reset and clean the repository to avoid stale changes in container'; \
       cd $PATH_DIR; \
       git reset --hard; \
       git clean -fd; \
-      echo 'Stage - Fetch and reset to match the remote branch'; \
+      echo 'Staging - Fetch and reset to match the remote branch'; \
       git fetch --all; \
       git reset --hard origin/stage; \
-      echo 'Stage - Local Repository in container was cleaned.'"
+      echo 'Staging - Local Repository in container was cleaned.'"
   script:
     - mkdir -p ~/.ssh
     - echo "Stage - Compiling and update the Code..."
@@ -119,63 +122,21 @@ staging-job:       # This job runs in the build stage, which runs first.
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
-      ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
-      "echo "Stage - Update code and Deployment starting"; \
+      ssh -o StrictHostKeyChecking=no -p $SSH_PORT $STAGE_SSH_CON \
+      "echo "Staging - Update code and Deployment starting"; \
         cd $PATH_DIR; \
         git pull origin stage; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
         docker rmi $IMG_NAME $STAGE_VER; \
         docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
         docker builder prune -a -f; \
-        echo 'Stage - Docker Deployment Completed.'; \
+        docker image prune -a -f; \
+        npm outdate; \
+        echo 'Staging - Docker Deployment Completed.'; \
       "
   artifacts:
     paths:
       - build/
-
-#snyk-test:
-#  stage: Test
-#  rules:
-#    - if: '$CI_COMMIT_BRANCH == "stage"'
-#      changes:
-#        - Dockerfile
-#        - .env.devel
-#        - .env.stage
-#        - .env.prod
-#        - .gitlab-ci.yml
-#      when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
-#    - if: '$CI_COMMIT_BRANCH == "stage"'
-#      when: always # Pipeline akan berjalan jika file ada perubahan.
-#    #Use npm audit to generate a JSON report for security vulnerabilities, and then convert it to HTML using snyk-to-html.
-#  script:
-#    - echo "Test all the code with SNYK tools"
-#     - npm install -g npm@latest
-#     - npm install -g snyk
-#     - npm install snyk-to-html -g
-#     # Run snyk help, snyk auth, snyk monitor, snyk test to break build and out report
-#     - snyk auth ${SNYK_API_TOKEN}
-#     - snyk monitor --project-name=$CI_PROJECT_NAME
-#     - snyk test --json > snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.json || true
-#     - snyk-to-html -i snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.json -o snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html
-#   # Save report to artifacts
-#   artifacts:
-#     when: always
-#     paths:
-#       - snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.json
-#       - snyk_report_$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html
-  # rules:
-  #   - if: '$CI_COMMIT_BRANCH == "main"'
-# npm-audit:
-#   stage: Test
-#   script:
-#   - npm install -g npm-audit-html@beta
-#   - npm i --package-lock-only
-#   - npm audit --json | npm-audit-html --output npm_audit_report-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html --fatal-exit-code || true
-
-#   artifacts:
-#     paths:
-#       - npm_audit_report-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA.html
-#     when: always
 
 deploy-production:
   stage: Deploy
@@ -199,7 +160,7 @@ deploy-production:
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
-      ssh -o StrictHostKeyChecking=no -p 9922 $DEV_SSH_CON \
+      ssh -o StrictHostKeyChecking=no -p $SSH_PORT $PROD_SSH_CON \
       "echo 'Production - Reset and clean the repository to avoid stale changes in container'; \
       cd $PATH_DIR; \
       git reset --hard; \
@@ -223,6 +184,8 @@ deploy-production:
         docker rmi $IMG_NAME:$PROD_VER; \
         docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
         docker builder prune -a -f; \
+        docker image prune -a -f; \
+        npm outdate; \
         echo 'Production - Docker Deployment Completed.'; \
       "
   artifacts:
