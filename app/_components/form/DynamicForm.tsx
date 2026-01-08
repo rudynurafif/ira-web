@@ -32,7 +32,7 @@ function DynamicForm({
           name={name}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`px-5 py-3 bg-primary-spectrum rounded-xl w-full mt-2 border ${
+          className={`px-5 disabled:cursor-not-allowed py-3 bg-primary-spectrum rounded-xl w-full mt-2 border ${
             error ? "border-red-500" : "border-[#D5D5D5]"
           } placeholder:text-gray-400 placeholder:text-sm`}
           {...props}

@@ -10,6 +10,7 @@ interface GroupedOTPProps {
   length?: number; // default 6
   onComplete?: (val: string) => void;
   onChange?: (val: string) => void;
+  onFocus?: () => void;
   isInvalid?: boolean; // ← tambah ini
   isDisabled?: boolean;
   classNameStyle?: string;
@@ -23,6 +24,7 @@ export default function GroupedOTP({
   length = 6,
   onComplete,
   onChange,
+  onFocus,
   isInvalid = false,
   isDisabled,
   classNameStyle,
@@ -98,14 +100,14 @@ function Slot(
 ) {
   return (
     <div
-      className={`relative w-[50px] h-[50px] text-base flex items-center justify-center 
-        transition-all duration-300 bg-[#F7F9FD]
-        border rounded-[12px]
+      className={`relative w-12.5 h-12.5 text-base flex items-center justify-center 
+        transition-all duration-300 
+        border rounded-xl
         ${props.isInvalid ? "border-red-500" : "border-gray-300"}
         ${
           props.isDisabled
-            ? "cursor-not-allowed"
-            : "group-hover:border-gray-400 group-focus-within:border-gray-400"
+            ? "cursor-not-allowed bg-[#f5f5f5]"
+            : "group-hover:border-gray-400 bg-[#F7F9FD] group-focus-within:border-gray-400"
         }
         outline-0 outline-blue-300 
         ${props.isActive ? "outline-2 outline-blue-500" : ""}

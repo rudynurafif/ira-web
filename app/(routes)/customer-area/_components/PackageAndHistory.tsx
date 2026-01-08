@@ -251,25 +251,6 @@ const PackageAndHistory = () => {
 
   return (
     <>
-      {!is_coverage && (
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <h1 className="text-2xl font-bold text-primary mb-4">
-            Kami sedang menyiapkan layanan di area kamu
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Jangan khawatir! Kami akan segera memberi tahu kamu melalui WhatsApp
-            dan Aplikasi IRA jika layanan kami tersedia di daerahmu.
-          </p>
-          <Link
-            href="/check-coverage"
-            className="flex max-w-fit items-center gap-2 font-bold bg-primary text-white px-6 py-2 rounded-lg hover:bg-dark-primary-2"
-          >
-            <FaSearchLocation />
-            Cek Jangkauan Terbaru
-          </Link>
-        </div>
-      )}
-
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
         {activePacketData && <ActivePackageCard data={activePacketData} />}
