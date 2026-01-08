@@ -59,6 +59,7 @@ const Payment = () => {
   );
   const [latestPackage, setLatestPackage] =
     useState<SubscriptionHistoryAPI | null>(null);
+  const [isLatestPackageFree, setIsLatestPackageFree] = useState(false);
 
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
     selectedChannelFromLS
@@ -108,12 +109,23 @@ const Payment = () => {
         if (isActive) {
           setLatestPackage(latest);
 
-          // ✅ jadikan default selectedPackage
-          setSelectedPackage(latest.package_id);
-          sessionStorage.setItem(
-            "selectedPackage",
-            JSON.stringify(latest.package_id)
-          );
+          // ✅ Cek apakah nama paket mengandung kata "free", "demo", atau "gratis"
+          const packageName = latest.package_id?.name || "";
+          const normalized = packageName.toLowerCase();
+          const isFree =
+            normalized.includes("free") ||
+            normalized.includes("demo") ||
+            normalized.includes("gratis");
+
+          setIsLatestPackageFree(isFree);
+
+          if (!isFree) {
+            setSelectedPackage(latest.package_id);
+            sessionStorage.setItem(
+              "selectedPackage",
+              JSON.stringify(latest.package_id)
+            );
+          }
         }
       } catch (err) {
         toastErrorFromAPI(err);
@@ -208,29 +220,27 @@ const Payment = () => {
       />
 
       <div className="sm:p-6 sm:shadow-lg my-8 rounded-lg">
-        <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
-          Paket yang terakhir dibeli
-        </h2>
+        {latestPackage && !isLatestPackageFree && (
+          <>
+            <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
+              Paket yang terakhir dibeli
+            </h2>
 
-        <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
-          {latestPackage ? (
-            <PackageCardMobile
-              pkg={latestPackage.package_id}
-              selected={selectedPackage?.id === latestPackage.package_id.id}
-              onSelect={handleSelect}
-              convertToCurrency={convertToCurrency}
-            />
-          ) : (
-            <div className="text-gray-500 italic">
-              Anda belum memiliki paket aktif
+            <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
+              <PackageCardMobile
+                pkg={latestPackage.package_id}
+                selected={selectedPackage?.id === latestPackage.package_id.id}
+                onSelect={handleSelect}
+                convertToCurrency={convertToCurrency}
+              />
             </div>
-          )}
-        </div>
 
-        <div className="border border-gray-border my-6"></div>
+            <div className="border border-gray-border my-6"></div>
+          </>
+        )}
 
         <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
-          Paket lainnya
+          {isLatestPackageFree ? "Daftar Paket" : "Paket Lainnya"}
         </h2>
 
         <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
@@ -299,7 +309,9 @@ const Payment = () => {
             className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
             // onClick={handleCreatePayment}
             onClick={() => router.push("/payment/payment-methods")}
-            disabled={!selectedPackage}
+            disabled={
+              !selectedPackage 
+            }
           >
             Pilih Metode Pembayaran
           </button>

@@ -1,7 +1,9 @@
 import { sendOtpLogin, sendOtpRegister } from "@/app/_api/Auth/Auth";
 import {
   formatTimer,
+  getPhoneHistory,
   PHONE_REGEX,
+  savePhoneToHistory,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import React, { useEffect, useRef, useState } from "react";
@@ -49,13 +51,16 @@ function PhoneOTPForm({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [timerReset, setTimerReset] = useState(0);
   const [openModalLogin, setOpenModalLogin] = useState(false);
+  const [phoneHistory, setPhoneHistory] = useState<string[]>([]);
+
   const pathname = usePathname();
 
-  // ✅ key dinamis (fallback ke name)
   const key = storageKey ?? `otp:${name}`;
-
-  // simpan ref interval agar aman dibersihkan
   const intervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setPhoneHistory(getPhoneHistory());
+  }, []);
 
   useEffect(() => {
     if (!externalExpiry) return;
@@ -127,14 +132,18 @@ function PhoneOTPForm({
   async function SendOTP() {
     setIsLoading(true);
     try {
+      console.log("no hp", value);
+      savePhoneToHistory(value);
+      setPhoneHistory(getPhoneHistory());
+
       // ✅ Jika parent menyediakan onSendOTP, delegasikan ke parent dan keluar.
       if (onSendOTP) {
         await Promise.resolve(onSendOTP());
         return;
       }
 
-      // === Fallback: child kirim OTP sendiri jika tidak ada onSendOTP ===
       const body = { phone_number: value };
+
       const res_sendOTP =
         mode === "login"
           ? await sendOtpLogin(body)
@@ -190,12 +199,13 @@ function PhoneOTPForm({
       </label>
 
       <div className="flex gap-2  w-full mt-2">
-        <div className="grow">
+        <div className="grow relative">
           <input
             type={type}
             name={name}
             value={value}
             disabled={isDisabled}
+            list={`ira-phone-history-${name}`}
             onChange={(e) => handleNumericChange(e.target.value)}
             onPaste={handlePaste}
             className={`px-5 py-3 bg-primary-spectrum rounded-xl w-full border ${
@@ -203,6 +213,12 @@ function PhoneOTPForm({
             } placeholder:text-gray-400 placeholder:text-sm`}
             {...props}
           />
+
+          <datalist id={`ira-phone-history-${name}`}>
+            {phoneHistory.map((phone, idx) => (
+              <option key={idx} value={phone} />
+            ))}
+          </datalist>
         </div>
 
         <div>

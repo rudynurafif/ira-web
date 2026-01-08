@@ -2,7 +2,7 @@
 "use client";
 import React from "react";
 import toast from "react-hot-toast";
-import { useGeoPermission } from "@/app/hooks/useGeoPermission"; 
+import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 
 type Props = {
   onGotLocation: (lat: number, lng: number) => void;
@@ -30,11 +30,9 @@ export default function GeoPermissionGate({ onGotLocation, className }: Props) {
   // UI ringkas untuk tiga state
   return (
     <div
-      className={`rounded-xl p-4 border mt-4 ${
-        status === "denied"
-          ? "border-red-300 bg-red-50"
-          : "border-amber-300 bg-amber-50"
-      } ${className || ""}`}
+      className={`rounded-xl mt-4
+        
+          ${className || ""}`}
     >
       {status === "prompt" && (
         <div className="flex items-start justify-between gap-3">

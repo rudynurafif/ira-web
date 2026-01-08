@@ -24,6 +24,7 @@ import Image from "next/image";
 import iraLogo from "@/public/assets/Images/LogoIra.png";
 import CpeActivationStatus from "./_components/CpeActivation";
 import Link from "next/link";
+import { FaSearchLocation } from "react-icons/fa";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
@@ -120,96 +121,126 @@ export default function AreaPelanggan() {
 
   return (
     <div className="min-h-screen bg-background-customer pb-10">
+      {/* Banner Background */}
       <CustomerHeader />
-      <div className="relative z-10 max-w-[1329px] mx-auto px-8 -mt-28">
-        {/* Avatar + Info */}
-        <div className="flex flex-col md:flex-row items-center gap-6 md:items-end justify-between">
-          <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
-            <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
-              <span className="text-6xl max-sm:text-2xl font-bold">
-                {isFetching ? (
-                  <SkeletonLarge />
-                ) : userInfo?.name ? (
-                  getInitials(userInfo?.name)
-                ) : (
-                  <Image src={iraLogo} alt="Logo IRA" width={90} />
-                )}
-              </span>
-            </div>
 
-            {/* Info */}
-            <div className="flex justify-between items-center">
-              <div className="text-center md:text-left select-none">
-                <div className="">
-                  {isLoading ? (
-                    <SkeletonBase />
-                  ) : (
-                    <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
-                      {userInfo?.name}
-                    </div>
-                  )}
-                </div>
-                <div className="text-xl max-sm:text-[16px] text-ads-platform-dark">
+      <div className="max-w-332.25 mx-auto">
+        {/* Customer Info */}
+        <div className="relative z-10 px-8 -mt-28">
+          {/* Avatar + Info */}
+          <div className="flex flex-col md:flex-row items-center gap-6 md:items-end justify-between">
+            <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
+              <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
+                <span className="text-6xl max-sm:text-2xl font-bold">
                   {isFetching ? (
-                    <SkeletonBase />
+                    <SkeletonLarge />
+                  ) : userInfo?.name ? (
+                    getInitials(userInfo?.name)
                   ) : (
-                    <span>ID: {userInfo?.customer_code ?? "-"}</span>
+                    <Image src={iraLogo} alt="Logo IRA" width={90} />
                   )}
+                </span>
+              </div>
+
+              {/* Info */}
+              <div className="flex justify-between items-center">
+                <div className="text-center md:text-left select-none">
+                  <div className="">
+                    {isLoading ? (
+                      <SkeletonBase />
+                    ) : (
+                      <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
+                        {userInfo?.name}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-xl max-sm:text-[16px] text-ads-platform-dark">
+                    {isFetching ? (
+                      <SkeletonBase />
+                    ) : (
+                      <span>ID: {userInfo?.customer_code ?? "-"}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Delivery Tracking */}
-      {subscriptionHistory &&
-        is_coverage &&
-        !subscriptionHistory?.[0]?.start_date &&
-        !isLoading && (
-          <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
-            <DeliveryTracking
-              refetch={fetchData}
-              data={subscriptionHistory?.[0]}
-            />
+        {/* Delivery Tracking */}
+        {subscriptionHistory &&
+          is_coverage &&
+          !subscriptionHistory?.[0]?.start_date &&
+          !isLoading && (
+            <div className="max-md:mt-6 px-8 mt-12">
+              <DeliveryTracking
+                refetch={fetchData}
+                data={subscriptionHistory?.[0]}
+              />
+            </div>
+          )}
+
+        {/* Banner Aktivasi CPE */}
+        {isActivating && (
+          <div className="max-md:mt-6 px-8 mt-12">
+            <CpeActivationStatus />
           </div>
         )}
 
-      {/* Banner Aktivasi CPE */}
-      {isActivating && (
-        <div className="max-w-[1329px] max-md:mt-6 mx-auto px-8 mt-12">
-          <CpeActivationStatus />
+        {/* Banner Is Not Covered */}
+        {!is_coverage && !isFetching && (
+          <div className="max-md:mt-6 px-8 mt-12">
+            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+              <h1 className="text-2xl font-bold text-primary mb-4">
+                Kami sedang menyiapkan layanan di area kamu
+              </h1>
+              <p className="text-gray-600 mb-6">
+                Jangan khawatir! Kami akan segera memberi tahu kamu melalui{" "}
+                <span className="font-bold text-primary">
+                  WhatsApp dan Aplikasi IRA
+                </span>{" "}
+                jika layanan kami tersedia di daerahmu.
+              </p>
+              <Link
+                href="/check-coverage"
+                className="flex max-w-fit items-center gap-2 font-bold bg-primary text-white px-6 py-2 rounded-lg hover:bg-dark-primary-2"
+              >
+                <FaSearchLocation />
+                Cek Jangkauan Terbaru
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* TAB MENU */}
+        <div className="sm:px-8 px-5 mt-8">
+          <div className="flex space-x-6 overflow-x-auto scrollbar-hide border-b-2 border-gray-border">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`pb-2 underline-animation-register whitespace-nowrap text-sm sm:text-xl cursor-pointer ${
+                  activeTab === tab
+                    ? "text-black font-bold border-b-2 border-primary"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
 
-      {/* TAB MENU */}
-      <div className="max-w-[1329px] sm:px-8 px-5 mt-8 mx-auto">
-        <div className="flex space-x-6 overflow-x-auto scrollbar-hide border-b-2 border-gray-border">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-2 underline-animation-register whitespace-nowrap text-sm sm:text-xl cursor-pointer ${
-                activeTab === tab
-                  ? "text-black font-bold border-b-2 border-primary"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* TAB CONTENT */}
+        <div className="sm:px-8 px-5 mt-6">
+          {activeTab === "Informasi Paket dan Riwayat" && <PackageAndHistory />}
+
+          {activeTab === "Data Pribadi" && <PersonalData />}
+
+          {activeTab === "Informasi Perangkat" && isActive && is_coverage && (
+            <DeviceInformation />
+          )}
         </div>
-      </div>
-
-      {/* TAB CONTENT */}
-      <div className="max-w-[1329px] sm:px-8 px-5 mx-auto mt-6">
-        {activeTab === "Informasi Paket dan Riwayat" && <PackageAndHistory />}
-
-        {activeTab === "Data Pribadi" && <PersonalData />}
-
-        {activeTab === "Informasi Perangkat" &&
-          isActive &&
-          is_coverage && <DeviceInformation />}
       </div>
 
       {showPaymentSuccessModal && is_coverage && (

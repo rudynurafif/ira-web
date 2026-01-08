@@ -63,6 +63,23 @@ function SettingModemForm() {
     );
   };
 
+  useEffect(() => {
+    if (isSubmitting || isWaitingForSetWifi) {
+      // Pasang event handler
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = ""; // Diperlukan untuk beberapa browser
+        return ""; // Meski diabaikan, tetap diperlukan
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [isSubmitting, isWaitingForSetWifi]);
+
   // 🔥 1. Dengarkan SSE untuk `get_wifi` jika API null
   useSSEOneTime(
     customer_id || "",

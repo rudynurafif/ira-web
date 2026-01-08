@@ -112,6 +112,20 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   // State untuk mengaktifkan SSE listener
   const [isWaitingForSignal, setIsWaitingForSignal] = useState(false);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+      return "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   // 🔥 Gunakan useSSEOneTime untuk get_signal
   useSSEOneTime(
     customer_id || "",

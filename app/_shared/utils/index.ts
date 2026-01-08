@@ -336,7 +336,7 @@ export const htmlToPdf = async (
     });
 
     pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-    
+
     // ✅ Langsung download, jangan buka tab baru
     pdf.save(filename);
 
@@ -346,5 +346,33 @@ export const htmlToPdf = async (
     console.error("Gagal generate PDF:", err);
     document.body.removeChild(tempDiv);
     throw err;
+  }
+};
+
+const PHONE_HISTORY_KEY = "ira_phone_login_history";
+const MAX_HISTORY = 10;
+
+export const savePhoneToHistory = (phone: string) => {
+  if (!phone) return;
+  console.log("masuk sini");
+  try {
+    const history = JSON.parse(
+      localStorage.getItem(PHONE_HISTORY_KEY) || "[]"
+    ) as string[];
+    const filtered = history.filter((p) => p !== phone);
+    const newHistory = [phone, ...filtered].slice(0, MAX_HISTORY);
+    localStorage.setItem(PHONE_HISTORY_KEY, JSON.stringify(newHistory));
+  } catch (e) {
+    console.warn("Failed to save phone history", e);
+  }
+};
+
+export const getPhoneHistory = (): string[] => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(PHONE_HISTORY_KEY) || "[]"
+    ) as string[];
+  } catch (e) {
+    return [];
   }
 };

@@ -22,6 +22,7 @@ import {
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
 import {
+  EMAIL_REGEX,
   PHONE_REGEX,
   regexEmail,
   toastErrorFromAPI,
@@ -31,6 +32,13 @@ import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import GeoPermissionGate from "./_components/GeoPermissionGate";
 import MapGeoapify from "@/app/_components/form/MapGeoapify";
 import { FormType } from "./types/type";
+import { useGeoPermission } from "@/app/hooks/useGeoPermission";
+import {
+  sanitizeAddress,
+  sanitizeAlphanumeric,
+  sanitizeEmail,
+  sanitizeName,
+} from "@/app/_shared/utils/formatter";
 
 const initialFormData: FormType = {
   fullname: "",
@@ -84,6 +92,12 @@ function Page() {
   >("idle");
 
   const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
+  const { status, requestLocation, refresh } = useGeoPermission();
+  const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
+
+  useEffect(() => {
+    if (status === "denied") setIsOpenModalReqLoc(true);
+  }, [status]);
 
   const router = useRouter();
 
@@ -97,7 +111,7 @@ function Page() {
     setOtpExpiry(expiry);
   }
 
-  // un comment kalo API autofill udah oke
+  // un comment kalo pakai API autofill
   // async function autofillLocationViaApiWithRaw(rawResult: any) {
   //   setIsAutoFilling(true);
   //   try {
@@ -274,6 +288,27 @@ function Page() {
     })();
   }, [formData.sub_district]);
 
+  const handleRequestLocation = async () => {
+    try {
+      const position = await requestLocation();
+      const { latitude, longitude } = position.coords;
+      setFormData((prev) => ({
+        ...prev,
+        latitude: String(latitude),
+        longitude: String(longitude),
+      }));
+      toast.success("Lokasi berhasil diambil!");
+    } catch (err: any) {
+      if (err.code === 1) {
+        toast.error(
+          "Izin lokasi ditolak. Silakan aktifkan di pengaturan browser."
+        );
+      } else {
+        toast.error("Gagal mengambil lokasi.");
+      }
+    }
+  };
+
   async function handleVerifyOtp(val: string) {
     if (!formData.phone) {
       setErrors((e) => ({
@@ -434,7 +469,7 @@ function Page() {
         setOtpStatus("idle");
         resetForm();
 
-        const token = res.data.data;
+        const token = res.data.data || res.data.token;
         if (token) setCookie("token-ira", token);
       } catch (error: any) {
         if (error?.response?.data?.statusCode === 409) {
@@ -463,6 +498,12 @@ function Page() {
       window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  useEffect(() => {
+    if (status === "granted") setIsOpenModalReqLoc(true);
+  }, [status]);
+
+  const isValid = isLoading || !agreement || status === "denied";
+
   return (
     <div className="container mx-auto xl:px-42 lg:px-22 px-6 sm:my-22 my-6">
       <h1 className="text-center sm:text-[32px] text-2xl text-old-primary font-bold">
@@ -479,7 +520,7 @@ function Page() {
               name="fullname"
               value={formData.fullname}
               onChange={(value: string) => {
-                const filtered = value.replace(/[^a-zA-Z\s.\-]/g, "");
+                const filtered = sanitizeName(value);
                 setFormData((prev) => ({ ...prev, fullname: filtered }));
                 setErrors({ ...errors, fullname: "" });
               }}
@@ -496,11 +537,24 @@ function Page() {
               name="email"
               value={formData.email}
               onChange={(value: string) => {
-                setFormData((prevData: any) => ({
+                const cleaned = sanitizeEmail(value);
+
+                setFormData((prevData) => ({
                   ...prevData,
-                  email: value,
+                  email: cleaned,
                 }));
-                setErrors({ ...errors, email: "" });
+
+                // Validasi hanya jika tidak kosong
+                if (cleaned.trim() === "") {
+                  setErrors((prev) => ({ ...prev, email: "" }));
+                } else if (!EMAIL_REGEX.test(cleaned)) {
+                  setErrors((prev) => ({
+                    ...prev,
+                    email: "Format email tidak valid",
+                  }));
+                } else {
+                  setErrors((prev) => ({ ...prev, email: "" }));
+                }
               }}
               placeholder="contoh: nama@mail.com"
               error={errors.email}
@@ -545,7 +599,8 @@ function Page() {
               value={formData.otp}
               isDisabled={otpStatus === "valid"}
               onChange={(val) => {
-                setFormData((prev) => ({ ...prev, otp: val }));
+                const cleaned = sanitizeAlphanumeric(val);
+                setFormData((prev) => ({ ...prev, otp: cleaned }));
                 if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
                 if (otpStatus !== "idle") setOtpStatus("idle");
               }}
@@ -685,7 +740,11 @@ function Page() {
                 setErrors({ ...errors, city: "" });
               }}
               isClearable
-              placeholder="Pilih Kota/Kabupaten"
+              placeholder={`${
+                !formData.province
+                  ? "Pilih Provinsi Terlebih Dahulu"
+                  : "Pilih Kota/Kabupaten"
+              }`}
               error={errors.city}
             />
           </div>
@@ -719,7 +778,11 @@ function Page() {
                 setErrors({ ...errors, district: "" });
               }}
               isClearable
-              placeholder="Pilih Kecamatan"
+              placeholder={`${
+                !formData.city
+                  ? "Pilih Kota/Kabupaten Terlebih Dahulu"
+                  : "Pilih Kecamatan"
+              }`}
               error={errors.district}
             />
           </div>
@@ -751,7 +814,11 @@ function Page() {
                 setErrors({ ...errors, sub_district: "" });
               }}
               isClearable
-              placeholder="Pilih Kelurahan"
+              placeholder={`${
+                !formData.district
+                  ? "Pilih Kecamatan Terlebih Dahulu"
+                  : "Pilih Kelurahan"
+              }`}
               error={errors.sub_district}
             />
           </div>
@@ -856,9 +923,11 @@ function Page() {
               name="notes"
               value={formData.notes}
               onChange={(value: string) => {
+                const cleaned = sanitizeAddress(value);
+
                 setFormData((prevData: any) => ({
                   ...prevData,
-                  notes: value,
+                  notes: cleaned,
                 }));
               }}
               // isClearable
@@ -869,20 +938,6 @@ function Page() {
 
           {/* Map */}
           <div className="col-span-2">
-            <div className="mb-3">
-              <GeoPermissionGate
-                onGotLocation={(lat, lng) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    lat: String(lat),
-                    lng: String(lng),
-                  }));
-                  // Opsional: kamu bisa panggil autofill / reverse geocoding di sini
-                  // atau biarkan MapInputForm men-handle perubahan ini.
-                }}
-              />
-            </div>
-
             {/* Versi Google */}
             {/* <MapInputForm
               getAddress={(value: string) => {
@@ -911,50 +966,54 @@ function Page() {
             /> */}
 
             {/* Versi Geoapify */}
-            <MapGeoapify
-              getAddress={(value: string) => {
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  actual_address: value,
-                }));
-                setErrors({ ...errors, actual_address: "" });
-              }}
-              onPlaceChange={async (p) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  actual_address: p.address,
-                  address_gmaps: p.raw_result,
-                  latitude: String(p.latitude),
-                  longitude: String(p.longitude),
-                  // province: "",
-                  // city: "",
-                  // district: "",
-                  // sub_district: "",
-                  // postal_code: "",
-                }));
+            {status !== "denied" && (
+              <>
+                <MapGeoapify
+                  getAddress={(value: string) => {
+                    setFormData((prevData: any) => ({
+                      ...prevData,
+                      actual_address: value,
+                    }));
+                    setErrors({ ...errors, actual_address: "" });
+                  }}
+                  onPlaceChange={async (p) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      actual_address: p.address,
+                      address_gmaps: p.raw_result,
+                      latitude: String(p.latitude),
+                      longitude: String(p.longitude),
+                      // province: "",
+                      // city: "",
+                      // district: "",
+                      // sub_district: "",
+                      // postal_code: "",
+                    }));
 
-                // await autofillLocationViaApiWithRaw(p.raw_result);
-              }}
-            />
+                    // await autofillLocationViaApiWithRaw(p.raw_result);
+                  }}
+                />
 
-            {isCheckCoverage && (
-              <p className="mt-1 text-gray-500 flex items-center gap-2 text-sm">
-                <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
-                Mengecek jangkauan...
-              </p>
-            )}
-            {isCovered && !isCheckCoverage && (
-              <p className="mt-1 text-green-primary flex items-center gap-1 text-sm">
-                <FaCircleCheck className="text-green-primary" />
-                Selamat! Alamat Anda berada di dalam jangkauan kami.
-              </p>
-            )}
-            {!isCovered && !isCheckCoverage && (
-              <p className="mt-1 text-red-primary flex items-center gap-1 text-sm">
-                <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
-                Lokasi Anda belum berada dijangkauan area kami, dan kami sedang
-                menuju ke daerah Anda.
-              </p>
+                {isCheckCoverage && (
+                  <p className="mt-1 text-gray-500 flex items-center gap-2 text-sm">
+                    <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
+                    Mengecek jangkauan...
+                  </p>
+                )}
+                {isCovered && !isCheckCoverage && (
+                  <p className="mt-1 text-green-primary flex items-center gap-1 text-sm">
+                    <FaCircleCheck className="text-green-primary" />
+                    Selamat! Alamat Anda berada di dalam jangkauan kami.
+                  </p>
+                )}
+                {!isCovered && !isCheckCoverage && (
+                  <p className="mt-1 text-red-primary flex items-center gap-1 text-sm">
+                    <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
+                    Lokasi Anda belum berada dijangkauan area kami, dan kami
+                    sedang menuju ke daerah Anda.
+                  </p>
+                )}
+              </>
             )}
           </div>
 
@@ -968,14 +1027,19 @@ function Page() {
               name="actual_address"
               value={formData.actual_address}
               onChange={(value: string) => {
-                setFormData((prevData: any) => ({
+                const cleaned = sanitizeAddress(value);
+
+                setFormData((prevData) => ({
                   ...prevData,
-                  actual_address: value,
+                  actual_address: cleaned,
                 }));
-                setErrors({ ...errors, actual_address: "" });
+
+                setErrors((prev) => ({ ...prev, actual_address: "" }));
               }}
               placeholder={
-                formData.address_gmaps
+                status === "denied"
+                  ? "Izinkan akses lokasi di browser Anda untuk mengisi alamat"
+                  : formData.address_gmaps
                   ? "Masukkan/rapikan Alamat Lengkap"
                   : "Pilih alamat dari pencarian peta untuk mengaktifkan"
               }
@@ -1010,12 +1074,12 @@ function Page() {
           />
         </div>
 
-        <div className="mt-7 flex justify-center">
+        <div className="mt-7 flex flex-col gap-3 justify-center">
           <button
             type="submit"
-            disabled={isLoading || !agreement}
-            className={`py-[15px] w-1/2 font-bold text-white ${
-              isLoading || !agreement
+            disabled={isValid}
+            className={`py-3.75 w-1/2 font-bold text-white ${
+              isValid
                 ? "bg-slate-400 cursor-not-allowed"
                 : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             } text-xl rounded-xl mx-auto `}
@@ -1029,6 +1093,11 @@ function Page() {
               "Registrasi"
             )}
           </button>
+          {status === "denied" && (
+            <p className="mx-auto text-muted text-sm">
+              *Pastikan anda sudah mengizinkan akses lokasi, lalu refresh
+            </p>
+          )}
         </div>
 
         <div className="mt-7 text-center">
@@ -1052,14 +1121,33 @@ function Page() {
             setIsModalRegisterSuccess(false);
             resetForm();
             setCoveredAtSubmit(null);
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            isCovered
-              ? (window.location.href = "/customer-area")
-              : (window.location.href = "/");
+            window.location.href = "/customer-area";
           }}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >
           <ModalRegister isCovered={isCovered} />
+        </ModalTemplate>
+      )}
+
+      {isOpenModalReqLoc && status === "denied" && (
+        <ModalTemplate
+          closeModal={() => {
+            setIsOpenModalReqLoc(false);
+            toast("Mohon izinkan akses lokasi browser");
+            router.push("/");
+          }}
+        >
+          <div className="p-6 mt-6">
+            <GeoPermissionGate
+              onGotLocation={(lat, lng) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  lat: String(lat),
+                  lng: String(lng),
+                }));
+              }}
+            />
+          </div>
         </ModalTemplate>
       )}
     </div>

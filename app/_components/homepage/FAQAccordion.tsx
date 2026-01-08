@@ -11,6 +11,34 @@ type FAQItem = {
   description: string;
 };
 
+const faqsBackUp: FAQItem[] = [
+  {
+    title: "Apa itu Internet Rakyat (IRA)?",
+    description:
+      "Internet Rakyat (IRA) adalah layanan internet rumah dan bisnis yang menggunakan jaringan nirkabel tetap untuk menghadirkan koneksi cepat dan stabil tanpa perlu kabel fiber.",
+  },
+  {
+    title: "Bagaimana cara kerja IRA?",
+    description:
+      "Internet dikirim melalui sinyal radio dari menara pemancar ke antena penerima di rumah pelanggan, lalu diteruskan ke modem/router agar bisa digunakan di semua perangkat.",
+  },
+  {
+    title: "Apakah sinyal IRA stabil saat hujan?",
+    description:
+      "Cuaca ekstrem seperti hujan lebat dapat sedikit memengaruhi kualitas sinyal, namun sistem jaringan Internet Rakyat dirancang agar tetap stabil dengan perangkat dan arah antena yang tepat.",
+  },
+  {
+    title: "Bagaimana cara mendaftar layanan IRA?",
+    description:
+      "Cukup isi formulir di website atau hubungi tim kami. Paket CPE (Modem) akan dikirim dari outlet terdekat, ketika sudah sampai bisa langsung diaktivasi lewat website Internet Rakyat.",
+  },
+  {
+    title: "Apakah tersedia berbagai pilihan paket?",
+    description:
+      "Ya. Internet Rakyat menyediakan beberapa paket internet dengan durasi masa aktif berbeda sesuai kebutuhan rumah atau bisnis Anda.",
+  },
+];
+
 export default function FAQAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
@@ -25,7 +53,7 @@ export default function FAQAccordion() {
       const resData = await getFAQs(params);
 
       if (resData?.data?.statusCode === 200) {
-        setFaqs(resData?.data?.result);
+        setFaqs(resData?.data?.result ?? faqsBackUp);
       }
     } catch (err: any) {
       toastErrorFromAPI(err);
