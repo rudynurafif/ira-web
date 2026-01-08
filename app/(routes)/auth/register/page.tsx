@@ -22,6 +22,7 @@ import {
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
 import {
+  EMAIL_REGEX,
   PHONE_REGEX,
   regexEmail,
   toastErrorFromAPI,
@@ -33,8 +34,8 @@ import MapGeoapify from "@/app/_components/form/MapGeoapify";
 import { FormType } from "./types/type";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import {
-  EMAIL_REGEX,
   sanitizeAddress,
+  sanitizeAlphanumeric,
   sanitizeEmail,
   sanitizeName,
 } from "@/app/_shared/utils/formatter";
@@ -598,7 +599,8 @@ function Page() {
               value={formData.otp}
               isDisabled={otpStatus === "valid"}
               onChange={(val) => {
-                setFormData((prev) => ({ ...prev, otp: val }));
+                const cleaned = sanitizeAlphanumeric(val);
+                setFormData((prev) => ({ ...prev, otp: cleaned }));
                 if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
                 if (otpStatus !== "idle") setOtpStatus("idle");
               }}

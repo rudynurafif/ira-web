@@ -16,6 +16,7 @@ import {
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { useAppDispatch } from "@/app/store/store";
 import { login } from "@/app/store/slice/authSlice";
+import { sanitizeAlphanumeric } from "@/app/_shared/utils/formatter";
 
 type Step = "enterPhone" | "enterOtp" | "blocked";
 const MAX_ATTEMPT = 4;
@@ -268,6 +269,7 @@ const Page = () => {
               storageKey={storageKeys.resendTimer}
               otpDurationSec={60}
               label="Nomor Handphone"
+              inputMode="numeric"
               name="phone"
               mode="login"
               hint
@@ -335,7 +337,8 @@ const Page = () => {
               value={otp}
               isInvalid={otpStatus === "invalid"}
               onChange={(value: string) => {
-                setOtp(value);
+                const cleaned = sanitizeAlphanumeric(value);
+                setOtp(cleaned);
                 if (otpStatus !== "idle") setOtpStatus("idle");
               }}
               onComplete={(val) => handleVerifyOtp(val)}

@@ -24,5 +24,10 @@ export const sanitizeAddress = (input: string): string => {
     .replace(/[^a-zA-Z0-9\s.,\-/'#():]/g, "");
 };
 
-// Opsional: regex validasi email (bukan untuk sanitasi, tapi validasi)
-export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+/**
+ * Hanya izinkan karakter alfanumerik (huruf dan angka)
+ * Cocok untuk: kode promo, serial number, username (tanpa simbol), dll.
+ */
+export const sanitizeAlphanumeric = (input: string): string => {
+  return input.replace(/[^a-zA-Z0-9]/g, "");
+};
