@@ -3,7 +3,7 @@ variables:
   PATH_DIR: "/apps/website"
   DEV_SSH_CON: "root@182.160.54.73"
   STAGE_SSH_CON: "root@110.239.86.194"
-  PROD_SSH_CON: "root@"
+  PROD_SSH_CON: "root@110.239.95.84"
   COMPOSE_SRV: "fwa-website"
   CONT_NAME: "fwa_website_app"
   IMG_NAME: "fwa_website"
