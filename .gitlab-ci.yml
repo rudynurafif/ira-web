@@ -16,6 +16,7 @@ variables:
   STAGE_VER: "stage"
   PROD_VER: "prod"
   SSH_PORT: "9922"
+  PROD_PORT: "3579"
 
 stages:          # List of stages for jobs, and their order of execution
   - Release
@@ -176,7 +177,7 @@ deploy-production:
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
-      ssh -o StrictHostKeyChecking=no -p $SSH_PORT $PROD_SSH_CON \
+      ssh -o StrictHostKeyChecking=no -p $PROD_PORT $PROD_SSH_CON \
       "echo "Production - Update code and Deployment starting"; \
         cd $PATH_DIR; \
         git pull origin main; \
