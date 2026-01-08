@@ -4,6 +4,7 @@ import eyeClose from "@/public/assets/Icons/eye-close.png";
 import eye from "@/public/assets/Icons/eye.png";
 import Image from "next/image";
 import DynamicForm from "@/app/_components/form/DynamicForm";
+import { HAS_EMOJI_REGEX } from "@/app/_shared/utils/formatter";
 
 interface EditSSIDModalProps {
   isOpen: boolean;
@@ -30,6 +31,48 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
+    if (isSaving) {
+      // Pasang event handler
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = ""; 
+        return ""; 
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [isSaving]);
+
+  const validateSSID = (value: string) => {
+    if (!value.trim()) {
+      return `${ssidType} SSID tidak boleh kosong`;
+    }
+    if (value.length < 5 || value.length > 32) {
+      return "SSID harus 5–32 karakter";
+    }
+    return "";
+  };
+
+  // Validasi Password: 8–63 karakter, tidak boleh kosong
+  const validatePassword = (value: string) => {
+    if (!value.trim()) {
+      return `${ssidType} Password tidak boleh kosong`;
+    }
+    if (value.length < 8 || value.length > 63) {
+      return "Password harus 8–63 karakter";
+    }
+
+    if (HAS_EMOJI_REGEX.test(value)) {
+      return "Password tidak boleh mengandung emoji";
+    }
+    return "";
+  };
+
+  useEffect(() => {
     if (isOpen) {
       setSSID(initialSSID);
       setPassword(initialPassword);
@@ -40,14 +83,33 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
 
   if (!isOpen) return null;
 
+  const handleSSIDChange = (value: string) => {
+    setSSID(value);
+    setErrors((prev) => ({
+      ...prev,
+      ssid: validateSSID(value),
+    }));
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    setErrors((prev) => ({
+      ...prev,
+      password: validatePassword(value),
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const ssidError = validateSSID(ssid);
+    const passwordError = validatePassword(password);
+
     if (!ssid || !password) {
-      const newErrors: { [key: string]: string } = {};
-      if (!ssid) newErrors["ssid"] = "SSID tidak boleh kosong.";
-      if (!password) newErrors["password"] = "Kata Sandi tidak boleh kosong.";
-      setErrors(newErrors);
+      setErrors({
+        ssid: ssidError,
+        password: passwordError,
+      });
       return;
     }
 
@@ -73,7 +135,7 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
               name="ssid"
               type="text"
               value={ssid}
-              onChange={setSSID}
+              onChange={handleSSIDChange}
               error={errors.ssid || ""}
             />
           </div>
@@ -85,13 +147,13 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
               name="password"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={setPassword}
+              onChange={handlePasswordChange}
               error={errors.password || ""}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-[45px] text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-11.25 text-gray-500 hover:text-gray-700"
             >
               {showPassword ? (
                 <Image
@@ -111,7 +173,9 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
 
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={
+              isSaving || Boolean(errors.ssid) || Boolean(errors.password)
+            }
             className="w-full disabled:cursor-not-allowed disabled:bg-slate-400 cursor-pointer py-3 bg-primary text-white font-medium rounded-lg hover:bg-dark-primary-2 transition-colors"
           >
             {isSaving ? "Mohon menunggu..." : "Simpan Perubahan"}

@@ -29,5 +29,8 @@ export const sanitizeAddress = (input: string): string => {
  * Cocok untuk: kode promo, serial number, username (tanpa simbol), dll.
  */
 export const sanitizeAlphanumeric = (input: string): string => {
-  return input.replace(/[^a-zA-Z0-9]/g, "");
+  return input.replace(/[^a-zA-Z0-9\s]/g, "");
 };
+
+export const HAS_EMOJI_REGEX =
+  /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1F000}-\u{1F02F}]/u;
