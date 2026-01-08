@@ -1,7 +1,14 @@
 import { sendOtpLogin, sendOtpRegister } from "@/app/_api/Auth/Auth";
-import { formatTimer, PHONE_REGEX } from "@/app/_shared/utils";
+import {
+  formatTimer,
+  PHONE_REGEX,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import ModalTemplate from "../modal/ModalTemplate";
+import ModalLoginRedirect from "@/app/(routes)/auth/register/_components/ModalLoginRedirect";
+import { usePathname } from "next/navigation";
 
 function PhoneOTPForm({
   label,
@@ -41,6 +48,8 @@ function PhoneOTPForm({
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [timerReset, setTimerReset] = useState(0);
+  const [openModalLogin, setOpenModalLogin] = useState(false);
+  const pathname = usePathname();
 
   // ✅ key dinamis (fallback ke name)
   const key = storageKey ?? `otp:${name}`;
@@ -120,8 +129,8 @@ function PhoneOTPForm({
     try {
       // ✅ Jika parent menyediakan onSendOTP, delegasikan ke parent dan keluar.
       if (onSendOTP) {
-        await Promise.resolve(onSendOTP()); // biar support async
-        return; // parent yang ngatur timer lewat localStorage
+        await Promise.resolve(onSendOTP());
+        return;
       }
 
       // === Fallback: child kirim OTP sendiri jika tidak ada onSendOTP ===
@@ -131,18 +140,24 @@ function PhoneOTPForm({
           ? await sendOtpLogin(body)
           : await sendOtpRegister(body);
 
-      toast.success(res_sendOTP.data.message ?? "OTP telah dikirim!");
+      toast.success(
+        `${res_sendOTP?.data?.message ?? "OTP terkirim"} ke ${value}`
+      );
       startOtpTimer();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message;
-
       let seconds = error?.response?.data?.data?.second;
 
       if (seconds) {
-        toast.error(errorMessage);
+        // toastErrorFromAPI(error);
         startOtpTimer(seconds); // set cooldown sesuai server
       } else {
-        toast.error(errorMessage ?? "Terjadi kesalahan saat mengirim OTP");
+        if (
+          error?.response?.data?.statusCode === 409 &&
+          pathname === "/auth/register"
+        ) {
+          setOpenModalLogin(true);
+        }
+        toastErrorFromAPI(error, "Terjadi kesalahan saat mengirim OTP");
       }
     } finally {
       setIsLoading(false);
@@ -192,7 +207,7 @@ function PhoneOTPForm({
 
         <div>
           <button
-            type="button"
+            type="submit"
             disabled={disabledButton}
             className={`text-white py-3 px-3 rounded-xl  ${
               disabledButton
@@ -214,6 +229,7 @@ function PhoneOTPForm({
           </button>
         </div>
       </div>
+
       {hint && (
         <p className="text-xs md:text-sm mt-1">
           <span className="text-red-500">*</span>Gunakan{" "}
@@ -225,6 +241,12 @@ function PhoneOTPForm({
       )}
 
       {error && <p className="text-red-500 p-0 m-0">{error}</p>}
+
+      {openModalLogin && (
+        <ModalTemplate closeModal={() => setOpenModalLogin(false)}>
+          <ModalLoginRedirect onClose={() => setOpenModalLogin(false)} />
+        </ModalTemplate>
+      )}
     </div>
   );
 }

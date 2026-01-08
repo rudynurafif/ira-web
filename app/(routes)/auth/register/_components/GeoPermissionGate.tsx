@@ -39,7 +39,7 @@ export default function GeoPermissionGate({ onGotLocation, className }: Props) {
       {status === "prompt" && (
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="font-semibold text-[#001D47]">
+            <p className="font-semibold text-old-primary">
               Aktifkan lokasi agar alamat otomatis & cek coverage lebih akurat
             </p>
             <p className="text-sm text-gray-600">
@@ -62,7 +62,7 @@ export default function GeoPermissionGate({ onGotLocation, className }: Props) {
           </p>
           <ol className="text-sm text-red-800 list-decimal pl-4 space-y-1">
             <li>
-              Buka ikon <strong>kunci (🔒)</strong> di address bar →{" "}
+              Buka ikon <strong>kunci (🔒) atau ⓘ</strong> di address bar →{" "}
               <strong>Site settings</strong> / <strong>Izin</strong>.
             </li>
             <li>

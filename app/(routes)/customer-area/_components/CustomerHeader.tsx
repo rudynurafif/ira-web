@@ -1,20 +1,20 @@
 import Image from "next/image";
 import React from "react";
-import bannerMobile from "@/public/assets/Images/banner-customer-mobile.webp";
-import banner from "@/public/assets/Images/banner-customer.webp";
+import bannerMobile from "@/public/assets/Images/banner-customer-mobile.png";
+import banner from "@/public/assets/Images/banner-customer.png";
 
 const CustomerHeader = () => {
   return (
     <div className="relative isolate">
       {/* Banner */}
-      <div className="relative h-[200px] w-full overflow-hidden bg-black">
+      <div className="relative h-[200px] w-full overflow-hidden ">
         {/* Banner Mobile */}
         <Image
           src={bannerMobile}
           alt="Banner"
           fill
           priority
-          className="block sm:hidden object-cover"
+          className="block lg:hidden object-cover"
         />
 
         {/* Banner Desktop */}
@@ -23,15 +23,12 @@ const CustomerHeader = () => {
           alt="Banner"
           fill
           priority
-          className="hidden sm:block object-cover"
+          className="hidden lg:block object-cover"
         />
-
-        {/* Overlay supaya judul kontras */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#081a3d]/70 via-transparent to-[#081a3d]/30" />
 
         {/* Judul tengah */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <h1 className="text-white text-[40px] max-sm:text-[20px] font-extrabold ">
+          <h1 className="text-white text-[40px] max-sm:text-xl font-extrabold ">
             Area Pelanggan
           </h1>
         </div>

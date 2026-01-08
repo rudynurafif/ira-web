@@ -1,4 +1,6 @@
+import axios, { Axios } from "axios";
 import FwaAxios from "../FwaAxios";
+import { dummyCoveredLocations } from "@/app/_shared/data/location";
 
 export const getProvince = async (params: any = "") => {
   try {
@@ -65,11 +67,10 @@ export const getPostalCode = async (params: any) => {
   }
 };
 
-// _api/Location/Location.ts
-export const getUserLocation = async (addressPayload: { address: any[] }) => {
+export const getUserLocation = async (addressPayload: any) => {
   try {
     const data = await FwaAxios({
-      url: "/app/location/user-location",
+      url: "/app/location/user-location-geoapify",
       method: "POST",
       data: addressPayload,
     });
@@ -87,6 +88,33 @@ export const getCheckCoverage = async (body: any) => {
       data: body,
     });
     return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const GetListGeocode = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/location/geocode",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getListLocation = async (params: any) => {
+  try {
+    // const data = await FwaAxios({
+    //   url: "/app/coverage-area",
+    //   method: "GET",
+    //   params: params,
+    // });
+
+    return dummyCoveredLocations;
   } catch (error) {
     throw error;
   }

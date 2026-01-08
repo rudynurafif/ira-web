@@ -2,7 +2,6 @@
 
 import { Figtree } from "next/font/google";
 import { useEffect, useMemo, useRef, useState } from "react";
-import OtpInput from "../../auth/login/_components/OTPInput";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
@@ -20,6 +19,7 @@ import {
   NAME_REGEX,
   PHONE_REGEX,
   PHONE_REGEX2,
+  toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import { getUser } from "@/app/store/slice/authSlice";
 import { useAppDispatch } from "@/app/store/store";
@@ -65,9 +65,9 @@ function buildDiffPayload(prev: Editable, next: Editable, otp?: string) {
 
     if (after !== before) {
       if (k === "email") {
-        if (after !== "") {
-          changed[k] = after;
-        }
+        // if (after !== "") {
+        changed[k] = after;
+        // }
       } else {
         changed[k] = after;
       }
@@ -95,28 +95,35 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (!open) return;
+    if (open) {
+      setName(initial?.name ?? "");
+      setPhoneNumber(initial?.phone_number ?? "");
+      setEmail(initial?.email ?? "");
+      setActualAddress(initial?.actual_address ?? "");
 
-    // isi form dari initial
-    setName(initial?.name ?? "");
-    setPhoneNumber(initial?.phone_number ?? "");
-    setEmail(initial?.email ?? "");
-    setActualAddress(initial?.actual_address ?? "");
+      baselineRef.current = {
+        name: initial?.name ?? "",
+        phone_number: initial?.phone_number ?? "",
+        email: initial?.email ?? "",
+        actual_address: initial?.actual_address ?? "",
+      };
 
-    // freeze baseline untuk diff
-    baselineRef.current = {
-      name: initial?.name ?? "",
-      phone_number: initial?.phone_number ?? "",
-      email: initial?.email ?? "",
-      actual_address: initial?.actual_address ?? "",
-    };
-
-    setOtp("");
-    setOtpStatus("idle");
-    setVerifiedPhone(null);
-    otpCacheRef.current = {};
-    setErrors({});
-  }, [initial, open]);
+      setOtp("");
+      setOtpStatus("idle");
+      setVerifiedPhone(null);
+      otpCacheRef.current = {};
+      setErrors({});
+    } else {
+      // ✅ Opsional: reset juga saat ditutup (good hygiene)
+      // Tapi tidak wajib karena tidak dipakai
+    }
+  }, [
+    open,
+    initial?.name,
+    initial?.phone_number,
+    initial?.email,
+    initial?.actual_address,
+  ]);
 
   useEffect(() => {
     if (!open) return;
@@ -195,7 +202,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
           err?.response?.data?.message ||
           "Kode OTP tidak valid atau sudah kedaluwarsa",
       }));
-      toast.error(err?.response?.data?.message || "Verifikasi OTP gagal");
+      toastErrorFromAPI(err, "Verifikasi OTP gagal");
     }
   }
 
@@ -262,10 +269,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         onClose();
       }
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          "Terjadi kesalahan saat menyimpan data"
-      );
+      toastErrorFromAPI(error, "Terjadi kesalahan saat menyimpan data");
     } finally {
       setIsLoading(false);
     }
@@ -304,7 +308,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
 
       <ModalTemplate
         closeModal={onClose}
-        classNameModal="sm:min-w-[50%] max-sm:mx-4"
+        classNameModal="lg:min-w-[50%] md:min-w-[70%] max-sm:mx-4"
       >
         <form
           onSubmit={handleSubmit}
@@ -313,17 +317,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         >
           {/* Header */}
           <div className="relative flex items-center justify-center my-6">
-            <h3 className="text-2xl font-bold text-dark-primary">
-              Edit Profile
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className="absolute right-6 grid h-8 w-8 place-items-center rounded-full hover:bg-gray-100 cursor-pointer"
-            >
-              ✕
-            </button>
+            <h3 className="text-2xl font-bold text-black">Edit Profile</h3>
           </div>
 
           <div className="flex-1 overflow-y-auto overflow-hidden space-y-4 p-6">
@@ -468,7 +462,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 }}
                 placeholder={
                   initial?.email
-                    ? "Masukkan email baru"
+                    ? "Email tidak bisa dihapus. Untuk mengganti, masukkan email baru."
                     : "contoh: nama@mail.com (opsional)"
                 }
                 error={errors.email}
@@ -512,11 +506,11 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="flex gap-6 px-6 pb-6">
+          <div className="flex max-md:flex-col gap-3 md:gap-6 px-6 pb-6">
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer w-full rounded-lg bg-red-700 px-4 py-4 text-xl max-sm:text-lg font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="cursor-pointer border-2 border-primary w-full rounded-lg bg-white hover:bg-red-50 p-2 text-lg font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
               Batal
             </button>
@@ -527,7 +521,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 (needsOtp && otpStatus !== "valid") ||
                 Object.values(errors).some((v) => v && v.trim() !== "")
               }
-              className="cursor-pointer w-full rounded-lg bg-primary px-4 py-4 text-xl max-sm:text-lg font-semibold text-white hover:bg-dark-primary-2 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="cursor-pointer w-full rounded-lg bg-primary p-2 text-lg font-semibold text-white hover:bg-dark-primary-2 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
             </button>

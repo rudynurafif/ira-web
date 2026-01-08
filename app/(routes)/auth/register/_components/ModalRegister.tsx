@@ -19,7 +19,7 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
   };
 
   return (
-    <div>
+    <div className="">
       <div className="flex justify-center">
         <Lottie
           width={104}
@@ -34,7 +34,7 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
         </h1>
         <p className="text-sm mt-3">
           {isCovered
-            ? "Tim Starlite akan segera menghubungi Anda & perangkat akan segera dikirim."
+            ? "Tim Internet Rakyat akan segera menghubungi Anda & perangkat dalam antrian untuk segera dikirim."
             : "Kami dalam proses pembangunan di daerah Anda. Kami akan menghubungi Anda dalam waktu dekat."}
         </p>
       </div>

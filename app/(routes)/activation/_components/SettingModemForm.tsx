@@ -1,7 +1,23 @@
 import DynamicForm from "@/app/_components/form/DynamicForm";
-import { addUrlParam, resetUrlParam } from "@/app/_shared/utils";
+import { addUrlParam, decodeJwt, resetUrlParam } from "@/app/_shared/utils";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useMemo, useState } from "react";
+import eyeClose from "@/public/assets/Icons/eye-close.png";
+import eye from "@/public/assets/Icons/eye.png";
+import { getDetailCPE, setSSID } from "@/app/_api/CoreNetwork/CoreNetwork";
+import {
+  CpeSimBinding,
+  SetSSIDBody,
+  SSEPayload,
+} from "@/app/_shared/types/CoreNetwork";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
+import toast from "react-hot-toast";
+import { useSSE } from "@/app/_context/SSEContext";
+import { getCookie } from "cookies-next";
+import { DecodedToken } from "@/app/_context/sse.type";
+import Loader from "@/app/_components/Loader";
+import { useSSEOneTime } from "@/app/hooks/useSSEOneTime";
 
 interface FormType {
   ssid_24ghz: string;
@@ -12,6 +28,7 @@ interface FormType {
 
 function SettingModemForm() {
   const params = useSearchParams();
+  const [cpeDetail, setCpeDetail] = useState<CpeSimBinding | null>(null);
   const [formData, setFormData] = useState<FormType>({
     ssid_24ghz: "",
     password_24ghz: "",
@@ -19,77 +36,216 @@ function SettingModemForm() {
     password_5ghz: "",
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showPassword2, setShowPassword2] = useState(false);
+  const [showPassword5, setShowPassword5] = useState(false);
+  const [isLoadingCPE, setIsLoadingCPE] = useState(true);
+  const [isWaitingForSetWifi, setIsWaitingForSetWifi] = useState(false);
+  // const { wifiConfig } = useSSE();
+
+  const sn =
+    typeof window !== "undefined"
+      ? localStorage.getItem("ira-cpe-serial-number")
+      : null;
+
+  const token = getCookie("token-ira");
+  const decodedToken = useMemo(() => {
+    if (!token) return null;
+    return decodeJwt(token as string) as DecodedToken | null;
+  }, [token]);
+  const customer_id = decodedToken?.customer_id;
+
+  const hasNullWifiConfig = (cpe: CpeSimBinding | null): boolean => {
+    if (!cpe?.cpe_id) return true;
+    const { ssid, ssid5, password, password5 } = cpe.cpe_id;
+    return (
+      ssid === null && ssid5 === null && password === null && password5 === null
+    );
+  };
+
+  // 🔥 1. Dengarkan SSE untuk `get_wifi` jika API null
+  useSSEOneTime(
+    customer_id || "",
+    (payload: SSEPayload) => {
+      // Simulasikan struktur CpeSimBinding dari payload SSE
+      const fakeCpeDetail: CpeSimBinding = {
+        cpe_id: {
+          ssid: payload.data?.ssid ?? "",
+          password: payload.data?.password ?? "",
+          ssid5: payload.data?.ssid5 ?? "",
+          password5: payload.data?.password5 ?? "",
+        },
+      };
+      setCpeDetail(fakeCpeDetail);
+      setIsLoadingCPE(false);
+    },
+    isLoadingCPE && hasNullWifiConfig(cpeDetail), // hanya dengarkan jika belum dapat data
+    (payload: SSEPayload) => payload.type === "get_wifi" && payload.sn === sn // filter event
+  );
+
+  // 🔥 2. Dengarkan SSE untuk `set_wifi` setelah submit
+  useSSEOneTime(
+    customer_id || "",
+    () => {
+      setIsWaitingForSetWifi(false);
+      addUrlParam("section", "check_signal");
+    },
+    isWaitingForSetWifi,
+    (payload: SSEPayload) => payload.type === "set_wifi" && payload.sn === sn
+  );
+
+  useEffect(() => {
+    const fetchCPE = async () => {
+      try {
+        const res = await getDetailCPE();
+        const data = res?.data?.data;
+        if (data) {
+          setCpeDetail(data);
+        }
+        // Tetap lanjut ke SSE jika data kosong
+      } catch (err: any) {
+        toastErrorFromAPI(err);
+      } finally {
+        setIsLoadingCPE(false);
+      }
+    };
+
+    fetchCPE();
+  }, []);
+
+  // useEffect(() => {
+  //   if (!cpeDetail?.cpe_id || Object.keys(wifiConfig).length > 0) return;
+
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     ssid_24ghz: cpeDetail.cpe_id.ssid ?? "",
+  //     password_24ghz: cpeDetail.cpe_id.password ?? "",
+  //     ssid_5ghz: cpeDetail.cpe_id.ssid5 ?? "",
+  //     password_5ghz: cpeDetail.cpe_id.password5 ?? "",
+  //   }));
+  // }, [cpeDetail, wifiConfig]);
+
+  // useEffect(() => {
+  //   if (!wifiConfig) return;
+
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     ssid_24ghz: wifiConfig.ssid ?? prev.ssid_24ghz,
+  //     password_24ghz: wifiConfig.password ?? prev.password_24ghz,
+  //     ssid_5ghz: wifiConfig.ssid5 ?? prev.ssid_5ghz,
+  //     password_5ghz: wifiConfig.password5 ?? prev.password_5ghz,
+  //   }));
+  // }, [wifiConfig]);
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const errors: { [key: string]: string } = {};
+    setIsSubmitting(true);
 
-    // if (!formData.ssid_24ghz) {
-    //   errors.ssid_24ghz = "SSID 2.4Ghz harus diisi";
-    // }
-    // if (!formData.password_24ghz) {
-    //   errors.password_24ghz = "Password 2.4Ghz harus diisi";
-    // }
-    // if (!formData.ssid_5ghz) {
-    //   errors.ssid_5ghz = "SSID 5Ghz harus diisi";
-    // }
-    // if (!formData.password_5ghz) {
-    //   errors.password_5ghz = "Password 5Ghz harus diisi";
-    // }
+    const ssid24 = formData.ssid_24ghz.trim();
+    if (!ssid24) {
+      errors.ssid_24ghz = "SSID 2.4GHz tidak boleh kosong";
+    } else if (ssid24.length < 5 || ssid24.length > 32) {
+      errors.ssid_24ghz = "SSID harus 5–32 karakter";
+    }
+
+    if (!formData.password_24ghz.trim()) {
+      errors.password_24ghz = "Password 2.4GHz tidak boleh kosong";
+    } else if (
+      formData.password_24ghz.length < 8 ||
+      formData.password_24ghz.length > 63
+    ) {
+      errors.password_24ghz = "Password harus 8–63 karakter";
+    }
+
+    const ssid5 = formData.ssid_5ghz.trim();
+    if (!ssid5) {
+      errors.ssid_5ghz = "SSID 5GHz tidak boleh kosong";
+    } else if (ssid5.length < 5 || ssid5.length > 32) {
+      errors.ssid_5ghz = "SSID harus 5–32 karakter";
+    }
+
+    if (!formData.password_5ghz.trim()) {
+      errors.password_5ghz = "Password 5GHz tidak boleh kosong";
+    } else if (
+      formData.password_5ghz.length < 8 ||
+      formData.password_5ghz.length > 63
+    ) {
+      errors.password_5ghz = "Password harus 8–63 karakter";
+    }
 
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
 
       return;
-    } else {
-      setErrors({});
+    }
 
+    if (!sn) {
+      toast.error("Serial number CPE tidak ditemukan");
+      return;
+    }
+
+    try {
+      const body: SetSSIDBody = {
+        sn,
+        ssid: formData.ssid_24ghz,
+        password: formData.password_24ghz,
+        ssid5: formData.ssid_5ghz,
+        password5: formData.password_5ghz,
+      };
+
+      const setSSIDRes = await setSSID(body);
+
+      if (
+        setSSIDRes.data.statusCode === 201 ||
+        setSSIDRes.data.statusCode === 200
+      ) {
+        toast.success("Setting SSID berhasil disimpan");
+        setIsWaitingForSetWifi(true);
+      } else {
+        throw new Error(setSSIDRes?.data?.message || "Gagal menyimpan SSID");
+      }
+
+      // lanjut ke step berikutnya
       addUrlParam("section", "check_signal");
-      // addUrlParam("ssid_24", formData.ssid_24ghz);
-      // addUrlParam("password_24", formData.password_24ghz);
-      // addUrlParam("ssid_5", formData.ssid_5ghz);
-      // addUrlParam("password_5", formData.password_5ghz);
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   useEffect(() => {
-    const spSsid24 = params.get("ssid_24");
-    const spPassword24 = params.get("password_24");
-    const spSsid5 = params.get("ssid_5");
-    const spPassword5 = params.get("password_5");
+    if (!cpeDetail?.cpe_id) return;
 
-    if (spSsid24) {
-      setFormData((prevData: any) => ({
-        ...prevData,
-        ssid_24ghz: spSsid24 || "",
-      }));
-    }
+    setFormData({
+      ssid_24ghz: (cpeDetail.cpe_id.ssid ?? "").trim(),
+      password_24ghz: (cpeDetail.cpe_id.password ?? "").replace(/\s/g, ""),
+      ssid_5ghz: (cpeDetail.cpe_id.ssid5 ?? "").trim(),
+      password_5ghz: (cpeDetail.cpe_id.password5 ?? "").replace(/\s/g, ""),
+    });
 
-    if (spPassword24) {
-      setFormData((prevData: any) => ({
-        ...prevData,
-        password_24ghz: spPassword24 || "",
-      }));
-    }
+    setErrors({});
+  }, [cpeDetail]);
 
-    if (spSsid5) {
-      setFormData((prevData: any) => ({
-        ...prevData,
-        ssid_5ghz: spSsid5 || "",
-      }));
-    }
+  const isFormValid =
+    formData.ssid_24ghz.trim().length >= 5 &&
+    formData.ssid_24ghz.trim().length <= 32 &&
+    formData.password_24ghz.length >= 8 &&
+    formData.password_24ghz.length <= 63 &&
+    formData.ssid_5ghz.trim().length >= 5 &&
+    formData.ssid_5ghz.trim().length <= 32 &&
+    formData.password_5ghz.length >= 8 &&
+    formData.password_5ghz.length <= 63 &&
+    Object.keys(errors).length === 0;
 
-    if (spPassword5) {
-      setFormData((prevData: any) => ({
-        ...prevData,
-        password_5ghz: spPassword5 || "",
-      }));
-    }
-  }, [params]);
+  if (isLoadingCPE) {
+    return <Loader />;
+  }
 
   return (
-    <div className="container mx-auto max-w-[480px] max-sm:px-8">
-      <h2 className="text-[#001D47] font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
+    <div className="container mx-auto max-w-120 max-sm:px-8">
+      <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Atur Modem
       </h2>
 
@@ -101,7 +257,7 @@ function SettingModemForm() {
           <DynamicForm
             label="SSID"
             labelClass="text-[#666] text-sm"
-            isImportant={false}
+            isImportant={true}
             name="ssid_24ghz"
             value={formData.ssid_24ghz}
             onChange={(value: string) => {
@@ -109,47 +265,66 @@ function SettingModemForm() {
                 ...prevData,
                 ssid_24ghz: value,
               }));
-              // if (value) {
-              //   addUrlParam("ssid_24", value);
-              // } else {
-              //   resetUrlParam("ssid_24");
-              // }
+              setErrors((prev) => ({ ...prev, ssid_24ghz: "" }));
             }}
             placeholder="Masukkan SSID 2.4Ghz"
             error={errors.ssid_24ghz}
           />
+          <p className="text-xs text-gray-500 mt-1">
+            SSID (5-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
+          </p>
 
-          <div className="pt-2">
+          <div className="pt-2 relative">
             <DynamicForm
               label="Kata Sandi"
+              type={showPassword2 ? "text" : "password"}
               labelClass="text-[#666] text-sm"
-              isImportant={false}
+              isImportant={true}
               name="password_24ghz"
               value={formData.password_24ghz}
               onChange={(value: string) => {
+                const noSpacesValue = value.replace(/\s/g, "");
                 setFormData((prevData: any) => ({
                   ...prevData,
-                  password_24ghz: value,
+                  password_24ghz: noSpacesValue,
                 }));
-                // if (value) {
-                //   addUrlParam("password_24", value);
-                // } else {
-                //   resetUrlParam("password_24");
-                // }
+                setErrors((prev) => ({ ...prev, password_24ghz: "" }));
               }}
-              placeholder="Masukkan kata sandi 2.4Ghz"
+              placeholder="Masukkan kata sandi 2.4Ghz "
               error={errors.password_24ghz}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword2(!showPassword2)}
+              className="absolute right-3 top-[53px] text-gray-500 hover:text-gray-700"
+            >
+              {showPassword2 ? (
+                <Image
+                  src={eye}
+                  className="w-6 h-6 cursor-pointer"
+                  alt="showPassword"
+                />
+              ) : (
+                <Image
+                  src={eyeClose}
+                  className="w-6 h-6 cursor-pointer"
+                  alt="hidePassword"
+                />
+              )}
+            </button>
           </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Password (8-63 karakter) dapat berisi huruf, angka, dan simbol.
+          </p>
 
-          <label htmlFor="ssid_24ghz" className="font-medium py-2 block">
+          <label htmlFor="ssid_24ghz" className="font-medium py-2 block mt-6">
             Setting SSID 5 Ghz
           </label>
 
           <DynamicForm
             label="SSID"
             labelClass="text-[#666] text-sm"
-            isImportant={false}
+            isImportant={true}
             name="ssid_5ghz"
             value={formData.ssid_5ghz}
             onChange={(value: string) => {
@@ -157,69 +332,88 @@ function SettingModemForm() {
                 ...prevData,
                 ssid_5ghz: value,
               }));
-
-              // if (value) {
-              //   addUrlParam("ssid_5", value);
-              // } else {
-              //   resetUrlParam("ssid_5");
-              // }
+              setErrors((prev) => ({ ...prev, ssid_5ghz: "" }));
             }}
             placeholder="Masukkan SSID 5Ghz"
             error={errors.ssid_5ghz}
           />
+          <p className="text-xs text-gray-500 mt-1">
+            SSID (5-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
+          </p>
 
-          <div className="pt-2">
+          <div className="pt-2 relative">
             <DynamicForm
               label="Kata Sandi"
               labelClass="text-[#666] text-sm"
-              isImportant={false}
+              type={showPassword5 ? "text" : "password"}
+              isImportant={true}
               name="password_5ghz"
               value={formData.password_5ghz}
               onChange={(value: string) => {
+                const noSpacesValue = value.replace(/\s/g, "");
+
                 setFormData((prevData: any) => ({
                   ...prevData,
-                  password_5ghz: value,
+                  password_5ghz: noSpacesValue,
                 }));
-
-                // if (value) {
-                //   addUrlParam("password_5", value);
-                // } else {
-                //   resetUrlParam("password_5");
-                // }
+                setErrors((prev) => ({ ...prev, password_5ghz: "" }));
               }}
               placeholder="Masukkan kata sandi 5Ghz"
               error={errors.password_5ghz}
             />
-          </div>
-
-          <div className="pt-4">
             <button
-              disabled={
-                !formData.ssid_24ghz ||
-                !formData.password_24ghz ||
-                !formData.ssid_5ghz ||
-                !formData.password_5ghz
-              }
+              type="button"
+              onClick={() => setShowPassword5(!showPassword5)}
+              className="absolute right-3 top-13.25 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword5 ? (
+                <Image
+                  src={eye}
+                  className="w-6 h-6 cursor-pointer"
+                  alt="showPassword"
+                />
+              ) : (
+                <Image
+                  src={eyeClose}
+                  className="w-6 h-6 cursor-pointer"
+                  alt="hidePassword"
+                />
+              )}
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Password (8-63 karakter) dapat berisi huruf, angka, dan simbol.
+          </p>
+
+          <div className="mt-8">
+            <button
+              disabled={!isFormValid || isSubmitting || isWaitingForSetWifi}
               type="submit"
               className={`w-full ${
-                !formData.ssid_24ghz ||
-                !formData.password_24ghz ||
-                !formData.ssid_5ghz ||
-                !formData.password_5ghz
-                  ? "bg-[#005FB8]/50"
-                  : "cursor-pointer bg-[#005FB8]"
-              }    shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]`}
+                !isFormValid || isSubmitting || isWaitingForSetWifi
+                  ? "bg-primary/50 cursor-not-allowed"
+                  : "cursor-pointer bg-primary hover:bg-dark-primary-2"
+              } shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]`}
             >
-              Simpan
+              {isWaitingForSetWifi
+                ? "Menunggu konfirmasi"
+                : isSubmitting
+                ? "Menyimpan..."
+                : "Simpan"}
             </button>
 
             <div className="mx-auto flex justify-center pt-2">
               <button
                 onClick={() => {
-                  addUrlParam("section", "check_signal");
+                  if (
+                    window.confirm(
+                      "Apakah Anda yakin ingin melewati pengaturan modem? Pengaturan modem akan menggunakan pengaturan default."
+                    )
+                  )
+                    addUrlParam("section", "check_signal");
                 }}
                 type="button"
-                className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-[#005FB8] text-[#005FB8] shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-[12px]"
+                className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-[12px]"
               >
                 Lewati
               </button>

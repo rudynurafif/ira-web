@@ -1,14 +1,24 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import checkSignalHome from "@/public/assets/Images/check-signal-home.webp";
-import Swal from "sweetalert2";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { useRouter } from "next/navigation";
+import { getSignal } from "@/app/_api/CoreNetwork/CoreNetwork";
+import {
+  getSignalLevel,
+  decodeJwt,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
+import { useSSEOneTime } from "@/app/hooks/useSSEOneTime";
+import { getCookie } from "cookies-next";
+import { DecodedToken } from "@/app/_context/sse.type";
+import { SSEPayload } from "@/app/_shared/types/CoreNetwork";
+import toast from "react-hot-toast";
 
-type Level = 0 | 1 | 2 | 3 | 4 | 5;
+export type Level = 0 | 1 | 2 | 3 | 4;
 
 type SignalCheckingProps = {
   mode?: "auto" | "result";
@@ -23,69 +33,160 @@ type SignalCheckingProps = {
 const levelColor: Record<Level, string> = {
   0: "bg-gray-300",
   1: "bg-red-500",
-  2: "bg-orange-500",
-  3: "bg-yellow-500",
-  4: "bg-green-500",
-  5: "bg-emerald-600",
+  2: "bg-yellow-500",
+  3: "bg-green-500",
+  4: "bg-emerald-600",
 };
 
 const barHeight = (b: number) =>
-  (["0%", "24%", "48%", "72%", "88%", "100%"] as const)[b];
+  (["25%", "50%", "75%", "100%"] as const)[b - 1];
 
 const levelTitle: Record<Level, string> = {
   0: "Tidak Terdeteksi",
   1: "Buruk",
-  2: "Kurang",
-  3: "Cukup",
-  4: "Baik",
-  5: "Sempurna",
+  2: "Cukup",
+  3: "Baik",
+  4: "Sempurna",
 };
 
 const levelAdvice: Record<Level, string> = {
   0: "Sinyal tidak terdeteksi. Pindahkan modem ke area terbuka atau dekat jendela, lalu coba lagi.",
   1: "Sinyal buruk. Silakan pindahkan modem ke lokasi yang lebih tinggi atau dekat jendela untuk meningkatkan koneksi, lalu lakukan Cek Ulang.",
-  2: "Sinyal kurang. Geser ke area yang lebih terbuka untuk kualitas lebih baik.",
-  3: "Koneksi internet bisa lebih baik. Silakan pindahkan modem ke lokasi yang lebih tinggi atau dekat jendela untuk meningkatkan koneksi, lalu lakukan Cek Ulang.",
-  4: "Sinyal baik. Tidak perlu perubahan posisi.",
-  5: "Posisi modem sudah optimal untuk koneksi yang stabil.",
+  2: "Koneksi internet bisa lebih baik. Silakan pindahkan modem ke lokasi yang lebih tinggi atau dekat jendela untuk meningkatkan koneksi, lalu lakukan Cek Ulang.",
+  3: "Sinyal baik. Tidak perlu perubahan posisi.",
+  4: "Posisi modem sudah optimal untuk koneksi yang stabil",
+};
+
+const mapSignalLevelToBar = (
+  level: "good" | "poor" | "bad" | "disconnected"
+): Level => {
+  switch (level) {
+    case "good":
+      return 4;
+    case "poor":
+      return 3;
+    case "bad":
+      return 1;
+    case "disconnected":
+      return 0;
+    default:
+      return 0;
+  }
 };
 
 const SignalChecking: React.FC<SignalCheckingProps> = ({
   mode = "auto",
   level,
-  autoDurationMs = 1500,
-  onRetry,
-  onNext,
   primaryLabel = "Konfirmasi",
   retryLabel = "Cek Ulang",
+  onNext,
+  onRetry,
 }) => {
   const [isScanning, setIsScanning] = useState(mode === "auto");
   const [resultLevel, setResultLevel] = useState<Level>(level ?? 0);
   const [showPopup, setShowPopup] = useState(false);
+  const [signalData, setSignalData] = useState<{
+    rsrp: number | null;
+    rsrq: number | null;
+    sinr: number | null;
+    level: "good" | "poor" | "bad" | "disconnected";
+  }>({
+    rsrp: null,
+    rsrq: null,
+    sinr: null,
+    level: "disconnected",
+  });
+  const [sn, setSn] = useState<string | null>(null);
+  const [cellId, setCellId] = useState<string | null>(null);
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isScanning) return;
-    const id = setTimeout(() => {
-      const final: Level =
-        typeof level === "number"
-          ? (level as Level)
-          : ((Math.floor(Math.random() * 5) + 1) as Level);
-      setResultLevel(final);
+  // Ambil customer_id dari token
+  const token = getCookie("token-ira");
+  const decodedToken = useMemo(() => {
+    if (!token) return null;
+    return decodeJwt(token as string) as DecodedToken | null;
+  }, [token]);
+  const customer_id = decodedToken?.customer_id;
+
+  // State untuk mengaktifkan SSE listener
+  const [isWaitingForSignal, setIsWaitingForSignal] = useState(false);
+
+  // 🔥 Gunakan useSSEOneTime untuk get_signal
+  useSSEOneTime(
+    customer_id || "",
+    (payload: SSEPayload) => {
+      const { rsrp, rsrq, sinr, cell_id } = payload.data || {};
+      const errorMessage = payload.message || null;
+
+      if (
+        typeof rsrp === "number" &&
+        typeof rsrq === "number" &&
+        typeof sinr === "number"
+      ) {
+        localStorage.setItem("ira-cpe-cell-id", cell_id ?? "");
+        setCellId(cell_id ?? "");
+
+        const signalQuality = getSignalLevel(rsrp, rsrq, sinr);
+        const barLevel = mapSignalLevelToBar(signalQuality);
+
+        setSignalData({ rsrp, rsrq, sinr, level: signalQuality });
+        setResultLevel(barLevel);
+      } else {
+        // Jika data tidak valid
+        setSignalData({
+          rsrp: null,
+          rsrq: null,
+          sinr: null,
+          level: "disconnected",
+        });
+        setResultLevel(0);
+      }
+
       setIsScanning(false);
-    }, autoDurationMs);
-    return () => clearTimeout(id);
-  }, [isScanning, autoDurationMs, level]);
+      setIsWaitingForSignal(false);
+    },
+    isWaitingForSignal,
+    (payload) => payload.type === "get_signal" && payload.sn === sn
+  );
+
+  useEffect(() => {
+    setSn(localStorage.getItem("ira-cpe-serial-number"));
+    setCellId(localStorage.getItem("ira-cpe-cell-id"));
+  }, []);
+
+  const triggerGetSignal = useCallback(async () => {
+    if (!sn || !customer_id) {
+      toast.error("Data perangkat tidak lengkap");
+      setIsScanning(false);
+      return;
+    }
+
+    setIsScanning(true);
+    setIsWaitingForSignal(true);
+
+    try {
+      await getSignal({ sn });
+      // Biarkan SSE yang mengakhiri proses
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+      setIsScanning(false);
+      setIsWaitingForSignal(false);
+    }
+  }, [sn, customer_id]);
+
+  useEffect(() => {
+    if (sn) {
+      triggerGetSignal();
+    }
+  }, [sn, triggerGetSignal]);
 
   const handleRetry = () => {
-    setResultLevel(0);
-    setIsScanning(true);
+    triggerGetSignal();
     onRetry?.();
   };
 
   const closePopup = useCallback(() => {
-    console.log("selesai");
     setShowPopup(false);
     onNext?.(resultLevel);
     router.replace("/customer-area");
@@ -112,12 +213,9 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
       <div className="w-full max-w-2xl rounded-2xl bg-white p-8">
         {/* Header */}
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <div className="col-start-2 text-center text-[32px] font-bold text-dark-primary">
+          <div className="col-start-2 text-center text-[32px] font-bold text-old-primary">
             Cek Kekuatan Sinyal
           </div>
-          {/* <span className="col-start-3 justify-self-end text-sm text-gray-500">
-            {isScanning ? "Memindai..." : "Hasil"}
-          </span> */}
         </div>
 
         {/* Ilustrasi Rumah + Bars */}
@@ -134,16 +232,18 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                {[0, 1, 2, 3, 4].map((i) => (
+                {[0, 1, 2, 3].map((i) => (
                   <motion.div
                     key={i}
                     className="w-6 rounded-md bg-gray-300"
-                    animate={{ height: ["20%", "80%", "35%", "70%", "20%"] }}
+                    animate={{
+                      height: ["20%", "75%", "30%", "80%", "25%"], // siklus 5 titik untuk smooth loop
+                    }}
                     transition={{
                       repeat: Infinity,
-                      duration: 1.4,
+                      duration: 1.6, // sedikit lebih lambat agar terlihat alami
                       ease: "easeInOut",
-                      delay: i * 0.12,
+                      delay: i * 0.15, // delay sedikit lebih besar
                     }}
                   />
                 ))}
@@ -163,7 +263,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                   },
                 }}
               >
-                {[1, 2, 3, 4, 5].map((bar) => (
+                {[1, 2, 3, 4].map((bar) => (
                   <motion.div
                     key={bar}
                     variants={{
@@ -179,9 +279,6 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                         bar <= resultLevel
                           ? levelColor[resultLevel]
                           : "bg-gray-200",
-                        resultLevel === 5 && bar === 5
-                          ? "ring-2 ring-emerald-300"
-                          : "",
                       ].join(" ")}
                     />
                   </motion.div>
@@ -195,13 +292,13 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                 closeModal={closePopup}
                 classNameModal="p-6 max-w-lg w-full mx-4 text-center"
               >
-                <h3 className="text-dark-primary font-bold text-lg">
+                <h3 className="text-old-primary mt-6 font-bold text-lg">
                   CPE Anda berhasil teraktivasi!
                 </h3>
                 <p className="mt-5 font-medium text-sm text-black">
                   Apakah penempatan modem Anda sudah optimal?
                   <br />
-                  Cek kekuatan sinyal modem di sini!
+                  Klik Selesai jika anda sudah yakin.
                 </p>
 
                 <div className="mt-5 flex justify-center gap-4">
@@ -215,7 +312,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                   <button
                     type="button"
                     onClick={closePopup}
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-green-primary px-6 py-3 text-white text-sm font-semibold cursor-pointer"
+                    className="inline-flex w-full items-center justify-center rounded-xl bg-green-primary px-6 py-3 text-white hover:bg-green-700 text-sm font-semibold cursor-pointer"
                   >
                     Selesai
                   </button>
@@ -228,7 +325,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
           <div className="text-center space-y-1">
             <div className="font-tertiary text-black text-xl font-bold">
               {isScanning
-                ? "Mohon tunggu beberapa detik..."
+                ? "Mohon tunggu beberapa saat..."
                 : levelTitle[resultLevel]}
             </div>
             <div className="font-tertiary text-sm text-black font-medium">
@@ -237,6 +334,14 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                 : levelAdvice[resultLevel]}
             </div>
           </div>
+
+          {!isScanning && (
+            <div className="flex flex-col gap-6">
+              <div className="text-xs text-gray-500 mt-2">
+                Cell ID: {cellId}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions */}
@@ -245,7 +350,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleRetry}
             disabled={isScanning}
-            className="h-10 rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+            className="h-10 font-semibold rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {retryLabel}
           </button>
@@ -253,7 +358,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleNext}
             disabled={isScanning}
-            className="h-10 rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50 cursor-pointer"
+            className="h-10 font-bold rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {primaryLabel}
           </button>

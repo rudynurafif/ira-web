@@ -13,7 +13,7 @@ function RegisterNowCard() {
         </p>
         <Link
           href="/auth/register"
-          className="text-dark-primary underline-animation-register text-2xl max-sm:text-base font-bold"
+          className="text-primary underline underline-animation-register text-2xl max-sm:text-base font-bold"
         >
           Register Sekarang {">"}
         </Link>

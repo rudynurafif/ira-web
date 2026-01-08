@@ -129,7 +129,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
   const modalScanRef = useRef<boolean | null>(null);
 
   // --- NEW: bentuk qrbox, device id terakhir, dan flag desktop ---
-  const [qrBoxShape, setQrBoxShape] = useState<"rect" | "square">("rect");
+  const [qrBoxShape, setQrBoxShape] = useState<"rect" | "square">("square");
   const lastDeviceIdRef = useRef<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   const isDesktopRef = useRef<boolean | null>(null);
@@ -194,10 +194,10 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     const baseConfig: Html5QrcodeCameraScanConfig = {
       fps: 60,
       qrbox: (vw: number, vh: number): QrDimensions => {
-        const size = Math.floor(Math.min(vw, vh) * 0.75);
-        return qrBoxShape === "square"
-          ? { width: 200, height: 200 }
-          : { width: size, height: 50 };
+        const size = Math.floor(Math.min(vw, vh) * 0.8);
+        return qrBoxShape === "rect"
+          ? { width: 300, height: 300 }
+          : { width: size, height: 100 };
       },
     };
     const config: any = {
@@ -385,56 +385,47 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     qr.resume();
   }
 
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.innerHTML = `
+    #reader-container video,
+    #reader-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+  `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
     <>
-      <div className="max-w-[480px] mx-auto w-full text-center">
-        <h1 className="text-[24px] sm:text-[28px] font-bold ">Scan Barcode</h1>
-
-        {!starting && (
-          <div>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={qrBoxShape === "square"}
-                  onChange={(e) =>
-                    setQrBoxShape(e.target.checked ? "square" : "rect")
-                  }
-                />
-              }
-              label={
-                <>
-                  {qrBoxShape === "square" ? (
-                    <>
-                      <CiBarcode size={30} style={{ marginRight: 8 }} />
-                      {/* QR Box: Kotak */}
-                    </>
-                  ) : (
-                    <>
-                      <MdOutlineQrCodeScanner
-                        size={30}
-                        style={{ marginRight: 8 }}
-                      />
-                      {/* QR Box: Persegi Panjang */}
-                    </>
-                  )}
-                </>
-              }
-            />
-          </div>
-        )}
+      <div className="max-w-[480px] p-6 mx-auto w-full text-center">
+        <h1 className="text-[24px] sm:text-[28px] text-old-primary font-bold mb-6">
+          Scan Barcode
+        </h1>
 
         <div style={{ display: "inline-block", position: "relative" }}>
           {/* html5-qrcode render video/canvas ke sini */}
           <div
             id={containerId}
-            className="md:w-[480px] w-[100vw] h-full bg-black rounded-[8px] overflow-hidden"
+            className={`md:w-[400px]  ${
+              isDesktop ? "h-[500px]" : "h-[70vh] min-h-[400px]"
+            } bg-black rounded-lg overflow-hidden relative`}
+            style={{
+              top: "-10%", // Adjust this value to move the box upwards
+            }}
           />
 
           {!starting && (
             <>
               {/* tombol torch */}
               {hasTorch && (
-                <div className="absolute top-2 right-2 z-10">
+                <div className="absolute flex items-center top-2 right-2 z-10">
                   {torchOn ? (
                     <IoFlashOff
                       onClick={toggleTorch}
@@ -452,7 +443,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
               )}
 
               {/* slider zoom */}
-              {hasZoom && (
+              {/* {hasZoom && (
                 <div className="absolute bottom-2 left-0 px-2 w-full z-10">
                   <label
                     className="text-white"
@@ -474,7 +465,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
                     style={{ width: "100%" }}
                   />
                 </div>
-              )}
+              )} */}
 
               {/* Tombol Scan Barcode: DISSEMBUNYIKAN di desktop */}
               {/* {!isDesktop && (
@@ -501,6 +492,20 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
               )} */}
             </>
           )}
+
+          {!starting && (
+            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 w-full px-4 max-w-[480px]">
+              <button
+                onClick={() => {
+                  addUrlParam("section", "input");
+                }}
+                className="w-full bg-white border border-primary p-2 cursor-pointer text-primary font-bold rounded-xl"
+                type="button"
+              >
+                Input Manual Serial Number
+              </button>
+            </div>
+          )}
         </div>
 
         {starting && (
@@ -508,17 +513,6 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
         )}
         {error && <p style={{ color: "crimson", marginTop: 8 }}>{error}</p>}
 
-        <div className="px-10 pt-3">
-          <button
-            onClick={() => {
-              addUrlParam("section", "input");
-            }}
-            className="bg-[#005FB8] hover:bg-[#014280] p-2 cursor-pointer text-white font-bold w-full rounded-[12px] "
-            type="button"
-          >
-            Input Manual
-          </button>
-        </div>
         {/* Kontrol tambahan */}
         {/* <div
           style={{

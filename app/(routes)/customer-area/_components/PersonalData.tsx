@@ -9,6 +9,7 @@ import Image from "next/image";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/app/store/store";
+import { useRouter } from "next/navigation";
 
 export const ProfileLabel = ({
   label,
@@ -29,6 +30,7 @@ const PersonalData = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
+  const router = useRouter();
 
   useEffect(() => {
     if (userInfo) {
@@ -36,30 +38,6 @@ const PersonalData = () => {
       // console.log("userInfo dari state", userInfo);
     }
   }, [userInfo]);
-
-  /**
-   
-  const fetchData = async () => {
-    setisLoading(true);
-
-    try {
-      const resPacket = await getActivePacket({});
-      const resProfile = await getProfileInfo({});
-
-      setActivePacketData(resPacket);
-      setprofileInfo(resProfile.data?.data.customer ?? {});
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal muat data paket");
-    } finally {
-      setisLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-   
-   */
 
   const isFetching = !userInfo;
 
@@ -89,7 +67,9 @@ const PersonalData = () => {
 
               <ModalEditProfile
                 open={openModal}
-                onClose={() => setOpenModal(false)}
+                onClose={() => {
+                  setOpenModal(false);
+                }}
                 initial={{
                   name: userInfo?.name,
                   phone_number: userInfo?.phone_number,

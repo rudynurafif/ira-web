@@ -23,21 +23,21 @@ function ModalScan({
         <button
           type="button"
           onClick={() => {
-            scanAgain(true);
+            scanAgain(false);
           }}
-          className="bg-[#005FB8] cursor-pointer rounded-[12px] p-2 font-medium w-full text-white"
+          className="cursor-pointer bg-primary mb-2 rounded-xl p-2 font-medium w-full text-white"
         >
-          Scan Ulang
+          Konfirmasi
         </button>
 
         <button
           type="button"
           onClick={() => {
-            scanAgain(false);
+            scanAgain(true);
           }}
-          className="cursor-pointer bg-green-500 mt-2 rounded-[12px] p-2 font-medium w-full text-white"
+          className="bg-background-customer cursor-pointer rounded-xl p-2 font-medium w-full text-primary border border-primary"
         >
-          Konfirmasi
+          Scan Ulang
         </button>
       </div>
     </div>

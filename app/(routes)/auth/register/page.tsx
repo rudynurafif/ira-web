@@ -3,12 +3,11 @@ import CheckboxAgreeForm from "@/app/_components/form/CheckboxAgreeForm";
 import DynamicForm from "@/app/_components/form/DynamicForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import DynamicSelectForm from "@/app/_components/form/DynamicSelectForm";
-import MapInputForm from "@/app/_components/form/MapInputForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { ReactSelectType } from "@/app/_shared/types/form";
 import Link from "next/link";
-import React, { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import ModalRegister from "./_components/ModalRegister";
 import { registerUser, requestCoverage, verifyOtp } from "@/app/_api/Auth/Auth";
 import {
@@ -20,32 +19,18 @@ import {
   getSubDistrict,
   getUserLocation,
 } from "@/app/_api/Location/Location";
-import { normalizeAddressForBackend } from "@/app/_shared/utils/address";
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
-import { PHONE_REGEX, regexEmail } from "@/app/_shared/utils";
+import {
+  PHONE_REGEX,
+  regexEmail,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import GeoPermissionGate from "./_components/GeoPermissionGate";
-
-interface FormType {
-  fullname: string;
-  email: string;
-  phone: string;
-  otp: string;
-  nik: string;
-  nokk: string;
-  province: string;
-  city: string;
-  district: string;
-  sub_district: string;
-  postal_code: string;
-  notes: string;
-  actual_address: string;
-  address_gmaps?: any;
-  lat?: string;
-  lng?: string;
-}
+import MapGeoapify from "@/app/_components/form/MapGeoapify";
+import { FormType } from "./types/type";
 
 const initialFormData: FormType = {
   fullname: "",
@@ -58,12 +43,15 @@ const initialFormData: FormType = {
   city: "",
   district: "",
   sub_district: "",
+  rw: "",
+  rt: "",
   postal_code: "",
   actual_address: "",
   notes: "",
+  voucher_code: "",
   address_gmaps: undefined,
-  lat: undefined,
-  lng: undefined,
+  latitude: undefined,
+  longitude: undefined,
 };
 
 function Page() {
@@ -82,17 +70,7 @@ function Page() {
   );
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
   const [mitraID, setMitraID] = useState([]);
-  /**
-  {
-    "inside_coverage": true,
-    "mitra_ids": [
-      {
-        "id": "e5b4c0ca-5df1-4bb3-a547-618de9f6337e",
-        "name": "UD JAYA"
-      }
-    ]
-  }
-   */
+  const [btsID, setBtsID] = useState([]);
   const [isCovered, setIsCovered] = useState<boolean>(false);
   const [coveredAtSubmit, setCoveredAtSubmit] = useState<boolean | null>(null);
 
@@ -109,10 +87,6 @@ function Page() {
 
   const router = useRouter();
 
-  function toUserLocationPayload(rawGooglePlace: any) {
-    return { address: [rawGooglePlace] };
-  }
-
   const STORAGE_KEY = `otp:register:phone`;
 
   function startOtpTimerFromParent(seconds: number) {
@@ -123,53 +97,49 @@ function Page() {
     setOtpExpiry(expiry);
   }
 
-  async function autofillLocationViaApiWithRaw(rawGooglePlace: any) {
-    setIsAutoFilling(true);
-    try {
-      const resp = await getUserLocation(toUserLocationPayload(rawGooglePlace));
-      const payload = resp?.data;
-
-      if (!payload || payload.statusCode !== 200) {
-        toast.error("Gagal mengenali lokasi dari API.");
-        return;
-      }
-
-      const prov = payload.province;
-      const city = payload.city;
-      const dist = payload.district;
-      const subd = payload.sub_district;
-      const pcode = payload.postal_code; // bisa null
-
-      // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
-      setFormData((prev) => ({
-        ...prev,
-        province: prov?.id ? String(prov.id) : "",
-        city: city?.id ? String(city.id) : "",
-        district: dist?.id ? String(dist.id) : "",
-        sub_district: subd?.id ? String(subd.id) : "",
-        postal_code: pcode ? String(pcode) : "",
-      }));
-
-      if (prov?.id && prov?.name) {
-        setProvinceOptions((opts) =>
-          opts.some((o) => String(o.value) === String(prov.id))
-            ? opts
-            : [{ label: prov.name, value: String(prov.id) }, ...opts]
-        );
-      }
-
-      toast.success("Lokasi terisi otomatis ✔");
-    } catch (err: any) {
-      console.error("getUserLocation failed:", err);
-      toast.error(err?.response?.data?.message || "Autofill lokasi gagal");
-    } finally {
-      setIsAutoFilling(false);
-    }
-  }
+  // un comment kalo API autofill udah oke
+  // async function autofillLocationViaApiWithRaw(rawResult: any) {
+  //   setIsAutoFilling(true);
+  //   try {
+  //     const resp = await getUserLocation(rawResult);
+  //     const payload = resp?.data;
+  //     if (!payload || payload.statusCode !== 200) {
+  //       toast.error("Gagal mengenali lokasi dari API.");
+  //       return;
+  //     }
+  //     const prov = payload?.result?.province ?? null;
+  //     const city = payload?.result?.city ?? null;
+  //     const dist = payload?.result?.district ?? null;
+  //     const subd = payload?.result?.sub_district ?? null;
+  //     const pcode = payload?.result?.postal_code ?? null; // bisa null
+  //     // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       province: prov?.id ? String(prov.id) : "",
+  //       city: city?.id ? String(city.id) : "",
+  //       district: dist?.id ? String(dist.id) : "",
+  //       sub_district: subd?.id ? String(subd.id) : "",
+  //       postal_code: pcode ? String(pcode) : "",
+  //     }));
+  //     if (prov?.id && prov?.name) {
+  //       setProvinceOptions((opts) =>
+  //         opts.some((o) => String(o.value) === String(prov.id))
+  //           ? opts
+  //           : [{ label: prov.name, value: String(prov.id) }, ...opts]
+  //       );
+  //     }
+  //     toast.success("Lokasi terisi otomatis ✔");
+  //   } catch (err: any) {
+  //     // console.error("getUserLocation failed:", err);
+  //     toastErrorFromAPI(err, "Autofill lokasi gagal");
+  //   } finally {
+  //     setIsAutoFilling(false);
+  //   }
+  // }
 
   useEffect(() => {
     const checkCoverage = async () => {
-      if (!formData.lat || !formData.lng) {
+      if (!formData.latitude || !formData.longitude) {
         return;
       }
 
@@ -177,14 +147,15 @@ function Page() {
 
       try {
         const resCoverage = await getCheckCoverage({
-          latitude: formData.lat,
-          longitude: formData.lng,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
         });
 
         setMitraID(resCoverage.data?.result?.mitra_ids || []);
+        setBtsID(resCoverage.data?.result?.bts_ids || []);
         setIsCovered(!!resCoverage.data?.result?.inside_coverage);
       } catch (error: any) {
-        toast.error(error?.response?.data?.message ?? "Gagal check coverage");
+        toastErrorFromAPI(error, "Gagal check coverage");
         setIsCovered(false);
       } finally {
         setIsCheckCoverage(false);
@@ -192,7 +163,7 @@ function Page() {
     };
 
     checkCoverage();
-  }, [formData.lat, formData.lng]);
+  }, [formData.latitude, formData.longitude]);
 
   useEffect(() => {
     const loadProvince = async () => {
@@ -204,9 +175,7 @@ function Page() {
         }));
         setProvinceOptions(options);
       } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Gagal muat data provinsi"
-        );
+        toastErrorFromAPI(error, "Gagal muat data provinsi");
       }
     };
     loadProvince();
@@ -228,7 +197,7 @@ function Page() {
           }))
         );
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Gagal muat data kota");
+        toastErrorFromAPI(err, "Gagal muat data kota");
         setCityOptions([]);
       }
     })();
@@ -250,9 +219,7 @@ function Page() {
           }))
         );
       } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message || "Gagal muat data kecamatan"
-        );
+        toastErrorFromAPI(err, "Gagal muat data kecamatan");
 
         setDistrictOptions([]);
       }
@@ -275,9 +242,7 @@ function Page() {
           }))
         );
       } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message || "Gagal muat data kelurahan"
-        );
+        toastErrorFromAPI(err, "Gagal muat data kelurahan");
         setSubdistrictOptions([]);
       }
     })();
@@ -303,7 +268,7 @@ function Page() {
           .filter(Boolean) as ReactSelectType[];
         setPostalCodeOptions(options);
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Gagal muat data kode pos");
+        toastErrorFromAPI(err, "Gagal muat data kode pos");
         setPostalCodeOptions([]);
       }
     })();
@@ -336,7 +301,7 @@ function Page() {
         ...e,
         otp: "Kode OTP tidak valid atau sudah kedaluwarsa",
       }));
-      toast.error(err?.response?.data?.message || "Verifikasi OTP gagal");
+      toastErrorFromAPI(err, "Verifikasi OTP gagal");
     }
   }
 
@@ -393,6 +358,14 @@ function Page() {
       errors.sub_district = "Kelurahan harus diisi";
     }
 
+    if (!formData.rw || formData.rw === "0") {
+      errors.rw = "RW harus diisi";
+    }
+
+    if (!formData.rt || formData.rw === "0") {
+      errors.rt = "RT harus diisi";
+    }
+
     if (!formData.postal_code) {
       errors.postal_code = "Kode Pos harus diisi";
     }
@@ -418,16 +391,17 @@ function Page() {
       return;
     } else {
       try {
-        console.log("mitra ID", mitraID);
-        const addressArray = formData.address_gmaps
-          ? [normalizeAddressForBackend(formData.address_gmaps)]
-          : [];
+        // const addressArray = formData.address_gmaps
+        //   ? [normalizeAddressForBackend(formData.address_gmaps)]
+        //   : [];
+        const addressArray = [formData.address_gmaps];
 
         const body: any = {
           phone_number: formData.phone ?? "",
           name: formData.fullname ?? "",
           ...(formData.email && { email: formData.email }),
           ...(mitraID.length > 0 && { mitra_ids: mitraID }),
+          ...(btsID.length > 0 && { bts_ids: btsID }),
           // nik: formData.nik ?? "",
           // no_kk: formData.nokk ?? "",
           province_id: formData.province ?? "",
@@ -436,9 +410,14 @@ function Page() {
           sub_district_id: formData.sub_district ?? "",
           // postal_code_id: formData.postal_code ?? "",
           postal_code: formData.postal_code ?? "",
+          rw: formData.rw ?? "",
+          rt: formData.rt ?? "",
           address: addressArray ?? "",
           actual_address: formData.actual_address ?? "",
+          ...(formData.latitude && { latitude: formData.latitude }),
+          ...(formData.longitude && { longitude: formData.longitude }),
           ...(formData.notes && { notes: formData.notes }),
+          ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
         };
 
         const coveredNow = isCovered;
@@ -456,16 +435,13 @@ function Page() {
         resetForm();
 
         const token = res.data.data;
-        if (token) setCookie("token-fwa", token);
+        if (token) setCookie("token-ira", token);
       } catch (error: any) {
-        console.log("masuk error");
         if (error?.response?.data?.statusCode === 409) {
           setOtpStatus("idle");
           setFormData((prev) => ({ ...prev, otp: "" }));
         }
-        toast.error(
-          error?.response?.data?.message || "Gagal melakukan registrasi"
-        );
+        toastErrorFromAPI(error, "Gagal melakukan registrasi");
       } finally {
         setIsLoading(false);
       }
@@ -488,15 +464,15 @@ function Page() {
   }
 
   return (
-    <div className="container mx-auto px-5 my-22">
-      <h1 className="text-center text-[32px] text-[#001D47] font-bold">
-        Registrasi Starlite FWA
+    <div className="container mx-auto xl:px-42 lg:px-22 px-6 sm:my-22 my-6">
+      <h1 className="text-center sm:text-[32px] text-2xl text-old-primary font-bold">
+        Registrasi Internet Rakyat (IRA)
       </h1>
 
       <form onSubmit={submitForm} className="mt-7">
-        <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-7">
+        <div className="grid grid-cols-2 max-md:grid-cols-1 gap-7">
           {/* Nama */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="Nama Lengkap"
               isImportant
@@ -513,7 +489,7 @@ function Page() {
           </div>
 
           {/* Email */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="Email (opsional)"
               isImportant={false}
@@ -532,7 +508,7 @@ function Page() {
           </div>
 
           {/* Nomor Handphone */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <PhoneOTPForm
               storageKey={`otp:register:phone`}
               otpDurationSec={0}
@@ -560,7 +536,7 @@ function Page() {
           </div>
 
           {/* OTP */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <GroupedOTP
               isInvalid={!!errors.otp || otpStatus === "invalid"}
               label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
@@ -607,7 +583,7 @@ function Page() {
           </div>
 
           {/* NIK */}
-          {/* <div className="max-sm:col-span-2 col-span-1">
+          {/* <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="NIK"
               isImportant={false}
@@ -624,7 +600,7 @@ function Page() {
           </div> */}
 
           {/* NOKK */}
-          {/* <div className="max-sm:col-span-2 col-span-1">
+          {/* <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="No KK"
               isImportant={false}
@@ -640,70 +616,8 @@ function Page() {
             />
           </div> */}
 
-          {/* Map */}
-          <div className="col-span-2">
-            <div className="mb-3">
-              <GeoPermissionGate
-                onGotLocation={(lat, lng) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    lat: String(lat),
-                    lng: String(lng),
-                  }));
-                  // Opsional: kamu bisa panggil autofill / reverse geocoding di sini
-                  // atau biarkan MapInputForm men-handle perubahan ini.
-                }}
-              />
-            </div>
-
-            <MapInputForm
-              getAddress={(value: string) => {
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  actual_address: value,
-                }));
-                setErrors({ ...errors, actual_address: "" });
-              }}
-              onPlaceChange={async (p) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  actual_address: p.address,
-                  address_gmaps: p.raw_result,
-                  lat: String(p.latitude),
-                  lng: String(p.longitude),
-                  province: "",
-                  city: "",
-                  district: "",
-                  sub_district: "",
-                  postal_code: "",
-                }));
-
-                await autofillLocationViaApiWithRaw(p.raw_result);
-              }}
-            />
-            {isCheckCoverage && (
-              <p className="mt-1 text-gray-500 flex items-center gap-2 text-sm">
-                <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
-                Mengecek jangkauan...
-              </p>
-            )}
-            {isCovered && !isCheckCoverage && (
-              <p className="mt-1 text-green-primary flex items-center gap-1 text-sm">
-                <FaCircleCheck className="text-green-primary" />
-                Selamat! Alamat Anda berada di dalam jangkauan kami.
-              </p>
-            )}
-            {!isCovered && !isCheckCoverage && (
-              <p className="mt-1 text-red-primary flex items-center gap-1 text-sm">
-                <FaCircleExclamation className="text-red-primary" />
-                Lokasi Anda belum berada dijangkauan area kami, dan kami sedang
-                menuju ke daerah Anda.
-              </p>
-            )}
-          </div>
-
           {/* Provinsi */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Provinsi"
@@ -741,7 +655,7 @@ function Page() {
           </div>
 
           {/* Kota */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kota/Kabupaten"
@@ -777,7 +691,7 @@ function Page() {
           </div>
 
           {/* Kecamatan */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kecamatan"
@@ -811,7 +725,7 @@ function Page() {
           </div>
 
           {/* Kelurahan */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicSelectForm
               menuPosition="fixed"
               label="Kelurahan"
@@ -842,8 +756,50 @@ function Page() {
             />
           </div>
 
+          {/* RW */}
+          <div className="max-md:col-span-2 col-span-1">
+            <DynamicForm
+              label="RW"
+              isImportant
+              name="rw"
+              value={formData.rw}
+              onChange={(value: string) => {
+                if (/^\d{0,3}$/.test(value)) {
+                  setFormData((prevData: any) => ({
+                    ...prevData,
+                    rw: value,
+                  }));
+                  setErrors({ ...errors, rw: "" });
+                }
+              }}
+              placeholder="Masukkan RW"
+              error={errors.rw}
+            />
+          </div>
+
+          {/* RT */}
+          <div className="max-md:col-span-2 col-span-1">
+            <DynamicForm
+              label="RT"
+              isImportant
+              name="rt"
+              value={formData.rt}
+              onChange={(value: string) => {
+                if (/^\d{0,3}$/.test(value)) {
+                  setFormData((prevData: any) => ({
+                    ...prevData,
+                    rt: value,
+                  }));
+                  setErrors({ ...errors, rt: "" });
+                }
+              }}
+              placeholder="Masukkan RT"
+              error={errors.rt}
+            />
+          </div>
+
           {/* Kode Pos */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             {/* Versi dropdown */}
             {/* <DynamicSelectForm
               menuPosition="fixed"
@@ -893,7 +849,7 @@ function Page() {
           </div>
 
           {/* Patokan Alamat */}
-          <div className="max-sm:col-span-2 col-span-1">
+          <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="Patokan Alamat (opsional)"
               isImportant={false}
@@ -909,6 +865,97 @@ function Page() {
               placeholder="Masukkan Patokan Alamat (jika ada)"
               error={errors.notes}
             />
+          </div>
+
+          {/* Map */}
+          <div className="col-span-2">
+            <div className="mb-3">
+              <GeoPermissionGate
+                onGotLocation={(lat, lng) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    lat: String(lat),
+                    lng: String(lng),
+                  }));
+                  // Opsional: kamu bisa panggil autofill / reverse geocoding di sini
+                  // atau biarkan MapInputForm men-handle perubahan ini.
+                }}
+              />
+            </div>
+
+            {/* Versi Google */}
+            {/* <MapInputForm
+              getAddress={(value: string) => {
+                setFormData((prevData: any) => ({
+                  ...prevData,
+                  actual_address: value,
+                }));
+                setErrors({ ...errors, actual_address: "" });
+              }}
+              onPlaceChange={async (p) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  actual_address: p.address,
+                  address_gmaps: p.raw_result,
+                  lat: String(p.latitude),
+                  lng: String(p.longitude),
+                  province: "",
+                  city: "",
+                  district: "",
+                  sub_district: "",
+                  postal_code: "",
+                }));
+
+                await autofillLocationViaApiWithRaw(p.raw_result);
+              }}
+            /> */}
+
+            {/* Versi Geoapify */}
+            <MapGeoapify
+              getAddress={(value: string) => {
+                setFormData((prevData: any) => ({
+                  ...prevData,
+                  actual_address: value,
+                }));
+                setErrors({ ...errors, actual_address: "" });
+              }}
+              onPlaceChange={async (p) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  actual_address: p.address,
+                  address_gmaps: p.raw_result,
+                  latitude: String(p.latitude),
+                  longitude: String(p.longitude),
+                  // province: "",
+                  // city: "",
+                  // district: "",
+                  // sub_district: "",
+                  // postal_code: "",
+                }));
+
+                // await autofillLocationViaApiWithRaw(p.raw_result);
+              }}
+            />
+
+            {isCheckCoverage && (
+              <p className="mt-1 text-gray-500 flex items-center gap-2 text-sm">
+                <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
+                Mengecek jangkauan...
+              </p>
+            )}
+            {isCovered && !isCheckCoverage && (
+              <p className="mt-1 text-green-primary flex items-center gap-1 text-sm">
+                <FaCircleCheck className="text-green-primary" />
+                Selamat! Alamat Anda berada di dalam jangkauan kami.
+              </p>
+            )}
+            {!isCovered && !isCheckCoverage && (
+              <p className="mt-1 text-red-primary flex items-center gap-1 text-sm">
+                <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
+                Lokasi Anda belum berada dijangkauan area kami, dan kami sedang
+                menuju ke daerah Anda.
+              </p>
+            )}
           </div>
 
           {/* Alamat Lengkap */}
@@ -936,6 +983,23 @@ function Page() {
               disabled={!formData.address_gmaps}
             />
           </div>
+
+          {/* Kode Voucher */}
+          <div className="col-span-2">
+            <DynamicForm
+              label="Kode Voucher (opsional)"
+              isImportant={false}
+              name="voucher_code"
+              value={formData.voucher_code}
+              onChange={(value: string) => {
+                const filtered = value.replace(/[^a-zA-Z\s.\-]/g, "");
+                setFormData((prev) => ({ ...prev, voucher_code: filtered }));
+                setErrors({ ...errors, voucher_code: "" });
+              }}
+              placeholder="Masukkan Kode Voucher"
+              error={errors.voucher_code}
+            />
+          </div>
         </div>
 
         {/* Agreement */}
@@ -953,12 +1017,12 @@ function Page() {
             className={`py-[15px] w-1/2 font-bold text-white ${
               isLoading || !agreement
                 ? "bg-slate-400 cursor-not-allowed"
-                : "bg-primary cursor-pointer"
+                : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             } text-xl rounded-xl mx-auto `}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
-                <div className="loading w-[20px] h-[20px]"></div>
+                <div className="loading w-5 h-5"></div>
                 <span className="italic text-white">Loading...</span>
               </div>
             ) : (
@@ -969,11 +1033,11 @@ function Page() {
 
         <div className="mt-7 text-center">
           <p className="text-primary-text">
-            Sudah punya akun Starlite?{" "}
+            Sudah punya akun IRA?{" "}
             <span>
               <Link
                 href="/auth/login"
-                className="underline-animation-register text-dark-primary font-bold"
+                className="underline-animation-register text-primary font-bold"
               >
                 Login disini
               </Link>

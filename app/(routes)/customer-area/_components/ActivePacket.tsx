@@ -2,151 +2,132 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import checkGreenIcon from "@/public/assets/Icons/mdi_tick-circle.svg";
-import starIcon from "@/public/assets/Icons/icon-star.svg";
-import editIcon from "@/public/assets/Icons/icon-edit.svg";
-import exitIcon from "@/public/assets/Icons/icon-exit.svg";
-import redAlert from "@/public/assets/Icons/carbon_warning-filled.svg";
-import { ProfileLabel } from "./PersonalData";
-import {
-  getActivePacket,
-  getProfileInfo,
-} from "@/app/_api/Customer/CustomerArea";
-import {
-  ActivePacketData,
-  ProfileInfo,
-} from "@/app/_shared/types/customer-area";
-import ModalEditProfile from "./ModalEditProfile";
-import DeliveryTracking from "./DeliveryTracking";
+import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
-import toast from "react-hot-toast";
 import { useAppSelector } from "@/app/store/store";
+import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
+import bannerPanduanMobile from "@/public/assets/Images/bannerPanduangmobile.png";
+import bannerCS from "@/public/assets/Images/bannerCS.png";
+import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
+import ActivePackageCard from "./ActivePackageCard";
+import SubsHistoryCard from "./SubsHistoryCard";
+import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
+import empty from "@/public/assets/Images/Empty.svg";
+import Link from "next/link";
+import HistorySection from "./HistorySection";
+
+const PAGE_SIZE = 5;
 
 const ActivePacket = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [openModal, setOpenModal] = useState(false);
-  const [activePacketData, setActivePacketData] = useState<ActivePacketData>();
-  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
+  const [activePacketData, setActivePacketData] =
+    useState<SubscriptionHistoryAPI | null>(null);
+  const [subscriptionHistory, setSubscriptionHistory] = useState<
+    SubscriptionHistoryAPI[]
+  >([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
+  const { userInfo } = useAppSelector((state) => state.auth);
   const router = useRouter();
+  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+
+  // Ambil hanya paket aktif dari subHistory (indeks 0)
+  useEffect(() => {
+    if (subscriptionHistory?.[0]) {
+      console.log(subscriptionHistory?.[0]);
+      // Cek apakah ini paket aktif (ada start_date dan belum expired)
+      const isActive =
+        subscriptionHistory[0]?.start_date && subscriptionHistory[0]?.end_date;
+      setActivePacketData(isActive ? subscriptionHistory?.[0] : null);
+    }
+  }, [subscriptionHistory]);
+
+  // Fetch riwayat dengan pagination
+  const fetchHistory = async (page: number) => {
+    setIsLoadingHistory(true);
+    try {
+      const res = await getCustomerPackage({
+        page,
+        pageSize: PAGE_SIZE,
+      });
+
+      const data = res.data?.data || [];
+      const total = res.data?.total || 0;
+      const pages = Math.ceil(total / PAGE_SIZE);
+
+      setSubscriptionHistory(data);
+      setTotalPages(pages);
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+      setSubscriptionHistory([]);
+      setTotalPages(1);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
+    fetchHistory(1);
+  }, []);
 
-      try {
-        const resPacket = await getActivePacket({});
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    fetchHistory(page);
+  };
 
-        setActivePacketData(resPacket);
-      } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Gagal muat data paket");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [userInfo]);
-
-  const isFetching = !activePacketData && !userInfo;
+  const isFetching = !userInfo;
+  if (isFetching) return <SkeletonLoadingCard />;
 
   return (
-    <div className="flex flex-col gap-10 mb-10">
-      {isFetching ? (
-        <SkeletonLoadingCard />
-      ) : (
-        <>
-          <div className="bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] p-8 max-sm:p-4">
-            <div>
-              <div className="flex flex-row justify-between items-center mb-1">
-                <h3 className="text-sm text-secondary max-sm:text-xs">
-                  Paket Aktif
-                </h3>
-                {/* <div className="flex items-center space-x-1">
-              <Image
-                src={activePacketData?.isPaid ? checkGreenIcon : redAlert}
-                alt="check-green"
-                width={20}
-                height={20}
-              />
-              <p
-                className={`text-sm max-sm:text-[10px] ${
-                  activePacketData?.isPaid
-                    ? "text-green-primary"
-                    : "text-red-primary"
-                }  font-medium`}
-              >
-                {activePacketData?.isPaid
-                  ? "Tagihan Lunas"
-                  : "Tagihan Belum Lunas"}
-              </p>
-            </div> */}
-              </div>
-              <div className="flex flex-row justify-between items-center">
-                <p className="font-bold text-dark-primary-2 text-xl max-sm:text-sm">
-                  {activePacketData?.packageInfo}
-                </p>
-                <div className="flex items-center space-x-1">
-                  <Image
-                    src={activePacketData?.isPaid ? checkGreenIcon : redAlert}
-                    alt="check-green"
-                    width={20}
-                    height={20}
-                  />
-                  <p
-                    className={`text-sm max-sm:text-[10px] ${
-                      activePacketData?.isPaid
-                        ? "text-green-primary"
-                        : "text-red-primary"
-                    }  font-medium`}
-                  >
-                    {activePacketData?.isPaid
-                      ? "Tagihan Lunas"
-                      : "Tagihan Belum Lunas"}
-                  </p>
-                </div>
-              </div>
-              <p className="text-[16px] max-sm:text-[12px] text-black mt-2">
-                {activePacketData?.packagePrice}
-              </p>
-              <div className="flex justify-between items-center mt-2">
-                {/* <p className="text-sm max-sm:text-[12px] text-green-primary">
-              Jatuh tempo:{" "}
-              {activePacketData?.dueDate}
-            </p> */}
-                {userInfo?.status !== "active" && (
-                <button
-                  onClick={() => router.push(`/activation`)}
-                  className={`${
-                    activePacketData?.isActive
-                      ? "bg-gray-border cursor-not-allowed"
-                      : "bg-button hover:bg-dark-primary-2 cursor-pointer"
-                  } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
-                >
-                  Aktivasi Sekarang
-                </button>
-                )} 
-                {/* {activePacketData?.isPaid && (
-                  <button
-                    className={`${
-                      activePacketData?.isPaid
-                        ? "bg-gray-border cursor-not-allowed"
-                        : "bg-button hover:bg-dark-primary-2 cursor-pointer"
-                    } max-sm:text-[12px] max-sm:p-2 py-2 px-5 rounded-lg font-medium text-white`}
-                  >
-                    Bayar tagihan
-                  </button>
-                )} */}
-              </div>
-            </div>
-          </div>
+    <>
+      {/* MOBILE (< sm) */}
+      <div className="sm:hidden space-y-6">
+        {activePacketData && <ActivePackageCard data={activePacketData} />}
 
-          <DeliveryTracking />
-        </>
-      )}
-    </div>
+        <Image
+          src={bannerCSMobile}
+          alt="banner CS"
+          className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+          onClick={() => window.open(`https://wa.me/${phoneCS}`, "_blank")}
+        />
+
+        <Image
+          src={bannerPanduanMobile}
+          alt="Banner Panduan"
+          className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+          onClick={() => window.open("/pandaan-cara-bayar", "_blank")}
+        />
+
+        <HistorySection />
+      </div>
+
+      {/* DESKTOP (≥ sm) */}
+      <div className="hidden sm:grid grid-cols-12 gap-6">
+        <div className="lg:col-span-5 col-span-12 space-y-5">
+          {activePacketData && <ActivePackageCard data={activePacketData} />}
+          <Image
+            src={bannerCS}
+            alt="banner CS"
+            className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => window.open(`https://wa.me/${phoneCS}`, "_blank")}
+          />
+        </div>
+
+        <div className="lg:col-span-7 col-span-12 flex flex-col gap-6">
+          <Image
+            src={bannerPanduan}
+            alt="Banner Panduan"
+            className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => window.open("/panduan-cara-bayar", "_blank")}
+          />
+          <HistorySection />
+        </div>
+      </div>
+    </>
   );
 };
 

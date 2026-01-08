@@ -1,57 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { getFAQs } from "@/app/_api/Settings/Settings";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
+import { useEffect, useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa6";
+import FAQLoading from "./_components/FAQLoading";
 
 type FAQItem = {
-  question: string;
-  answer: string;
+  title: string;
+  description: string;
 };
-
-const faqs: FAQItem[] = [
-  {
-    question: "1. Apa itu Starlite FWA?",
-    answer:
-      "Starlite FWA (Fixed Wireless Access) adalah layanan internet rumah dan bisnis yang menggunakan jaringan nirkabel tetap untuk menghadirkan koneksi cepat dan stabil tanpa perlu kabel fiber.",
-  },
-  {
-    question: "2. Bagaimana cara kerja FWA?",
-    answer:
-      "Internet dikirim melalui sinyal radio dari menara pemancar ke antena penerima di rumah pelanggan, lalu diteruskan ke modem/router agar bisa digunakan di semua perangkat.",
-  },
-  {
-    question: "3. Apakah sinyal FWA stabil saat hujan?",
-    answer:
-      "Cuaca ekstrem seperti hujan lebat dapat sedikit memengaruhi kualitas sinyal, namun sistem jaringan Starlite dirancang agar tetap stabil dengan perangkat dan arah antena yang tepat.",
-  },
-  {
-    question: "4. Bagaimana cara mendaftar layanan FWA?",
-    answer:
-      "Cukup isi formulir di website atau hubungi tim kami. Paket CPE (Modem) akan dikirim dari outlet terdekat, ketika sudah sampai bisa langsung diaktivasi lewat website Starlite FWA.",
-  },
-  {
-    question: "5. Apakah tersedia berbagai pilihan paket?",
-    answer:
-      "Ya. Starlite menyediakan beberapa paket internet dengan kecepatan dan harga berbeda sesuai kebutuhan rumah atau bisnis Anda.",
-  },
-];
 
 export default function FAQAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      const params = {
+        category: "TESTING",
+      };
+
+      const resData = await getFAQs(params);
+
+      if (resData?.data?.statusCode === 200) {
+        setFaqs(resData?.data?.result);
+      }
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  if (isLoading) return <FAQLoading />;
+
   return (
-    <div className="w-full ">
+    <div className="w-full">
       {faqs.map((faq, index) => (
-        <div key={index} className="mb-3 bg-[#EEF4FC] px-8 py-5 rounded-xl">
+        <div
+          key={index}
+          className="mb-3 bg-white border border-gray-border px-8 py-5 rounded-xl"
+        >
           <button
             onClick={() => toggleAccordion(index)}
-            className="w-full flex justify-between items-center py-5 text-slate-800 cursor-pointer"
+            className="w-full flex justify-between gap-4 items-center text-slate-800 cursor-pointer"
           >
-            <span className="font-semibold">{faq.question}</span>
+            <span className="font-semibold text-start">
+              {`${index + 1}. ${faq.title}`}
+            </span>
             <span
               className={`transition-transform duration-300 ${
                 openIndex === index ? "rotate-180" : ""
@@ -65,7 +71,9 @@ export default function FAQAccordion() {
               openIndex === index ? "max-h-40" : "max-h-0"
             }`}
           >
-            <div className="pb-5 text-sm text-slate-500">{faq.answer}</div>
+            <div className="text-sm pt-2">
+              <div dangerouslySetInnerHTML={{ __html: faq.description }} />
+            </div>
           </div>
         </div>
       ))}

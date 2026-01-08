@@ -7,73 +7,103 @@ import Link from "next/link";
 import { FaRegUser, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
-
 import starliteWhiteIcon from "@/public/assets/Icons/icon-starlite-white.svg";
 import weaveWhiteIcon from "@/public/assets/Icons/icon-weave-white.svg";
 import starliteIcon from "@/public/assets/Icons/icon-starlite.svg";
 import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
-import { deleteCookie, getCookie } from "cookies-next";
+import IraIcon from "@/public/assets/Icons/IraIcon.svg";
+import IraWhiteIcon from "@/public/assets/Icons/IraWhiteIcon.svg";
+import { getCookie } from "cookies-next";
 import toast from "react-hot-toast";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { ProfileInfo } from "@/app/_shared/types/customer-area";
-import { getFirstTwoWords } from "@/app/_shared/utils";
-import { useAppDispatch } from "@/app/store/store";
-import { getUser, login } from "@/app/store/slice/authSlice";
-import { useGetProfileQuery } from "@/app/store/slice/customerSlice";
-import { skipToken } from "@reduxjs/toolkit/query/react";
+import {
+  decodeJwt,
+  getFirstTwoWords,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import {
+  getUser,
+  logout,
+  setCoverageStatus,
+} from "@/app/store/slice/authSlice";
+import { DecodedToken } from "@/app/_context/sse.type";
+import SkeletonLarge from "../skeletons/SkeletonLarge";
+import SkeletonBase from "../skeletons/SkeletonBase";
 
 function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isActive, setIsActive] = useState(true);
   const [customerData, setCustomerData] = useState<ProfileInfo>();
   const dispatch = useAppDispatch();
-
-  // const {
-  //   data: customerData,
-  //   isLoading,
-  //   error,
-  // } = useGetProfileQuery(undefined, {
-  //   skip: !isLoggedIn, // Hanya jalankan query jika pengguna sudah login
-  // });
-
-  // console.log(customerData);
+  const { token: tokenfromState, is_coverage } = useAppSelector(
+    (state) => state.auth
+  );
+  // const token = getCookie("token-ira") ?? tokenfromState;
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
+    const cookieToken = getCookie("token-ira") as string | null;
+    const finalToken =
+      cookieToken ?? (tokenfromState as string | undefined) ?? null;
+    setToken(finalToken);
+
     const fetchData = async () => {
       try {
-        const token = getCookie("token-fwa");
-        if (token) {
+        if (finalToken) {
+          const decoded = decodeJwt(finalToken) as DecodedToken;
           const resProfile = await getProfileInfo({});
           const customer = resProfile.data.data.customer;
 
-          dispatch(getUser(customer));
-          setCustomerData(customer);
-
+          dispatch(getUser(customer ?? decoded));
+          dispatch(setCoverageStatus(decoded.is_coverage));
+          setCustomerData(customer ?? decoded);
           setIsLoggedIn(true);
+          if (customer) setIsActive(customer?.is_active);
+          setShowDropdown(false);
         }
       } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Gagal memuat data pelanggan"
-        );
-        console.error("Error fetching data:", error);
+        toastErrorFromAPI(error, "Gagal memuat data pelanggan");
+        const statusCode =
+          error?.response?.data?.statusCode || error?.response?.status;
+
+        if (statusCode === 500 && pathname !== "/500") {
+          toast.error(
+            "Terjadi gangguan pada server. Mengalihkan ke halaman error..."
+          );
+          router.push(`/500?from=${encodeURIComponent(pathname)}`);
+          return;
+        }
+
+        if (statusCode === 401) {
+          toastErrorFromAPI(
+            error,
+            "Sesi Anda telah berakhir, silakan login kembali."
+          );
+          dispatch(logout());
+          setIsLoggedIn(false);
+          window.location.href = "/auth/login";
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, pathname, router, tokenfromState]);
 
   const handleLogout = () => {
-    deleteCookie("token-fwa");
-
-    if (typeof window !== "undefined") {
-      localStorage.clear();
-    }
+    dispatch(logout());
 
     setIsLoggedIn(false);
 
-    window.location.replace("/auth/login");
+    window.location.href = "/auth/login";
+    toast.success("Logout Berhasil!");
   };
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -131,14 +161,14 @@ function Header() {
                     {getFirstTwoWords(customerData?.name ?? "Nama Customer")}
                   </div>
                   <div className="text-muted text-xs">
-                    {customerData?.customer_code ?? "ID"}
+                    ID: {customerData?.customer_code ?? "-"}
                   </div>
                 </div>
               </Link>
 
               <button
                 onClick={handleLogout}
-                className="flex cursor-pointer w-full items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition"
+                className="flex cursor-pointer w-full items-center gap-3 px-4 py-3 text-primary hover:bg-red-50 transition"
               >
                 <FaSignOutAlt />
                 <span>Logout</span>
@@ -149,18 +179,23 @@ function Header() {
       );
     }
 
-    return (
-      <Link
-        href="/auth/login"
-        className={`flex gap-1 items-center ${
+    return isLoading ? (
+      <div className="h-11 w-50 max-sm:h-8 max-sm:w-8 rounded-full">
+        <SkeletonBase height="h-11" />
+      </div>
+    ) : (
+      <button
+        onClick={() => router.push("/auth/login")}
+        disabled={isLoading}
+        className={`flex gap-1 items-center disabled:bg-slate-400 disabled:cursor-not-allowed ${
           pathname === "/"
-            ? "bg-button-login hover:bg-blue-700"
-            : "bg-primary hover:bg-[#0a58a4]"
+            ? "bg-button-login"
+            : "bg-primary hover:bg-dark-primary-2"
         } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white shadow-sm transition`}
       >
         <FaRegUser />
-        Login/Register
-      </Link>
+        Masuk/Daftar
+      </button>
     );
   };
 
@@ -169,8 +204,10 @@ function Header() {
       <div
         className={
           pathname === "/"
-            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white bg-[rgba(0,61,118,0.5)]`
-            : "text-dark-primary bg-white shadow-sm"
+            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white ${
+                isOpenMenu ? "bg-[#910E04]" : "bg-[rgba(118,18,0,0.5)]"
+              }`
+            : "text-black bg-white shadow-sm"
         }
       >
         {/* Desktop Header */}
@@ -179,13 +216,8 @@ function Header() {
             {/* Logo */}
             <Link href="/" className="flex gap-5 cursor-pointer">
               <Image
-                src={pathname === "/" ? starliteWhiteIcon : starliteIcon}
-                alt="Starlite"
-                className="w-[125px]"
-              />
-              <Image
-                src={pathname === "/" ? weaveWhiteIcon : weaveIcon}
-                alt="Weave"
+                src={pathname === "/" ? IraWhiteIcon : IraIcon}
+                alt="Internet Rakyat"
                 className="w-[125px]"
               />
             </Link>
@@ -198,7 +230,7 @@ function Header() {
                   pathname === "/" ? "font-bold" : ""
                 } underline-animation-register`}
               >
-                Starlite FWA
+                IRA
               </Link>
 
               <Link
@@ -210,14 +242,16 @@ function Header() {
                 Cek Jangkauan
               </Link>
 
-              <Link
-                href="/payment"
-                className={`${
-                  pathname === "/payment" ? "font-bold" : ""
-                } underline-animation-register`}
-              >
-                Bayar Tagihan
-              </Link>
+              {isLoggedIn && isActive && is_coverage && (
+                <Link
+                  href="/payment"
+                  className={`${
+                    pathname === "/payment" ? "font-bold" : ""
+                  } underline-animation-register`}
+                >
+                  Perpanjang Paket
+                </Link>
+              )}
 
               {/* Dynamic Auth Button */}
               <AuthButton />
@@ -245,13 +279,13 @@ function Header() {
             pathname === "/" ? "text-white" : "text-dark-primary"
           }`}
         >
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-5 text-center">
             <Link
               href="/"
               className={` ${pathname === "/" && "font-bold"}`}
               onClick={() => setIsOpenMenu(false)}
             >
-              Starlite FWA
+              IRA
             </Link>
 
             <Link
@@ -262,37 +296,50 @@ function Header() {
               Cek Jangkauan
             </Link>
 
-            <Link
-              href="/payment"
-              className={` ${pathname === "/payment" && "font-bold"}`}
-              onClick={() => setIsOpenMenu(false)}
-            >
-              Bayar Tagihan
-            </Link>
+            {isLoggedIn && isActive && is_coverage && (
+              <Link
+                href="/payment"
+                className={` ${pathname === "/payment" && "font-bold"}`}
+                onClick={() => setIsOpenMenu(false)}
+              >
+                Perpanjang Paket
+              </Link>
+            )}
 
             <div>
               {isLoggedIn ? (
-                <div className="flex flex-col gap-3">
-                  <span className="font-medium">Area Pelanggan</span>
+                <div className="flex flex-col gap-6">
+                  <Link
+                    href="/customer-area"
+                    className={`${
+                      pathname === "/customer-area" ? "font-bold" : ""
+                    }`}
+                  >
+                    Area Pelanggan
+                  </Link>
                   <button
                     onClick={() => {
                       handleLogout();
                       setIsOpenMenu(false);
                     }}
-                    className="flex items-center gap-2 text-red-500"
+                    className={`flex ${
+                      pathname === "/"
+                        ? "bg-white text-primary"
+                        : "bg-primary text-white"
+                    } font-bold items-center gap-2 text-center justify-center rounded-full px-5 py-2.5`}
                   >
-                    <FaUser /> Logout
+                    <FaSignOutAlt /> Logout
                   </button>
                 </div>
               ) : (
                 <Link
                   href="/auth/login"
-                  className={`flex gap-1 items-center ${
+                  className={`flex gap-1 justify-center items-center ${
                     pathname === "/" ? "bg-button-login" : "bg-primary"
                   } text-white rounded-full px-5 py-2.5 font-medium`}
                   onClick={() => setIsOpenMenu(false)}
                 >
-                  <FaRegUser /> Login/Register
+                  <FaRegUser /> Masuk/Daftar
                 </Link>
               )}
             </div>

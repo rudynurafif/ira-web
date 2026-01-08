@@ -1,4 +1,9 @@
+import { Level } from "@/app/(routes)/activation/_components/SignalChecking";
 import { jwtDecode } from "jwt-decode";
+import moment from "moment";
+import toast from "react-hot-toast";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
 export const PHONE_REGEX2 = /^\d{8,15}$/;
@@ -8,7 +13,7 @@ export const NAME_REGEX = /^[a-zA-Z\s.\-]*$/;
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function convertToCurrency(
-  number: number,
+  number: number | undefined,
   locale = "id-ID",
   currency = "IDR"
 ) {
@@ -84,3 +89,262 @@ export function getFirstTwoWords(name: string): string {
 
   return words.slice(0, 2).join(" ");
 }
+
+export function formatDate(expireAt: string): string {
+  const date = new Date(expireAt);
+
+  // Konversi ke WIB (UTC+7)
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: "Asia/Jakarta",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: undefined,
+  };
+
+  const formatted = new Intl.DateTimeFormat("id-ID", options).format(date);
+
+  // Ganti titik dengan titik dua jika perlu, dan tambahkan "WIB"
+  return `${formatted} WIB`;
+}
+
+export const formatDateFilter = (date: Date | null): string | undefined => {
+  if (!date) return undefined;
+
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0"); // bulan dimulai dari 0
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+export const formatDateFilter2 = (date: Date | null): string | undefined => {
+  if (!date) return undefined;
+
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0"); // bulan dimulai dari 0
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${day}-${month}-${year}`;
+};
+
+export function formatISODate(
+  isoString: string | null,
+  timezoneOffsetHours: number = 7
+): string {
+  if (!isoString) return "";
+
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return "";
+
+  // Sesuaikan ke zona waktu tertentu (misal WIB = UTC+7)
+  const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+  const targetTime = new Date(utc + 3600000 * timezoneOffsetHours);
+
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  };
+
+  const formatter = new Intl.DateTimeFormat("id-ID", options);
+  const parts = formatter.formatToParts(targetTime);
+
+  // Ekstrak bagian untuk susun ulang secara eksplisit jika diperlukan
+  const day = parts.find((p) => p.type === "day")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const year = parts.find((p) => p.type === "year")?.value;
+  const hour = parts.find((p) => p.type === "hour")?.value;
+  const minute = parts.find((p) => p.type === "minute")?.value;
+  const second = parts.find((p) => p.type === "second")?.value;
+
+  return `${day} ${month} ${year}, pukul ${hour}:${minute}:${second} WIB`;
+}
+
+export function daysUntil(dateISO: string): number {
+  if (!dateISO) return 0;
+
+  // Ambil hanya bagian tanggal (YYYY-MM-DD) untuk menghindari zona waktu
+  const datePart = dateISO.split("T")[0];
+  const [y, m, d] = datePart.split("-").map(Number);
+  const target = new Date(y, m - 1, d);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.trunc((target.getTime() - today.getTime()) / msPerDay);
+}
+
+export function packageCountdown(endDateISO: string) {
+  const totalDays = daysUntil(endDateISO);
+
+  // Handle expired or today
+  if (totalDays < 0) {
+    return {
+      days: totalDays,
+      status: "expired" as const,
+      label: "Sudah berakhir",
+      note: "Masa aktif telah berakhir",
+    };
+  }
+
+  if (totalDays === 0) {
+    return {
+      days: 0,
+      status: "expires_today" as const,
+      label: "Berakhir hari ini",
+      note: "Paket berakhir hari ini",
+    };
+  }
+
+  // Hitung tahun dan hari sisa
+  const years = Math.floor(totalDays / 365);
+  const remainingDays = totalDays % 365;
+
+  let label: string;
+  let note: string;
+  let status: "active" | "3_days_remaining" = "active";
+
+  if (totalDays <= 3) {
+    status = "3_days_remaining";
+    label = `${totalDays} Hari`;
+    note = `Berakhir dalam ${totalDays} hari`;
+  } else if (years > 0) {
+    // Format: "X Tahun Y Hari"
+    label = `${years} Tahun ${remainingDays} Hari`;
+    note = `Berakhir dalam ${years} tahun dan ${remainingDays} hari`;
+  } else {
+    // Kurang dari 1 tahun, hanya hari
+    label = `${totalDays} Hari`;
+    note = `Berakhir dalam ${totalDays} hari`;
+  }
+
+  return {
+    days: totalDays,
+    status,
+    label,
+    note,
+  };
+}
+
+export function formatPaymentNumber(va: string): string {
+  return (
+    va
+      ?.replace(/\s/g, "")
+      .match(/.{1,4}/g)
+      ?.join(" ") || ""
+  );
+}
+
+export const copyToClipboard = (text: string) => {
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      toast.success("Copied to clipboard");
+    })
+    .catch(() => {
+      toast.error("Failed to copy to clipboard");
+    });
+};
+
+export const toastErrorFromAPI = (error: any, id?: string | undefined) => {
+  // const errorStatusCode = error?.response?.data?.statusCode ?? "(status code)";
+  const errorMsg =
+    error?.response?.data?.message ??
+    error?.message ??
+    "Terjadi kesalahan, silakan coba lagi.";
+
+  // toast.error(`Error ${errorStatusCode}: ${errorMsg}`);
+  toast.error(errorMsg, { id });
+};
+
+export const formattedDate = (dateString: string) => {
+  const date = moment(dateString);
+  return date.format("DD MMMM YYYY");
+};
+
+export function formatNamaWilayah(nama: string): string {
+  return nama.replace(/^kab\./i, "kabupaten");
+}
+
+export const maskPassword = (password: string) => {
+  return "*".repeat(password.length);
+};
+
+export const getSignalLevel = (
+  rsrp?: number,
+  rsrq?: number,
+  sinr?: number
+): "good" | "poor" | "bad" | "disconnected" => {
+  if (rsrp == null) {
+    return "disconnected";
+  }
+
+  // Sesuai tabel RSRP
+  if (rsrp >= -80) return "good"; // Excellent
+  if (rsrp >= -90) return "good"; // Good
+  if (rsrp >= -100) return "poor"; // Fair to Poor
+  return "bad"; // Poor
+};
+
+export const mapSignalToLevel = (
+  rsrp: number | null,
+  rsrq: number | null,
+  sinr: number | null
+): Level => {
+  if (rsrp === null) return 0;
+
+  // Sesuai tabel RSRP
+  if (rsrp >= -80) return 4; // Excellent
+  if (rsrp >= -90) return 3; // Good
+  if (rsrp >= -100) return 2; // Fair to Poor
+  return 1; // Poor
+};
+
+export const htmlToPdf = async (
+  htmlString: string,
+  filename: string = "invoice.pdf"
+) => {
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = htmlString;
+  tempDiv.style.position = "absolute";
+  tempDiv.style.left = "-9999px";
+  tempDiv.style.top = "-9999px";
+  tempDiv.style.width = "700px"; // sesuaikan dengan desain invoice
+  document.body.appendChild(tempDiv);
+
+  try {
+    const canvas = await html2canvas(tempDiv, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "px",
+      format: [canvas.width, canvas.height],
+    });
+
+    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    
+    // ✅ Langsung download, jangan buka tab baru
+    pdf.save(filename);
+
+    // Cleanup
+    document.body.removeChild(tempDiv);
+  } catch (err) {
+    console.error("Gagal generate PDF:", err);
+    document.body.removeChild(tempDiv);
+    throw err;
+  }
+};
