@@ -75,16 +75,16 @@ const PaymentMehods = () => {
     (ch) => ch.category === "va" && ch.is_active
   );
   const ewallets = paymentChannels.filter(
-    (ch) => ch.category === "ewallet" && ch.is_active
+    (ch) => ch.category === "ewallet" && ch.is_active && ch.status === "active"
   );
   const cardChannel = paymentChannels.filter(
-    (ch) => ch.category === "card" && ch.is_active
+    (ch) => ch.category === "card" && ch.is_active && ch.status === "active"
   );
   const qrisChannels = paymentChannels.filter(
-    (ch) => ch.category === "qris" && ch.is_active
+    (ch) => ch.category === "qris" && ch.is_active && ch.status === "active"
   );
   const outlets = paymentChannels.filter(
-    (ch) => ch.category === "otc" && ch.is_active
+    (ch) => ch.category === "otc" && ch.is_active && ch.status === "active"
   );
 
   const fetchData = async () => {

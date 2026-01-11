@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
 import { useRouter } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
@@ -33,17 +33,26 @@ const ActivePacket = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+  const [isUserActive, setIsUserActive] = useState(false);
+
+  useEffect(() => {
+    if (userInfo?.status === "active" || userInfo?.is_active) {
+      setIsUserActive(true);
+    } else {
+      setIsUserActive(false);
+    }
+  }, [userInfo?.is_active, userInfo?.status]);
 
   // Ambil hanya paket aktif dari subHistory (indeks 0)
   useEffect(() => {
-    if (subscriptionHistory?.[0]) {
+    if (subscriptionHistory?.[0] && userInfo?.status === "active") {
       console.log(subscriptionHistory?.[0]);
       // Cek apakah ini paket aktif (ada start_date dan belum expired)
       const isActive =
         subscriptionHistory[0]?.start_date && subscriptionHistory[0]?.end_date;
       setActivePacketData(isActive ? subscriptionHistory?.[0] : null);
     }
-  }, [subscriptionHistory]);
+  }, [subscriptionHistory, userInfo?.status]);
 
   // Fetch riwayat dengan pagination
   const fetchHistory = async (page: number) => {
@@ -70,8 +79,8 @@ const ActivePacket = () => {
   };
 
   useEffect(() => {
-    fetchHistory(1);
-  }, []);
+    if (userInfo?.status === "active") fetchHistory(1);
+  }, [userInfo?.status]);
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
@@ -102,7 +111,7 @@ const ActivePacket = () => {
           onClick={() => window.open("/pandaan-cara-bayar", "_blank")}
         />
 
-        <HistorySection />
+        {isUserActive && <HistorySection />}
       </div>
 
       {/* DESKTOP (≥ sm) */}
@@ -124,7 +133,7 @@ const ActivePacket = () => {
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
-          <HistorySection />
+          {isUserActive && <HistorySection />}
         </div>
       </div>
     </>
