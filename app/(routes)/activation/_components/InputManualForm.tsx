@@ -39,7 +39,8 @@ function InputManualForm() {
 
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
         toast.success(
-          res.data.message || "Serial Number berhasil diverifikasi"
+          res.data.message ||
+            "Sedang proses aktivasi, silakan cek status secara berkala"
         );
       } else {
         errors.serial_number =
@@ -60,11 +61,6 @@ function InputManualForm() {
 
         addUrlParam("section", "connect");
         addUrlParam("serial_number", serialNumber);
-
-        // Untuk keperluan simulasi, redirect ke customer-area setelah submit
-        // setTimeout(() => {
-        //   window.location.href = "/customer-area";
-        // }, 3000);
       }
     } catch (error: any) {
       setOpenModalFailed(true);

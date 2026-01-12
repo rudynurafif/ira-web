@@ -28,6 +28,11 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
   message,
 }) => {
   const config = {
+    veryGood: {
+      icon: goodSignal,
+      statusText: "Sangat Baik",
+      internetText: "Connected",
+    },
     good: {
       icon: goodSignal,
       statusText: "Baik",

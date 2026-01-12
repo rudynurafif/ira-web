@@ -46,7 +46,7 @@ const levelTitle: Record<Level, string> = {
   1: "Buruk",
   2: "Cukup",
   3: "Baik",
-  4: "Sempurna",
+  4: "Sangat Baik",
 };
 
 const levelAdvice: Record<Level, string> = {

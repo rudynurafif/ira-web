@@ -72,7 +72,7 @@ const PaymentMehods = () => {
 
   // Filter by category
   const virtualAccounts = paymentChannels.filter(
-    (ch) => ch.category === "va" && ch.is_active
+    (ch) => ch.category === "va" && ch.is_active && ch.status === "active"
   );
   const ewallets = paymentChannels.filter(
     (ch) => ch.category === "ewallet" && ch.is_active && ch.status === "active"

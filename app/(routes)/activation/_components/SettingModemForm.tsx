@@ -13,7 +13,6 @@ import {
 } from "@/app/_shared/types/CoreNetwork";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import toast from "react-hot-toast";
-import { useSSE } from "@/app/_context/SSEContext";
 import { getCookie } from "cookies-next";
 import { DecodedToken } from "@/app/_context/sse.type";
 import Loader from "@/app/_components/Loader";
@@ -41,7 +40,6 @@ function SettingModemForm() {
   const [showPassword5, setShowPassword5] = useState(false);
   const [isLoadingCPE, setIsLoadingCPE] = useState(true);
   const [isWaitingForSetWifi, setIsWaitingForSetWifi] = useState(false);
-  // const { wifiConfig } = useSSE();
 
   const sn =
     typeof window !== "undefined"
@@ -253,8 +251,8 @@ function SettingModemForm() {
     formData.ssid_5ghz.trim().length >= 5 &&
     formData.ssid_5ghz.trim().length <= 32 &&
     formData.password_5ghz.length >= 8 &&
-    formData.password_5ghz.length <= 63 &&
-    Object.keys(errors).length === 0;
+    formData.password_5ghz.length <= 63
+    // && Object.keys(errors).length === 0;
 
   if (isLoadingCPE) {
     return <Loader />;
