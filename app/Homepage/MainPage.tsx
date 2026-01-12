@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import modem from "@/public/assets/Images/main-modem.svg";
 import modem2 from "@/public/assets/Images/main-modem-2.svg";
-import modemIra from "@/public/assets/Images/CPE-IRA.png";
+import modemIra from "@/public/assets/Images/cpe-ira.png";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
