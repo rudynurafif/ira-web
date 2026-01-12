@@ -82,7 +82,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "ID_GOPAY",
+        name: "GOPAY",
         image: gopay,
         instructions: [
           {

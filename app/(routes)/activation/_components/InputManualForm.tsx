@@ -49,6 +49,7 @@ function InputManualForm() {
         );
       }
 
+      // jika ada error
       if (Object.keys(errors).length > 0) {
         setErrors(errors);
 

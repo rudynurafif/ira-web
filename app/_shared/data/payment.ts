@@ -36,7 +36,7 @@ export const PAYMENT_LOGOS: Record<string, any> = {
   BCA: bca,
 
   // E-Wallet
-  ID_GOPAY: gopay,
+  GOPAY: gopay,
   ID_DANA: dana,
   ID_OVO: ovo,
   ID_LINKAJA: linkAja,
