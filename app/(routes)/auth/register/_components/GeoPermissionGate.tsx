@@ -56,7 +56,7 @@ export default function GeoPermissionGate({ onGotLocation, className }: Props) {
       {status === "denied" && (
         <div className="space-y-2">
           <p className="font-semibold text-red-700">
-            Akses lokasi diblokir untuk situs ini.
+            Anda belum mengizinkan akses lokasi untuk IRA.
           </p>
           <ol className="text-sm text-red-800 list-decimal pl-4 space-y-1">
             <li>

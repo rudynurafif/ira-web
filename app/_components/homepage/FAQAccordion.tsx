@@ -51,12 +51,16 @@ export default function FAQAccordion() {
       };
 
       const resData = await getFAQs(params);
+      const result = resData?.data?.result;
 
-      if (resData?.data?.statusCode === 200) {
-        setFaqs(resData?.data?.result ?? faqsBackUp);
+      if (Array.isArray(result) && result.length > 0) {
+        setFaqs(result);
+      } else {
+        setFaqs(faqsBackUp);
       }
     } catch (err: any) {
       toastErrorFromAPI(err);
+      setFaqs(faqsBackUp);
     } finally {
       setIsLoading(false);
     }

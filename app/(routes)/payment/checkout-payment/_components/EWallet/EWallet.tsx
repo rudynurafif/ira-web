@@ -25,6 +25,9 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
   const [paymentStatus, setPaymentStatus] = useState<boolean | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
 
+   const type = params.get("type");
+    const selected = params.get("selected_payment");
+
   const checkPaymentStatus = async () => {
     setIsLoadingStatus(true);
 
@@ -49,8 +52,7 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
   };
 
   useEffect(() => {
-    const type = params.get("type");
-    const selected = params.get("selected_payment");
+   
     if (type && selected) {
       const matchedType = dataEWallet.find(
         (item) => item.route.toLowerCase() === type
@@ -99,7 +101,7 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
             <div className="flex sm:justify-end">
               <Image
                 src={selectedImage}
-                alt=""
+                alt={selected ?? "E-Wallet Logo"}
                 width={100}
                 height={100}
                 className="w-31 h-fit my-3"

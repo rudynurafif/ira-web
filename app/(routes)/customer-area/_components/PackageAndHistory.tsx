@@ -10,17 +10,13 @@ import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
 import bannerPanduanMobile from "@/public/assets/Images/bannerPanduanMobile.png";
 import bannerCS from "@/public/assets/Images/bannerCS.png";
 import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
+import bannerCubmu from "@/public/assets/Images/banner-cubmu.png";
+import bannerCubmuMobile from "@/public/assets/Images/banner-cubmu-mobile.png";
 import ActivePackageCard from "./ActivePackageCard";
-import SubsHistoryCard from "./SubsHistoryCard";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
-import empty from "@/public/assets/Images/Empty.svg";
-import toast from "react-hot-toast";
-import DatePickerFilter from "@/app/_components/form/DatePickerFilter";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
 import HistorySection from "./HistorySection";
 import thumbClick from "@/public/assets/Icons/thumb-click.png";
-import Link from "next/link";
-import { FaSearchLocation } from "react-icons/fa";
 
 const PAGE_SIZE = 5;
 
@@ -60,8 +56,9 @@ const PackageAndHistory = () => {
       }
     };
 
-    fetchActivePackage();
-  }, []);
+    if (userInfo?.is_active || userInfo?.status === "active")
+      fetchActivePackage();
+  }, [userInfo?.is_active, userInfo?.status]);
 
   // Fetch riwayat dengan pagination
   const fetchHistory = async (page: number) => {
@@ -255,6 +252,15 @@ const PackageAndHistory = () => {
       <div className="sm:hidden space-y-6">
         {activePacketData && <ActivePackageCard data={activePacketData} />}
 
+        {activePacketData && (
+          <Image
+            src={bannerCubmuMobile}
+            alt="banner CS"
+            className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => window.open(`/add-on/cubmu`, "_blank")}
+          />
+        )}
+
         <Image
           src={bannerCSMobile}
           alt="banner CS"
@@ -271,13 +277,25 @@ const PackageAndHistory = () => {
           onClick={() => window.open("/pandaan-cara-bayar", "_blank")}
         />
 
-        {is_coverage && <HistorySection />}
+        {is_coverage && userInfo.is_active && userInfo.status === "active" && (
+          <HistorySection />
+        )}
       </div>
 
       {/* DESKTOP (≥ sm) */}
       <div className="hidden sm:grid grid-cols-12 gap-6">
         <div className="lg:col-span-5 col-span-12 space-y-5">
           {activePacketData && <ActivePackageCard data={activePacketData} />}
+
+          {activePacketData && (
+            <Image
+              src={bannerCubmu}
+              alt="banner CS"
+              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => window.open(`/add-on/cubmu`, "_blank")}
+            />
+          )}
+
           <Image
             src={bannerCS}
             alt="banner CS"
@@ -297,7 +315,9 @@ const PackageAndHistory = () => {
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
 
-          {is_coverage && <HistorySection />}
+          {is_coverage &&
+            userInfo.is_active &&
+            userInfo.status === "active" && <HistorySection />}
         </div>
       </div>
     </>

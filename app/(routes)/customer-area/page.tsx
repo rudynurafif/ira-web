@@ -158,7 +158,7 @@ export default function AreaPelanggan() {
                     {isFetching ? (
                       <SkeletonBase />
                     ) : (
-                      <span>ID: {userInfo?.customer_code ?? "-"}</span>
+                      <p>ID: {userInfo?.customer_code ?? "-"}</p>
                     )}
                   </div>
                 </div>

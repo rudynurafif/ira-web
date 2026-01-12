@@ -10,18 +10,54 @@ import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/app/store/store";
 import { useRouter } from "next/navigation";
+import { FaCheck, FaCopy } from "react-icons/fa";
 
 export const ProfileLabel = ({
   label,
   data,
+  value,
+  showCopyButton = false,
+  onCopy,
 }: {
   label: string;
   data: string;
+  value?: string;
+  showCopyButton?: boolean;
+  onCopy?: (value: string) => void;
 }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (value) {
+      navigator.clipboard.writeText(value).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 5000);
+        onCopy?.(value);
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-1 max-sm:px-4 max-sm:py-2 py-3 px-5">
       <p className="text-secondary max-sm:text-[12px] text-sm">{label}</p>
-      <p className="text-black max-sm:text-[12px] text-lg">{data}</p>
+      <div className="">
+        <p className="text-black inline max-sm:text-[12px] text-lg">{data}</p>
+        {showCopyButton && (
+          <button
+            type="button"
+            onClick={handleCopy}
+            disabled={copied}
+            className="cursor-pointer ml-1 inline disabled:cursor-not-allowed right-3 top-12 text-gray-500 hover:text-gray-700"
+            title="Salin teks"
+          >
+            {copied ? (
+              <FaCheck className="text-green-500" />
+            ) : (
+              <FaCopy className="text-primary" />
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 };
@@ -53,7 +89,20 @@ const PersonalData = () => {
             data={userInfo?.phone_number || "-"}
           />
           <ProfileLabel label="Email" data={userInfo?.email || "-"} />
-          <ProfileLabel label="Alamat" data={userInfo?.address || "-"} />
+          <ProfileLabel
+            label="Alamat"
+            value={userInfo?.address || "-"}
+            onCopy={(value) => toast.success(`Alamat berhasil disalin`)}
+            showCopyButton={true}
+            data={userInfo?.address || "-"}
+          />
+          <ProfileLabel
+            showCopyButton={true}
+            value={userInfo?.longitude + ", " + userInfo?.latitude || "-"}
+            onCopy={(value) => toast.success(`LongLat berhasil disalin`)}
+            label="Longitude Latitude"
+            data={userInfo?.longitude + ", " + userInfo?.latitude || "-"}
+          />
 
           <div className="flex max-sm:gap-2 gap-6 justify-between p-4">
             <>
@@ -75,6 +124,8 @@ const PersonalData = () => {
                   phone_number: userInfo?.phone_number,
                   email: userInfo?.email || "",
                   actual_address: userInfo?.address,
+                  latitude: userInfo?.latitude ?? undefined,
+                  longitude: userInfo?.longitude ?? undefined,
                 }}
               />
             </>

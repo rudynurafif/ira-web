@@ -48,7 +48,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "OVO",
+        name: "ID_OVO",
         image: ovo,
         instructions: [
           {
@@ -65,7 +65,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "LINKAJA",
+        name: "ID_LINKAJA",
         image: linkAja,
         instructions: [
           {
@@ -99,7 +99,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "ASTRAPAY",
+        name: "ID_ASTRAPAY",
         image: astraPay,
         instructions: [
           {
@@ -116,7 +116,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "JENIUSPAY",
+        name: "ID_JENIUSPAY",
         image: jeniusPay,
         instructions: [
           {
