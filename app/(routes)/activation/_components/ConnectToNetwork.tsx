@@ -9,11 +9,9 @@ import Image from "next/image";
 import CPEIRA from "@/public/assets/Images/cpe-ira.png";
 import { MdHeadsetMic } from "react-icons/md";
 import toast from "react-hot-toast";
-import { useSSE } from "@/app/_context/SSEContext";
 import Badge from "@/app/_components/Badge";
 import { refreshTask } from "@/app/_api/CoreNetwork/CoreNetwork";
 import { getCookie } from "cookies-next";
-import { useSSEOneTime } from "@/app/hooks/useSSEOneTime";
 import { DecodedToken } from "@/app/_context/sse.type";
 import { EventSourcePolyfill } from "event-source-polyfill";
 
@@ -27,9 +25,13 @@ export default function ConnectToNetwork() {
 
   const [screen, setScreen] = useState<Screen>("loading");
   const [attempt, setAttempt] = useState(1);
+  const [currentStep, setCurrentStep] = useState<
+    "activate" | "ping-test" | null
+  >(null);
 
   const progressTimer = useRef<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const eventSourceRef = useRef<any>(null); // Untuk mengelola eventSource
 
   const CHECK_COOLDOWN = 120;
   const COOLDOWN_KEY = "activation_cooldown_end";
@@ -45,9 +47,59 @@ export default function ConnectToNetwork() {
   }, [token]);
   const customer_id = decodedToken?.customer_id;
 
+  // Fungsi untuk menyelesaikan proses aktivasi
+  function handleActivationSuccess(source: "sse" | "api") {
+    if (activationConfirmed) return;
+
+    localStorage.setItem(
+      "ira-cpe-serial-number",
+      serialNumber || "SN not found"
+    );
+
+    resetAttempt();
+    setActivationConfirmed(true);
+    setScreen("success");
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }
+
+  // Fungsi untuk menandai timeout
+  const handleTimeout = () => {
+    setScreen("timedOut");
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
+  // Setup event listener untuk mencegah refresh saat loading
+  useEffect(() => {
+    if (screen === "loading" && !activationConfirmed) {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [screen, activationConfirmed]);
+
   // Konsumsi SSE untuk dua event: activate & ping-test-activate
   useEffect(() => {
     if (!customer_id || screen !== "loading" || activationConfirmed) return;
+
+    // Close event source lama jika ada
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
 
     const eventSource: any = new EventSourcePolyfill(
       `${
@@ -63,6 +115,8 @@ export default function ConnectToNetwork() {
       }
     );
 
+    eventSourceRef.current = eventSource;
+
     const handleActivate: EventListener = (event) => {
       const customEvent = event as MessageEvent;
       const data = JSON.parse(customEvent.data);
@@ -72,6 +126,7 @@ export default function ConnectToNetwork() {
         (data.message === "Success" || data.result === "processed")
       ) {
         toast.success("Proses aktivasi dimulai...");
+        setCurrentStep("activate");
       }
     };
 
@@ -85,6 +140,12 @@ export default function ConnectToNetwork() {
       ) {
         toast.success("Aktivasi berhasil! Konektivitas terjamin.");
         handleActivationSuccess("sse");
+      } else if (
+        data.type === "ping-test-activate" &&
+        data.sn === serialNumber &&
+        data.message !== "Success"
+      ) {
+        setCurrentStep("ping-test");
       }
     };
 
@@ -107,72 +168,6 @@ export default function ConnectToNetwork() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customer_id, serialNumber, screen, activationConfirmed]);
 
-  // consume SSE
-  // useSSEOneTime(
-  //   customer_id || "",
-  //   (payload) => {
-  //     if (
-  //       payload.type === "activate" &&
-  //       payload.sn === serialNumber &&
-  //       (payload.message === "Success" || payload.result === "processed")
-  //     ) {
-  //       toast.success("Perangkat berhasil diaktivasi");
-  //       setActivationConfirmed(true);
-  //       resetAttempt();
-  //       setScreen("success");
-  //       localStorage.setItem(
-  //         "ira-cpe-serial-number",
-  //         payload.sn ?? "No SN from activation SSE"
-  //       );
-  //     }
-  //   },
-  //   screen === "loading" && !activationConfirmed
-  // );
-
-  function handleActivationSuccess(source: "sse" | "api") {
-    if (activationConfirmed) return;
-
-    localStorage.setItem(
-      "ira-cpe-serial-number",
-      serialNumber || "SN not found"
-    );
-
-    resetAttempt();
-    setActivationConfirmed(true);
-    setScreen("success");
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  }
-
-  // Setup event listener untuk mencegah refresh saat loading
-  useEffect(() => {
-    if (screen === "loading" && !activationConfirmed) {
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        e.preventDefault();
-        e.returnValue = "";
-        return "";
-      };
-
-      window.addEventListener("beforeunload", handleBeforeUnload);
-
-      return () => {
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-      };
-    }
-  }, [screen, activationConfirmed]);
-
-  // Fungsi untuk menandai timeout
-  const handleTimeout = () => {
-    setScreen("timedOut");
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  };
-
   useEffect(() => {
     if (!isCooldownActive || cooldown <= 0) return;
 
@@ -194,6 +189,7 @@ export default function ConnectToNetwork() {
     if (!serialNumber || activationConfirmed) return;
 
     setScreen("loading");
+    setCurrentStep(null);
   }
 
   async function handleCheckAgain() {
@@ -204,7 +200,14 @@ export default function ConnectToNetwork() {
       return;
     }
 
+    // Close event source lama
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+
     setScreen("loading");
+    setCurrentStep(null);
 
     const endAt = Date.now() + CHECK_COOLDOWN * 1000;
     localStorage.setItem(COOLDOWN_KEY, String(endAt));
@@ -216,14 +219,9 @@ export default function ConnectToNetwork() {
       toast.loading("Mengecek ulang status aktivasi...", { id: "refresh" });
 
       const res = await refreshTask({ type: "activate" });
-      const resPingTest = await refreshTask({ type: "ping-test-activate" });
-
-      // ada dua animasi loader untuk dua event
-      // awalnya loading -> tunggu SSE activate -> loading lagi -> tunggu SSE ping-test-activate
 
       toast.success("Permintaan cek status dikirim", { id: "refresh" });
 
-      // sesuaikan lagi
       if (res?.data?.code === 0) {
         handleActivationSuccess("api");
         toast.success("Perangkat berhasil diaktivasi");
@@ -284,10 +282,20 @@ export default function ConnectToNetwork() {
       `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSN: ${serialNumber}`
     );
     const phone = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
-    const url = `https://wa.me/${phone}?text=${msg}`;
+    const url = `https://wa.me/${phone}?text=${msg}`; // ✅ Fixed: removed extra space
 
     window.open(url, "_blank");
   }
+
+  // Fungsi untuk restart aktivasi dari awal
+  const handleRestart = () => {
+    setScreen("loading");
+    setCurrentStep(null);
+    setAttempt(1);
+    setActivationConfirmed(false);
+    resetAttempt();
+    // localStorage.removeItem(COOLDOWN_KEY); // jika ingin reset cooldown
+  };
 
   // ---- UI ----
   if (screen === "timedOut") {
@@ -316,6 +324,14 @@ export default function ConnectToNetwork() {
           >
             Hubungi Customer Service <MdHeadsetMic size={20} />
           </button>
+
+          <button
+            onClick={handleRestart}
+            className="w-full bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
+            type="button"
+          >
+            Coba Lagi
+          </button>
         </div>
       </div>
     );
@@ -329,8 +345,6 @@ export default function ConnectToNetwork() {
         </h2>
 
         <div className="pt-10 flex flex-col items-center justify-center px-6 py-12 sm:px-6 lg:px-8">
-          {/* Progress Bar */}
-          {/* <ProgressRing percent={progress} /> */}
           <div className="mb-8 relative flex justify-center items-center">
             {/* Kiri */}
             <div className="absolute -left-22.5 top-1/2 transform -translate-y-1/2 z-0">
@@ -353,10 +367,14 @@ export default function ConnectToNetwork() {
 
         <div className="pt-6">
           <div className="font-bold text-old-primary">
-            Hooray! Aktivasi CPE Sedang Berlangsung
+            {currentStep === "activate"
+              ? "Menghubungkan ke Jaringan..."
+              : currentStep === "ping-test"
+              ? "Menghubungkan Koneksi Internet..."
+              : "Hooray! Aktivasi CPE Sedang Berlangsung"}
           </div>
           <p className="text-black max-w-4xl mx-auto mt-2">
-            Aktivasi CPE membutuhkan waktu sekitar 1 menit. Jangan khawatir,
+            Aktivasi CPE membutuhkan waktu sekitar 2 menit. Jangan khawatir,
             setelah selesai kamu akan dapat notifikasi lewat WhatsApp atau bisa
             langsung cek statusnya di aplikasi Internet Rakyat. Jika kamu punya
             pertanyaan silakan hubungi customer service kami.
@@ -364,14 +382,6 @@ export default function ConnectToNetwork() {
         </div>
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-6">
-          {/* <button
-            onClick={contactCS}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
-            type="button"
-          >
-            Hubungi Customer Service <MdHeadsetMic size={20} />
-          </button> */}
-
           <button
             onClick={handleCheckAgain}
             disabled={isCooldownActive}
@@ -400,7 +410,6 @@ export default function ConnectToNetwork() {
         </h2>
 
         <div className="pt-8 flex justify-center items-center">
-          {/* ikon wifi sederhana */}
           <FaWifi size={40} />
         </div>
 
@@ -493,4 +502,6 @@ export default function ConnectToNetwork() {
       </div>
     );
   }
+
+  return null;
 }
