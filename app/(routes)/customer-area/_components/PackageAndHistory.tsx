@@ -14,9 +14,14 @@ import bannerCubmu from "@/public/assets/Images/banner-cubmu.png";
 import bannerCubmuMobile from "@/public/assets/Images/banner-cubmu-mobile.png";
 import ActivePackageCard from "./ActivePackageCard";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import { toastErrorFromAPI } from "@/app/_shared/utils";
+import {
+  formattedDate,
+  packageCountdown,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import HistorySection from "./HistorySection";
 import thumbClick from "@/public/assets/Icons/thumb-click.png";
+import expiredIcon from "@/public/assets/Images/internet-mati.png";
 
 const PAGE_SIZE = 5;
 
@@ -30,6 +35,9 @@ const PackageAndHistory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const searchParams = useSearchParams();
+  const { label, status, days } = packageCountdown(
+    activePacketData?.end_date ?? null
+  );
 
   const { userInfo, is_coverage } = useAppSelector((state) => state.auth);
   const router = useRouter();
@@ -246,11 +254,58 @@ const PackageAndHistory = () => {
     );
   };
 
+  const ExpiredCard = ({
+    data = activePacketData,
+  }: {
+    data?: SubscriptionHistoryAPI | null;
+  }) => {
+    return (
+      <div className="text-center py-6 px-4 bg-gradient-to-b from-white via-white to-[#D6211E] rounded-xl shadow-lg">
+        {/* Ikon Peringatan Besar */}
+        <div className="flex justify-center mb-4">
+          <Image
+            src={expiredIcon} // Gunakan exclamationIcon atau expiredIcon, sesuaikan visual
+            width={60}
+            height={60}
+            alt="warning-icon"
+          />
+        </div>
+
+        {/* Judul Utama */}
+        <p className="text-sm sm:text-base font-bold text-[#D6211E] mb-2">
+          Internet nonaktif—bayar paket untuk aktif kembali seketika.
+        </p>
+
+        {/* Deskripsi */}
+        <p className="text-xs sm:text-sm text-gray-800 mb-6">
+          Internet nonaktif sementara karena masa aktif sudah berakhir pada{" "}
+          <span className="font-bold">
+            {formattedDate(data?.end_date ?? "") ?? "-"}
+          </span>
+          . Pilih dan bayar paket yang kamu inginkan agar koneksi Internet Rakyat segera aktif kembali; hubungi bantuan jika membutuhkan
+          panduan.
+        </p>
+
+        {/* Tombol CTA */}
+        <button
+          onClick={() => router.push("/payment")}
+          className="bg-red-600 cursor-pointer hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-md"
+        >
+          Beli Paket Sekarang
+        </button>
+      </div>
+    );
+  };
+
   return (
     <>
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
-        {activePacketData && <ActivePackageCard data={activePacketData} />}
+        {activePacketData && status === "expired" ? (
+          <ExpiredCard data={activePacketData} />
+        ) : activePacketData ? (
+          <ActivePackageCard data={activePacketData} />
+        ) : null}
 
         {activePacketData && (
           <Image
@@ -285,7 +340,11 @@ const PackageAndHistory = () => {
       {/* DESKTOP (≥ sm) */}
       <div className="hidden sm:grid grid-cols-12 gap-6">
         <div className="lg:col-span-5 col-span-12 space-y-5">
-          {activePacketData && <ActivePackageCard data={activePacketData} />}
+          {activePacketData && status === "expired" ? (
+            <ExpiredCard data={activePacketData} />
+          ) : activePacketData ? (
+            <ActivePackageCard data={activePacketData} />
+          ) : null}
 
           {activePacketData && (
             <Image

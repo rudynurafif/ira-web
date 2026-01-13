@@ -12,7 +12,7 @@ const FwaAxios = axios.create({
   baseURL: baseURL, // dev/staging/production
   headers: {
     "x-api-key": "280999!FTTH",
-    // "ngrok-skip-browser-warning": "6024",
+    // "ngrok-skip-browser-warning": "6024",\
   },
 });
 

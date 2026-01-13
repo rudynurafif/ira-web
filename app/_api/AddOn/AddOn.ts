@@ -1,9 +1,9 @@
-import FwaAxios from "../_api/FwaAxios";
+import FwaAxios from "../FwaAxios";
 
-export const getImageBanner = async (params: any) => {
+export const getAddOn = async (params: any) => {
   try {
     const data = await FwaAxios({
-      url: "/app/banner",
+      url: "/app/add-on",
       method: "GET",
       params: params,
     });

@@ -26,7 +26,17 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   const { label, status, days } = packageCountdown(data.end_date ?? null);
 
   return (
-    <div className="bg-linear-to-b from-white via-white to-[#FFDCDC] rounded-xl shadow-lg p-6 max-sm:p-4">
+    <div
+      className={`bg-linear-to-b from-white via-white ${
+        status === "3_days_remaining"
+          ? "to-[#67aaff]"
+          : status === "expires_today"
+          ? "to-[#f89d66]"
+          : status === "expired"
+          ? "#D6211E"
+          : "#FFDCDC"
+      } rounded-xl shadow-lg p-6 max-sm:p-4`}
+    >
       {/* Header */}
       <div className="mb-3">Paket yang terakhir dibeli</div>
       <div className="flex items-center gap-4 mb-4">
@@ -78,9 +88,9 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               height={24}
               alt="warning-icon"
               className="mb-1"
-              color="#008E19"
+              color="#0168ff"
             />
-            <p className="sm:text-sm text-xs font-bold text-orange">
+            <p className="sm:text-sm text-xs font-bold text-nokia-blue">
               Tinggal {days} hari! Segera perpanjang sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar tidak terputus.
             </p>
@@ -88,7 +98,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               Masa aktif hampir habis. Amankan akses internet keluarga dengan
               memperpanjang paket sebelum tanggal{" "}
               {formattedDate(data.end_date) ?? "-"}; proses cepat, layanan tetap
-              aktif tanpa putus. Nikmati Kuota Unlimited dan
+              aktif tanpa putus.
             </p>
           </>
         )}
@@ -102,7 +112,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               className="mb-1"
               color="#008E19"
             />
-            <p className="sm:text-sm text-xs font-bold text-purple">
+            <p className="sm:text-sm text-xs font-bold text-orange">
               Paket berakhir hari ini! Segera perpanjang sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar tidak terisolir.
             </p>
@@ -126,13 +136,16 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               color="#008E19"
             />
             <p className="sm:text-sm text-xs font-bold text-[#D6211E]">
-              Layanan nonaktif—bayar paket untuk aktif kembali seketika.
+              Internet nonaktif—bayar paket untuk aktif kembali seketika.
             </p>
             <p className="sm:text-sm text-xs mt-1">
               Internet nonaktif sementara karena masa aktif sudah berakhir pada{" "}
-              {formattedDate(data.end_date) ?? "-"}. Pilih dan bayar paket yang
-              kamu inginkan agar koneksi Internet Rakyat segera aktif kembali;
-              hubungi bantuan jika membutuhkan panduan.
+              <span className="font-bold">
+                {formattedDate(data.end_date) ?? "-"}
+              </span>
+              . Pilih dan bayar paket yang kamu inginkan agar koneksi Internet
+              Rakyat segera aktif kembali; hubungi bantuan jika membutuhkan
+              panduan.
             </p>
           </>
         )}
