@@ -5,8 +5,7 @@ import poorSignal from "@/public/assets/Icons/poor-signal.svg";
 import badSignal from "@/public/assets/Icons/bad-signal.svg";
 import disconnected from "@/public/assets/Icons/disconnected-signal.svg";
 import Image from "next/image";
-
-export type Level = 0 | 1 | 2 | 3 | 4;
+import { Level } from "../../activation/_components/SignalChecking";
 
 const levelTitle: Record<Level, string> = {
   0: "Tidak Terdeteksi",
@@ -16,26 +15,12 @@ const levelTitle: Record<Level, string> = {
   4: "Sangat Baik",
 };
 
-const getIconAndInternetText = (level: Level) => {
-  if (level === 0) {
-    return { icon: disconnected, internetText: "Disconnected" };
-  }
-  if (level === 1) {
-    return { icon: badSignal, internetText: "Connected" };
-  }
-  if (level === 2) {
-    return { icon: poorSignal, internetText: "Connected" };
-  }
-  // level 3 dan 4 → gunakan goodSignal
-  return { icon: goodSignal, internetText: "Connected" };
-};
-
 interface SignalStatusProps {
   rsrp: number | null;
   rsrq: number | null;
   sinr: number | null;
   cellId: string | null;
-  levelValue: Level; 
+  level: "good" | "poor" | "bad" | "disconnected";
   onCheckSignal: () => void;
   isLoading: boolean;
   message: string;
@@ -46,20 +31,44 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
   rsrq,
   sinr,
   cellId,
-  levelValue,
+  level,
   onCheckSignal,
   isLoading,
   message,
 }) => {
+  const config = {
+    veryGood: {
+      icon: goodSignal,
+      statusText: "Sangat Baik",
+      internetText: "Connected",
+    },
+    good: {
+      icon: goodSignal,
+      statusText: "Baik",
+      internetText: "Connected",
+    },
+    poor: { icon: poorSignal, statusText: "Cukup", internetText: "Connected" },
+    bad: { icon: badSignal, statusText: "Buruk", internetText: "Connected" },
+    disconnected: {
+      icon: disconnected,
+      statusText: "No Signal",
+      internetText: "Disconnected",
+    },
+  };
+
   const isScanning = isLoading;
   const showOutOfCoverage =
-    !isLoading && (levelValue === 0 || message !== "Success");
+    !isLoading && (level === "disconnected" || message !== "Success");
 
-  const statusText = isScanning ? "Mengecek Sinyal..." : levelTitle[levelValue];
-  const { icon, internetText: baseInternetText } = getIconAndInternetText(
-    isScanning ? 3 : levelValue
-  );
-  const internetText = isScanning ? "Sedang memindai..." : baseInternetText;
+  const displayConfig = isScanning
+    ? {
+        icon: goodSignal, // atau icon khusus loading
+        statusText: "Mengecek Sinyal...",
+        internetText: "Sedang memindai...",
+      }
+    : config[level];
+
+  const { icon, statusText, internetText } = displayConfig;
 
   return (
     <div className="flex flex-col gap-6 bg-white rounded-lg shadow-lg p-6 max-sm:p-4 border border-gray-200">
@@ -80,7 +89,7 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
             <div className="w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center">
               <Image
                 src={icon}
-                alt={`${statusText} signal icon`}
+                alt={`${level} signal icon`}
                 width={28}
                 height={28}
               />
@@ -98,6 +107,24 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
               </p>
             </div>
           </div>
+
+          {/* Tampilkan metrik sinyal (opsional tapi sangat berguna) */}
+          {/* {rsrp !== null && (
+            <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
+              <div className="text-center">
+                <div className="font-bold text-primary">{rsrp} dBm</div>
+                <div>RSRP</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-primary">{rsrq} dB</div>
+                <div>RSRQ</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-primary">{sinr} dB</div>
+                <div>SINR</div>
+              </div>
+            </div>
+          )} */}
 
           {cellId && (
             <div className="text-center text-sm">
