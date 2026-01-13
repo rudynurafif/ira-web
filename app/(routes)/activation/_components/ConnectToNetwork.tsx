@@ -113,7 +113,7 @@ export default function ConnectToNetwork() {
   );
 
   // ✅ step status terpisah
-  const [activateStatus, setActivateStatus] = useState<StepStatus>("idle");
+  const [activateStatus, setActivateStatus] = useState<StepStatus>("loading");
   const [internetStatus, setInternetStatus] = useState<StepStatus>("idle");
 
   // refs
@@ -163,7 +163,7 @@ export default function ConnectToNetwork() {
   const startCooldown = useCallback(
     (seconds: number) => {
       const endAt = Date.now() + seconds * 1000;
-      localStorage.setItem(cooldownKey, String(endAt));
+      sessionStorage.setItem(cooldownKey, String(endAt));
       setCooldown(seconds);
       setIsCooldownActive(true);
     },
@@ -171,28 +171,28 @@ export default function ConnectToNetwork() {
   );
 
   const stopCooldown = useCallback(() => {
-    localStorage.removeItem(cooldownKey);
+    sessionStorage.removeItem(cooldownKey);
     setCooldown(0);
     setIsCooldownActive(false);
   }, [cooldownKey]);
 
   const handleActivationSuccess = useCallback(
-    (source: "sse" | "api") => {
+    (source: "sse" | "api" | "") => {
       if (activationConfirmedRef.current) return;
       activationConfirmedRef.current = true;
 
-      localStorage.setItem(
+      sessionStorage.setItem(
         "ira-cpe-serial-number",
         serialNumber || "SN not found"
       );
-
       resetAttemptStorage();
       stopCooldown();
       clearTimeoutSafe();
       clearSse();
 
       // pastikan status step 2 success
-      setInternetStatus("success");
+      setActivateStatus("success");
+      // setInternetStatus("success");
 
       setScreen("success");
 
@@ -214,8 +214,14 @@ export default function ConnectToNetwork() {
   const handleTimeout = useCallback(() => {
     clearSse();
     clearTimeoutSafe();
-    setScreen("timedOut");
-  }, [clearSse, clearTimeoutSafe]);
+
+    // ✅ Jika aktivasi sudah sukses, langsung success (Case 2)
+    if (activateStatus === "success") {
+      handleActivationSuccess("");
+    } else {
+      setScreen("timedOut");
+    }
+  }, [activateStatus, clearSse, clearTimeoutSafe, handleActivationSuccess]);
 
   // blok refresh/tab close saat loading dan belum sukses
   useEffect(() => {
@@ -240,7 +246,7 @@ export default function ConnectToNetwork() {
 
   // restore cooldown
   useEffect(() => {
-    const savedEndAt = localStorage.getItem(cooldownKey);
+    const savedEndAt = sessionStorage.getItem(cooldownKey);
     if (!savedEndAt) return;
 
     const remaining = Math.ceil((Number(savedEndAt) - Date.now()) / 1000);
@@ -248,7 +254,7 @@ export default function ConnectToNetwork() {
       setCooldown(remaining);
       setIsCooldownActive(true);
     } else {
-      localStorage.removeItem(cooldownKey);
+      sessionStorage.removeItem(cooldownKey);
       setCooldown(0);
       setIsCooldownActive(false);
     }
@@ -265,34 +271,31 @@ export default function ConnectToNetwork() {
   useEffect(() => {
     if (cooldown <= 0 && isCooldownActive) {
       setIsCooldownActive(false);
-      localStorage.removeItem(cooldownKey);
+      sessionStorage.removeItem(cooldownKey);
     }
   }, [cooldown, isCooldownActive, cooldownKey]);
 
-  // ✅ auto start cooldown saat masuk loading (disabled awal)
+  // auto start cooldown saat masuk loading (disabled awal)
   useEffect(() => {
     if (screen !== "loading") return;
     if (activationConfirmedRef.current) return;
 
-    if (!localStorage.getItem(cooldownKey)) {
+    if (!sessionStorage.getItem(cooldownKey)) {
       startCooldown(CHECK_COOLDOWN_SEC);
     }
   }, [screen, cooldownKey, startCooldown]);
 
-  // ✅ saat loading dimulai/restart, reset status step agar tampil bersih
+  // Redirect otomatis saat aktivasi sukses (Case 1 & 2)
   useEffect(() => {
-    if (screen !== "loading") return;
-    if (!serialNumber || !customer_id) return;
-
-    // step 1 langsung dianggap "loading" (karena proses aktivasi sedang berlangsung)
-    setActivateStatus("loading");
-    setInternetStatus("idle"); // internet test nunggu event ping-test
-  }, [screen, serialNumber, customer_id]);
+    if (activateStatus === "success" && !activationConfirmedRef.current) {
+      handleActivationSuccess("sse");
+    }
+  }, [activateStatus, handleActivationSuccess]);
 
   // SSE subscription
   useEffect(() => {
-    if (!customer_id || !serialNumber) return;
     if (screen !== "loading") return;
+    if (!customer_id || !serialNumber) return;
     if (activationConfirmedRef.current) return;
 
     setSseStatus("connecting");
@@ -317,51 +320,6 @@ export default function ConnectToNetwork() {
     es.onopen = () => setSseStatus("open");
     es.onerror = () => setSseStatus("error");
 
-    const onActivate = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-
-        if (data?.type !== "activate") return;
-        if (data?.sn !== serialNumber) return;
-
-        // selama ada event activate, step 1 tetap proses
-        setActivateStatus("loading");
-
-        if (data?.message === "Success" || data?.result === "processed") {
-          setActivateStatus("success"); // ✅ aktivasi network sukses
-          setInternetStatus((prev) => (prev === "idle" ? "loading" : prev)); // mulai menuju ping test
-          toast.success(
-            "Aktivasi jaringan berhasil. Mengecek koneksi internet..."
-          );
-        } else {
-          // kalau server kirim event activate tapi bukan success, kita bisa tandai gagal
-          setActivateStatus("failed");
-        }
-      } catch {}
-    };
-
-    const onPingTest = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-
-        if (data?.type !== "ping-test-activate") return;
-        if (data?.sn !== serialNumber) return;
-
-        // ping test sedang berjalan
-        setInternetStatus("loading");
-
-        if (data?.message === "Success") {
-          setInternetStatus("success");
-          handleActivationSuccess("sse");
-          return;
-        }
-
-        // ping test gagal / bukan success
-        setInternetStatus("failed");
-        // screen tetap loading (biar user bisa cek status / retry)
-      } catch {}
-    };
-
     es.onmessage = (event: any) => {
       try {
         const data = JSON.parse(event.data);
@@ -378,6 +336,8 @@ export default function ConnectToNetwork() {
             toast.success(
               "Aktivasi jaringan berhasil. Mengecek koneksi internet..."
             );
+
+            // handleActivationSuccess("");
           } else {
             setActivateStatus("failed");
           }
@@ -386,7 +346,7 @@ export default function ConnectToNetwork() {
           setInternetStatus("loading");
           if (data?.message === "Success" || data?.result === "processed") {
             setInternetStatus("success");
-            handleActivationSuccess("sse");
+            // handleActivationSuccess("sse");
           } else {
             setInternetStatus("failed");
           }
@@ -400,8 +360,6 @@ export default function ConnectToNetwork() {
 
     return () => {
       try {
-        es.removeEventListener("activate", onActivate as any);
-        es.removeEventListener("ping-test-activate", onPingTest as any);
       } catch {}
       try {
         es.close();
@@ -429,7 +387,6 @@ export default function ConnectToNetwork() {
 
     const nextAttempt = Math.min(MAX_ATTEMPT, attempt + 1);
     setAttempt(nextAttempt);
-
     startCooldown(CHECK_COOLDOWN_SEC);
 
     try {
@@ -449,41 +406,59 @@ export default function ConnectToNetwork() {
       const internetSuccess = resInternet?.data?.code === 0;
       const internetPending = resInternet?.data?.code === 2;
 
-      // 🔹 Kasus 1: Keduanya sukses → aktivasi selesai
-      if (activateSuccess && internetSuccess) {
+      // 🔹 Jika aktivasi sukses (baik internet sukses/pending/gagal), LANJUT
+      // if (activateSuccess && internetSuccess) {
+      if (activateSuccess) {
         setActivateStatus("success");
-        setInternetStatus("success");
-        handleActivationSuccess("api");
+        setInternetStatus(
+          internetSuccess ? "success" : internetPending ? "loading" : "failed"
+        );
         return;
       }
 
       // 🔹 Kasus 2: Salah satu/salah dua masih pending → tetap di loading
-      if (activatePending || internetPending) {
-        // Update status step sesuai respons
-        if (activateSuccess) setActivateStatus("success");
-        else if (activatePending) setActivateStatus("loading");
-        else setActivateStatus("failed");
+      // if (activatePending || internetPending) {
+      //   // Update status step sesuai respons
+      //   if (activateSuccess) setActivateStatus("success");
+      //   else if (activatePending) setActivateStatus("loading");
+      //   else setActivateStatus("failed");
 
-        if (internetSuccess) setInternetStatus("success");
-        else if (internetPending) setInternetStatus("loading");
-        else setInternetStatus("failed");
+      //   if (internetSuccess) setInternetStatus("success");
+      //   else if (internetPending) setInternetStatus("loading");
+      //   else setInternetStatus("failed");
 
-        setScreen("loading");
+      //   setScreen("loading");
+      //   return;
+      // }
+
+      // 🔹 Case Gagal: Hanya jika aktivasi gagal → evaluasi gagal
+      if (!activateSuccess && !activatePending) {
+        setActivateStatus("failed");
+        setInternetStatus(internetSuccess ? "success" : "failed");
+
+        const failedCount = nextAttempt - 1;
+        saveFailedAttemptStorage(failedCount);
+
+        if (nextAttempt >= MAX_ATTEMPT) {
+          setScreen("failedFinal");
+        } else {
+          setScreen("failed");
+        }
         return;
       }
 
-      // 🔹 Kasus 3: Tidak ada yang pending, tapi tidak semua sukses → gagal
       setActivateStatus(activateSuccess ? "success" : "failed");
       setInternetStatus(internetSuccess ? "success" : "failed");
+      setScreen("loading");
 
-      const failedCount = nextAttempt - 1;
-      saveFailedAttemptStorage(failedCount);
+      // const failedCount = nextAttempt - 1;
+      // saveFailedAttemptStorage(failedCount);
 
-      if (nextAttempt >= MAX_ATTEMPT) {
-        setScreen("failedFinal");
-      } else {
-        setScreen("failed");
-      }
+      // if (nextAttempt >= MAX_ATTEMPT) {
+      //   setScreen("failedFinal");
+      // } else {
+      //   setScreen("failed");
+      // }
     } catch (err: any) {
       toastErrorFromAPI(err, "refresh");
     }

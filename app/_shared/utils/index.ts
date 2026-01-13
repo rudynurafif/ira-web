@@ -183,8 +183,8 @@ export function daysUntil(dateISO: string): number {
   return Math.trunc((target.getTime() - today.getTime()) / msPerDay);
 }
 
-export function packageCountdown(endDateISO: string) {
-  const totalDays = daysUntil(endDateISO);
+export function packageCountdown(endDateISO: string | null) {
+  const totalDays = daysUntil(endDateISO ?? '');
 
   // Handle expired or today
   if (totalDays < 0) {
@@ -266,7 +266,7 @@ export const toastErrorFromAPI = (error: any, id?: string | undefined) => {
   toast.error(errorMsg, { id });
 };
 
-export const formattedDate = (dateString: string) => {
+export const formattedDate = (dateString: string | null) => {
   const date = moment(dateString);
   return date.format("DD MMMM YYYY");
 };

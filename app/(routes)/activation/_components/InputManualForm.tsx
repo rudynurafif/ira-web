@@ -9,7 +9,6 @@ import toast from "react-hot-toast";
 import noSN from "@/public/assets/Images/no-sn.svg";
 import SNUsed from "@/public/assets/Images/sn-used.svg";
 import iconScan from "@/public/assets/Icons/icon-scan.svg";
-
 import Image from "next/image";
 
 function InputManualForm() {
@@ -21,7 +20,11 @@ function InputManualForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
   const [isSNUsed, setIsSNUsed] = useState(false);
+  const savedSN = JSON.parse(
+    localStorage.getItem("savedSerialNumbers") || "[]"
+  );
   const [isSNNotFound, setIsSNNotFound] = useState(false);
+
   const router = useRouter();
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
@@ -91,6 +94,14 @@ function InputManualForm() {
       );
     } finally {
       setIsSubmitting(false);
+      const saved = JSON.parse(
+        localStorage.getItem("savedSerialNumbers") || "[]"
+      );
+      const updated = [
+        serialNumber,
+        ...saved.filter((s: any) => s !== serialNumber),
+      ].slice(0, 5);
+      localStorage.setItem("savedSerialNumbers", JSON.stringify(updated));
     }
   }
 
@@ -107,6 +118,8 @@ function InputManualForm() {
             label="Serial Number"
             isImportant
             name="serialNumber"
+            savedOptions={savedSN}
+            datalist="saved-serials"
             value={serialNumber ? serialNumber : ""}
             onChange={(value: string) => {
               const sanitizedValue = value

@@ -36,7 +36,7 @@ const DeliveryTracking = ({
     (state) => state.auth
   );
 
-  type ShipmentStatus = "waiting" | "assigned" | "done";
+  type ShipmentStatus = "waiting" | "assigned" | "done" | "unknown";
 
   const [shipmentStatusData, setShipmentStatusData] = useState<ShipmentStatus>(
     (data?.shipment_status as ShipmentStatus) ?? "waiting"
@@ -46,6 +46,7 @@ const DeliveryTracking = ({
     waiting: 0,
     assigned: 1,
     done: 2,
+    unknown: -1,
   };
   const currentRank = rankMap[shipmentStatusData];
 
@@ -110,6 +111,10 @@ const DeliveryTracking = ({
   useEffect(() => {
     if (data?.shipment_status === "assigned") fetchData();
   }, [data?.shipment_status]);
+
+  if (shipmentStatusData === "unknown") {
+    return null
+  }
 
   return (
     <div className="space-y-6">

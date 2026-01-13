@@ -5,6 +5,15 @@ import poorSignal from "@/public/assets/Icons/poor-signal.svg";
 import badSignal from "@/public/assets/Icons/bad-signal.svg";
 import disconnected from "@/public/assets/Icons/disconnected-signal.svg";
 import Image from "next/image";
+import { Level } from "../../activation/_components/SignalChecking";
+
+const levelTitle: Record<Level, string> = {
+  0: "Tidak Terdeteksi",
+  1: "Buruk",
+  2: "Cukup",
+  3: "Baik",
+  4: "Sangat Baik",
+};
 
 interface SignalStatusProps {
   rsrp: number | null;

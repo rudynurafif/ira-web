@@ -9,7 +9,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Link from "next/link";
 import wifiIcon from "@/public/assets/Icons/wifi.svg";
-import { getImageBanner } from "../Banner/Banner";
+import { getImageBanner } from "../_api/Banner/Banner";
 import { toastErrorFromAPI } from "../_shared/utils";
 import { useAppSelector } from "../store/store";
 import { useRouter } from "next/navigation";

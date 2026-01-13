@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaCheck, FaCopy } from "react-icons/fa";
 
 function DynamicForm({
@@ -12,6 +12,8 @@ function DynamicForm({
   error,
   showCopyButton = false,
   onCopy,
+  datalist,
+  savedOptions = [],
   ...props
 }: {
   label: string;
@@ -23,6 +25,8 @@ function DynamicForm({
   onChange: (value: string) => void;
   error: string;
   showCopyButton?: boolean;
+  datalist?: string;
+  savedOptions?: string[];
   onCopy?: (value: string) => void;
   [key: string]: any;
 }) {
@@ -79,6 +83,7 @@ function DynamicForm({
           type={type}
           name={name}
           value={value}
+          list={datalist}
           onChange={(e) => onChange(e.target.value)}
           className={`px-5 py-3 disabled:cursor-not-allowed disabled:bg-[#f5f5f5] bg-primary-spectrum rounded-xl w-full mt-2 border ${
             error ? "border-red-500" : "border-[#D5D5D5]"
@@ -97,6 +102,13 @@ function DynamicForm({
           </button>
         )}
         {error && <p className="text-red-500 p-0 m-0">{error}</p>}
+        {datalist && (
+          <datalist id={datalist}>
+            {savedOptions.map((sn, idx) => (
+              <option key={idx} value={sn} />
+            ))}
+          </datalist>
+        )}
       </div>
     );
   }

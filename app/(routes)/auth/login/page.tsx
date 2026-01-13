@@ -53,10 +53,10 @@ const Page = () => {
 
   const dispatch = useAppDispatch();
 
-  // Restore state dari localStorage saat nomor berubah
+  // Restore state dari sessionStorage saat nomor berubah
   useEffect(() => {
-    const cnt = parseInt(localStorage.getItem(storageKeys.reqCount) || "0", 10);
-    const blk = localStorage.getItem(storageKeys.blockUntil);
+    const cnt = parseInt(sessionStorage.getItem(storageKeys.reqCount) || "0", 10);
+    const blk = sessionStorage.getItem(storageKeys.blockUntil);
     setRequestCount(Number.isFinite(cnt) ? cnt : 0);
     setBlockUntil(blk ? parseInt(blk, 10) : null);
   }, [storageKeys.reqCount, storageKeys.blockUntil]);
@@ -74,11 +74,11 @@ const Page = () => {
     }
   }, [blockUntil, step]);
 
-  // ---- Hook ringan untuk membaca sisa detik dari localStorage (resend timer)
+  // ---- Hook ringan untuk membaca sisa detik dari sessionStorage (resend timer)
   useEffect(() => {
     const readLeft = () => {
       const exp = parseInt(
-        localStorage.getItem(storageKeys.resendTimer) || "0",
+        sessionStorage.getItem(storageKeys.resendTimer) || "0",
         10
       );
       const left =
@@ -93,7 +93,7 @@ const Page = () => {
   const startResendTimer = (durationSec: number) => {
     if (!Number.isFinite(durationSec) || durationSec <= 0) return;
     const expiry = Date.now() + durationSec * 1000;
-    localStorage.setItem(storageKeys.resendTimer, String(expiry));
+    sessionStorage.setItem(storageKeys.resendTimer, String(expiry));
     setResendLeft(durationSec);
     setOtpExpiry(expiry);
   };
@@ -118,7 +118,7 @@ const Page = () => {
       const left = Math.max(0, Math.floor((blockUntil - Date.now()) / 1000));
       setBlockLeft(left);
       if (left === 0) {
-        localStorage.removeItem(storageKeys.blockUntil);
+        sessionStorage.removeItem(storageKeys.blockUntil);
         setBlockUntil(null);
         if (step === "blocked") setStep("enterPhone");
       }
@@ -152,7 +152,7 @@ const Page = () => {
       const apiData = res.data.data || {};
       const attemptFromApi = Number(apiData.attempt ?? 0);
       // simpan attempt dari API
-      localStorage.setItem(storageKeys.reqCount, String(attemptFromApi));
+      sessionStorage.setItem(storageKeys.reqCount, String(attemptFromApi));
       setRequestCount(attemptFromApi);
 
       // === Cooldown setelah sukses kirim (DINAMIS):
@@ -177,14 +177,14 @@ const Page = () => {
       const seconds = error?.response?.data?.data?.second;
 
       const lastAttempt = Number(
-        localStorage.getItem(storageKeys.reqCount) ?? requestCount ?? 0
+        sessionStorage.getItem(storageKeys.reqCount) ?? requestCount ?? 0
       );
 
       if (lastAttempt >= MAX_ATTEMPT) {
         // attempt sudah 4 atau resend sudah 3 kali → request berikutnya memicu tampilan blokir
         if (Number.isFinite(seconds) && seconds! > 0) {
           const until = Date.now() + seconds! * 1000;
-          localStorage.setItem(storageKeys.blockUntil, String(until));
+          sessionStorage.setItem(storageKeys.blockUntil, String(until));
           setBlockUntil(until);
         }
         setStep("blocked");
@@ -203,7 +203,7 @@ const Page = () => {
   useEffect(() => {
     if (!blockUntil) return;
     if (Date.now() >= blockUntil) {
-      localStorage.removeItem(storageKeys.blockUntil);
+      sessionStorage.removeItem(storageKeys.blockUntil);
       setBlockUntil(null);
       if (step === "blocked") setStep("enterPhone");
     }
@@ -211,9 +211,9 @@ const Page = () => {
 
   // Reset counter kalau user ganti nomor
   const resetCountersForNewPhone = () => {
-    localStorage.removeItem(storageKeys.reqCount);
-    localStorage.removeItem(storageKeys.resendTimer);
-    localStorage.removeItem(storageKeys.blockUntil);
+    sessionStorage.removeItem(storageKeys.reqCount);
+    sessionStorage.removeItem(storageKeys.resendTimer);
+    sessionStorage.removeItem(storageKeys.blockUntil);
     setRequestCount(0);
     setBlockUntil(null);
     setStep("enterPhone");
@@ -424,8 +424,8 @@ const Page = () => {
               <button
                 onClick={() => {
                   // bersihkan blokir dan counter
-                  localStorage.removeItem(storageKeys.blockUntil);
-                  localStorage.removeItem(storageKeys.reqCount);
+                  sessionStorage.removeItem(storageKeys.blockUntil);
+                  sessionStorage.removeItem(storageKeys.reqCount);
                   setBlockUntil(null);
                   setRequestCount(0);
                   setStep("enterPhone");
