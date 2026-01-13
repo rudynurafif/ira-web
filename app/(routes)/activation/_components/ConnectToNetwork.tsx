@@ -348,6 +348,7 @@ export default function ConnectToNetwork() {
             setInternetStatus("success");
             // handleActivationSuccess("sse");
           } else {
+            setActivateStatus("failed"); // disini
             setInternetStatus("failed");
           }
         }
