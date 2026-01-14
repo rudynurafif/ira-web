@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { PackageData } from "@/app/_shared/types/customer-area";
 import {
+  checkPackage,
   getCustomerPackage,
   getPackageList,
 } from "@/app/_api/Customer/CustomerArea";
@@ -29,9 +30,14 @@ import BannerLatest from "./_components/BannerLatest";
 import bannerPerpanjang from "@/public/assets/Images/banner-perpanjang-paket.png";
 import bannerPerpanjangMobile from "@/public/assets/Images/banner-perpanjangan-paket-mobile.png";
 import PackageCardMobile from "./_components/PackageCardMobile";
+import ModalTemplate from "@/app/_components/modal/ModalTemplate";
+import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
+import limitImage from "@/public/assets/Images/limit-images.png";
+import Lottie from "lottie-react";
 
 const Payment = () => {
   const router = useRouter();
+
   const selectedPackageFromSession = (() => {
     if (typeof window === "undefined") return null;
     const item = sessionStorage.getItem("selectedPackage");
@@ -60,6 +66,8 @@ const Payment = () => {
   const [latestPackage, setLatestPackage] =
     useState<SubscriptionHistoryAPI | null>(null);
   const [isLatestPackageFree, setIsLatestPackageFree] = useState(false);
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
     selectedChannelFromLS
@@ -195,6 +203,24 @@ const Payment = () => {
     }
   };
 
+  const handleCheckPackage = async () => {
+    // router.push("/payment/payment-methods");
+
+    try {
+      const res = await checkPackage();
+
+      if (res?.data?.data === true) {
+        setIsAllowed(true);
+        router.push("/payment/payment-methods");
+      } else {
+        setOpenModalNotAllowed(true);
+        return;
+      }
+    } catch (err) {
+      toastErrorFromAPI(err);
+    }
+  };
+
   if (isLoading) return <Loader />;
 
   if (error) return <ErrorFallback message={error} onRetry={fetchPackages} />;
@@ -308,15 +334,58 @@ const Payment = () => {
           <button
             className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
             // onClick={handleCreatePayment}
-            onClick={() => router.push("/payment/payment-methods")}
-            disabled={
-              !selectedPackage 
-            }
+            onClick={handleCheckPackage}
+            disabled={!selectedPackage}
           >
             Pilih Metode Pembayaran
           </button>
         </div>
       </div>
+
+      {openModalNotAllowed && (
+        <ModalTemplate
+          closeModal={() => {
+            setOpenModalNotAllowed(false);
+          }}
+        >
+          <div className="p-6 mt-6">
+            <div className="flex justify-center">
+              <Image
+                src={limitImage}
+                width={170}
+                height={170}
+                alt="limit-image"
+              />
+            </div>
+
+            <h3 className="text-2xl font-bold text-center text-primary mt-6">
+              Batas Pembelian Paket Kuota
+            </h3>
+
+            <div className="mt-4">
+              <p className="text-black ">
+                Kamu hanya bisa memiliki dua paket kuota internet, ya!
+              </p>
+              <ol className="mt-3 font-bold text-left list-decimal pl-5 space-y-1 text-black">
+                <li>Paket aktif yang sedang digunakan.</li>
+                <li>Paket tambahan yang baru saja dibeli.</li>
+              </ol>
+              <p className="mt-4 text-black">
+                Anda tidak dapat membeli paket kuota ketiga selama paket aktif
+                dan tambahan masih aktif.
+              </p>
+            </div>
+
+            <button
+              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+              onClick={() => setOpenModalNotAllowed(false)}
+              disabled={!selectedPackage}
+            >
+              Oke, Mengerti
+            </button>
+          </div>
+        </ModalTemplate>
+      )}
     </div>
   );
 };

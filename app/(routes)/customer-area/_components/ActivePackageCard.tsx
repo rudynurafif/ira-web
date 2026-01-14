@@ -74,7 +74,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             </p>
             <p className="sm:text-sm text-xs mt-1">
               Nikmati Kuota Unlimited dan koneksi stabil selama{" "}
-              <strong>{days}</strong> hari ke depan.
+              <strong>{label}</strong> hari ke depan.
             </p>
           </>
         )}
