@@ -80,7 +80,7 @@ function StepRow({
             <div className="font-bold text-old-primary">{title}</div>
           </div>
         </div>
-        {badge}
+        {/* {badge} */}
       </div>
     </div>
   );
@@ -114,7 +114,7 @@ export default function ConnectToNetwork() {
 
   // ✅ step status terpisah
   const [activateStatus, setActivateStatus] = useState<StepStatus>("loading");
-  const [internetStatus, setInternetStatus] = useState<StepStatus>("idle");
+  const [internetStatus, setInternetStatus] = useState<StepStatus>("loading");
 
   // refs
   const eventSourceRef = useRef<EventSourcePolyfill | null>(null);
@@ -135,9 +135,12 @@ export default function ConnectToNetwork() {
 
   const clearSse = useCallback(() => {
     if (eventSourceRef.current) {
+      console.log("CloseOperation: Closing SSE connection via clearSse");
       try {
         eventSourceRef.current.close();
-      } catch {}
+      } catch (err) {
+        console.warn("CloseOperation: Error while closing SSE", err);
+      }
       eventSourceRef.current = null;
     }
   }, []);
@@ -217,7 +220,7 @@ export default function ConnectToNetwork() {
 
     // ✅ Jika aktivasi sudah sukses, langsung success (Case 2)
     if (activateStatus === "success") {
-      handleActivationSuccess("");
+      handleActivationSuccess("sse");
     } else {
       setScreen("timedOut");
     }
@@ -287,7 +290,7 @@ export default function ConnectToNetwork() {
 
   // Redirect otomatis saat aktivasi sukses (Case 1 & 2)
   useEffect(() => {
-    if (activateStatus === "success" && !activationConfirmedRef.current) {
+    if (activateStatus === "success" && timeoutRef.current === null) {
       handleActivationSuccess("sse");
     }
   }, [activateStatus, handleActivationSuccess]);
@@ -317,8 +320,14 @@ export default function ConnectToNetwork() {
 
     eventSourceRef.current = es;
 
-    es.onopen = () => setSseStatus("open");
-    es.onerror = () => setSseStatus("error");
+    es.onopen = () => {
+      console.log("SSE Open");
+      setSseStatus("open");
+    };
+    es.onerror = () => {
+      console.log("SSE Close");
+      setSseStatus("error");
+    };
 
     es.onmessage = (event: any) => {
       try {
@@ -330,7 +339,7 @@ export default function ConnectToNetwork() {
         if (data?.type === "activate") {
           // Handle activate
           setActivateStatus("loading");
-          if (data?.message === "Success" || data?.result === "processed") {
+          if (data?.message === "Success") {
             setActivateStatus("success");
             setInternetStatus((prev) => (prev === "idle" ? "loading" : prev));
             toast.success(
@@ -344,11 +353,11 @@ export default function ConnectToNetwork() {
         } else if (data?.type === "ping-test-activate") {
           // Handle ping test
           setInternetStatus("loading");
-          if (data?.message === "Success" || data?.result === "processed") {
+          if (data?.message === "Success") {
             setInternetStatus("success");
             // handleActivationSuccess("sse");
           } else {
-            setActivateStatus("failed"); // disini
+            // setActivateStatus("failed"); // disini
             setInternetStatus("failed");
           }
         }
@@ -376,6 +385,35 @@ export default function ConnectToNetwork() {
     handleTimeout,
     handleActivationSuccess,
   ]);
+
+  // Auto-close SSE & finalize when both steps succeed
+  useEffect(() => {
+    if (
+      activateStatus === "success" &&
+      internetStatus === "success" &&
+      !activationConfirmedRef.current
+    ) {
+      console.log("✅ Both activate and ping-test succeeded. Finalizing...");
+      handleActivationSuccess("sse");
+    }
+  }, [activateStatus, internetStatus, handleActivationSuccess]);
+
+  // Early close on double failure
+  useEffect(() => {
+    if (
+      activateStatus === "failed" &&
+      (internetStatus === "failed" || internetStatus === "success") && // pastikan ping sudah selesai
+      !activationConfirmedRef.current
+    ) {
+      // Opsional: tutup SSE lebih cepat
+      console.log(
+        "CloseOperation: Both steps finalized as failed. Closing SSE."
+      );
+      clearSse();
+      // Tapi jangan panggil handleActivationSuccess
+      // Biarkan user retry atau timeout handle screen
+    }
+  }, [activateStatus, internetStatus, clearSse]);
 
   async function handleCheckAgain() {
     if (!serialNumber) return;
@@ -485,7 +523,7 @@ export default function ConnectToNetwork() {
     setAttempt(1);
 
     setActivateStatus("loading");
-    setInternetStatus("idle");
+    setInternetStatus("loading");
 
     resetAttemptStorage();
     stopCooldown();

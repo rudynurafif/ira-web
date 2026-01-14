@@ -21,7 +21,11 @@ import {
 } from "@/app/_shared/utils";
 import HistorySection from "./HistorySection";
 import thumbClick from "@/public/assets/Icons/thumb-click.png";
-import expiredIcon from "@/public/assets/Images/internet-mati.png";
+import ExpiredCard from "../ExpiredCard";
+import InactiveCard from "../InactiveCard";
+import { getAddOn } from "@/app/_api/AddOn/AddOn";
+import { Carousel } from "react-responsive-carousel";
+import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 const PAGE_SIZE = 5;
 
@@ -38,13 +42,29 @@ const PackageAndHistory = () => {
   const { label, status, days } = packageCountdown(
     activePacketData?.end_date ?? null
   );
+  const [isInactive, setIsInactive] = useState<boolean | null>(null);
 
   const { userInfo, is_coverage } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+  const [addOns, setAddOns] = useState([]);
 
   const [startDateFilter, setStartDateFilter] = useState<any>();
   const [endDateFilter, setEndDateFilter] = useState<any>();
+
+  useEffect(() => {
+    const fetchAddon = async () => {
+      try {
+        const resAddon = await getAddOn({});
+        setAddOns(resAddon.data.result || []);
+      } catch (err) {
+        toastErrorFromAPI(err);
+      } finally {
+      }
+    };
+
+    fetchAddon();
+  }, []);
 
   // Fetch paket aktif (hanya sekali, tidak dipengaruhi pagination)
   useEffect(() => {
@@ -93,8 +113,10 @@ const PackageAndHistory = () => {
   };
 
   useEffect(() => {
+    if (userInfo) setIsInactive(userInfo?.status === "inactive");
+    console.log("is inactive", isInactive);
     fetchHistory(1);
-  }, []);
+  }, [isInactive, userInfo, userInfo?.status]);
 
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
@@ -254,66 +276,59 @@ const PackageAndHistory = () => {
     );
   };
 
-  const ExpiredCard = ({
-    data = activePacketData,
-  }: {
-    data?: SubscriptionHistoryAPI | null;
-  }) => {
-    return (
-      <div className="text-center py-6 px-4 bg-gradient-to-b from-white via-white to-[#D6211E] rounded-xl shadow-lg">
-        {/* Ikon Peringatan Besar */}
-        <div className="flex justify-center mb-4">
-          <Image
-            src={expiredIcon} // Gunakan exclamationIcon atau expiredIcon, sesuaikan visual
-            width={60}
-            height={60}
-            alt="warning-icon"
-          />
-        </div>
-
-        {/* Judul Utama */}
-        <p className="text-sm sm:text-base font-bold text-[#D6211E] mb-2">
-          Internet nonaktif—bayar paket untuk aktif kembali seketika.
-        </p>
-
-        {/* Deskripsi */}
-        <p className="text-xs sm:text-sm text-gray-800 mb-6">
-          Internet nonaktif sementara karena masa aktif sudah berakhir pada{" "}
-          <span className="font-bold">
-            {formattedDate(data?.end_date ?? "") ?? "-"}
-          </span>
-          . Pilih dan bayar paket yang kamu inginkan agar koneksi Internet Rakyat segera aktif kembali; hubungi bantuan jika membutuhkan
-          panduan.
-        </p>
-
-        {/* Tombol CTA */}
-        <button
-          onClick={() => router.push("/payment")}
-          className="bg-red-600 cursor-pointer hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-md"
-        >
-          Beli Paket Sekarang
-        </button>
-      </div>
-    );
-  };
-
   return (
     <>
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
-        {activePacketData && status === "expired" ? (
+        {activePacketData && userInfo.status === "inactive" ? (
+          <InactiveCard data={activePacketData} />
+        ) : status === "expired" ? (
           <ExpiredCard data={activePacketData} />
         ) : activePacketData ? (
           <ActivePackageCard data={activePacketData} />
         ) : null}
 
-        {activePacketData && (
-          <Image
-            src={bannerCubmuMobile}
-            alt="banner CS"
-            className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
-            onClick={() => window.open(`/add-on/cubmu`, "_blank")}
-          />
+        {/* Banner Cubmu */}
+        {activePacketData && addOns.length > 0 && (
+          <div className="relative w-full">
+            <Carousel
+              autoPlay
+              interval={5000}
+              infiniteLoop
+              showThumbs={false}
+              showStatus={false}
+              showIndicators={addOns.length > 1}
+              swipeable={true}
+              emulateTouch={true}
+              stopOnHover={true}
+              onChange={(index) => {
+                // opsional: logika saat slide berubah
+              }}
+            >
+              {addOns.map((addon: any, idx: number) => {
+                // Asumsi addon memiliki field: banner_url (string) dan slug (string)
+                const bannerUrl = addon.banner_url || "/fallback-banner.jpg";
+                const link = `/add-on/${addon.name}`;
+
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => window.open(link, "_blank")}
+                    className="cursor-pointer"
+                  >
+                    <Image
+                      src={bannerUrl}
+                      alt={`Banner ${addon.name || "Add-on"}`}
+                      width={800} // sesuaikan dengan ukuran asli banner
+                      height={400} // penting untuk Next.js Image
+                      className="w-full object-cover drop-shadow-lg hover:scale-[1.02] transition-transform"
+                      priority={idx === 0} // preload slide pertama
+                    />
+                  </div>
+                );
+              })}
+            </Carousel>
+          </div>
         )}
 
         <Image
@@ -340,19 +355,54 @@ const PackageAndHistory = () => {
       {/* DESKTOP (≥ sm) */}
       <div className="hidden sm:grid grid-cols-12 gap-6">
         <div className="lg:col-span-5 col-span-12 space-y-5">
-          {activePacketData && status === "expired" ? (
+          {activePacketData && isInactive ? (
+            <InactiveCard data={activePacketData} />
+          ) : status === "expired" ? (
             <ExpiredCard data={activePacketData} />
           ) : activePacketData ? (
             <ActivePackageCard data={activePacketData} />
           ) : null}
 
-          {activePacketData && (
-            <Image
-              src={bannerCubmu}
-              alt="banner CS"
-              className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => window.open(`/add-on/cubmu`, "_blank")}
-            />
+          {activePacketData && addOns.length > 0 && (
+            <div className="relative w-full">
+              <Carousel
+                autoPlay
+                interval={5000}
+                infiniteLoop
+                showThumbs={false}
+                showStatus={false}
+                showIndicators={addOns.length > 1}
+                swipeable={true}
+                emulateTouch={true}
+                stopOnHover={true}
+                onChange={(index) => {
+                  // opsional: logika saat slide berubah
+                }}
+              >
+                {addOns.map((addon: any, idx: number) => {
+                  // Asumsi addon memiliki field: banner_url (string) dan slug (string)
+                  const bannerUrl = addon.banner_url || bannerCubmu;
+                  const link = `/add-on/${addon.name}`;
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => window.open(link, "_blank")}
+                      className="cursor-pointer"
+                    >
+                      <Image
+                        src={bannerUrl}
+                        alt={`Banner ${addon.name || "Add-on"}`}
+                        width={800} // sesuaikan dengan ukuran asli banner
+                        height={400} // penting untuk Next.js Image
+                        className="w-full object-cover drop-shadow-lg hover:scale-[1.02] transition-transform"
+                        priority={idx === 0} // preload slide pertama
+                      />
+                    </div>
+                  );
+                })}
+              </Carousel>
+            </div>
           )}
 
           <Image
