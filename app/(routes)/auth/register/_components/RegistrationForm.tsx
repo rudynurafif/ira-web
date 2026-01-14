@@ -66,12 +66,14 @@ type RegistrationFormProps = {
   mode: "register" | "reregister";
   initialData?: Partial<FormType>; // opsional, untuk autofill
   customerId?: string; // opsional, jika butuh ID untuk submit
+  title: string;
 };
 
 function RegistrationForm({
   mode,
   initialData,
   customerId,
+  title = "Registrasi Internet Rakyat (IRA)",
 }: RegistrationFormProps) {
   const [formData, setFormData] = useState<FormType>({
     ...initialFormData,
@@ -532,7 +534,7 @@ function RegistrationForm({
   return (
     <div className="container mx-auto xl:px-42 lg:px-22 px-6 sm:my-22 my-6">
       <h1 className="text-center sm:text-[32px] text-2xl text-old-primary font-bold">
-        Registrasi Internet Rakyat (IRA)
+        {title}
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-7">

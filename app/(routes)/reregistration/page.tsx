@@ -3,7 +3,12 @@
 import RegistrationForm from "../auth/register/_components/RegistrationForm";
 
 function Page() {
-  return <RegistrationForm mode="reregister" />;
+  return (
+    <RegistrationForm
+      title="Registrasi Ulang Internet Rakyat (IRA)"
+      mode="reregister"
+    />
+  );
 }
 
 export default Page;

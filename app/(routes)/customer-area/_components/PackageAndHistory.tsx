@@ -282,7 +282,7 @@ const PackageAndHistory = () => {
       <div className="sm:hidden space-y-6">
         {activePacketData && userInfo.status === "inactive" ? (
           <InactiveCard data={activePacketData} />
-        ) : status === "expired" ? (
+        ) : status === "expired" || userInfo.status === "dismantled" ? (
           <ExpiredCard data={activePacketData} />
         ) : activePacketData ? (
           <ActivePackageCard data={activePacketData} />
@@ -307,7 +307,7 @@ const PackageAndHistory = () => {
             >
               {addOns.map((addon: any, idx: number) => {
                 // Asumsi addon memiliki field: banner_url (string) dan slug (string)
-                const bannerUrl = addon.banner_url || "/fallback-banner.jpg";
+                const bannerUrl = addon.banner_url || bannerCubmu;
                 const link = `/add-on/${addon.name}`;
 
                 return (
@@ -357,7 +357,7 @@ const PackageAndHistory = () => {
         <div className="lg:col-span-5 col-span-12 space-y-5">
           {activePacketData && isInactive ? (
             <InactiveCard data={activePacketData} />
-          ) : status === "expired" ? (
+          ) : status === "expired" || userInfo.status === "dismantled" ? (
             <ExpiredCard data={activePacketData} />
           ) : activePacketData ? (
             <ActivePackageCard data={activePacketData} />
