@@ -1,11 +1,12 @@
+/* eslint-disable @next/next/no-img-element */
 // app/cubmu/page.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import CubmuLoginModal from "./_components/CubmuLoginModal";
+import CubmuLoginModal from "./CubmuLoginModal";
 
-const Cubmu = () => {
+const Cubmu = ({ items }: { items: any[] }) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
@@ -234,7 +235,7 @@ const Cubmu = () => {
 
           {/* posters row */}
           <div className="flex w-full gap-6 overflow-x-auto pb-3">
-            {trending.map((item, i) => (
+            {/* {trending.map((item, i) => (
               <div
                 key={i}
                 className="shrink-0 overflow-hidden rounded-2xl"
@@ -243,8 +244,29 @@ const Cubmu = () => {
                 <img
                   src={item.img}
                   alt={item.title}
-                  className="h-[270px] w-full object-cover"
+                  className="h-67.5 w-full object-cover"
                 />
+              </div>
+            ))} */}
+            {items.map((item) => (
+              <div key={item.id} className="border rounded-lg">
+                {item.banner_desktop && (
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_URL_OBS}${item.banner_desktop}`}
+                    alt={item.title}
+                    width={190}
+                    height={135}
+                    className="mt-3 rounded-md max-w-full h-auto rounded"
+                    onClick={() =>
+                      item.call_to_action &&
+                      window.open(
+                        item.call_to_action.startsWith("http")
+                          ? item.call_to_action
+                          : `https://${item.call_to_action}`
+                      )
+                    }
+                  />
+                )}
               </div>
             ))}
           </div>

@@ -307,8 +307,8 @@ const PackageAndHistory = () => {
             >
               {addOns.map((addon: any, idx: number) => {
                 // Asumsi addon memiliki field: banner_url (string) dan slug (string)
-                const bannerUrl = addon.banner_url || bannerCubmu;
-                const link = `/add-on/${addon.name}`;
+                const bannerUrl = addon.banner_url || bannerCubmuMobile;
+                const link = `/add-on/${addon.id}`;
 
                 return (
                   <div
@@ -344,7 +344,7 @@ const PackageAndHistory = () => {
           src={bannerPanduanMobile}
           alt="Banner Panduan"
           className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
-          onClick={() => window.open("/pandaan-cara-bayar", "_blank")}
+          onClick={() => window.open("/panduan-cara-bayar", "_blank")}
         />
 
         {is_coverage && userInfo.is_active && userInfo.status === "active" && (
@@ -382,7 +382,7 @@ const PackageAndHistory = () => {
                 {addOns.map((addon: any, idx: number) => {
                   // Asumsi addon memiliki field: banner_url (string) dan slug (string)
                   const bannerUrl = addon.banner_url || bannerCubmu;
-                  const link = `/add-on/${addon.name}`;
+                  const link = `/add-on/${addon.id}`;
 
                   return (
                     <div
