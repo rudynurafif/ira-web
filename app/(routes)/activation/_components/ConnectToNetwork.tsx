@@ -292,8 +292,13 @@ export default function ConnectToNetwork() {
   useEffect(() => {
     if (activateStatus === "success" && timeoutRef.current === null) {
       handleActivationSuccess("sse");
+    } else if (activateStatus === "failed" && screen === "loading") {
+      // todo: handle failure case
+      setActivateStatus("failed");
+      clearSse();
+      clearTimeoutSafe();
     }
-  }, [activateStatus, handleActivationSuccess]);
+  }, [activateStatus, handleActivationSuccess, screen]);
 
   // SSE subscription
   useEffect(() => {
@@ -348,7 +353,17 @@ export default function ConnectToNetwork() {
 
             // handleActivationSuccess("");
           } else {
+            stopCooldown();
+
             setActivateStatus("failed");
+            setInternetStatus("failed");
+            setScreen("failed");
+
+            clearSse();
+            clearTimeoutSafe();
+
+            const currentAttempt = attempt;
+            saveFailedAttemptStorage(currentAttempt);
           }
         } else if (data?.type === "ping-test-activate") {
           // Handle ping test
@@ -605,7 +620,7 @@ export default function ConnectToNetwork() {
             </div>
           </div>
 
-          <div className="text-[12px] text-[#666]">{sseHint}</div>
+          {/* <div className="text-[12px] text-[#666]">{sseHint}</div> */}
         </div>
 
         {/* ✅ Dua step terpisah tampil bersamaan */}

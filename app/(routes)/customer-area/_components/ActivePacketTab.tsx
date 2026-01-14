@@ -108,7 +108,7 @@ const ActivePacket = () => {
           src={bannerPanduanMobile}
           alt="Banner Panduan"
           className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
-          onClick={() => window.open("/pandaan-cara-bayar", "_blank")}
+          onClick={() => window.open("/panduan-cara-bayar", "_blank")}
         />
 
         {isUserActive && <HistorySection />}
