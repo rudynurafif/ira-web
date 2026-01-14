@@ -70,7 +70,12 @@ export type ProfileInfo = {
   address: string;
   postal_code: string | null;
   nik: string | null;
-  status: string; 
+  status:
+    | "waiting-for-installation"
+    | "active"
+    | "suspend"
+    | "dismantled"
+    | "inactive";
   is_active: boolean;
   email_verified: boolean;
   phone_number_verified: boolean;

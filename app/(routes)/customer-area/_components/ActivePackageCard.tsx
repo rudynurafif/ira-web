@@ -32,9 +32,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           ? "to-[#67aaff]"
           : status === "expires_today"
           ? "to-[#f89d66]"
-          : status === "expired"
-          ? "#D6211E"
-          : "#FFDCDC"
+          : "to-[#FFDCDC]"
       } rounded-xl shadow-lg p-6 max-sm:p-4`}
     >
       {/* Header */}
