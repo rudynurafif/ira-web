@@ -67,5 +67,6 @@ export function useSSEOneTime(
         esRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customer_id, shouldListen]);
 }

@@ -1,32 +1,12 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro, Figtree, Raleway } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import "./fonts.css";
 import { Toaster } from "react-hot-toast";
 import Header from "./_components/layout/Header";
 import Footer from "./_components/layout/Footer";
 import { Suspense } from "react";
-import { Provider } from "react-redux";
-import { store } from "./store/store";
 import ClientProvider from "./_components/ClientProvider";
-import { SSEProvider } from "./_context/SSEContext";
-
-const beVietnamPro = Be_Vietnam_Pro({
-  subsets: ["latin"], // Gunakan subset latin
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"], // Pilih bobot  font (opsional)
-  variable: "--font-be-vietnam", // Variabel CSS untuk font (opsional)
-});
-
-const figtree = Figtree({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"], // Pilih bobot sesuai kebutuhan
-  variable: "--font-figtree",
-});
-
-const raleway = Raleway({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"], // Pilih bobot sesuai kebutuhan
-  variable: "--font-raleway",
-});
 
 export const metadata: Metadata = {
   title: "Internet Rakyat",
@@ -45,9 +25,6 @@ export default function RootLayout({
       <body
         suppressHydrationWarning
         className={[
-          beVietnamPro.variable,
-          figtree.variable,
-          raleway.variable,
           "antialiased",
           "min-h-screen",
           "flex",
