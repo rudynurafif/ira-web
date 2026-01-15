@@ -31,8 +31,7 @@ const InactiveCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
         <span className="font-bold">
           Perangkat (CPE) Anda telah berhasil diambil.{" "}
         </span>
-        Jika Anda ingin melanjutkan berlangganan dan menikmati koneksi FWA
-        Starlite kembali, silakan pesan CPE baru melalui tombol di bawah ini.
+        Jika Anda ingin melanjutkan berlangganan dan menikmati koneksi Internet Rakyat kembali, silakan pesan CPE baru melalui tombol di bawah ini.
       </p>
 
       {/* Tombol CTA */}
