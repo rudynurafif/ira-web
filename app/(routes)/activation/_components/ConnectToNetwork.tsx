@@ -246,10 +246,23 @@ export default function ConnectToNetwork() {
   useEffect(() => {
     if (screen !== "loading") return;
 
-    const handlePopState = () => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Batalkan navigasi mundur
       window.history.pushState(null, "", window.location.href);
+
+      // Tampilkan konfirmasi
+      const confirmed = window.confirm(
+        "Proses aktivasi sedang berlangsung.\nJika Anda meninggalkan halaman, proses akan dibatalkan.\n\nYakin ingin kembali?"
+      );
+
+      if (confirmed) {
+        // Arahkan ke /activation (bukan kembali ke halaman sebelumnya)
+        window.location.href = "/activation";
+      }
+      // Jika tidak dikonfirmasi, user tetap di halaman (karena pushState di atas)
     };
 
+    // Push state awal
     window.history.pushState(null, "", window.location.href);
     window.addEventListener("popstate", handlePopState);
 
