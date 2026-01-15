@@ -101,6 +101,33 @@ export default function AreaPelanggan() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Cek apakah halaman sebelumnya adalah /payment/checkout-payment
+      const referrer = document.referrer;
+      const isFromCheckoutPayment = referrer.includes(
+        "/payment/checkout-payment"
+      );
+
+      if (isFromCheckoutPayment) {
+        // Redirect langsung ke /payment
+        window.location.href = "/payment";
+      } else {
+        // Opsional: jika bukan dari checkout, boleh kembali atau tampilkan konfirmasi
+        // Contoh: dorong kembali ke halaman ini agar tidak keluar
+        window.history.pushState(null, "", window.location.href);
+      }
+    };
+
+    // Push state saat masuk ke halaman ini
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   const closePaymentSuccessModal = () => {
     setShowPaymentSuccessModal(false);
 

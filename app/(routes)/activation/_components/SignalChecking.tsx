@@ -198,7 +198,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
         params.get("serial_number")
     );
     setCellId(localStorage.getItem("ira-cpe-cell-id"));
-  }, []);
+  }, [params]);
 
   const triggerGetSignal = useCallback(async () => {
     if (!sn || !customer_id) {
