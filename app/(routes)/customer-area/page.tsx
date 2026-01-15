@@ -59,6 +59,7 @@ export default function AreaPelanggan() {
 
       const hasStartDate = Boolean(data?.[0]?.start_date);
       const active = userInfo && userInfo?.status === "active";
+      if (active) setIsActive(active);
 
       if (hasStartDate && active) {
         setTabs((prev) =>

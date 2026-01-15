@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import checkSignalHome from "@/public/assets/Images/check-signal-home.webp";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSignal } from "@/app/_api/CoreNetwork/CoreNetwork";
 import {
   getSignalLevel,
@@ -85,6 +85,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   const [isScanning, setIsScanning] = useState(mode === "auto");
   const [resultLevel, setResultLevel] = useState<Level>(level ?? 0);
   const [showPopup, setShowPopup] = useState(false);
+  const params = useSearchParams();
   const [signalData, setSignalData] = useState<{
     rsrp: number | null;
     rsrq: number | null;
@@ -111,6 +112,33 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
 
   // State untuk mengaktifkan SSE listener
   const [isWaitingForSignal, setIsWaitingForSignal] = useState(false);
+
+  // Cegah back navigation & redirect ke /customer-area jika dipaksa
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Dorong kembali ke halaman ini agar tidak benar-benar keluar
+      window.history.pushState(null, "", window.location.href);
+
+      // Tampilkan konfirmasi
+      const confirmed = window.confirm(
+        "Anda sedang mengecel sinyal modem. Yakin ingin kembali?"
+      );
+
+      if (confirmed) {
+        // Redirect ke /customer-area
+        window.location.href = "/customer-area";
+      }
+      // Jika tidak dikonfirmasi, user tetap di halaman (karena pushState di atas)
+    };
+
+    // Push state saat komponen mount
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -165,7 +193,10 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   );
 
   useEffect(() => {
-    setSn(localStorage.getItem("ira-cpe-serial-number"));
+    setSn(
+      localStorage.getItem("ira-cpe-serial-number") ||
+        params.get("serial_number")
+    );
     setCellId(localStorage.getItem("ira-cpe-cell-id"));
   }, []);
 

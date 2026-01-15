@@ -41,10 +41,11 @@ function SettingModemForm() {
   const [isLoadingCPE, setIsLoadingCPE] = useState(true);
   const [isWaitingForSetWifi, setIsWaitingForSetWifi] = useState(false);
 
-  const sn =
-    typeof window !== "undefined"
-      ? localStorage.getItem("ira-cpe-serial-number")
-      : null;
+  const sn = params.get("serial_number")
+    ? params.get("serial_number")
+    : typeof window !== "undefined"
+    ? localStorage.getItem("ira-cpe-serial-number")
+    : null;
 
   const token = getCookie("token-ira");
   const decodedToken = useMemo(() => {
@@ -126,6 +127,33 @@ function SettingModemForm() {
     };
 
     fetchCPE();
+  }, []);
+
+  // Cegah back navigation & redirect ke /customer-area jika dipaksa
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Dorong kembali ke halaman ini agar tidak benar-benar keluar
+      window.history.pushState(null, "", window.location.href);
+
+      // Tampilkan konfirmasi
+      const confirmed = window.confirm(
+        "Anda sedang mengatur modem.\nJika Anda meninggalkan halaman ini, perubahan belum tersimpan akan hilang.\n\nYakin ingin kembali?"
+      );
+
+      if (confirmed) {
+        // Redirect ke /customer-area
+        window.location.href = "/customer-area";
+      }
+      // Jika tidak dikonfirmasi, user tetap di halaman (karena pushState di atas)
+    };
+
+    // Push state saat komponen mount
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, []);
 
   // useEffect(() => {
@@ -251,8 +279,8 @@ function SettingModemForm() {
     formData.ssid_5ghz.trim().length >= 5 &&
     formData.ssid_5ghz.trim().length <= 32 &&
     formData.password_5ghz.length >= 8 &&
-    formData.password_5ghz.length <= 63
-    // && Object.keys(errors).length === 0;
+    formData.password_5ghz.length <= 63;
+  // && Object.keys(errors).length === 0;
 
   if (isLoadingCPE) {
     return <Loader />;
@@ -311,7 +339,7 @@ function SettingModemForm() {
             <button
               type="button"
               onClick={() => setShowPassword2(!showPassword2)}
-              className="absolute right-3 top-[53px] text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-13.25 text-gray-500 hover:text-gray-700"
             >
               {showPassword2 ? (
                 <Image
@@ -408,7 +436,7 @@ function SettingModemForm() {
                 !isFormValid || isSubmitting || isWaitingForSetWifi
                   ? "bg-primary/50 cursor-not-allowed"
                   : "cursor-pointer bg-primary hover:bg-dark-primary-2"
-              } shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]`}
+              } shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl`}
             >
               {isWaitingForSetWifi
                 ? "Menunggu konfirmasi"
@@ -428,7 +456,7 @@ function SettingModemForm() {
                     addUrlParam("section", "check_signal");
                 }}
                 type="button"
-                className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-[12px]"
+                className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-xl"
               >
                 Lewati
               </button>
