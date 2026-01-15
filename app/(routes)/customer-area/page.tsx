@@ -256,14 +256,14 @@ export default function AreaPelanggan() {
                   Berlangganan Kembali
                 </button>
 
-                <button
+                {/* <button
                   className="underline hover:text-dark-primary-2 flex gap-1 cursor-pointer items-center text-primary font-bold justify-center"
                   onClick={() =>
                     window.open(`https://wa.me/${phoneCS}`, "_blank")
                   }
                 >
                   Hubungi Customer Service <MdHeadsetMic size={20} />
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
