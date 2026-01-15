@@ -184,7 +184,7 @@ export function daysUntil(dateISO: string): number {
 }
 
 export function packageCountdown(endDateISO: string | null) {
-  const totalDays = daysUntil(endDateISO ?? '');
+  const totalDays = daysUntil(endDateISO ?? "");
 
   // Handle expired or today
   if (totalDays < 0) {
@@ -354,7 +354,6 @@ const MAX_HISTORY = 10;
 
 export const savePhoneToHistory = (phone: string) => {
   if (!phone) return;
-  console.log("masuk sini");
   try {
     const history = JSON.parse(
       localStorage.getItem(PHONE_HISTORY_KEY) || "[]"

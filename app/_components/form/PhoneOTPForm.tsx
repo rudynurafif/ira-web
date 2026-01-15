@@ -132,7 +132,6 @@ function PhoneOTPForm({
   async function SendOTP() {
     setIsLoading(true);
     try {
-      console.log("no hp", value);
       savePhoneToHistory(value);
       setPhoneHistory(getPhoneHistory());
 

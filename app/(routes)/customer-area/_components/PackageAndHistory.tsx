@@ -114,7 +114,6 @@ const PackageAndHistory = () => {
 
   useEffect(() => {
     if (userInfo) setIsInactive(userInfo?.status === "inactive");
-    console.log("is inactive", isInactive);
     fetchHistory(1);
   }, [isInactive, userInfo, userInfo?.status]);
 
@@ -291,7 +290,7 @@ const PackageAndHistory = () => {
         ) : null}
 
         {/* Banner Cubmu */}
-        {activePacketData && addOns.length > 0 && (
+        {addOns.length > 0 && (
           <div className="relative w-full">
             <Carousel
               autoPlay
@@ -365,7 +364,7 @@ const PackageAndHistory = () => {
             <ActivePackageCard data={activePacketData} />
           ) : null}
 
-          {activePacketData && addOns.length > 0 && (
+          {addOns.length > 0 && (
             <div className="relative w-full">
               <Carousel
                 autoPlay

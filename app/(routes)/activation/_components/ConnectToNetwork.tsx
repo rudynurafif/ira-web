@@ -242,6 +242,22 @@ export default function ConnectToNetwork() {
     }
   }, [screen]);
 
+  // Cegah back navigation saat loading
+  useEffect(() => {
+    if (screen !== "loading") return;
+
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [screen]);
+
   // restore attempt
   useEffect(() => {
     const savedFailed = Number(sessionStorage.getItem(attemptKey) || "0");
