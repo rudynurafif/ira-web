@@ -48,7 +48,6 @@ export default function AreaPelanggan() {
   const [isActivating, setIsActivating] = useState(false);
   const isCancelled = userInfo?.status === "canceled-instalation";
   const dispatch = useAppDispatch();
-
   const [subscriptionHistory, setSubscriptionHistory] =
     useState<SubscriptionHistoryAPI[]>();
 
@@ -59,11 +58,9 @@ export default function AreaPelanggan() {
       setSubscriptionHistory(data);
 
       const hasStartDate = Boolean(data?.[0]?.start_date);
-      const active = hasStartDate || userInfo?.status === "active";
+      const active = userInfo && userInfo?.status === "active";
 
-      setIsActive(active);
-
-      if (hasStartDate) {
+      if (hasStartDate && active) {
         setTabs((prev) =>
           prev.includes("Informasi Perangkat")
             ? prev
@@ -79,8 +76,13 @@ export default function AreaPelanggan() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (userInfo) {
+      setIsLoading(false);
+
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo]);
 
   useEffect(() => {
     const paymentSuccess = searchParams.get("payment-success");
@@ -111,13 +113,6 @@ export default function AreaPelanggan() {
     url.searchParams.set("tab", activeTab);
     router.replace(url.toString(), { scroll: false });
   }, [activeTab, router]);
-
-  useEffect(() => {
-    if (userInfo) {
-      setIsLoading(false);
-      // console.log("user dari state", user);
-    }
-  }, [userInfo]);
 
   const isFetching = !userInfo;
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
@@ -233,25 +228,14 @@ export default function AreaPelanggan() {
                   Berlangganan Kembali
                 </button>
 
-                {/* Desktop */}
                 <button
+                  className="underline hover:text-dark-primary-2 flex gap-1 cursor-pointer items-center text-primary font-bold justify-center"
                   onClick={() =>
                     window.open(`https://wa.me/${phoneCS}`, "_blank")
                   }
-                  className="flex justify-center items-center sm:block max-sm:hidden cursor-pointer gap-2 px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-dark-primary-2 transition shadow-lg"
-                >
-                  <span>Hubungi Customer Service</span>
-                  <MdHeadsetMic size={20} />
-                </button>
-
-                {/* Mobile */}
-                <Link
-                  className="flex underline sm:hidden max-sm:block cursor-pointer items-center text-primary font-bold justify-center"
-                  href={`https://wa.me/${phoneCS}`}
-                  target="_blank"
                 >
                   Hubungi Customer Service <MdHeadsetMic size={20} />
-                </Link>
+                </button>
               </div>
             </div>
           </div>
