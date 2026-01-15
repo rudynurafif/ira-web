@@ -70,7 +70,7 @@ function StepRow({
     ) : status === "failed" ? (
       <FiXCircle className="text-red-600" size={18} />
     ) : (
-      <span className="w-[18px] h-[18px] rounded-full bg-gray-300 inline-block" />
+      <span className="w-4.5 h-4.5 rounded-full bg-gray-300 inline-block" />
     );
 
   return (
@@ -114,7 +114,7 @@ export default function ConnectToNetwork() {
     "connecting"
   );
 
-  // ✅ step status terpisah
+  // step status terpisah
   const [activateStatus, setActivateStatus] = useState<StepStatus>("loading");
   const [internetStatus, setInternetStatus] = useState<StepStatus>("loading");
 
@@ -438,6 +438,7 @@ export default function ConnectToNetwork() {
     handleActivationSuccess,
     stopCooldown,
     attempt,
+    
     saveFailedAttemptStorage,
   ]);
 

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import checkSignalHome from "@/public/assets/Images/check-signal-home.webp";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSignal } from "@/app/_api/CoreNetwork/CoreNetwork";
 import {
   getSignalLevel,
@@ -85,6 +85,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   const [isScanning, setIsScanning] = useState(mode === "auto");
   const [resultLevel, setResultLevel] = useState<Level>(level ?? 0);
   const [showPopup, setShowPopup] = useState(false);
+  const params = useSearchParams();
   const [signalData, setSignalData] = useState<{
     rsrp: number | null;
     rsrq: number | null;
@@ -165,7 +166,10 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   );
 
   useEffect(() => {
-    setSn(localStorage.getItem("ira-cpe-serial-number"));
+    setSn(
+      localStorage.getItem("ira-cpe-serial-number") ||
+        params.get("serial_number")
+    );
     setCellId(localStorage.getItem("ira-cpe-cell-id"));
   }, []);
 

@@ -404,7 +404,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
 
   return (
     <>
-      <div className="max-w-[480px] p-6 mx-auto w-full text-center">
+      <div className="max-w-120 p-6 mx-auto w-full text-center">
         <h1 className="text-[24px] sm:text-[28px] text-old-primary font-bold mb-6">
           Scan Barcode
         </h1>
@@ -413,8 +413,8 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
           {/* html5-qrcode render video/canvas ke sini */}
           <div
             id={containerId}
-            className={`md:w-[400px]  ${
-              isDesktop ? "h-[500px]" : "h-[70vh] min-h-[400px]"
+            className={`md:w-100  ${
+              isDesktop ? "h-125" : "h-[70vh] min-h-100"
             } bg-black rounded-lg overflow-hidden relative`}
             style={{
               top: "-10%", // Adjust this value to move the box upwards
@@ -494,7 +494,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
           )}
 
           {!starting && (
-            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 w-full px-4 max-w-[480px]">
+            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 w-full px-4 max-w-120">
               <button
                 onClick={() => {
                   addUrlParam("section", "input");
