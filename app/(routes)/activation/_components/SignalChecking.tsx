@@ -113,6 +113,33 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   // State untuk mengaktifkan SSE listener
   const [isWaitingForSignal, setIsWaitingForSignal] = useState(false);
 
+  // Cegah back navigation & redirect ke /customer-area jika dipaksa
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Dorong kembali ke halaman ini agar tidak benar-benar keluar
+      window.history.pushState(null, "", window.location.href);
+
+      // Tampilkan konfirmasi
+      const confirmed = window.confirm(
+        "Anda sedang mengecel sinyal modem. Yakin ingin kembali?"
+      );
+
+      if (confirmed) {
+        // Redirect ke /customer-area
+        window.location.href = "/customer-area";
+      }
+      // Jika tidak dikonfirmasi, user tetap di halaman (karena pushState di atas)
+    };
+
+    // Push state saat komponen mount
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
