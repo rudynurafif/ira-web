@@ -279,11 +279,12 @@ const PackageAndHistory = () => {
     <>
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
-        {activePacketData && userInfo.status === "inactive" ? (
+        {activePacketData && isInactive ? (
           <InactiveCard data={activePacketData} />
         ) : status === "expired" ? (
           <ExpiredCard data={activePacketData} />
-        ) : userInfo.status === "dismantled" ? (
+        ) : userInfo.status === "dismantled" ||
+          userInfo.status === "suspend" ? (
           <ExpiredCard data={activePacketData} isDismantled />
         ) : activePacketData ? (
           <ActivePackageCard data={activePacketData} />
@@ -358,8 +359,11 @@ const PackageAndHistory = () => {
         <div className="lg:col-span-5 col-span-12 space-y-5">
           {activePacketData && isInactive ? (
             <InactiveCard data={activePacketData} />
-          ) : status === "expired" || userInfo.status === "dismantled" ? (
+          ) : status === "expired" ? (
             <ExpiredCard data={activePacketData} />
+          ) : userInfo.status === "dismantled" ||
+            userInfo.status === "suspend" ? (
+            <ExpiredCard data={activePacketData} isDismantled />
           ) : activePacketData ? (
             <ActivePackageCard data={activePacketData} />
           ) : null}
