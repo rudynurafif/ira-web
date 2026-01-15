@@ -445,6 +445,94 @@ export default function ConnectToNetwork() {
     if (!serialNumber) return;
     if (activationConfirmedRef.current) return;
 
+    if (attempt >= MAX_ATTEMPT) {
+      setScreen("failedFinal");
+      return;
+    }
+
+    const nextAttempt = Math.min(MAX_ATTEMPT, attempt + 1);
+    setAttempt(nextAttempt);
+    startCooldown(CHECK_COOLDOWN_SEC);
+
+    try {
+      toast.loading("Mengecek ulang status aktivasi...", { id: "refresh" });
+
+      // Jalankan secara paralel (lebih efisien)
+      const [resActivate, resInternet] = await Promise.all([
+        refreshTask({ type: "activate" }),
+        refreshTask({ type: "ping-test-activate" }),
+      ]);
+
+      toast.success("Permintaan cek status dikirim", { id: "refresh" });
+
+      const activateSuccess = resActivate?.data?.code === 0;
+      const activatePending = resActivate?.data?.code === 2;
+
+      const internetSuccess = resInternet?.data?.code === 0;
+      const internetPending = resInternet?.data?.code === 2;
+
+      // 🔹 Jika aktivasi sukses (baik internet sukses/pending/gagal), LANJUT
+      // if (activateSuccess && internetSuccess) {
+      if (activateSuccess) {
+        setActivateStatus("success");
+        setInternetStatus(
+          internetSuccess ? "success" : internetPending ? "loading" : "failed"
+        );
+        return;
+      }
+
+      // 🔹 Kasus 2: Salah satu/salah dua masih pending → tetap di loading
+      // if (activatePending || internetPending) {
+      //   // Update status step sesuai respons
+      //   if (activateSuccess) setActivateStatus("success");
+      //   else if (activatePending) setActivateStatus("loading");
+      //   else setActivateStatus("failed");
+
+      //   if (internetSuccess) setInternetStatus("success");
+      //   else if (internetPending) setInternetStatus("loading");
+      //   else setInternetStatus("failed");
+
+      //   setScreen("loading");
+      //   return;
+      // }
+
+      // 🔹 Case Gagal: Hanya jika aktivasi gagal → evaluasi gagal
+      if (!activateSuccess && !activatePending) {
+        setActivateStatus("failed");
+        setInternetStatus(internetSuccess ? "success" : "failed");
+
+        const failedCount = nextAttempt - 1;
+        saveFailedAttemptStorage(failedCount);
+
+        if (nextAttempt >= MAX_ATTEMPT) {
+          setScreen("failedFinal");
+        } else {
+          setScreen("failed");
+        }
+        return;
+      }
+
+      setActivateStatus(activateSuccess ? "success" : "failed");
+      setInternetStatus(internetSuccess ? "success" : "failed");
+      setScreen("loading");
+
+      // const failedCount = nextAttempt - 1;
+      // saveFailedAttemptStorage(failedCount);
+
+      // if (nextAttempt >= MAX_ATTEMPT) {
+      //   setScreen("failedFinal");
+      // } else {
+      //   setScreen("failed");
+      // }
+    } catch (err: any) {
+      toastErrorFromAPI(err, "refresh");
+    }
+  }
+
+  async function handleFailed() {
+    if (!serialNumber) return;
+    if (activationConfirmedRef.current) return;
+
     // Cek batas percobaan
     if (attempt >= MAX_ATTEMPT) {
       setScreen("failedFinal");
@@ -715,7 +803,7 @@ export default function ConnectToNetwork() {
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
           <button
-            onClick={() => handleCheckAgain()}
+            onClick={handleFailed}
             className="w-full bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
