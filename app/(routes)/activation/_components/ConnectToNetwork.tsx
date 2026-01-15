@@ -103,7 +103,7 @@ export default function ConnectToNetwork() {
   const [screen, setScreen] = useState<Screen>("loading");
 
   // attempt = attempt ke berapa (1..MAX_ATTEMPT)
-  const [attempt, setAttempt] = useState(1);
+  const [attempt, setAttempt] = useState(0);
 
   // cooldown
   const [cooldown, setCooldown] = useState(0);
@@ -273,9 +273,13 @@ export default function ConnectToNetwork() {
 
   // restore attempt
   useEffect(() => {
-    const savedFailed = Number(sessionStorage.getItem(attemptKey) || "0");
-    const currentAttempt = Math.min(MAX_ATTEMPT, savedFailed + 1);
-    setAttempt(currentAttempt);
+    const savedFailedStr = sessionStorage.getItem(attemptKey);
+    if (savedFailedStr !== null) {
+      const savedFailed = Number(savedFailedStr);
+      // Hanya set attempt jika ada data tersimpan (artinya pernah gagal)
+      setAttempt(Math.min(MAX_ATTEMPT, savedFailed + 1));
+    }
+    // Jika tidak ada di sessionStorage, biarkan attempt = 0 (default dari useState)
   }, [attemptKey]);
 
   // restore cooldown
@@ -438,7 +442,7 @@ export default function ConnectToNetwork() {
     handleActivationSuccess,
     stopCooldown,
     attempt,
-    
+
     saveFailedAttemptStorage,
   ]);
 
@@ -642,7 +646,7 @@ export default function ConnectToNetwork() {
 
     setSseStatus("connecting");
     setScreen("loading");
-    setAttempt(1);
+    setAttempt(0);
 
     setActivateStatus("loading");
     setInternetStatus("loading");

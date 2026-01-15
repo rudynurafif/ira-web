@@ -283,13 +283,13 @@ export const getSignalLevel = (
   rsrp?: number,
   rsrq?: number,
   sinr?: number
-): "good" | "poor" | "bad" | "disconnected" => {
+): "verygood" | "good" | "poor" | "bad" | "disconnected" => {
   if (rsrp == null) {
     return "disconnected";
   }
 
   // Sesuai tabel RSRP
-  if (rsrp >= -80) return "good"; // Excellent
+  if (rsrp >= -80) return "verygood"; // Excellent
   if (rsrp >= -90) return "good"; // Good
   if (rsrp >= -100) return "poor"; // Fair to Poor
   return "bad"; // Poor

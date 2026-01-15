@@ -30,7 +30,7 @@ const DeviceInformation = () => {
     rsrq: number | null;
     sinr: number | null;
     cell_id: string | null;
-    level: "good" | "poor" | "bad" | "disconnected";
+    level: "verygood" | "good" | "poor" | "bad" | "disconnected";
     message: string | null;
   }>({
     rsrp: null,
