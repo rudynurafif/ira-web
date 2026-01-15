@@ -25,6 +25,7 @@ import iraLogo from "@/public/assets/Images/LogoIra.png";
 import CpeActivationStatus from "./_components/CpeActivation";
 import Link from "next/link";
 import { FaSearchLocation } from "react-icons/fa";
+import { MdHeadsetMic } from "react-icons/md";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +46,7 @@ export default function AreaPelanggan() {
   const [successPayment, setSuccessPayment] = useState<boolean>(false);
   const [isActive, setIsActive] = useState<boolean>(false);
   const [isActivating, setIsActivating] = useState(false);
+  const isCancelled = userInfo?.status === "canceled-instalation";
   const dispatch = useAppDispatch();
 
   const [subscriptionHistory, setSubscriptionHistory] =
@@ -118,6 +120,7 @@ export default function AreaPelanggan() {
   }, [userInfo]);
 
   const isFetching = !userInfo;
+  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
 
   return (
     <div className="min-h-screen bg-background-customer pb-10">
@@ -169,7 +172,6 @@ export default function AreaPelanggan() {
 
         {/* Delivery Tracking */}
         {subscriptionHistory &&
-        
           is_coverage &&
           !subscriptionHistory?.[0]?.start_date &&
           !isLoading && (
@@ -209,6 +211,48 @@ export default function AreaPelanggan() {
                 <FaSearchLocation />
                 Cek Jangkauan Terbaru
               </Link>
+            </div>
+          </div>
+        )}
+
+        {isCancelled && !isFetching && (
+          <div className="max-md:mt-6 px-8 mt-12">
+            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+              <h1 className="text-2xl max-sm:text-center font-bold text-primary mb-4">
+                Pendaftaran Dibatalkan
+              </h1>
+              <p className="text-gray-600 mb-6 max-sm:text-center">
+                Yuk, klik berlangganan kembali dan nikmati internet cepat dari
+                IRA.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-6 items-center">
+                <button
+                  onClick={() => router.push("/reregistration")}
+                  className="flex cursor-pointer max-w-fit items-center gap-2 font-bold bg-primary text-white px-6 py-3 rounded-lg hover:bg-dark-primary-2"
+                >
+                  Berlangganan Kembali
+                </button>
+
+                {/* Desktop */}
+                <button
+                  onClick={() =>
+                    window.open(`https://wa.me/${phoneCS}`, "_blank")
+                  }
+                  className="flex justify-center items-center sm:block max-sm:hidden cursor-pointer gap-2 px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-dark-primary-2 transition shadow-lg"
+                >
+                  <span>Hubungi Customer Service</span>
+                  <MdHeadsetMic size={20} />
+                </button>
+
+                {/* Mobile */}
+                <Link
+                  className="flex underline sm:hidden max-sm:block cursor-pointer items-center text-primary font-bold justify-center"
+                  href={`https://wa.me/${phoneCS}`}
+                  target="_blank"
+                >
+                  Hubungi Customer Service <MdHeadsetMic size={20} />
+                </Link>
+              </div>
             </div>
           </div>
         )}

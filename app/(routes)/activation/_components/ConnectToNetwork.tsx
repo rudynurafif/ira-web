@@ -29,6 +29,8 @@ import { refreshTask } from "@/app/_api/CoreNetwork/CoreNetwork";
 import { DecodedToken } from "@/app/_context/sse.type";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { getDealerSuppPhone } from "@/app/_api/Customer/CustomerArea";
+import { Activation } from "@/app/_api/Activation/Activation";
 
 type Screen = "loading" | "failed" | "failedFinal" | "success" | "timedOut";
 type StepStatus = "idle" | "loading" | "success" | "failed";
@@ -298,7 +300,13 @@ export default function ConnectToNetwork() {
       clearSse();
       clearTimeoutSafe();
     }
-  }, [activateStatus, handleActivationSuccess, screen]);
+  }, [
+    activateStatus,
+    clearSse,
+    clearTimeoutSafe,
+    handleActivationSuccess,
+    screen,
+  ]);
 
   // SSE subscription
   useEffect(() => {
@@ -399,6 +407,9 @@ export default function ConnectToNetwork() {
     clearTimeoutSafe,
     handleTimeout,
     handleActivationSuccess,
+    stopCooldown,
+    attempt,
+    saveFailedAttemptStorage,
   ]);
 
   // Auto-close SSE & finalize when both steps succeed
@@ -518,16 +529,82 @@ export default function ConnectToNetwork() {
     }
   }
 
+  async function handleFailed() {
+    if (!serialNumber) return;
+    if (activationConfirmedRef.current) return;
+
+    // Cek batas percobaan
+    if (attempt >= MAX_ATTEMPT) {
+      setScreen("failedFinal");
+      return;
+    }
+
+    const nextAttempt = Math.min(MAX_ATTEMPT, attempt + 1);
+    setAttempt(nextAttempt);
+    startCooldown(CHECK_COOLDOWN_SEC);
+
+    try {
+      toast.loading("Mengirim permintaan aktivasi...", { id: "activate" });
+
+      // 🔥 Panggil API aktivasi seperti di InputManualForm
+      const res = await Activation({ serial_number: serialNumber });
+
+      if (res.data.statusCode === 200 || res.data.statusCode === 201) {
+        toast.success(
+          res.data.message ||
+            "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
+          { id: "activate" }
+        );
+
+        // Set status ke loading karena SSE akan menangani update selanjutnya
+        setActivateStatus("loading");
+        setInternetStatus("loading"); // atau "loading" jika langsung cek ping
+        setScreen("loading");
+
+        // Tidak perlu panggil refreshTask — biarkan SSE handle update
+      } else {
+        throw new Error(res.data.message || "Aktivasi gagal.");
+      }
+    } catch (err: any) {
+      toast.dismiss("activate");
+      toastErrorFromAPI(
+        err,
+        "Gagal mengirim permintaan aktivasi. Silakan coba lagi."
+      );
+
+      // Simpan percobaan gagal
+      saveFailedAttemptStorage(nextAttempt - 1);
+
+      if (nextAttempt >= MAX_ATTEMPT) {
+        setScreen("failedFinal");
+      } else {
+        setScreen("failed");
+      }
+
+      setActivateStatus("failed");
+      setInternetStatus("failed");
+    }
+  }
+
   function goNextSetting() {
     addUrlParam("section", "setting");
   }
 
-  function contactCS() {
+  async function contactCS() {
     const msg = encodeURIComponent(
       `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSN: ${serialNumber}`
     );
-    const phone = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
-    window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+    try {
+      const resPhone = await getDealerSuppPhone();
+
+      const phone =
+        resPhone.data?.phone ??
+        process.env.NEXT_PUBLIC_PHONE_CS ??
+        "6281110689111";
+      window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+    } catch (err: any) {
+      toastErrorFromAPI(err ?? "Gagal mendapatkan nomor Customer Service");
+    }
   }
 
   const handleRestart = () => {
@@ -556,7 +633,7 @@ export default function ConnectToNetwork() {
       ? "Koneksi server tidak stabil — kamu masih bisa cek status manual"
       : "Menyambungkan ke server aktivasi...";
 
-  // ---- UI ----
+  // ---- UI 10 menit ----
   if (screen === "timedOut") {
     return (
       <div className="container mx-auto px-6 text-center">
@@ -577,7 +654,7 @@ export default function ConnectToNetwork() {
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
           <button
             onClick={contactCS}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
+            className="w-full border-2 border-primary flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
             Hubungi Customer Service <MdHeadsetMic size={20} />
@@ -585,7 +662,7 @@ export default function ConnectToNetwork() {
 
           <button
             onClick={handleRestart}
-            className="w-full bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
+            className="w-full font-bold border-2 rounded-xl py-3 bg-white border-primary text-primary hover:bg-red-50 cursor-pointer"
             type="button"
           >
             Coba Lagi
@@ -662,10 +739,10 @@ export default function ConnectToNetwork() {
               : "Cek Status Aktivasi"}
           </button>
 
-          <div className="text-[12px] text-[#666]">
+          {/* <div className="text-[12px] text-[#666]">
             Percobaan: <span className="font-semibold">{attempt}</span>/
             {MAX_ATTEMPT}
-          </div>
+          </div> */}
         </div>
       </div>
     );
@@ -705,47 +782,6 @@ export default function ConnectToNetwork() {
     );
   }
 
-  if (screen === "failedFinal") {
-    return (
-      <div className="container mx-auto px-6 text-center">
-        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-old-primary">
-          Menghubungkan Perangkat ke Jaringan
-        </h2>
-
-        <div className="pt-8">
-          <div className="text-old-primary font-bold">
-            Proses Aktivasi <Badge color="red">Tidak Berhasil</Badge>
-          </div>
-          <p className="text-[#666] max-w-170 mx-auto mt-2">
-            Aktivasi tidak berhasil setelah {MAX_ATTEMPT} percobaan. Hubungi
-            Customer Service untuk bantuan lebih lanjut.
-          </p>
-          <div className="text-old-primary font-bold mt-1">
-            ({MAX_ATTEMPT}/{MAX_ATTEMPT})
-          </div>
-        </div>
-
-        <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
-          <button
-            onClick={contactCS}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
-            type="button"
-          >
-            Hubungi Customer Service <MdHeadsetMic size={20} />
-          </button>
-
-          <button
-            onClick={handleRestart}
-            className="w-full bg-white border-2 border-primary text-primary hover:bg-red-50 cursor-pointer font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
-            type="button"
-          >
-            Coba Ulang dari Awal
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (screen === "failed") {
     return (
       <div className="container mx-auto px-6 text-center">
@@ -758,30 +794,70 @@ export default function ConnectToNetwork() {
             Proses Aktivasi <Badge color="red">Tidak Berhasil</Badge>
           </div>
           <p className="text-[#666] max-w-170 mx-auto mt-2">
-            Aktivasi belum berhasil. Kamu bisa ulangi cek status, atau hubungi
-            Customer Service bila butuh bantuan.
+            Proses aktivasi masih membutuhkan waktu silahkan coba kembali
           </p>
-          <div className="text-old-primary font-bold mt-1">
+          {/* <div className="text-old-primary font-bold mt-1">
             ({attempt}/{MAX_ATTEMPT})
-          </div>
+          </div> */}
         </div>
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
           <button
-            onClick={handleCheckAgain}
+            onClick={handleFailed}
             className="w-full bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
             Ulangi Proses Aktivasi
           </button>
 
-          <button
+          {/* <button
             onClick={contactCS}
             className="w-full flex items-center justify-center gap-2 bg-white border-2 border-primary text-primary hover:bg-red-50 cursor-pointer font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
             Hubungi Customer Service <MdHeadsetMic size={20} />
+          </button> */}
+        </div>
+      </div>
+    );
+  }
+
+  if (screen === "failedFinal") {
+    return (
+      <div className="container mx-auto px-6 text-center">
+        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-old-primary">
+          Menghubungkan Perangkat ke Jaringan
+        </h2>
+
+        <div className="pt-8">
+          <div className="text-old-primary font-bold">
+            Proses Aktivasi <Badge color="red">Tidak Berhasil</Badge>
+          </div>
+          <p className="text-[#666] max-w-170 mx-auto mt-2">
+            Aktivasi perangkat tidak berhasil setelah beberapa saat. Hubungi
+            Customer Service untuk bantuan lebih lanjut.
+          </p>
+          {/* <div className="text-old-primary font-bold mt-1">
+            ({MAX_ATTEMPT}/{MAX_ATTEMPT})
+          </div> */}
+        </div>
+
+        <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
+          <button
+            onClick={contactCS}
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
+            type="button"
+          >
+            Hubungi Customer Service <MdHeadsetMic size={20} />
           </button>
+
+          {/* <button
+            onClick={handleRestart}
+            className="w-full bg-white border-2 border-primary text-primary hover:bg-red-50 cursor-pointer font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
+            type="button"
+          >
+            Coba Ulang dari Awal
+          </button> */}
         </div>
       </div>
     );

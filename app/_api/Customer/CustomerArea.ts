@@ -82,3 +82,17 @@ export const downloadInvoice = async (params: any) => {
     throw error;
   }
 };
+
+export const getDealerSuppPhone = async () => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/customer/get-mitra-phone",
+      method: "GET",
+      // params: params,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

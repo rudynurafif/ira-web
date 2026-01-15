@@ -282,8 +282,10 @@ const PackageAndHistory = () => {
       <div className="sm:hidden space-y-6">
         {activePacketData && userInfo.status === "inactive" ? (
           <InactiveCard data={activePacketData} />
-        ) : status === "expired" || userInfo.status === "dismantled" ? (
+        ) : status === "expired" ? (
           <ExpiredCard data={activePacketData} />
+        ) : userInfo.status === "dismantled" ? (
+          <ExpiredCard data={activePacketData} isDismantled />
         ) : activePacketData ? (
           <ActivePackageCard data={activePacketData} />
         ) : null}
