@@ -252,6 +252,7 @@ function SettingModemForm() {
       // lanjut ke step berikutnya
       addUrlParam("section", "check_signal");
     } catch (err: any) {
+      setIsWaitingForSetWifi(false);
       toastErrorFromAPI(err);
     } finally {
       setIsSubmitting(false);
