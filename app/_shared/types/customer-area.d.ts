@@ -71,6 +71,7 @@ export type ProfileInfo = {
   postal_code: string | null;
   nik: string | null;
   status:
+    | "canceled-instalation"
     | "waiting-for-installation"
     | "active"
     | "suspend"

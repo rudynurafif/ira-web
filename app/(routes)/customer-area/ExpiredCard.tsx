@@ -5,7 +5,7 @@ import expiredIcon from "@/public/assets/Images/internet-mati.png";
 import { formattedDate } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
 
-const ExpiredCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
+const ExpiredCard = ({ data, isDismantled }: { data?: SubscriptionHistoryAPI | null, isDismantled?: boolean }) => {
   const router = useRouter();
 
   return (
@@ -23,7 +23,7 @@ const ExpiredCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
 
       {/* Judul Utama */}
       <p className="text-sm sm:text-base font-bold text-[#D6211E] mb-2">
-        Internet nonaktif—bayar paket untuk aktif kembali seketika.
+        Internet {isDismantled ? "dismantled" : "nonaktif"}—bayar paket untuk aktif kembali seketika.
       </p>
 
       {/* Deskripsi */}

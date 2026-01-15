@@ -557,7 +557,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="flex max-md:flex-col gap-3 md:gap-6 p-6 border-t border-t-gray-200 ">
+          <div className="flex sticky max-md:flex-col gap-3 md:gap-6 p-6 border-t border-t-gray-200 ">
             <button
               type="button"
               onClick={onClose}
