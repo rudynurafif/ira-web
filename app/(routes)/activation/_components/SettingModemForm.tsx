@@ -273,11 +273,11 @@ function SettingModemForm() {
   }, [cpeDetail]);
 
   const isFormValid =
-    formData.ssid_24ghz.trim().length >= 5 &&
+    formData.ssid_24ghz.trim().length >= 3 &&
     formData.ssid_24ghz.trim().length <= 32 &&
     formData.password_24ghz.length >= 8 &&
     formData.password_24ghz.length <= 63 &&
-    formData.ssid_5ghz.trim().length >= 5 &&
+    formData.ssid_5ghz.trim().length >= 3 &&
     formData.ssid_5ghz.trim().length <= 32 &&
     formData.password_5ghz.length >= 8 &&
     formData.password_5ghz.length <= 63;
@@ -315,7 +315,7 @@ function SettingModemForm() {
             error={errors.ssid_24ghz}
           />
           <p className="text-xs text-gray-500 mt-1">
-            SSID (5-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
+            SSID (3-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
           </p>
 
           <div className="pt-2 relative">
@@ -382,7 +382,7 @@ function SettingModemForm() {
             error={errors.ssid_5ghz}
           />
           <p className="text-xs text-gray-500 mt-1">
-            SSID (5-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
+            SSID (3-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
           </p>
 
           <div className="pt-2 relative">

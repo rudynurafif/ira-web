@@ -58,13 +58,15 @@ const levelAdvice: Record<Level, string> = {
 };
 
 const mapSignalLevelToBar = (
-  level: "good" | "poor" | "bad" | "disconnected"
+  level: "" | "verygood" | "good" | "poor" | "bad" | "disconnected"
 ): Level => {
   switch (level) {
-    case "good":
+    case "verygood":
       return 4;
-    case "poor":
+    case "good":
       return 3;
+    case "poor":
+      return 2;
     case "bad":
       return 1;
     case "disconnected":
@@ -90,7 +92,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
     rsrp: number | null;
     rsrq: number | null;
     sinr: number | null;
-    level: "good" | "poor" | "bad" | "disconnected";
+    level: "" | "verygood" | "good" | "poor" | "bad" | "disconnected";
   }>({
     rsrp: null,
     rsrq: null,
