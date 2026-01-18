@@ -143,7 +143,7 @@ const PackageAndHistory = () => {
                 background: "linear-gradient(to right, #520201, #9C1816)",
               }}
             >
-              {activePacketData?.package_id.name || "Paket Internet Rakyat"}
+              {activePacketData?.package_id?.name || "Paket Internet Rakyat"}
             </div>
 
             {/* Body: Speed & Price */}
@@ -153,7 +153,7 @@ const PackageAndHistory = () => {
                   Internet sampai dengan
                 </div>
                 <div className="text-2xl font-extrabold text-gradient-red">
-                  {activePacketData?.package_id.speed_mbps || "Speed"}{" "}
+                  {activePacketData?.package_id?.speed_mbps || "Speed"}{" "}
                   <span className="sm:text-base text-xs">Mbps</span>
                 </div>
               </div>
@@ -165,7 +165,7 @@ const PackageAndHistory = () => {
                     Rp{" "}
                   </span>
                   {activePacketData
-                    ? activePacketData.package_id.price
+                    ? activePacketData.package_id?.price
                         .toLocaleString("id-ID")
                         .replace(/,/g, ".")
                     : "0"}

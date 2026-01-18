@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import Cubmu from "./_components/Cubmu";
 import { notFound } from "next/navigation";
 import { use } from "react";
+import Loader from "@/app/_components/Loader";
 
 export default function AddOnPage({
   params,
@@ -45,7 +46,7 @@ export default function AddOnPage({
   }, [uuidFromUrl]);
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return <Loader />;
   }
 
   if (!selectedAddon) {

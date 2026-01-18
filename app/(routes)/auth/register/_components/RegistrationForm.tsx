@@ -483,6 +483,8 @@ function RegistrationForm({
                 phone_number_verified: otpStatus === "valid",
               });
         } else if (mode === "reregister") {
+          toast("Fitur registrasi ulang belum tersedia.");
+          return;
         }
 
         // const res = coveredNow
@@ -716,7 +718,7 @@ function RegistrationForm({
                     city: "", // reset anak2 karena USER mengganti
                     district: "",
                     sub_district: "",
-                    postal_code: "",
+                    // postal_code: "",
                   }));
                 } else {
                   setFormData((prev) => ({
@@ -725,7 +727,7 @@ function RegistrationForm({
                     city: "",
                     district: "",
                     sub_district: "",
-                    postal_code: "",
+                    // postal_code: "",
                   }));
                 }
                 setErrors({ ...errors, province: "" });
@@ -753,7 +755,7 @@ function RegistrationForm({
                     city: value.value,
                     district: "",
                     sub_district: "",
-                    postal_code: "",
+                    // postal_code: "",
                   }));
                 } else {
                   setFormData((prev) => ({
@@ -761,7 +763,7 @@ function RegistrationForm({
                     city: "",
                     district: "",
                     sub_district: "",
-                    postal_code: "",
+                    // postal_code: "",
                   }));
                 }
                 setErrors({ ...errors, city: "" });
@@ -792,14 +794,14 @@ function RegistrationForm({
                     ...prev,
                     district: value.value,
                     sub_district: "",
-                    postal_code: "",
+                    // postal_code: "",
                   }));
                 } else {
                   setFormData((prev) => ({
                     ...prev,
                     district: "",
                     sub_district: "",
-                    postal_code: "",
+                    // postal_code: "",
                   }));
                 }
                 setErrors({ ...errors, district: "" });
@@ -829,13 +831,13 @@ function RegistrationForm({
                   setFormData((prev: any) => ({
                     ...prev,
                     sub_district: value.value,
-                    postal_code: "",
+                    // postal_code: "",
                   }));
                 } else {
                   setFormData((prev) => ({
                     ...prev,
                     sub_district: "",
-                    postal_code: "",
+                    // postal_code: "",
                   }));
                 }
                 setErrors({ ...errors, sub_district: "" });
@@ -1105,7 +1107,9 @@ function RegistrationForm({
           <button
             type="submit"
             disabled={isValid}
-            className={`py-3.75 w-1/2 font-bold text-white ${
+            className={`py-4 ${
+              mode === "register" ? "w-1/2" : "px-8"
+            } font-bold text-white ${
               isValid
                 ? "bg-slate-400 cursor-not-allowed"
                 : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
@@ -1116,8 +1120,10 @@ function RegistrationForm({
                 <div className="loading w-5 h-5"></div>
                 <span className="italic text-white">Loading...</span>
               </div>
-            ) : (
+            ) : mode === "register" ? (
               "Registrasi"
+            ) : (
+              "Berlangganan Kembali"
             )}
           </button>
           {status === "denied" && (
@@ -1127,19 +1133,21 @@ function RegistrationForm({
           )}
         </div>
 
-        <div className="mt-7 text-center">
-          <p className="text-primary-text">
-            Sudah punya akun IRA?{" "}
-            <span>
-              <Link
-                href="/auth/login"
-                className="underline-animation-register text-primary font-bold"
-              >
-                Login disini
-              </Link>
-            </span>
-          </p>
-        </div>
+        {mode === "register" && (
+          <div className="mt-7 text-center">
+            <p className="text-primary-text">
+              Sudah punya akun IRA?{" "}
+              <span>
+                <Link
+                  href="/auth/login"
+                  className="underline-animation-register text-primary font-bold"
+                >
+                  Login disini
+                </Link>
+              </span>
+            </p>
+          </div>
+        )}
       </form>
 
       {isModalRegisterSuccess && (

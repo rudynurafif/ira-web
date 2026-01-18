@@ -35,8 +35,8 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
       // Pasang event handler
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         e.preventDefault();
-        e.returnValue = ""; 
-        return ""; 
+        e.returnValue = "";
+        return "";
       };
 
       window.addEventListener("beforeunload", handleBeforeUnload);
@@ -51,8 +51,8 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
     if (!value.trim()) {
       return `${ssidType} SSID tidak boleh kosong`;
     }
-    if (value.length < 5 || value.length > 32) {
-      return "SSID harus 5–32 karakter";
+    if (value.length < 3 || value.length > 32) {
+      return "SSID harus 3–32 karakter";
     }
     return "";
   };

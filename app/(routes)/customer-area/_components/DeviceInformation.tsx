@@ -24,6 +24,36 @@ import { DecodedToken } from "@/app/_context/sse.type";
 import SignalStatus from "./SignalStatus";
 import toast from "react-hot-toast";
 
+const SIGNAL_STORAGE_KEY = "ira-cpe-signal-data";
+
+const saveSignalToSession = (data: any) => {
+  try {
+    sessionStorage.setItem(SIGNAL_STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn("Gagal simpan signal ke sessionStorage", e);
+  }
+};
+
+const loadSignalFromSession = () => {
+  try {
+    const raw = sessionStorage.getItem(SIGNAL_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (
+        (typeof parsed.rsrp === "number" &&
+          typeof parsed.rsrq === "number" &&
+          typeof parsed.sinr === "number") ||
+        parsed.level === "disconnected"
+      ) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn("Gagal baca signal dari sessionStorage", e);
+  }
+  return null;
+};
+
 const DeviceInformation = () => {
   const [signalData, setSignalData] = useState<{
     rsrp: number | null;
@@ -52,7 +82,6 @@ const DeviceInformation = () => {
     ssid: "WiFi Rumah",
     password: "katasandi123",
   });
-  // const { lastEvent } = useSSE();
   const token = getCookie("token-ira");
   const decodedToken = token
     ? (decodeJwt(token as string) as DecodedToken)
@@ -68,31 +97,37 @@ const DeviceInformation = () => {
     customer_id || "",
     (payload) => {
       const { rsrp, rsrq, sinr, cell_id } = payload.data || {};
-      const errorMessage = payload.message || null;
+      const message = payload.message || null;
+      let newSignalData;
+
       if (
+        payload.message === "Success" &&
         typeof rsrp === "number" &&
         typeof rsrq === "number" &&
         typeof sinr === "number" &&
         typeof cell_id === "string"
       ) {
-        setSignalData({
+        const level = getSignalLevel(rsrp, rsrq, sinr);
+        newSignalData = {
           rsrp,
           rsrq,
           sinr,
           cell_id,
-          level: getSignalLevel(rsrp, rsrq, sinr),
-          message: errorMessage,
-        });
+          level,
+          message: message,
+        };
+        saveSignalToSession(newSignalData);
       } else {
-        setSignalData({
+        newSignalData = {
           rsrp: null,
           rsrq: null,
           sinr: null,
           cell_id: null,
-          level: "disconnected",
-          message: errorMessage || "Device tidak merespon",
-        });
+          level: "disconnected" as const,
+          message: message || "Device tidak merespon",
+        };
       }
+      setSignalData(newSignalData);
       setIsLoadingSignal(false);
       setIsWaitingForSignal(false);
     },
@@ -130,12 +165,12 @@ const DeviceInformation = () => {
     (payload) => payload.type === "get_wifi" && payload.sn === serialNumber
   );
 
-  // 🔥 Dengarkan SSE untuk set_wifi
+  // 🔥 Dengarkan SSE untuk set wifi
   useSSEOneTime(
     customer_id || "",
     async (payload) => {
-      const { result, message } = payload;
-      if (result === "processed") {
+      const { message } = payload;
+      if (message === "Success") {
         toast.success("SSID berhasil diperbarui");
 
         try {
@@ -148,9 +183,8 @@ const DeviceInformation = () => {
             setSerialNumber(sn);
             localStorage.setItem("ira-cpe-serial-number", sn);
           }
-        } catch (err) {
-          console.warn("Gagal fetch ulang CPE setelah set_wifi:", err);
-          // Tetap tutup modal, data lama tetap ditampilkan
+        } catch (err: any) {
+          toastErrorFromAPI(`Gagal fetch ulang CPE setelah set_wifi: ${err}`);
         }
 
         setIsModalOpen(false);
@@ -205,7 +239,7 @@ const DeviceInformation = () => {
 
   const fetchSignal = async (sn: string) => {
     if (!customer_id) {
-      toastErrorFromAPI(new Error("User tidak terautentikasi"));
+      toastErrorFromAPI("User tidak terautentikasi");
       setIsLoadingSignal(false);
       setIsWaitingForSignal(false);
       return;
@@ -216,13 +250,34 @@ const DeviceInformation = () => {
 
     try {
       // Panggil API untuk trigger backend kirim SSE
-      await getSignal({ sn });
+      const resSignal = await getSignal({ sn });
+
+      if (resSignal?.data?.statusCode === 200)
+        toast.success(resSignal.data.message);
     } catch (err: any) {
       toastErrorFromAPI(err);
       setIsLoadingSignal(false);
       setIsWaitingForSignal(false);
     }
   };
+
+  // ✅ Coba load dari sessionStorage saat serialNumber tersedia
+  useEffect(() => {
+    if (serialNumber) {
+      const saved = loadSignalFromSession();
+      if (saved) {
+        // Gunakan data tersimpan → jangan panggil API
+        setSignalData(saved);
+        setIsLoadingSignal(false);
+      } else {
+        // Tidak ada data → lakukan pengecekan pertama kali
+        fetchSignal(serialNumber);
+      }
+    } else {
+      setIsLoadingSignal(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serialNumber]);
 
   useEffect(() => {
     fetchCPEDetail();
@@ -236,18 +291,12 @@ const DeviceInformation = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cpeDetail?.cpe_id?.ssid]);
 
-  useEffect(() => {
-    if (serialNumber) {
-      setSerialNumber(serialNumber);
-      fetchSignal(serialNumber);
-    } else {
-      setIsLoadingSignal(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serialNumber]);
-
   const handleCheckSignal = () => {
-    if (serialNumber) fetchSignal(serialNumber);
+    if (serialNumber) {
+      // Hapus cache agar hasil baru disimpan
+      sessionStorage.removeItem(SIGNAL_STORAGE_KEY);
+      fetchSignal(serialNumber);
+    }
   };
 
   const toggleBlockDevice = (deviceId: number) => {
