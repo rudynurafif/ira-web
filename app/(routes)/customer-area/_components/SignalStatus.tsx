@@ -5,6 +5,10 @@ import poorSignal from "@/public/assets/Icons/poor-signal.svg";
 import badSignal from "@/public/assets/Icons/bad-signal.svg";
 import disconnected from "@/public/assets/Icons/disconnected-signal.svg";
 import Image from "next/image";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
+import { FaCheck, FaCopy } from "react-icons/fa";
 
 interface SignalStatusProps {
   rsrp: number | null;
@@ -27,6 +31,9 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
   isLoading,
   message,
 }) => {
+  const [isCopied, setIsCopied] = useState(false);
+  const [isCooldown, setIsCooldown] = useState(false);
+
   const config = {
     verygood: {
       icon: goodSignal,
@@ -69,6 +76,25 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
 
   const { icon, statusText, internetText } = displayConfig;
 
+  const handleCopyCellId = async () => {
+    if (!cellId || isCooldown) return;
+
+    try {
+      await navigator.clipboard.writeText(cellId);
+      setIsCopied(true);
+      toast.success("Cell ID disalin ke clipboard");
+
+      // Reset icon setelah 1.5 detik
+      setTimeout(() => setIsCopied(false), 3000);
+
+      // Aktifkan cooldown 3 detik
+      setIsCooldown(true);
+      setTimeout(() => setIsCooldown(false), 3000);
+    } catch (err) {
+      toastErrorFromAPI("Gagal menyalin Cell ID");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 bg-white rounded-lg shadow-lg p-6 max-sm:p-4 border border-gray-200">
       {showOutOfCoverage ? (
@@ -108,10 +134,26 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
           </div>
 
           {cellId && (
-            <div className="text-center text-sm">
+            <div className="text-center text-sm flex items-center justify-center gap-1">
               <div className="text-secondary">
                 Cell ID: <span className="">{cellId}</span>
               </div>
+              <button
+                onClick={handleCopyCellId}
+                disabled={isCooldown}
+                className={`p-1 rounded transition-colors ${
+                  isCooldown
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-primary hover:text-dark-primary-2 cursor-pointer"
+                }`}
+                aria-label="Salin Cell ID"
+              >
+                {isCopied ? (
+                  <FaCheck className="text-green-500" size={14} />
+                ) : (
+                  <FaCopy size={14} />
+                )}
+              </button>
             </div>
           )}
         </>
