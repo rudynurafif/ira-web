@@ -352,14 +352,14 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                   <button
                     type="button"
                     onClick={retryFromPopup}
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-button hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
+                    className="inline-flex w-full items-center border-2 border-primary justify-center rounded-xl bg-white hover:bg-red-50 px-6 py-3 text-primary text-sm font-semibold cursor-pointer"
                   >
                     Cek Ulang
                   </button>
                   <button
                     type="button"
                     onClick={closePopup}
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-green-primary px-6 py-3 text-white hover:bg-green-700 text-sm font-semibold cursor-pointer"
+                    className="inline-flex w-full items-center border-2 border-primary justify-center rounded-xl bg-primary px-6 py-3 text-white hover:bg-dark-primary-2 hover:border-dark-primary-2 text-sm font-semibold cursor-pointer"
                   >
                     Selesai
                   </button>

@@ -17,6 +17,8 @@ import { getCookie } from "cookies-next";
 import { DecodedToken } from "@/app/_context/sse.type";
 import Loader from "@/app/_components/Loader";
 import { useSSEOneTime } from "@/app/hooks/useSSEOneTime";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { IoEyeSharp } from "react-icons/io5";
 
 interface FormType {
   ssid_24ghz: string;
@@ -99,12 +101,20 @@ function SettingModemForm() {
     (payload: SSEPayload) => payload.type === "get_wifi" && payload.sn === sn // filter event
   );
 
-  // 🔥 2. Dengarkan SSE untuk `set_wifi` setelah submit
+  // 🔥 2. Dengarkan SSE untuk `set wifi` setelah submit
   useSSEOneTime(
     customer_id || "",
-    () => {
+    (payload: SSEPayload) => {
+      const { message } = payload;
+
       setIsWaitingForSetWifi(false);
-      addUrlParam("section", "check_signal");
+
+      if (message === "Success") {
+        toast.success("SSID berhasil diperbarui!");
+        addUrlParam("section", "check_signal");
+      } else {
+        toast.error(message || "Gagal memperbarui SSID. Silakan coba lagi.");
+      }
     },
     isWaitingForSetWifi,
     (payload: SSEPayload) => payload.type === "set_wifi" && payload.sn === sn
@@ -243,14 +253,17 @@ function SettingModemForm() {
         setSSIDRes.data.statusCode === 201 ||
         setSSIDRes.data.statusCode === 200
       ) {
-        toast.success("Setting SSID berhasil disimpan");
+        toast.success(
+          setSSIDRes.data.message ??
+            "Permintaan pengaturan SSID dikirim. Menunggu konfirmasi..."
+        );
         setIsWaitingForSetWifi(true);
       } else {
         throw new Error(setSSIDRes?.data?.message || "Gagal menyimpan SSID");
       }
 
       // lanjut ke step berikutnya
-      addUrlParam("section", "check_signal");
+      // addUrlParam("section", "check_signal");
     } catch (err: any) {
       setIsWaitingForSetWifi(false);
       toastErrorFromAPI(err);
@@ -340,20 +353,12 @@ function SettingModemForm() {
             <button
               type="button"
               onClick={() => setShowPassword2(!showPassword2)}
-              className="absolute right-3 top-13.25 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-13.25 text-primary hover:text-dark-primary-2"
             >
               {showPassword2 ? (
-                <Image
-                  src={eye}
-                  className="w-6 h-6 cursor-pointer"
-                  alt="showPassword"
-                />
+                <IoEyeSharp className="w-6 h-6 cursor-pointer" />
               ) : (
-                <Image
-                  src={eyeClose}
-                  className="w-6 h-6 cursor-pointer"
-                  alt="hidePassword"
-                />
+                <FaEyeSlash className="w-6 h-6 cursor-pointer" />
               )}
             </button>
           </div>
@@ -408,20 +413,12 @@ function SettingModemForm() {
             <button
               type="button"
               onClick={() => setShowPassword5(!showPassword5)}
-              className="absolute right-3 top-13.25 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-13.25 text-primary hover:text-dark-primary-2"
             >
               {showPassword5 ? (
-                <Image
-                  src={eye}
-                  className="w-6 h-6 cursor-pointer"
-                  alt="showPassword"
-                />
+                <IoEyeSharp className="w-6 h-6 cursor-pointer" />
               ) : (
-                <Image
-                  src={eyeClose}
-                  className="w-6 h-6 cursor-pointer"
-                  alt="hidePassword"
-                />
+                <FaEyeSlash className="w-6 h-6 cursor-pointer" />
               )}
             </button>
           </div>
