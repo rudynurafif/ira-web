@@ -195,9 +195,7 @@ export default function AreaPelanggan() {
 
         {/* Delivery Tracking */}
         {userInfo?.status === "waiting-for-installation" &&
-          subscriptionHistory &&
           is_coverage &&
-          !subscriptionHistory?.[0]?.start_date &&
           !isLoading && (
             <div className="max-md:mt-6 px-8 mt-12">
               <DeliveryTracking

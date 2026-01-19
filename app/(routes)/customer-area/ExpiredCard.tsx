@@ -17,8 +17,6 @@ const ExpiredCard = ({
 
   const { userInfo, is_coverage } = useAppSelector((state) => state.auth);
 
-  console.log(userInfo?.status);
-
   return (
     <div className="text-center py-6 px-4 bg-linear-to-b from-white via-white to-[#D6211E] rounded-xl shadow-lg">
       {/* Ikon Peringatan Besar */}

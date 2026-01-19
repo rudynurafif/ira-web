@@ -489,49 +489,16 @@ export default function ConnectToNetwork() {
     try {
       toast.loading("Mengecek ulang status aktivasi...", { id: "refresh" });
 
-      // Jalankan secara paralel (lebih efisien)
-      const [resActivate, resInternet] = await Promise.all([
-        refreshTask({ type: "activate" }),
-        refreshTask({ type: "ping-test-activate" }),
-      ]);
-
-      toast.success("Permintaan cek status dikirim", { id: "refresh" });
-
+      // 🔹 1. Tunggu ACTIVATE dulu
+      const resActivate = await refreshTask({ type: "activate" });
       const activateSuccess = resActivate?.data?.code === 0;
       const activatePending = resActivate?.data?.code === 2;
 
-      const internetSuccess = resInternet?.data?.code === 0;
-      const internetPending = resInternet?.data?.code === 2;
-
-      // 🔹 Jika aktivasi sukses (baik internet sukses/pending/gagal), LANJUT
-      // if (activateSuccess && internetSuccess) {
-      if (activateSuccess) {
-        setActivateStatus("success");
-        setInternetStatus(
-          internetSuccess ? "success" : internetPending ? "loading" : "failed"
-        );
-        return;
-      }
-
-      // 🔹 Kasus 2: Salah satu/salah dua masih pending → tetap di loading
-      // if (activatePending || internetPending) {
-      //   // Update status step sesuai respons
-      //   if (activateSuccess) setActivateStatus("success");
-      //   else if (activatePending) setActivateStatus("loading");
-      //   else setActivateStatus("failed");
-
-      //   if (internetSuccess) setInternetStatus("success");
-      //   else if (internetPending) setInternetStatus("loading");
-      //   else setInternetStatus("failed");
-
-      //   setScreen("loading");
-      //   return;
-      // }
-
-      // 🔹 Case Gagal: Hanya jika aktivasi gagal → evaluasi gagal
+      // 🔹 2. Jika ACTIVATE gagal → langsung handle failure
       if (!activateSuccess && !activatePending) {
+        // Aktivasi gagal
         setActivateStatus("failed");
-        setInternetStatus(internetSuccess ? "success" : "failed");
+        setInternetStatus("failed");
 
         const failedCount = nextAttempt - 1;
         saveFailedAttemptStorage(failedCount);
@@ -541,23 +508,51 @@ export default function ConnectToNetwork() {
         } else {
           setScreen("failed");
         }
+
+        toast.error("Aktivasi gagal. Silakan coba lagi.", { id: "refresh" });
         return;
       }
 
-      setActivateStatus(activateSuccess ? "success" : "failed");
-      setInternetStatus(internetSuccess ? "success" : "failed");
+      // 🔹 3. Jika ACTIVATE sukses/pending → lanjut ke PING TEST
+      setActivateStatus(activateSuccess ? "success" : "loading");
+
+      const resInternet = await refreshTask({ type: "ping-test-activate" });
+      const internetSuccess = resInternet?.data?.code === 0;
+      const internetPending = resInternet?.data?.code === 2;
+
+      setInternetStatus(
+        internetSuccess ? "success" : internetPending ? "loading" : "failed"
+      );
+
+      // 🔹 4. Case 1 & Case 2: Jika aktivasi sukses → LANJUT KE SETTING
+      if (activateSuccess) {
+        // Simpan data & redirect
+        sessionStorage.setItem(
+          "ira-cpe-serial-number",
+          serialNumber || "SN not found"
+        );
+        resetAttemptStorage();
+        stopCooldown();
+
+        toast.success("Aktivasi berhasil! Mengarahkan ke pengaturan...", {
+          id: "refresh",
+        });
+
+        // Redirect ke setting (SSID)
+        addUrlParam("section", "setting");
+        return;
+      }
+
+      // 🔹 5. Jika activate pending → tetap di loading (tunggu SSE)
+      toast.success("Permintaan aktivasi dikirim. Menunggu konfirmasi...", {
+        id: "refresh",
+      });
       setScreen("loading");
-
-      // const failedCount = nextAttempt - 1;
-      // saveFailedAttemptStorage(failedCount);
-
-      // if (nextAttempt >= MAX_ATTEMPT) {
-      //   setScreen("failedFinal");
-      // } else {
-      //   setScreen("failed");
-      // }
     } catch (err: any) {
       toastErrorFromAPI(err, "refresh");
+      setActivateStatus("failed");
+      setInternetStatus("failed");
+      setScreen("failed");
     }
   }
 
@@ -664,8 +659,8 @@ export default function ConnectToNetwork() {
     sseStatus === "open"
       ? "Terhubung ke server aktivasi"
       : sseStatus === "error"
-      ? "Koneksi server tidak stabil — kamu masih bisa cek status manual"
-      : "Menyambungkan ke server aktivasi...";
+        ? "Koneksi server tidak stabil — kamu masih bisa cek status manual"
+        : "Menyambungkan ke server aktivasi...";
 
   // ---- UI 10 menit ----
   if (screen === "timedOut") {
