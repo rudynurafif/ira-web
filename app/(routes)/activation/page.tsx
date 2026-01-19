@@ -53,9 +53,6 @@ function Page() {
       return;
     }
 
-    // console.log(userInfo.status);
-    // console.log(shipmentStatus);
-
     // pastikan belum aktif dan sudah siap aktivasi
     if (shipmentStatus !== "done") {
       router.replace("/customer-area");

@@ -37,6 +37,8 @@ function InputManualForm() {
         errors.serial_number = "Serial Number harus diisi";
       }
 
+      localStorage.setItem("ira-cpe-serial-number", serialNumber!);
+
       // trigger SSE
       const res = await Activation({ serial_number: serialNumber });
 
@@ -136,7 +138,7 @@ function InputManualForm() {
             <button
               disabled={isSubmitting || !serialNumber}
               type="submit"
-              className="w-full disabled:bg-slate-400 hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary disabled:border-slate-400 disabled:cursor-not-allowed"
+              className="w-full disabled:bg-slate-400 hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary hover:border-dark-primary-2 disabled:border-slate-400 disabled:cursor-not-allowed"
             >
               Submit
             </button>

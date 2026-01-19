@@ -36,8 +36,8 @@ type Screen = "loading" | "failed" | "failedFinal" | "success" | "timedOut";
 type StepStatus = "idle" | "loading" | "success" | "failed";
 
 const MAX_ATTEMPT = 3;
-const CHECK_COOLDOWN_SEC = 120;
-const SSE_TIMEOUT_MS = 10 * 60 * 1000;
+const CHECK_COOLDOWN_SEC = 30; // refresh task
+const SSE_TIMEOUT_MS = 10 * 60 * 1000; // sse timeout 10 menit
 
 function StepRow({
   title,
@@ -135,9 +135,9 @@ export default function ConnectToNetwork() {
     return `activation_attempt:${sn}`;
   }, [serialNumber]);
 
-  const clearSse = useCallback(() => {
+  const clearSse = useCallback((id?: string) => {
     if (eventSourceRef.current) {
-      console.log("CloseOperation: Closing SSE connection via clearSse");
+      console.log(`CloseOperation: Closing SSE connection via clearSse ${id}`);
       try {
         eventSourceRef.current.close();
       } catch (err) {
@@ -182,18 +182,14 @@ export default function ConnectToNetwork() {
   }, [cooldownKey]);
 
   const handleActivationSuccess = useCallback(
-    (source: "sse" | "api" | "") => {
+    (source: "sse" | "api" | "timeout") => {
       if (activationConfirmedRef.current) return;
       activationConfirmedRef.current = true;
 
-      sessionStorage.setItem(
-        "ira-cpe-serial-number",
-        serialNumber || "SN not found"
-      );
       resetAttemptStorage();
       stopCooldown();
       clearTimeoutSafe();
-      clearSse();
+      clearSse("1");
 
       // pastikan status step 2 success
       setActivateStatus("success");
@@ -207,22 +203,16 @@ export default function ConnectToNetwork() {
         toast.success("Perangkat berhasil diaktivasi.");
       }
     },
-    [
-      serialNumber,
-      resetAttemptStorage,
-      stopCooldown,
-      clearTimeoutSafe,
-      clearSse,
-    ]
+    [resetAttemptStorage, stopCooldown, clearTimeoutSafe, clearSse]
   );
 
   const handleTimeout = useCallback(() => {
-    clearSse();
+    clearSse("2");
     clearTimeoutSafe();
 
     // ✅ Jika aktivasi sudah sukses, langsung success (Case 2)
     if (activateStatus === "success") {
-      handleActivationSuccess("sse");
+      handleActivationSuccess("timeout");
     } else {
       setScreen("timedOut");
     }
@@ -321,24 +311,6 @@ export default function ConnectToNetwork() {
     }
   }, [screen, cooldownKey, startCooldown]);
 
-  // Redirect otomatis saat aktivasi sukses (Case 1 & 2)
-  useEffect(() => {
-    if (activateStatus === "success" && timeoutRef.current === null) {
-      handleActivationSuccess("sse");
-    } else if (activateStatus === "failed" && screen === "loading") {
-      // todo: handle failure case
-      setActivateStatus("failed");
-      clearSse();
-      clearTimeoutSafe();
-    }
-  }, [
-    activateStatus,
-    clearSse,
-    clearTimeoutSafe,
-    handleActivationSuccess,
-    screen,
-  ]);
-
   // SSE subscription
   useEffect(() => {
     if (screen !== "loading") return;
@@ -347,7 +319,7 @@ export default function ConnectToNetwork() {
 
     setSseStatus("connecting");
 
-    clearSse();
+    clearSse("3");
     clearTimeoutSafe();
 
     const es = new EventSourcePolyfill(
@@ -377,41 +349,37 @@ export default function ConnectToNetwork() {
       try {
         const data = JSON.parse(event.data);
 
-        // Pastikan ini adalah event untuk serial number ini
         if (data?.sn !== serialNumber) return;
 
+        // Handle activate
         if (data?.type === "activate") {
-          // Handle activate
           setActivateStatus("loading");
           if (data?.message === "Success") {
             setActivateStatus("success");
-            setInternetStatus((prev) => (prev === "idle" ? "loading" : prev));
+            setInternetStatus("loading");
             toast.success(
               "Aktivasi jaringan berhasil. Mengecek koneksi internet..."
             );
-
-            // handleActivationSuccess("");
           } else {
             stopCooldown();
-
             setActivateStatus("failed");
             setInternetStatus("failed");
             setScreen("failed");
-
-            clearSse();
+            clearSse("4");
             clearTimeoutSafe();
-
             const currentAttempt = attempt;
             saveFailedAttemptStorage(currentAttempt);
           }
-        } else if (data?.type === "ping-test-activate") {
-          // Handle ping test
-          setInternetStatus("loading");
+        }
+
+        if (
+          data?.type === "ping-test-activate" &&
+          activateStatus === "success"
+        ) {
           if (data?.message === "Success") {
             setInternetStatus("success");
-            // handleActivationSuccess("sse");
+            handleActivationSuccess("sse");
           } else {
-            // setActivateStatus("failed"); // disini
             setInternetStatus("failed");
           }
         }
@@ -424,12 +392,11 @@ export default function ConnectToNetwork() {
 
     return () => {
       try {
-      } catch {}
-      try {
         es.close();
       } catch {}
       clearTimeoutSafe();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     customer_id,
     serialNumber,
@@ -440,50 +407,14 @@ export default function ConnectToNetwork() {
     handleActivationSuccess,
     stopCooldown,
     attempt,
-
     saveFailedAttemptStorage,
+    // activateStatus,
   ]);
 
-  // Auto-close SSE & finalize when both steps succeed
-  useEffect(() => {
-    if (
-      activateStatus === "success" &&
-      internetStatus === "success" &&
-      !activationConfirmedRef.current
-    ) {
-      console.log("✅ Both activate and ping-test succeeded. Finalizing...");
-      handleActivationSuccess("sse");
-    }
-  }, [activateStatus, internetStatus, handleActivationSuccess]);
-
-  // Early close on double failure
-  useEffect(() => {
-    if (
-      activateStatus === "failed" &&
-      (internetStatus === "failed" || internetStatus === "success") && // pastikan ping sudah selesai
-      !activationConfirmedRef.current
-    ) {
-      // Opsional: tutup SSE lebih cepat
-      console.log(
-        "CloseOperation: Both steps finalized as failed. Closing SSE."
-      );
-      clearSse();
-      // Tapi jangan panggil handleActivationSuccess
-      // Biarkan user retry atau timeout handle screen
-    }
-  }, [activateStatus, internetStatus, clearSse]);
-
-  async function handleCheckAgain() {
+  async function handleCheckStatus() {
     if (!serialNumber) return;
     if (activationConfirmedRef.current) return;
 
-    if (attempt >= MAX_ATTEMPT) {
-      setScreen("failedFinal");
-      return;
-    }
-
-    const nextAttempt = Math.min(MAX_ATTEMPT, attempt + 1);
-    setAttempt(nextAttempt);
     startCooldown(CHECK_COOLDOWN_SEC);
 
     try {
@@ -496,58 +427,55 @@ export default function ConnectToNetwork() {
 
       // 🔹 2. Jika ACTIVATE gagal → langsung handle failure
       if (!activateSuccess && !activatePending) {
-        // Aktivasi gagal
         setActivateStatus("failed");
         setInternetStatus("failed");
+        setScreen("failed");
 
-        const failedCount = nextAttempt - 1;
-        saveFailedAttemptStorage(failedCount);
+        toast.error(
+          resActivate?.data?.data?.error_message ??
+            "Aktivasi gagal. Silakan coba lagi.",
+          { id: "refresh" }
+        );
+        return;
+      }
 
-        if (nextAttempt >= MAX_ATTEMPT) {
-          setScreen("failedFinal");
-        } else {
-          setScreen("failed");
+      // 🔹 3. Jika aktivasi sukses → LANJUT KE SETTING
+      if (activateSuccess) {
+        setActivateStatus("success");
+        setInternetStatus("loading");
+        setScreen("loading");
+
+        try {
+          const resInternet = await refreshTask({ type: "ping-test-activate" });
+          if (resInternet?.data?.code === 0) {
+            setInternetStatus("success");
+            handleActivationSuccess("api");
+          } else if (resInternet?.data?.code === 2) {
+            setInternetStatus("loading");
+            toast.success("Verifikasi koneksi internet sedang berlangsung...", {
+              id: "refresh",
+            });
+          } else {
+            setInternetStatus("failed");
+            toast.error("Gagal memulai verifikasi koneksi internet", {
+              id: "refresh",
+            });
+          }
+        } catch (err: any) {
+          setInternetStatus("failed");
+          toastErrorFromAPI(err, "refresh");
         }
 
-        toast.error("Aktivasi gagal. Silakan coba lagi.", { id: "refresh" });
         return;
       }
 
-      // 🔹 3. Jika ACTIVATE sukses/pending → lanjut ke PING TEST
-      setActivateStatus(activateSuccess ? "success" : "loading");
-
-      const resInternet = await refreshTask({ type: "ping-test-activate" });
-      const internetSuccess = resInternet?.data?.code === 0;
-      const internetPending = resInternet?.data?.code === 2;
-
-      setInternetStatus(
-        internetSuccess ? "success" : internetPending ? "loading" : "failed"
-      );
-
-      // 🔹 4. Case 1 & Case 2: Jika aktivasi sukses → LANJUT KE SETTING
-      if (activateSuccess) {
-        // Simpan data & redirect
-        sessionStorage.setItem(
-          "ira-cpe-serial-number",
-          serialNumber || "SN not found"
-        );
-        resetAttemptStorage();
-        stopCooldown();
-
-        toast.success("Aktivasi berhasil! Mengarahkan ke pengaturan...", {
-          id: "refresh",
-        });
-
-        // Redirect ke setting (SSID)
-        addUrlParam("section", "setting");
-        return;
-      }
-
-      // 🔹 5. Jika activate pending → tetap di loading (tunggu SSE)
+      // 🔹 4. Jika activate pending → tetap di loading (tunggu SSE)
+      setActivateStatus("loading");
+      setInternetStatus("loading");
+      setScreen("loading");
       toast.success("Permintaan aktivasi dikirim. Menunggu konfirmasi...", {
         id: "refresh",
       });
-      setScreen("loading");
     } catch (err: any) {
       toastErrorFromAPI(err, "refresh");
       setActivateStatus("failed");
@@ -649,7 +577,7 @@ export default function ConnectToNetwork() {
     resetAttemptStorage();
     stopCooldown();
 
-    clearSse();
+    clearSse("5");
     clearTimeoutSafe();
 
     startCooldown(CHECK_COOLDOWN_SEC);
@@ -753,7 +681,7 @@ export default function ConnectToNetwork() {
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
           <button
-            onClick={handleCheckAgain}
+            onClick={handleCheckStatus}
             disabled={isCooldownActive}
             className={`w-full border-2 font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]
             ${
