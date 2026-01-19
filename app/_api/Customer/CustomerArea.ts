@@ -37,7 +37,7 @@ export const getProfileInfo = async (params: any) => {
 
     return data;
   } catch (error) {
-    throw error;
+  throw error;
   }
 };
 

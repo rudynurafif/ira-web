@@ -179,7 +179,10 @@ const DeviceInformation = () => {
             const updatedCpeData = resCPE.data.data;
             setCpeDetail(updatedCpeData);
 
-            const sn = updatedCpeData.cpe_id?.serial_number ?? "-";
+            const sn =
+              updatedCpeData.cpe_id?.serial_number ??
+              localStorage.getItem("ira-cpe-serial-number") ??
+              "SN Tidak ditemukan 1";
             setSerialNumber(sn);
             localStorage.setItem("ira-cpe-serial-number", sn);
           }
@@ -205,7 +208,10 @@ const DeviceInformation = () => {
         const cpeData = resCPE.data.data;
         setCpeDetail(cpeData);
 
-        const sn = cpeData.cpe_id?.serial_number ?? "-";
+        const sn =
+          cpeData.cpe_id?.serial_number ??
+          localStorage.getItem("ira-cpe-serial-number") ??
+          "-";
         setSerialNumber(sn);
         localStorage.setItem("ira-cpe-serial-number", sn);
       } else {
@@ -217,8 +223,8 @@ const DeviceInformation = () => {
       toastErrorFromAPI(err);
       // Opsional: reset state saat error
       setCpeDetail(null);
-      setSerialNumber("-");
-      localStorage.setItem("ira-cpe-serial-number", "-");
+      // setSerialNumber("-");
+      // localStorage.setItem("ira-cpe-serial-number", "-");
     }
   };
 

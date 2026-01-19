@@ -9,7 +9,7 @@ const InactiveCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
   const router = useRouter();
 
   return (
-    <div className="text-center py-6 px-4 bg-gradient-to-b from-white via-white to-[#D6211E] rounded-xl shadow-lg">
+    <div className="text-center py-6 px-4 bg-linear-to-b from-white via-white to-[#666666] rounded-xl shadow-lg">
       {/* Ikon Peringatan Besar */}
       <div className="flex justify-center mb-4">
         <Image
@@ -23,7 +23,7 @@ const InactiveCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
 
       {/* Judul Utama */}
       <p className="text-sm sm:text-base font-bold text-[#D6211E] mb-2">
-        Internet nonaktif—Perangkat Sudah Diambil
+        Internet nonaktif — Perangkat Sudah Diambil
       </p>
 
       {/* Deskripsi */}
@@ -40,7 +40,7 @@ const InactiveCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
       {/* Tombol CTA */}
       <button
         onClick={() => router.push("/reregistration")}
-        className="bg-red-600 cursor-pointer hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-md"
+        className="bg-red-600 cursor-pointer hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"
       >
         Daftar Ulang
       </button>

@@ -45,7 +45,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
 
         <div>
           <h3 className="sm:text-xl font-bold text-black">
-            {data.package_id.name ?? "-"}
+            {data.package_id?.name ?? "-"}
           </h3>
           <button
             onClick={() => router.push("/payment")}
@@ -70,7 +70,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               color="#008E19"
             />
             <p className="sm:text-sm text-xs font-bold text-green-3">
-              Selamat {data.package_id.name ?? "-"} baru kamu sudah aktif!
+              Selamat {data.package_id?.name ?? "-"} baru kamu sudah aktif!
             </p>
             <p className="sm:text-sm text-xs mt-1">
               Nikmati Kuota Unlimited dan koneksi stabil selama{" "}
@@ -115,7 +115,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               {formattedDate(data.end_date) ?? "-"} agar tidak terisolir.
             </p>
             <p className="sm:text-sm text-xs mt-1">
-              Hari ini paket {data.package_id?.name} mencapai jatuh tempo.
+              Hari ini {data.package_id?.name} mencapai jatuh tempo.
               Selesaikan pembayaran sebelum{" "}
               {formattedDate(data.end_date) ?? "-"} agar layanan tetap aktif
               tanpa jeda. Perpanjangan diproses otomatis begitu pembayaran
@@ -149,7 +149,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
         )}
       </div>
 
-      <div className="border-t border-gray-200 my-6"></div>
+      <div className="border-t border-gray-border-2 my-6"></div>
 
       {/* Info Grid */}
       <div className="grid grid-cols-3 gap-2">
@@ -159,7 +159,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Harga Paket</p>
             <p className="sm:text-lg text-base">
-              {convertToCurrency(data.package_id.price) ?? "-"}
+              {convertToCurrency(data.package_id?.price) ?? "-"}
             </p>
           </div>
         </div> */}
@@ -179,7 +179,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           <div>
             <p className="text-xs font-bold mb-2 mt-3">Kecepatan Paket</p>
             <p className="text-sm sm:text-base">
-              {data.package_id.speed_mbps ?? "-"}Mpbs
+              {data.package_id?.speed_mbps ?? "-"}Mpbs
             </p>
           </div>
         </div>

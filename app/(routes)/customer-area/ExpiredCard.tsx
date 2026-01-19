@@ -33,20 +33,39 @@ const ExpiredCard = ({
       </div>
 
       {/* Judul Utama */}
-      <p className="text-sm sm:text-base font-bold text-[#D6211E] mb-2">
-        Internet {isDismantled ? "dismantled" : "nonaktif"}—bayar paket untuk
-        aktif kembali seketika.
-      </p>
+      {userInfo?.status === "suspend" && (
+        <p className="text-sm sm:text-base font-bold text-[#D6211E] mb-2">
+          Internet isolir — Bayar paket untuk aktif kembali.
+        </p>
+      )}
+      {userInfo?.status === "dismantled" && (
+        <p className="text-sm sm:text-base font-bold text-[#D6211E] mb-2">
+          Kamu Masuk Masa Dismantle
+        </p>
+      )}
 
       {/* Deskripsi */}
-      <p className="text-xs sm:text-sm text-gray-800 mb-6">
-        Internet nonaktif sementara karena masa aktif sudah berakhir pada{" "}
-        <span className="font-bold">
-          {formattedDate(data?.end_date ?? "") ?? "-"}
-        </span>
-        . Pilih dan bayar paket yang kamu inginkan agar koneksi Internet Rakyat
-        segera aktif kembali; hubungi bantuan jika membutuhkan panduan.
-      </p>
+      {userInfo?.status === "suspend" && (
+        <p className="text-xs sm:text-sm  mb-6">
+          Internet nonaktif sementara karena masa aktif sudah berakhir pada{" "}
+          <span className="font-bold">
+            {formattedDate(data?.end_date ?? "") ?? "-"}
+          </span>
+          . Pilih dan bayar paket yang kamu inginkan agar koneksi Internet
+          Rakyat segera aktif kembali; hubungi bantuan jika membutuhkan panduan.
+        </p>
+      )}
+      {userInfo?.status === "dismantled" && (
+        <div className="mb-6">
+          <p className="text-xs sm:text-sm">
+            Paket internet kamu sudah tidak aktif selama lebih dari 1 bulan
+            karena belum diperpanjang.
+          </p>
+          <p className="font-bold text-sm">
+            Segera perpanjang atau beli paket agar internet kembali aktif.
+          </p>
+        </div>
+      )}
 
       {/* Tombol CTA */}
       <button

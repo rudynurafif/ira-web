@@ -82,12 +82,6 @@ const ActivePacket = () => {
     if (userInfo?.status === "active") fetchHistory(1);
   }, [userInfo?.status]);
 
-  const handlePageChange = (page: number) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-    fetchHistory(page);
-  };
-
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
 

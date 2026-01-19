@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
+import {
+  checkPackage,
+  getCustomerPackage,
+} from "@/app/_api/Customer/CustomerArea";
 import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
@@ -26,6 +29,8 @@ import InactiveCard from "../InactiveCard";
 import { getAddOn } from "@/app/_api/AddOn/AddOn";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+import ModalTemplate from "@/app/_components/modal/ModalTemplate";
+import limitImage from "@/public/assets/Images/limit-images.png";
 
 const PAGE_SIZE = 5;
 
@@ -48,6 +53,9 @@ const PackageAndHistory = () => {
   const router = useRouter();
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
   const [addOns, setAddOns] = useState([]);
+
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
   const [startDateFilter, setStartDateFilter] = useState<any>();
   const [endDateFilter, setEndDateFilter] = useState<any>();
@@ -116,6 +124,24 @@ const PackageAndHistory = () => {
     if (userInfo) setIsInactive(userInfo?.status === "inactive");
     fetchHistory(1);
   }, [isInactive, userInfo, userInfo?.status]);
+
+  const handleCheckPackage: () => Promise<void> = async () => {
+    // router.push("/payment/payment-methods");
+
+    try {
+      const res = await checkPackage();
+
+      if (res?.data?.data === true) {
+        setIsAllowed(true);
+        router.push("/payment/payment-methods");
+      } else {
+        setOpenModalNotAllowed(true);
+        return;
+      }
+    } catch (err) {
+      toastErrorFromAPI(err);
+    }
+  };
 
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
@@ -206,13 +232,14 @@ const PackageAndHistory = () => {
               alt="button-beli-lagi-home"
               width={100}
               height={152}
-              onClick={() => {
-                sessionStorage.setItem(
-                  "selectedPackage",
-                  JSON.stringify(activePacketData?.package_id)
-                );
-                router.push("payment/payment-methods");
-              }}
+              // onClick={() => {
+              //   sessionStorage.setItem(
+              //     "selectedPackage",
+              //     JSON.stringify(activePacketData?.package_id)
+              //   );
+              //   router.push("payment/payment-methods");
+              // }}
+              onClick={handleCheckPackage}
               className="relative z-10"
               style={{
                 filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
@@ -433,6 +460,51 @@ const PackageAndHistory = () => {
             userInfo.is_active &&
             userInfo.status === "active" && <HistorySection />}
         </div>
+
+        {openModalNotAllowed && (
+          <ModalTemplate
+            closeModal={() => {
+              setOpenModalNotAllowed(false);
+            }}
+          >
+            <div className="p-6 mt-6">
+              <div className="flex justify-center">
+                <Image
+                  src={limitImage}
+                  width={170}
+                  height={170}
+                  alt="limit-image"
+                />
+              </div>
+
+              <h3 className="text-2xl font-bold text-center text-primary mt-6">
+                Batas Pembelian Paket Kuota
+              </h3>
+
+              <div className="mt-4">
+                <p className="text-black ">
+                  Kamu hanya bisa memiliki dua paket kuota internet, ya!
+                </p>
+                <ol className="mt-3 font-bold text-left list-decimal pl-5 space-y-1 text-black">
+                  <li>Paket aktif yang sedang digunakan.</li>
+                  <li>Paket tambahan yang baru saja dibeli.</li>
+                </ol>
+                <p className="mt-4 text-black">
+                  Anda tidak dapat membeli paket kuota ketiga selama paket aktif
+                  dan tambahan masih aktif.
+                </p>
+              </div>
+
+              <button
+                className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+                onClick={() => setOpenModalNotAllowed(false)}
+                // disabled={!selectedPackage}
+              >
+                Oke, Mengerti
+              </button>
+            </div>
+          </ModalTemplate>
+        )}
       </div>
     </>
   );
