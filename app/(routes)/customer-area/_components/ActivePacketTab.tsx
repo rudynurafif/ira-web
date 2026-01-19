@@ -45,6 +45,7 @@ const ActivePacket = () => {
 
   // Ambil hanya paket aktif dari subHistory (indeks 0)
   useEffect(() => {
+    console.log("sub history: ", subscriptionHistory);
     if (subscriptionHistory?.[0] && userInfo?.status === "active") {
       console.log(subscriptionHistory?.[0]);
       // Cek apakah ini paket aktif (ada start_date dan belum expired)
@@ -53,34 +54,6 @@ const ActivePacket = () => {
       setActivePacketData(isActive ? subscriptionHistory?.[0] : null);
     }
   }, [subscriptionHistory, userInfo?.status]);
-
-  // Fetch riwayat dengan pagination
-  const fetchHistory = async (page: number) => {
-    setIsLoadingHistory(true);
-    try {
-      const res = await getCustomerPackage({
-        page,
-        pageSize: PAGE_SIZE,
-      });
-
-      const data = res.data?.data || [];
-      const total = res.data?.total || 0;
-      const pages = Math.ceil(total / PAGE_SIZE);
-
-      setSubscriptionHistory(data);
-      setTotalPages(pages);
-    } catch (err: any) {
-      toastErrorFromAPI(err);
-      setSubscriptionHistory([]);
-      setTotalPages(1);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  };
-
-  useEffect(() => {
-    if (userInfo?.status === "active") fetchHistory(1);
-  }, [userInfo?.status]);
 
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;

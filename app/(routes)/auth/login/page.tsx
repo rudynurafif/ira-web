@@ -40,6 +40,35 @@ const Page = () => {
   const [resendLeft, setResendLeft] = useState<number>(0);
   const [blockLeft, setBlockLeft] = useState<number>(0);
 
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number | null;
+    longitude: number | null;
+  }>({ latitude: null, longitude: null });
+
+  const getUserLocation = (): Promise<{
+    latitude: number;
+    longitude: number;
+  } | null> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(null);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          resolve({ latitude, longitude });
+        },
+        (error) => {
+          console.warn("Geolocation error:", error);
+          resolve(null);
+        },
+        { timeout: 10000, maximumAge: 60000 }
+      );
+    });
+  };
+
   const validPhoneNumber = PHONE_REGEX.test(phone);
   const storageKeys = useMemo(() => {
     const p = phone || "__none__";
@@ -55,7 +84,10 @@ const Page = () => {
 
   // Restore state dari sessionStorage saat nomor berubah
   useEffect(() => {
-    const cnt = parseInt(sessionStorage.getItem(storageKeys.reqCount) || "0", 10);
+    const cnt = parseInt(
+      sessionStorage.getItem(storageKeys.reqCount) || "0",
+      10
+    );
     const blk = sessionStorage.getItem(storageKeys.blockUntil);
     setRequestCount(Number.isFinite(cnt) ? cnt : 0);
     setBlockUntil(blk ? parseInt(blk, 10) : null);
@@ -227,16 +259,39 @@ const Page = () => {
       toast.error("Nomor handphone belum valid");
       return;
     }
+
     try {
       setOtpStatus("verifying");
-      const payload = { phone_number: phone, otp: val, type: "login" };
+
+      let locationPayload = { longitude: "", latitude: "" };
+
+      try {
+        const location = await getUserLocation();
+        if (location) {
+          locationPayload = {
+            longitude: location.longitude.toString(),
+            latitude: location.latitude.toString(),
+          };
+          setUserLocation(location);
+        }
+      } catch (geoErr) {
+        console.warn("Gagal dapatkan lokasi:", geoErr);
+      }
+
+      const payload = {
+        phone_number: phone,
+        ...locationPayload,
+        platform: "web",
+        otp: val,
+        type: "login",
+      };
+
       const res = await verifyOtp(payload);
 
       if (res?.data?.statusCode === 200) {
         const { data, message } = res.data;
 
         dispatch(login({ token: data }));
-
         setCookie("token-ira", data);
 
         setOtpStatus("valid");
@@ -244,8 +299,8 @@ const Page = () => {
         toast.success(message || "OTP terverifikasi ✔");
         toast.success("Login Berhasil!");
 
-        dispatch(login(data));
         window.location.href = "/customer-area";
+        // router.push("/customer-area");
       }
     } catch (err: any) {
       setOtpStatus("invalid");
@@ -292,7 +347,7 @@ const Page = () => {
             )}
           </div>
 
-          <p className="text-center text-md text-primary-text">
+          {/* <p className="text-center text-md text-primary-text">
             Belum punya akun IRA?{" "}
             <Link
               href="/auth/register"
@@ -300,7 +355,7 @@ const Page = () => {
             >
               Daftar disini
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>

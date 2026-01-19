@@ -10,7 +10,7 @@ import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import ModalTemplate from "../modal/ModalTemplate";
 import ModalLoginRedirect from "@/app/(routes)/auth/register/_components/ModalLoginRedirect";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 function PhoneOTPForm({
   label,
@@ -52,6 +52,8 @@ function PhoneOTPForm({
   const [timerReset, setTimerReset] = useState(0);
   const [openModalLogin, setOpenModalLogin] = useState(false);
   const [phoneHistory, setPhoneHistory] = useState<string[]>([]);
+
+  const router = useRouter();
 
   const pathname = usePathname();
 
@@ -246,12 +248,18 @@ function PhoneOTPForm({
       </div>
 
       {hint && (
-        <p className="text-xs md:text-sm mt-1">
+        <p className="text-sm md:text-sm mt-3">
           <span className="text-red-500">*</span>Gunakan{" "}
           <span className="font-bold">
             nomor handphone yang sudah terdaftar.
           </span>{" "}
-          Jika belum punya akun, klik Register.
+          Jika belum punya akun, klik{" "}
+          <span
+            onClick={() => router.push("/auth/register")}
+            className="font-bold text-primary cursor-pointer hover:text-dark-primary-2"
+          >
+            daftar disini
+          </span>
         </p>
       )}
 
