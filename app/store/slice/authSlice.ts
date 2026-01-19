@@ -47,9 +47,11 @@ const authSlice = createSlice({
       state.token = null;
       state.userInfo = null;
       deleteCookie("token-ira");
+      sessionStorage.clear();
     },
   },
 });
 
-export const { login, getUser, setShipmentStatus, setCoverageStatus, logout } = authSlice.actions;
+export const { login, getUser, setShipmentStatus, setCoverageStatus, logout } =
+  authSlice.actions;
 export default authSlice.reducer;

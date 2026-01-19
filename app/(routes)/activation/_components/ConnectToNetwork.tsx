@@ -624,16 +624,18 @@ export default function ConnectToNetwork() {
 
   async function contactCS() {
     const msg = encodeURIComponent(
-      `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSN: ${serialNumber}`
+      `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSerial Number CPE: ${serialNumber}`
     );
     try {
       const resPhone = await getDealerSuppPhone();
 
-      const phone =
-        resPhone.data?.phone ??
-        process.env.NEXT_PUBLIC_PHONE_CS ??
-        "6281110689111";
-      window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+      if (resPhone.data.statusCode === 200) {
+        const phone =
+          resPhone.data?.data?.cs_phone_number ??
+          process.env.NEXT_PUBLIC_PHONE_CS ??
+          "6281110689111";
+        window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+      }
     } catch (err: any) {
       toastErrorFromAPI(err ?? "Gagal mendapatkan nomor Customer Service");
     }

@@ -80,7 +80,7 @@ export default function AreaPelanggan() {
     if (userInfo) {
       setIsLoading(false);
 
-      fetchData();
+      fetchData(); // masukan ke state dari sini (main)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo]);
@@ -194,7 +194,8 @@ export default function AreaPelanggan() {
         </div>
 
         {/* Delivery Tracking */}
-        {subscriptionHistory &&
+        {userInfo?.status === "waiting-for-installation" &&
+          subscriptionHistory &&
           is_coverage &&
           !subscriptionHistory?.[0]?.start_date &&
           !isLoading && (

@@ -23,7 +23,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
     try {
       setIsToastCooldown(true);
       const htmlResponse = await downloadInvoice({
-        invoice_no: data.billing_id[0].invoice_id[0].invoice_no,
+        code: data.billing_id[0].invoice_id[0].invoice_no,
       });
 
       if (typeof htmlResponse.data === "string") {
@@ -100,14 +100,14 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
 
                 {/* Nama Paket */}
                 <p className="text-xl max-sm:text-base font-bold text-black">
-                  {data.package_id.name ?? "-"}
+                  {data.package_id?.name ?? "-"}
                 </p>
               </div>
             </div>
           </div>
 
           <p className="max-sm:block hidden text-sm font-medium">
-            {convertToCurrency(data.package_id.price) ?? "-"}/bulan
+            {convertToCurrency(data.package_id?.price) ?? "-"}/bulan
           </p>
           <p className="sm:text-sm text-[10px]">
             {" "}
@@ -119,7 +119,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
 
       <div className="flex-col text-right">
         <p className="font-medium text-xl max-sm:hidden mb-2">
-          {convertToCurrency(data.package_id.price) ?? "-"}/bulan
+          {convertToCurrency(data.package_id?.price) ?? "-"}/bulan
         </p>
         {/* {!data.billing_id[0]?.is_free && ( */}
         <button

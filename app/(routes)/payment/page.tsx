@@ -203,7 +203,7 @@ const Payment = () => {
     }
   };
 
-  const handleCheckPackage = async () => {
+  const handleCheckPackage: () => Promise<void> = async () => {
     // router.push("/payment/payment-methods");
 
     try {
@@ -255,7 +255,7 @@ const Payment = () => {
             <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
               <PackageCardMobile
                 pkg={latestPackage.package_id}
-                selected={selectedPackage?.id === latestPackage.package_id.id}
+                selected={selectedPackage?.id === latestPackage?.package_id?.id}
                 onSelect={handleSelect}
                 convertToCurrency={convertToCurrency}
               />
@@ -270,12 +270,12 @@ const Payment = () => {
         </h2>
 
         <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
-          {packages && packages.length ? (
+          {packages && packages?.length ? (
             packages.map((pkg) => (
               <PackageCardMobile
                 key={pkg.id}
                 pkg={pkg}
-                selected={selectedPackage?.id === pkg.id}
+                selected={selectedPackage?.id === pkg?.id}
                 onSelect={handleSelect}
                 convertToCurrency={convertToCurrency}
               />
