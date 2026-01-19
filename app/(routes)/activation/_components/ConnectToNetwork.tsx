@@ -234,7 +234,7 @@ export default function ConnectToNetwork() {
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         e.preventDefault();
         e.returnValue = "";
-        return "";
+        // return "";
       };
       window.addEventListener("beforeunload", handleBeforeUnload);
       return () =>
@@ -244,8 +244,6 @@ export default function ConnectToNetwork() {
 
   // Cegah back navigation saat loading
   useEffect(() => {
-    if (screen !== "loading") return;
-
     const handlePopState = (e: PopStateEvent) => {
       // Batalkan navigasi mundur
       window.history.pushState(null, "", window.location.href);

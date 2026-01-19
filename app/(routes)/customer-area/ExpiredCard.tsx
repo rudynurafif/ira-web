@@ -4,12 +4,23 @@ import React from "react";
 import expiredIcon from "@/public/assets/Images/internet-mati.png";
 import { formattedDate } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/app/store/store";
 
-const ExpiredCard = ({ data, isDismantled }: { data?: SubscriptionHistoryAPI | null, isDismantled?: boolean }) => {
+const ExpiredCard = ({
+  data,
+  isDismantled,
+}: {
+  data?: SubscriptionHistoryAPI | null;
+  isDismantled?: boolean;
+}) => {
   const router = useRouter();
 
+  const { userInfo, is_coverage } = useAppSelector((state) => state.auth);
+
+  console.log(userInfo?.status);
+
   return (
-    <div className="text-center py-6 px-4 bg-gradient-to-b from-white via-white to-[#D6211E] rounded-xl shadow-lg">
+    <div className="text-center py-6 px-4 bg-linear-to-b from-white via-white to-[#D6211E] rounded-xl shadow-lg">
       {/* Ikon Peringatan Besar */}
       <div className="flex justify-center mb-4">
         <Image
@@ -23,7 +34,8 @@ const ExpiredCard = ({ data, isDismantled }: { data?: SubscriptionHistoryAPI | n
 
       {/* Judul Utama */}
       <p className="text-sm sm:text-base font-bold text-[#D6211E] mb-2">
-        Internet {isDismantled ? "dismantled" : "nonaktif"}—bayar paket untuk aktif kembali seketika.
+        Internet {isDismantled ? "dismantled" : "nonaktif"}—bayar paket untuk
+        aktif kembali seketika.
       </p>
 
       {/* Deskripsi */}

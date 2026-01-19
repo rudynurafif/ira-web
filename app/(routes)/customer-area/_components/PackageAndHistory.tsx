@@ -281,11 +281,11 @@ const PackageAndHistory = () => {
       <div className="sm:hidden space-y-6">
         {activePacketData && isInactive ? (
           <InactiveCard data={activePacketData} />
-        ) : status === "expired" ? (
-          <ExpiredCard data={activePacketData} />
         ) : userInfo.status === "dismantled" ||
           userInfo.status === "suspend" ? (
-          <ExpiredCard data={activePacketData} isDismantled />
+          <ExpiredCard data={activePacketData} isDismantled={true} />
+        ) : status === "expired" ? (
+          <ExpiredCard data={activePacketData} />
         ) : activePacketData ? (
           <ActivePackageCard data={activePacketData} />
         ) : null}
@@ -340,7 +340,7 @@ const PackageAndHistory = () => {
           onClick={() => window.open(`https://wa.me/${phoneCS}`, "_blank")}
         />
 
-        {activePacketData && <LatestPackage />}
+        {activePacketData?.package_id && <LatestPackage />}
 
         <Image
           src={bannerPanduanMobile}
@@ -359,11 +359,11 @@ const PackageAndHistory = () => {
         <div className="lg:col-span-5 col-span-12 space-y-5">
           {activePacketData && isInactive ? (
             <InactiveCard data={activePacketData} />
-          ) : status === "expired" ? (
-            <ExpiredCard data={activePacketData} />
           ) : userInfo.status === "dismantled" ||
             userInfo.status === "suspend" ? (
-            <ExpiredCard data={activePacketData} isDismantled />
+            <ExpiredCard data={activePacketData} isDismantled={true} />
+          ) : status === "expired" ? (
+            <ExpiredCard data={activePacketData} />
           ) : activePacketData ? (
             <ActivePackageCard data={activePacketData} />
           ) : null}
@@ -420,7 +420,7 @@ const PackageAndHistory = () => {
 
         <div className="lg:col-span-7 col-span-12 flex flex-col gap-6">
           {/* Paket terakhir dibeli */}
-          {activePacketData && <LatestPackage />}
+          {activePacketData?.package_id && <LatestPackage />}
 
           <Image
             src={bannerPanduan}
