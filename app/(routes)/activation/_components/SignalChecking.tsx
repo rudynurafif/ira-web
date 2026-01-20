@@ -101,6 +101,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   });
   const [sn, setSn] = useState<string | null>(null);
   const [cellId, setCellId] = useState<string | null>(null);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -196,8 +197,8 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
 
   useEffect(() => {
     setSn(
-      localStorage.getItem("ira-cpe-serial-number") ||
-        params.get("serial_number")
+      params.get("serial_number") ||
+        localStorage.getItem("ira-cpe-serial-number")
     );
     setCellId(localStorage.getItem("ira-cpe-cell-id"));
   }, [params]);
@@ -216,6 +217,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
       await getSignal({ sn });
       // Biarkan SSE yang mengakhiri proses
     } catch (err: any) {
+      setErrMsg(err.response?.data?.message)
       toastErrorFromAPI(err);
       setIsScanning(false);
       setIsWaitingForSignal(false);
@@ -373,6 +375,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             <div className="font-tertiary text-black text-xl font-bold">
               {isScanning
                 ? "Mohon tunggu beberapa saat..."
+                // : levelTitle[resultLevel] + ' ' + errMsg}
                 : levelTitle[resultLevel]}
             </div>
             <div className="font-tertiary text-sm text-black font-medium">

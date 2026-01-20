@@ -26,7 +26,7 @@ const faqsBackUp: FAQItem[] = [
   {
     title: "Bagaimana cara mendaftar layanan IRA?",
     description:
-      "Cukup isi formulir di website atau hubungi tim kami. Paket CPE (Modem) akan dikirim dari outlet terdekat, ketika sudah sampai bisa langsung diaktivasi lewat website Internet Rakyat.",
+      "Calon Pelanggan Bisa Melakukan Pendaftaran Mandiri Via Aplikasi/Website atau Melalui Sales Resmi IRA Di Area Pelanggan.",
   },
   {
     title: "Apakah tersedia berbagai pilihan paket?",

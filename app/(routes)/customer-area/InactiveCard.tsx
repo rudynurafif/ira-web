@@ -40,9 +40,17 @@ const InactiveCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
       {/* Tombol CTA */}
       <button
         onClick={() => router.push("/reregistration")}
-        className="bg-red-600 cursor-pointer hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+        className="inline-flex justify-center items-center mt-4 gradient-box-expired rounded-full custom-click cursor-pointer"
+        id="button-beli-paket-sekarang"
       >
-        Daftar Ulang
+        <div className="w-full relative flex justify-center items-center bg-subs-expired rounded-full h-11 overflow-hidden custom-bg-animation drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">
+          {/* glossy highlight */}
+          <div className="absolute top-1.5 left-1/2 -translate-x-1/2 fancy-background-expired w-[92%] h-6.5 rounded-full z-0" />
+
+          <span className="relative z-10 text-white text-sm sm:text-base md:text-lg font-bold whitespace-nowrap px-6">
+            Daftar Ulang
+          </span>
+        </div>
       </button>
     </div>
   );

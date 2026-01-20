@@ -31,17 +31,23 @@ import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import limitImage from "@/public/assets/Images/limit-images.png";
+import {
+  selectActivePackage,
+  selectCustomerPackages,
+  selectCustomerPackageState,
+} from "@/app/store/slice/customerPackageSlice";
 
 const PAGE_SIZE = 5;
 
 const PackageAndHistory = () => {
-  const [activePacketData, setActivePacketData] =
-    useState<SubscriptionHistoryAPI | null>(null);
-  const [subscriptionHistory, setSubscriptionHistory] = useState<
-    SubscriptionHistoryAPI[]
-  >([]);
-  const [totalPages, setTotalPages] = useState(1);
+  const pkgState = useAppSelector(selectCustomerPackageState);
+  const activePacketData = useAppSelector(selectActivePackage);
+  const allHistory = useAppSelector(selectCustomerPackages);
+
   const [currentPage, setCurrentPage] = useState(1);
+  // const [subscriptionHistory, setSubscriptionHistory] = useState<
+  //   SubscriptionHistoryAPI[]
+  // >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const searchParams = useSearchParams();
   const { label, status, days } = packageCountdown(
@@ -60,6 +66,16 @@ const PackageAndHistory = () => {
   const [startDateFilter, setStartDateFilter] = useState<any>();
   const [endDateFilter, setEndDateFilter] = useState<any>();
 
+  // pagination client-side
+  const totalPages = Math.max(
+    1,
+    Math.ceil((allHistory?.length ?? 0) / PAGE_SIZE)
+  );
+  const subscriptionHistory = (allHistory ?? []).slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
   useEffect(() => {
     const fetchAddon = async () => {
       try {
@@ -75,54 +91,53 @@ const PackageAndHistory = () => {
   }, []);
 
   // Fetch paket aktif (hanya sekali, tidak dipengaruhi pagination)
-  useEffect(() => {
-    const fetchActivePackage = async () => {
-      try {
-        const res = await getCustomerPackage({
-          page: 1,
-          pageSize: 1,
-        });
-        const data = res.data?.data || [];
-        if (data[0]) {
-          const isActive = data[0].start_date && data[0].end_date;
-          setActivePacketData(isActive ? data[0] : null);
-        }
-      } catch (err) {
-        toastErrorFromAPI(err);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchActivePackage = async () => {
+  //     try {
+  //       const res = await getCustomerPackage({
+  //         page: 1,
+  //         pageSize: 1,
+  //       });
+  //       const data = res.data?.data || [];
+  //       if (data[0]) {
+  //         const isActive = data[0].start_date && data[0].end_date;
+  //         setActivePacketData(isActive ? data[0] : null);
+  //       }
+  //     } catch (err) {
+  //       toastErrorFromAPI(err);
+  //     }
+  //   };
 
-    if (userInfo?.is_active || userInfo?.status === "active")
-      fetchActivePackage();
-  }, [userInfo?.is_active, userInfo?.status]);
+  //   if (userInfo?.is_active || userInfo?.status === "active")
+  //     fetchActivePackage();
+  // }, [userInfo?.is_active, userInfo?.status]);
 
   // Fetch riwayat dengan pagination
-  const fetchHistory = async (page: number) => {
-    setIsLoadingHistory(true);
-    try {
-      const res = await getCustomerPackage({
-        page,
-        pageSize: PAGE_SIZE,
-      });
+  // const fetchHistory = async (page: number) => {
+  //   setIsLoadingHistory(true);
+  //   try {
+  //     const res = await getCustomerPackage({
+  //       page,
+  //       pageSize: PAGE_SIZE,
+  //     });
 
-      const data = res.data?.data || [];
-      const total = res.data?.total || 0;
-      const pages = Math.ceil(total / PAGE_SIZE);
+  //     const data = res.data?.data || [];
+  //     const total = res.data?.total || 0;
+  //     const pages = Math.ceil(total / PAGE_SIZE);
 
-      setSubscriptionHistory(data);
-      setTotalPages(pages);
-    } catch (err: any) {
-      toastErrorFromAPI(err);
-      setSubscriptionHistory([]);
-      setTotalPages(1);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  };
+  //     setSubscriptionHistory(data);
+  //     setTotalPages(pages);
+  //   } catch (err: any) {
+  //     toastErrorFromAPI(err);
+  //     setSubscriptionHistory([]);
+  //     setTotalPages(1);
+  //   } finally {
+  //     setIsLoadingHistory(false);
+  //   }
+  // };
 
   useEffect(() => {
     if (userInfo) setIsInactive(userInfo?.status === "inactive");
-    fetchHistory(1);
   }, [isInactive, userInfo, userInfo?.status]);
 
   const handleCheckPackage: () => Promise<void> = async () => {
@@ -164,7 +179,7 @@ const PackageAndHistory = () => {
           <div className="bg-white rounded-lg shadow-lg p-0.5 w-full">
             {/* Header Merah */}
             <div
-              className="bg-linear-to-r text-white text-center py-2 rounded-t-lg font-bold text-sm"
+              className="bg-linear-to-r text-white text-center p-2 rounded-t-lg font-bold text-sm"
               style={{
                 background: "linear-gradient(to right, #520201, #9C1816)",
               }}

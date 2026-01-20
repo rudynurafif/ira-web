@@ -9,7 +9,7 @@ export const useClearOtpStorage = () => {
           .filter((key) => key.startsWith("otp_request_count"))
           .forEach((key) => localStorage.removeItem(key));
 
-        console.log("OTP request count cleared at midnight");
+        // console.log("OTP request count cleared at midnight");
       } catch (e) {
         console.warn("Failed to clear OTP storage:", e);
       }

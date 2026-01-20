@@ -454,7 +454,7 @@ function SettingModemForm() {
                     addUrlParam("section", "check_signal");
                 }}
                 type="button"
-                className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-xl"
+                className="w-full hover:brightness-[1.05] hover:bg-red-50 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-xl"
               >
                 Lewati
               </button>

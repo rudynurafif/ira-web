@@ -17,7 +17,6 @@ import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Lottie from "lottie-react";
 import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
 import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import toast from "react-hot-toast";
 import { setShipmentStatus } from "@/app/store/slice/authSlice";
 import DeviceInformation from "./_components/DeviceInformation";
 import Image from "next/image";
@@ -25,7 +24,13 @@ import iraLogo from "@/public/assets/Images/LogoIra.png";
 import CpeActivationStatus from "./_components/CpeActivation";
 import Link from "next/link";
 import { FaSearchLocation } from "react-icons/fa";
-import { MdHeadsetMic } from "react-icons/md";
+
+import {
+  fetchCustomerPackages,
+  selectCustomerPackages,
+  selectCustomerPackageState,
+  selectShipmentStatusFromPackages,
+} from "@/app/store/slice/customerPackageSlice";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
@@ -34,11 +39,16 @@ export default function AreaPelanggan() {
   const { userInfo, isLoggedIn, shipmentStatus, is_coverage } = useAppSelector(
     (state) => state.auth
   );
+  const pkgState = useAppSelector(selectCustomerPackageState);
+  const packages = useAppSelector(selectCustomerPackages);
+  const shipmentStatusFromPkg = useAppSelector(
+    selectShipmentStatusFromPackages
+  );
+
   const [tabs, setTabs] = useState([
     "Informasi Paket dan Riwayat",
     "Data Pribadi",
   ]);
-
   const initialTab = searchParams.get("tab") || "Informasi Paket dan Riwayat";
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
@@ -48,41 +58,76 @@ export default function AreaPelanggan() {
   const [isActivating, setIsActivating] = useState(false);
   const isCancelled = userInfo?.status === "canceled-instalation";
   const dispatch = useAppDispatch();
-  const [subscriptionHistory, setSubscriptionHistory] =
-    useState<SubscriptionHistoryAPI[]>();
+
+  useEffect(() => {
+    if (!userInfo?.customer_code) return;
+
+    dispatch(
+      fetchCustomerPackages({
+        customerCode: userInfo.customer_code,
+      })
+    );
+  }, [dispatch, userInfo?.customer_code]);
+
+  // const fetchData = async () => {
+  //   try {
+  //     const resSubHistory = await getCustomerPackage({});
+  //     const data = resSubHistory.data?.data;
+  //     setSubscriptionHistory(data);
+
+  //     const hasStartDate = Boolean(data?.[0]?.start_date);
+  //     const active = userInfo && userInfo?.status === "active";
+  //     if (active) setIsActive(active);
+
+  //     if (hasStartDate && active) {
+  //       setTabs((prev) =>
+  //         prev.includes("Informasi Perangkat")
+  //           ? prev
+  //           : [...prev, "Informasi Perangkat"]
+  //       );
+  //     }
+
+  //     const shipmentStatus = data?.[0]?.shipment_status || null;
+  //     dispatch(setShipmentStatus(shipmentStatus));
+  //   } catch (err: any) {
+  //     toastErrorFromAPI(err);
+  //   }
+  // };
 
   const fetchData = async () => {
-    try {
-      const resSubHistory = await getCustomerPackage({});
-      const data = resSubHistory.data?.data;
-      setSubscriptionHistory(data);
+    if (!userInfo?.customer_code) return;
 
-      const hasStartDate = Boolean(data?.[0]?.start_date);
-      const active = userInfo && userInfo?.status === "active";
-      if (active) setIsActive(active);
-
-      if (hasStartDate && active) {
-        setTabs((prev) =>
-          prev.includes("Informasi Perangkat")
-            ? prev
-            : [...prev, "Informasi Perangkat"]
-        );
-      }
-
-      const shipmentStatus = data?.[0]?.shipment_status || null;
-      dispatch(setShipmentStatus(shipmentStatus));
-    } catch (err: any) {
-      toastErrorFromAPI(err);
-    }
+    dispatch(
+      fetchCustomerPackages({
+        customerCode: userInfo.customer_code,
+        force: true,
+      })
+    );
   };
 
   useEffect(() => {
-    if (userInfo) {
-      setIsLoading(false);
+    if (!userInfo) return;
 
-      fetchData(); // masukan ke state dari sini (main)
+    const first = packages?.[0];
+    const hasStartDate = Boolean(first?.start_date);
+    const active = userInfo?.status === "active";
+
+    setIsActive(active);
+
+    if (hasStartDate && active) {
+      setTabs((prev) =>
+        prev.includes("Informasi Perangkat")
+          ? prev
+          : [...prev, "Informasi Perangkat"]
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    const shipmentStatus = first?.shipment_status ?? null;
+    dispatch(setShipmentStatus(shipmentStatus));
+  }, [dispatch, userInfo, userInfo?.status, packages]);
+
+  useEffect(() => {
+    if (userInfo) setIsLoading(false);
   }, [userInfo]);
 
   useEffect(() => {
@@ -138,7 +183,12 @@ export default function AreaPelanggan() {
 
   useEffect(() => {
     const url = new URL(window.location.href);
+
     url.searchParams.set("tab", activeTab);
+
+    url.searchParams.delete("page");
+    url.searchParams.delete("pageSize");
+
     router.replace(url.toString(), { scroll: false });
   }, [activeTab, router]);
 
@@ -198,10 +248,7 @@ export default function AreaPelanggan() {
           is_coverage &&
           !isLoading && (
             <div className="max-md:mt-6 px-8 mt-12">
-              <DeliveryTracking
-                refetch={fetchData}
-                data={subscriptionHistory?.[0]}
-              />
+              <DeliveryTracking refetch={fetchData} data={packages?.[0]} />
             </div>
           )}
 
