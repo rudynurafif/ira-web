@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
 import { useRouter } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
@@ -33,51 +33,27 @@ const ActivePacket = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+  const [isUserActive, setIsUserActive] = useState(false);
+
+  useEffect(() => {
+    if (userInfo?.status === "active" || userInfo?.is_active) {
+      setIsUserActive(true);
+    } else {
+      setIsUserActive(false);
+    }
+  }, [userInfo?.is_active, userInfo?.status]);
 
   // Ambil hanya paket aktif dari subHistory (indeks 0)
   useEffect(() => {
-    if (subscriptionHistory?.[0]) {
-      console.log(subscriptionHistory?.[0]);
+    // console.log("sub history: ", subscriptionHistory);
+    if (subscriptionHistory?.[0] && userInfo?.status === "active") {
+      // console.log(subscriptionHistory?.[0]);
       // Cek apakah ini paket aktif (ada start_date dan belum expired)
       const isActive =
         subscriptionHistory[0]?.start_date && subscriptionHistory[0]?.end_date;
       setActivePacketData(isActive ? subscriptionHistory?.[0] : null);
     }
-  }, [subscriptionHistory]);
-
-  // Fetch riwayat dengan pagination
-  const fetchHistory = async (page: number) => {
-    setIsLoadingHistory(true);
-    try {
-      const res = await getCustomerPackage({
-        page,
-        pageSize: PAGE_SIZE,
-      });
-
-      const data = res.data?.data || [];
-      const total = res.data?.total || 0;
-      const pages = Math.ceil(total / PAGE_SIZE);
-
-      setSubscriptionHistory(data);
-      setTotalPages(pages);
-    } catch (err: any) {
-      toastErrorFromAPI(err);
-      setSubscriptionHistory([]);
-      setTotalPages(1);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHistory(1);
-  }, []);
-
-  const handlePageChange = (page: number) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-    fetchHistory(page);
-  };
+  }, [subscriptionHistory, userInfo?.status]);
 
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
@@ -99,10 +75,10 @@ const ActivePacket = () => {
           src={bannerPanduanMobile}
           alt="Banner Panduan"
           className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
-          onClick={() => window.open("/pandaan-cara-bayar", "_blank")}
+          onClick={() => window.open("/panduan-cara-bayar", "_blank")}
         />
 
-        <HistorySection />
+        {isUserActive && <HistorySection />}
       </div>
 
       {/* DESKTOP (≥ sm) */}
@@ -124,7 +100,7 @@ const ActivePacket = () => {
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
-          <HistorySection />
+          {isUserActive && <HistorySection />}
         </div>
       </div>
     </>

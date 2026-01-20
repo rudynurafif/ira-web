@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import checkSignalHome from "@/public/assets/Images/check-signal-home.webp";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSignal } from "@/app/_api/CoreNetwork/CoreNetwork";
 import {
   getSignalLevel,
@@ -46,7 +46,7 @@ const levelTitle: Record<Level, string> = {
   1: "Buruk",
   2: "Cukup",
   3: "Baik",
-  4: "Sempurna",
+  4: "Sangat Baik",
 };
 
 const levelAdvice: Record<Level, string> = {
@@ -58,13 +58,15 @@ const levelAdvice: Record<Level, string> = {
 };
 
 const mapSignalLevelToBar = (
-  level: "good" | "poor" | "bad" | "disconnected"
+  level: "" | "verygood" | "good" | "poor" | "bad" | "disconnected"
 ): Level => {
   switch (level) {
-    case "good":
+    case "verygood":
       return 4;
-    case "poor":
+    case "good":
       return 3;
+    case "poor":
+      return 2;
     case "bad":
       return 1;
     case "disconnected":
@@ -85,11 +87,12 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   const [isScanning, setIsScanning] = useState(mode === "auto");
   const [resultLevel, setResultLevel] = useState<Level>(level ?? 0);
   const [showPopup, setShowPopup] = useState(false);
+  const params = useSearchParams();
   const [signalData, setSignalData] = useState<{
     rsrp: number | null;
     rsrq: number | null;
     sinr: number | null;
-    level: "good" | "poor" | "bad" | "disconnected";
+    level: "" | "verygood" | "good" | "poor" | "bad" | "disconnected";
   }>({
     rsrp: null,
     rsrq: null,
@@ -98,6 +101,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   });
   const [sn, setSn] = useState<string | null>(null);
   const [cellId, setCellId] = useState<string | null>(null);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -111,6 +115,47 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
 
   // State untuk mengaktifkan SSE listener
   const [isWaitingForSignal, setIsWaitingForSignal] = useState(false);
+
+  // Cegah back navigation & redirect ke /customer-area jika dipaksa
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Dorong kembali ke halaman ini agar tidak benar-benar keluar
+      window.history.pushState(null, "", window.location.href);
+
+      // Tampilkan konfirmasi
+      const confirmed = window.confirm(
+        "Anda sedang mengecel sinyal modem. Yakin ingin kembali?"
+      );
+
+      if (confirmed) {
+        // Redirect ke /customer-area
+        window.location.href = "/customer-area";
+      }
+      // Jika tidak dikonfirmasi, user tetap di halaman (karena pushState di atas)
+    };
+
+    // Push state saat komponen mount
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+      return "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   // 🔥 Gunakan useSSEOneTime untuk get_signal
   useSSEOneTime(
@@ -151,9 +196,12 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
   );
 
   useEffect(() => {
-    setSn(localStorage.getItem("ira-cpe-serial-number"));
+    setSn(
+      params.get("serial_number") ||
+        localStorage.getItem("ira-cpe-serial-number")
+    );
     setCellId(localStorage.getItem("ira-cpe-cell-id"));
-  }, []);
+  }, [params]);
 
   const triggerGetSignal = useCallback(async () => {
     if (!sn || !customer_id) {
@@ -169,6 +217,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
       await getSignal({ sn });
       // Biarkan SSE yang mengakhiri proses
     } catch (err: any) {
+      setErrMsg(err.response?.data?.message)
       toastErrorFromAPI(err);
       setIsScanning(false);
       setIsWaitingForSignal(false);
@@ -305,14 +354,14 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
                   <button
                     type="button"
                     onClick={retryFromPopup}
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-button hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
+                    className="inline-flex w-full items-center border-2 border-primary justify-center rounded-xl bg-white hover:bg-red-50 px-6 py-3 text-primary text-sm font-semibold cursor-pointer"
                   >
                     Cek Ulang
                   </button>
                   <button
                     type="button"
                     onClick={closePopup}
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-green-primary px-6 py-3 text-white hover:bg-green-700 text-sm font-semibold cursor-pointer"
+                    className="inline-flex w-full items-center border-2 border-primary justify-center rounded-xl bg-primary px-6 py-3 text-white hover:bg-dark-primary-2 hover:border-dark-primary-2 text-sm font-semibold cursor-pointer"
                   >
                     Selesai
                   </button>
@@ -326,6 +375,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             <div className="font-tertiary text-black text-xl font-bold">
               {isScanning
                 ? "Mohon tunggu beberapa saat..."
+                // : levelTitle[resultLevel] + ' ' + errMsg}
                 : levelTitle[resultLevel]}
             </div>
             <div className="font-tertiary text-sm text-black font-medium">

@@ -181,7 +181,7 @@ function Header() {
 
     return isLoading ? (
       <div className="h-11 w-50 max-sm:h-8 max-sm:w-8 rounded-full">
-        <SkeletonBase height="h-11" />
+        <SkeletonBase className="cursor-not-allowed" height="h-11" />
       </div>
     ) : (
       <button

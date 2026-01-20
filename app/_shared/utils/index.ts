@@ -183,8 +183,8 @@ export function daysUntil(dateISO: string): number {
   return Math.trunc((target.getTime() - today.getTime()) / msPerDay);
 }
 
-export function packageCountdown(endDateISO: string) {
-  const totalDays = daysUntil(endDateISO);
+export function packageCountdown(endDateISO: string | null) {
+  const totalDays = daysUntil(endDateISO ?? "");
 
   // Handle expired or today
   if (totalDays < 0) {
@@ -266,7 +266,7 @@ export const toastErrorFromAPI = (error: any, id?: string | undefined) => {
   toast.error(errorMsg, { id });
 };
 
-export const formattedDate = (dateString: string) => {
+export const formattedDate = (dateString: string | null) => {
   const date = moment(dateString);
   return date.format("DD MMMM YYYY");
 };
@@ -283,13 +283,13 @@ export const getSignalLevel = (
   rsrp?: number,
   rsrq?: number,
   sinr?: number
-): "good" | "poor" | "bad" | "disconnected" => {
+): "verygood" | "good" | "poor" | "bad" | "disconnected" => {
   if (rsrp == null) {
     return "disconnected";
   }
 
   // Sesuai tabel RSRP
-  if (rsrp >= -80) return "good"; // Excellent
+  if (rsrp >= -80) return "verygood"; // Excellent
   if (rsrp >= -90) return "good"; // Good
   if (rsrp >= -100) return "poor"; // Fair to Poor
   return "bad"; // Poor
@@ -336,7 +336,7 @@ export const htmlToPdf = async (
     });
 
     pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-    
+
     // ✅ Langsung download, jangan buka tab baru
     pdf.save(filename);
 
@@ -347,4 +347,39 @@ export const htmlToPdf = async (
     document.body.removeChild(tempDiv);
     throw err;
   }
+};
+
+const PHONE_HISTORY_KEY = "ira_phone_login_history";
+const MAX_HISTORY = 10;
+
+export const savePhoneToHistory = (phone: string) => {
+  if (!phone) return;
+  try {
+    const history = JSON.parse(
+      localStorage.getItem(PHONE_HISTORY_KEY) || "[]"
+    ) as string[];
+    const filtered = history.filter((p) => p !== phone);
+    const newHistory = [phone, ...filtered].slice(0, MAX_HISTORY);
+    localStorage.setItem(PHONE_HISTORY_KEY, JSON.stringify(newHistory));
+  } catch (e) {
+    console.warn("Failed to save phone history", e);
+  }
+};
+
+export const getPhoneHistory = (): string[] => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(PHONE_HISTORY_KEY) || "[]"
+    ) as string[];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs
+    .toString()
+    .padStart(2, "0")}`;
 };

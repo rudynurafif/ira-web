@@ -23,7 +23,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
     try {
       setIsToastCooldown(true);
       const htmlResponse = await downloadInvoice({
-        invoice_no: data.billing_id[0].invoice_id[0].invoice_no,
+        code: data.billing_id[0].invoice_id[0].invoice_no,
       });
 
       if (typeof htmlResponse.data === "string") {
@@ -48,7 +48,13 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
     <div className="flex-1 gap-4 bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] px-8 py-5 max-sm:p-4 flex justify-between items-center">
       <div className="flex items-center gap-2">
         <div className="py-4 pr-3 max-sm:hidden">
-          <Image src={iraIcon} alt="ira-icon" height={40} width={40} />
+          <Image
+            src={iraIcon}
+            alt="ira-icon"
+            height={40}
+            width={40}
+            className="w-[40px] h-[40px] min-w-[40px] min-h-[40px] shrink-0"
+          />
         </div>
         <div className="flex flex-col gap-1">
           <div
@@ -60,13 +66,13 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           >
             <div className="flex items-center gap-2">
               {/* Logo IRA */}
-              <div className=" max-sm:block hidden">
+              <div className="max-sm:block hidden">
                 <Image
                   src={iraIcon}
                   alt="ira-icon"
-                  className="p-2"
-                  height={40}
-                  width={40}
+                  className="w-[30px] h-[30px] min-w-[30px] min-h-[30px] shrink-0"
+                  height={30}
+                  width={30}
                 />
               </div>
 
@@ -100,14 +106,14 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
 
                 {/* Nama Paket */}
                 <p className="text-xl max-sm:text-base font-bold text-black">
-                  {data.package_id.name ?? "-"}
+                  {data.package_id?.name ?? "-"}
                 </p>
               </div>
             </div>
           </div>
 
           <p className="max-sm:block hidden text-sm font-medium">
-            {convertToCurrency(data.package_id.price) ?? "-"}/bulan
+            {convertToCurrency(data.package_id?.price) ?? "-"}/bulan
           </p>
           <p className="sm:text-sm text-[10px]">
             {" "}
@@ -119,7 +125,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
 
       <div className="flex-col text-right">
         <p className="font-medium text-xl max-sm:hidden mb-2">
-          {convertToCurrency(data.package_id.price) ?? "-"}/bulan
+          {convertToCurrency(data.package_id?.price) ?? "-"}/bulan
         </p>
         {/* {!data.billing_id[0]?.is_free && ( */}
         <button
@@ -136,8 +142,8 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           {isToastCooldown
             ? "Mohon menunggu.."
             : data?.billing_id[0]?.status === "PAID"
-            ? "Unduh Invoice"
-            : "Bayar Invoice"}
+              ? "Unduh Invoice"
+              : "Bayar Invoice"}
         </button>
         {/* )} */}
       </div>

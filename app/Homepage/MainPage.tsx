@@ -3,13 +3,13 @@ import { useEffect, useState } from "react";
 
 import modem from "@/public/assets/Images/main-modem.svg";
 import modem2 from "@/public/assets/Images/main-modem-2.svg";
-import modemIra from "@/public/assets/Images/CPE-IRA.svg";
+import modemIra from "@/public/assets/Images/cpe-ira.png";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Link from "next/link";
 import wifiIcon from "@/public/assets/Icons/wifi.svg";
-import { getImageBanner } from "../Banner/Banner";
+import { getImageBanner } from "../_api/Banner/Banner";
 import { toastErrorFromAPI } from "../_shared/utils";
 import { useAppSelector } from "../store/store";
 import { useRouter } from "next/navigation";
@@ -58,16 +58,16 @@ function MainPage() {
       setImageMobile(temp_mobile);
     } catch (err: any) {
       // toastErrorFromAPI(err);
-      console.log(err.response.data.message);
+      console.error(err.response.data.message);
     }
   }
 
-  useEffect(() => {
-    getBannerImage();
-  }, []);
+  // useEffect(() => {
+  //   getBannerImage();
+  // }, []);
 
   return (
-    <div className="relative bg-[url('/assets/Images/HERO-IRA.webp')] bg-cover bg-center bg-no-repeat text-white">
+    <div className="relative bg-[url('/assets/Images/hero-ira.webp')] bg-cover bg-center bg-no-repeat text-white">
       <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
       <div className="container mx-auto px-5 py-25">
         <div className="text-center">

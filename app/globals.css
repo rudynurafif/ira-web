@@ -236,6 +236,10 @@ body {
   background: linear-gradient(0deg, #ff7bda 10%, #ffffff 50%);
 }
 
+/* .gradient-box-expired {
+  background: linear-gradient(0deg, #520201 10%, #D6211E 50%);
+} */
+
 .bg-subs-new {
   background: linear-gradient(
     173.48deg,
@@ -243,8 +247,20 @@ body {
     #cd2a27 37.72%,
     #c21e1b 91.2%
   );
-  box-shadow: 0px 0px 33.1708px #ff3ba0,
+  box-shadow:
+    0px 0px 33.1708px #ff3ba0,
     inset 0px 0px 21.0795px rgba(255, 165, 211, 0.55);
+  /* filter: drop-shadow(0px 0px 21.349px #ffaae3); */
+}
+
+.bg-subs-expired {
+  background: linear-gradient(
+    173.48deg,
+    /* #ff5f5d -12.78%, */
+    #520201 7.72%,
+    #D6211E 91.2%
+  );
+
   /* filter: drop-shadow(0px 0px 21.349px #ffaae3); */
 }
 
@@ -259,6 +275,14 @@ body {
     #ff3ba0 -78.1%,
     rgba(255, 147, 202, 0) 101.42%
   ); */
+}
+
+.fancy-background-expired {
+  background: linear-gradient(
+    180deg,
+    #f9d3d2 -78.1%,
+    rgba(255, 147, 202, 0) 101.42%
+  );
 }
 
 .custom-click,
@@ -535,8 +559,10 @@ button.ghost {
   -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.7);
   -webkit-text-fill-color: white;
   text-shadow: 
-    /* Outline luar */ -1px -1px 0 rgba(0, 0, 0, 0.8),
-    1px -1px 0 rgba(0, 0, 0, 0.8), -1px 1px 0 rgba(0, 0, 0, 0.8),
+    /* Outline luar */
+    -1px -1px 0 rgba(0, 0, 0, 0.8),
+    1px -1px 0 rgba(0, 0, 0, 0.8),
+    -1px 1px 0 rgba(0, 0, 0, 0.8),
     1px 1px 0 rgba(0, 0, 0, 0.8),
     /* Shadow utama ke kiri-bawah */ -3px 4px 6px rgba(0, 0, 0, 0.45);
 }

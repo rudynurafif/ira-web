@@ -1,5 +1,6 @@
 import { getListLocation } from "@/app/_api/Location/Location";
 import Accordion from "@/app/_components/ItemComponent/Accordion";
+import { dummyCoveredLocations } from "@/app/_shared/data/location";
 import { formatNamaWilayah } from "@/app/_shared/utils";
 import React, { useEffect, useState } from "react";
 import { FaMapLocationDot } from "react-icons/fa6";
@@ -29,12 +30,13 @@ function ListCoverageArea() {
         // status: "live",
       };
 
-      const res_getListLocation = await getListLocation(params);
+      const res_getListLocation = await getListLocation({});
 
       // console.log(res_getListLocation.data);
 
       // setListArea(res_getListLocation.data);
-      setListArea(res_getListLocation);
+      // setListArea(res_getListLocation);
+      setListArea(dummyCoveredLocations);
     } catch (error: any) {
       console.log(error.response.data.message);
     }
@@ -92,7 +94,7 @@ function ListCoverageArea() {
                       key={city.city_id}
                       className="flex items-center gap-2 py-1"
                     >
-                      <FaMapLocationDot size={20} color="#0084DA" />
+                      <FaMapLocationDot size={20} color="#D6211E" />
                       <p className="text-sm capitalize">
                         {formatNamaWilayah(city.city_name.toLowerCase())}
                       </p>

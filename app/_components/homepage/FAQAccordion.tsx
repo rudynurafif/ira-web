@@ -6,43 +6,17 @@ import { useEffect, useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa6";
 import FAQLoading from "./_components/FAQLoading";
 
-type FAQItem = {
+export type FAQItem = {
   title: string;
   description: string;
 };
 
-export default function FAQAccordion() {
+export default function FAQAccordion({ faqs }: { faqs: FAQItem[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [faqs, setFaqs] = useState<FAQItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchData = async () => {
-    try {
-      const params = {
-        category: "TESTING",
-      };
-
-      const resData = await getFAQs(params);
-
-      if (resData?.data?.statusCode === 200) {
-        setFaqs(resData?.data?.result);
-      }
-    } catch (err: any) {
-      toastErrorFromAPI(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
-
-  if (isLoading) return <FAQLoading />;
 
   return (
     <div className="w-full">

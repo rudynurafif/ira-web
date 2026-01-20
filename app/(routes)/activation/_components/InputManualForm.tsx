@@ -9,7 +9,6 @@ import toast from "react-hot-toast";
 import noSN from "@/public/assets/Images/no-sn.svg";
 import SNUsed from "@/public/assets/Images/sn-used.svg";
 import iconScan from "@/public/assets/Icons/icon-scan.svg";
-
 import Image from "next/image";
 
 function InputManualForm() {
@@ -21,7 +20,11 @@ function InputManualForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
   const [isSNUsed, setIsSNUsed] = useState(false);
+  const savedSN = JSON.parse(
+    localStorage.getItem("savedSerialNumbers") || "[]"
+  );
   const [isSNNotFound, setIsSNNotFound] = useState(false);
+
   const router = useRouter();
 
   async function submitForm(e: FormEvent<HTMLFormElement>) {
@@ -34,12 +37,15 @@ function InputManualForm() {
         errors.serial_number = "Serial Number harus diisi";
       }
 
+      localStorage.setItem("ira-cpe-serial-number", serialNumber!);
+
       // trigger SSE
       const res = await Activation({ serial_number: serialNumber });
 
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
         toast.success(
-          res.data.message || "Serial Number berhasil diverifikasi"
+          res.data.message ||
+            "Sedang proses aktivasi, silakan cek status secara berkala"
         );
       } else {
         errors.serial_number =
@@ -49,6 +55,7 @@ function InputManualForm() {
         );
       }
 
+      // jika ada error
       if (Object.keys(errors).length > 0) {
         setErrors(errors);
 
@@ -59,11 +66,6 @@ function InputManualForm() {
 
         addUrlParam("section", "connect");
         addUrlParam("serial_number", serialNumber);
-
-        // Untuk keperluan simulasi, redirect ke customer-area setelah submit
-        // setTimeout(() => {
-        //   window.location.href = "/customer-area";
-        // }, 3000);
       }
     } catch (error: any) {
       setOpenModalFailed(true);
@@ -94,6 +96,14 @@ function InputManualForm() {
       );
     } finally {
       setIsSubmitting(false);
+      const saved = JSON.parse(
+        localStorage.getItem("savedSerialNumbers") || "[]"
+      );
+      const updated = [
+        serialNumber,
+        ...saved.filter((s: any) => s !== serialNumber),
+      ].slice(0, 5);
+      localStorage.setItem("savedSerialNumbers", JSON.stringify(updated));
     }
   }
 
@@ -110,6 +120,8 @@ function InputManualForm() {
             label="Serial Number"
             isImportant
             name="serialNumber"
+            savedOptions={savedSN}
+            datalist="saved-serials"
             value={serialNumber ? serialNumber : ""}
             onChange={(value: string) => {
               const sanitizedValue = value
@@ -126,7 +138,7 @@ function InputManualForm() {
             <button
               disabled={isSubmitting || !serialNumber}
               type="submit"
-              className="w-full disabled:bg-slate-400 hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary disabled:border-slate-400 disabled:cursor-not-allowed"
+              className="w-full disabled:bg-slate-400 hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary hover:border-dark-primary-2 disabled:border-slate-400 disabled:cursor-not-allowed"
             >
               Submit
             </button>

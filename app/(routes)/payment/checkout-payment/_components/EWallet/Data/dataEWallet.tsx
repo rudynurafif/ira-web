@@ -21,7 +21,7 @@ export const dataEWallet = [
             title: "Petunjuk E-Wallet",
             list: [
               "Buka aplikasi <b>DANA</b> lalu login",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account Billing</b>",
               "Masukkan nomor <b>Virtual Account</b> yang ditampilkan",
               "Konfirmasi data: nama & nominal pembayaran",
@@ -38,7 +38,7 @@ export const dataEWallet = [
             title: "Petunjuk E-Wallet",
             list: [
               "Buka aplikasi <b>ShopeePay</b> lalu login",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account</b>",
               "Masukkan nomor <b>Virtual Account</b> yang ditampilkan",
               "Konfirmasi data: nama & nominal pembayaran",
@@ -48,7 +48,7 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "OVO",
+        name: "ID_OVO",
         image: ovo,
         instructions: [
           {
@@ -65,14 +65,14 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "LINKAJA",
+        name: "ID_LINKAJA",
         image: linkAja,
         instructions: [
           {
             title: "Petunjuk E-Wallet",
             list: [
               "Buka aplikasi <b>LinkAja</b> dan login",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account</b>",
               "Masukkan nomor <b>Virtual Account</b>",
               "Konfirmasi data: nama & nominal pembayaran",
@@ -99,14 +99,14 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "ASTRAPAY",
+        name: "ID_ASTRAPAY",
         image: astraPay,
         instructions: [
           {
             title: "Petunjuk E-Wallet",
             list: [
               "Buka aplikasi <b>AstraPay</b> dan login",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account</b>",
               "Masukkan nomor <b>Virtual Account</b>",
               "Konfirmasi data: nama & nominal pembayaran",
@@ -116,14 +116,14 @@ export const dataEWallet = [
         ],
       },
       {
-        name: "JENIUSPAY",
+        name: "ID_JENIUSPAY",
         image: jeniusPay,
         instructions: [
           {
             title: "Petunjuk E-Wallet",
             list: [
               "Buka aplikasi <b>Jenius</b> dan login",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account</b>",
               "Masukkan nomor <b>Virtual Account</b>",
               "Konfirmasi data: nama & nominal pembayaran",
