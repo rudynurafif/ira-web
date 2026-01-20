@@ -36,7 +36,7 @@ type Screen = "loading" | "failed" | "failedFinal" | "success" | "timedOut";
 type StepStatus = "idle" | "loading" | "success" | "failed";
 
 const MAX_ATTEMPT = 3;
-const CHECK_COOLDOWN_SEC = 30; // refresh task
+const CHECK_COOLDOWN_SEC = 120; // refresh task
 const SSE_TIMEOUT_MS = 10 * 60 * 1000; // sse timeout 10 menit
 
 function StepRow({
@@ -673,7 +673,7 @@ export default function ConnectToNetwork() {
 
         <div className="pt-4">
           <p className="text-black max-w-4xl mx-auto mt-2">
-            Aktivasi biasanya selesai dalam ±2 menit. Mohon jangan menutup
+            Aktivasi biasanya selesai dalam ±5 menit. Mohon jangan menutup
             halaman ini. Jika koneksi internet belum terverifikasi, kamu bisa
             cek status aktivasi secara manual.
           </p>
