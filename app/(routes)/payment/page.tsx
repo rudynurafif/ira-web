@@ -359,11 +359,14 @@ const Payment = () => {
             </div>
 
             <h3 className="text-2xl font-bold text-center text-primary mt-6">
-              Batas Pembelian Paket Kuota
+              Paket Anda Masih Aktif
             </h3>
 
             <div className="mt-4">
-              <p className="text-black ">
+              <p className="text-center">
+                Anda tidak dapat membeli paket selama paket masih aktif
+              </p>
+              {/* <p className="text-black ">
                 Kamu hanya bisa memiliki dua paket kuota internet, ya!
               </p>
               <ol className="mt-3 font-bold text-left list-decimal pl-5 space-y-1 text-black">
@@ -373,7 +376,7 @@ const Payment = () => {
               <p className="mt-4 text-black">
                 Anda tidak dapat membeli paket kuota ketiga selama paket aktif
                 dan tambahan masih aktif.
-              </p>
+              </p> */}
             </div>
 
             <button

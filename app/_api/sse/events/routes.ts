@@ -17,7 +17,7 @@ export async function GET(req: Request) {
       clientName
     )}&replace=${replace}`;
 
-    console.log("[SSE PROXY] →", sseURL);
+    // console.log("[SSE PROXY] →", sseURL);
 
     const upstream = await fetch(sseURL, {
       headers: {

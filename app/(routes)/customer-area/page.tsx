@@ -263,10 +263,10 @@ export default function AreaPelanggan() {
         {!is_coverage && !isFetching && (
           <div className="max-md:mt-6 px-8 mt-12">
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-              <h1 className="text-2xl font-bold text-primary mb-4">
+              <h1 className="text-2xl max-sm:text-center font-bold text-primary mb-4">
                 Kami sedang menyiapkan layanan di area kamu
               </h1>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 max-sm:text-center">
                 Jangan khawatir! Kami akan segera memberi tahu kamu melalui{" "}
                 <span className="font-bold text-primary">
                   WhatsApp dan Aplikasi IRA
@@ -277,7 +277,7 @@ export default function AreaPelanggan() {
                 href="/check-coverage"
                 className="flex max-w-fit items-center gap-2 font-bold bg-primary text-white px-6 py-2 rounded-lg hover:bg-dark-primary-2"
               >
-                <FaSearchLocation />
+                <FaSearchLocation className="hidden sm:block" />
                 Cek Jangkauan Terbaru
               </Link>
             </div>
