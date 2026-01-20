@@ -76,8 +76,6 @@ const PackageAndHistory = () => {
     currentPage * PAGE_SIZE
   );
 
-  console.log("Modal is open:", openModalNotAllowed);
-
   const [latestIsFree, setLatestIsFree] = useState(false);
   useEffect(() => {
     if (activePacketData) {

@@ -45,9 +45,9 @@ const ActivePacket = () => {
 
   // Ambil hanya paket aktif dari subHistory (indeks 0)
   useEffect(() => {
-    console.log("sub history: ", subscriptionHistory);
+    // console.log("sub history: ", subscriptionHistory);
     if (subscriptionHistory?.[0] && userInfo?.status === "active") {
-      console.log(subscriptionHistory?.[0]);
+      // console.log(subscriptionHistory?.[0]);
       // Cek apakah ini paket aktif (ada start_date dan belum expired)
       const isActive =
         subscriptionHistory[0]?.start_date && subscriptionHistory[0]?.end_date;

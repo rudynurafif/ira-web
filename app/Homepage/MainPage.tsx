@@ -58,7 +58,7 @@ function MainPage() {
       setImageMobile(temp_mobile);
     } catch (err: any) {
       // toastErrorFromAPI(err);
-      console.log(err.response.data.message);
+      console.error(err.response.data.message);
     }
   }
 
