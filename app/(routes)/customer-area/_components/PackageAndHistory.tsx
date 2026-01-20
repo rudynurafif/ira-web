@@ -76,6 +76,22 @@ const PackageAndHistory = () => {
     currentPage * PAGE_SIZE
   );
 
+  console.log("Modal is open:", openModalNotAllowed);
+
+  const [latestIsFree, setLatestIsFree] = useState(false);
+  useEffect(() => {
+    if (activePacketData) {
+      const packageName = activePacketData.package_id?.name || "";
+      const normalized = packageName.toLowerCase();
+      const isFree =
+        normalized.includes("free") ||
+        normalized.includes("demo") ||
+        normalized.includes("gratis");
+
+      setLatestIsFree(isFree);
+    }
+  }, [activePacketData]);
+
   useEffect(() => {
     const fetchAddon = async () => {
       try {
@@ -89,52 +105,6 @@ const PackageAndHistory = () => {
 
     fetchAddon();
   }, []);
-
-  // Fetch paket aktif (hanya sekali, tidak dipengaruhi pagination)
-  // useEffect(() => {
-  //   const fetchActivePackage = async () => {
-  //     try {
-  //       const res = await getCustomerPackage({
-  //         page: 1,
-  //         pageSize: 1,
-  //       });
-  //       const data = res.data?.data || [];
-  //       if (data[0]) {
-  //         const isActive = data[0].start_date && data[0].end_date;
-  //         setActivePacketData(isActive ? data[0] : null);
-  //       }
-  //     } catch (err) {
-  //       toastErrorFromAPI(err);
-  //     }
-  //   };
-
-  //   if (userInfo?.is_active || userInfo?.status === "active")
-  //     fetchActivePackage();
-  // }, [userInfo?.is_active, userInfo?.status]);
-
-  // Fetch riwayat dengan pagination
-  // const fetchHistory = async (page: number) => {
-  //   setIsLoadingHistory(true);
-  //   try {
-  //     const res = await getCustomerPackage({
-  //       page,
-  //       pageSize: PAGE_SIZE,
-  //     });
-
-  //     const data = res.data?.data || [];
-  //     const total = res.data?.total || 0;
-  //     const pages = Math.ceil(total / PAGE_SIZE);
-
-  //     setSubscriptionHistory(data);
-  //     setTotalPages(pages);
-  //   } catch (err: any) {
-  //     toastErrorFromAPI(err);
-  //     setSubscriptionHistory([]);
-  //     setTotalPages(1);
-  //   } finally {
-  //     setIsLoadingHistory(false);
-  //   }
-  // };
 
   useEffect(() => {
     if (userInfo) setIsInactive(userInfo?.status === "inactive");
@@ -241,78 +211,76 @@ const PackageAndHistory = () => {
             </div>
           </div>
 
-          <div className="relative min-w-[100px] cursor-pointer hidden sm:block hover:scale-110 transition-transform">
-            <Image
-              src="/assets/Images/button-beli-lagi-home.png"
-              alt="button-beli-lagi-home"
-              width={100}
-              height={152}
-              // onClick={() => {
-              //   sessionStorage.setItem(
-              //     "selectedPackage",
-              //     JSON.stringify(activePacketData?.package_id)
-              //   );
-              //   router.push("payment/payment-methods");
-              // }}
-              onClick={handleCheckPackage}
-              className="relative z-10"
+          {!latestIsFree && (
+            <div className="relative min-w-[100px] cursor-pointer hidden sm:block hover:scale-110 transition-transform">
+              <Image
+                src="/assets/Images/button-beli-lagi-home.png"
+                alt="button-beli-lagi-home"
+                width={100}
+                height={152}
+                // onClick={() => {
+                //   sessionStorage.setItem(
+                //     "selectedPackage",
+                //     JSON.stringify(activePacketData?.package_id)
+                //   );
+                //   router.push("payment/payment-methods");
+                // }}
+                onClick={handleCheckPackage}
+                className="relative z-10"
+                style={{
+                  filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
+                }}
+              />
+              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+                <div
+                  className="absolute top-0 h-full"
+                  style={{
+                    width: "100px",
+                    background:
+                      "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                    transform: "skew(-20deg)",
+                    animation: "sweep-narrow 2.5s infinite ease-out",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {!latestIsFree && (
+          <div className="relative w-full h-[60px] my-3 sm:hidden">
+            <button
+              className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
               style={{
                 filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
               }}
-            />
+              onClick={handleCheckPackage}
+            >
+              Beli Lagi
+              <Image
+                src={thumbClick}
+                alt="button-beli-lagi-home-mobile"
+                width={24}
+                height={24}
+                // unoptimized
+              />
+            </button>
+
             <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
               <div
                 className="absolute top-0 h-full"
                 style={{
-                  width: "100px",
+                  width: "120px",
                   background:
                     "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
                   transform: "skew(-20deg)",
-                  animation: "sweep-narrow 2.5s infinite ease-out",
+                  animation: "sweep-mobile 3s infinite ease-out",
+                  left: "-120px",
                 }}
               />
             </div>
           </div>
-        </div>
-
-        <div className="relative w-full h-[60px] my-3 sm:hidden">
-          <button
-            className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
-            style={{
-              filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
-            }}
-            onClick={() => {
-              sessionStorage.setItem(
-                "selectedPackage",
-                JSON.stringify(activePacketData?.package_id)
-              );
-              router.push("payment/payment-methods");
-            }}
-          >
-            Beli Lagi
-            <Image
-              src={thumbClick}
-              alt="button-beli-lagi-home-mobile"
-              width={24}
-              height={24}
-              // unoptimized
-            />
-          </button>
-
-          <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
-            <div
-              className="absolute top-0 h-full"
-              style={{
-                width: "120px",
-                background:
-                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
-                transform: "skew(-20deg)",
-                animation: "sweep-mobile 3s infinite ease-out",
-                left: "-120px",
-              }}
-            />
-          </div>
-        </div>
+        )}
       </div>
     );
   };
@@ -475,52 +443,55 @@ const PackageAndHistory = () => {
             userInfo.is_active &&
             userInfo.status === "active" && <HistorySection />}
         </div>
-
-        {openModalNotAllowed && (
-          <ModalTemplate
-            closeModal={() => {
-              setOpenModalNotAllowed(false);
-            }}
-          >
-            <div className="p-6 mt-6">
-              <div className="flex justify-center">
-                <Image
-                  src={limitImage}
-                  width={170}
-                  height={170}
-                  alt="limit-image"
-                />
-              </div>
-
-              <h3 className="text-2xl font-bold text-center text-primary mt-6">
-                Batas Pembelian Paket Kuota
-              </h3>
-
-              <div className="mt-4">
-                <p className="text-black ">
-                  Kamu hanya bisa memiliki dua paket kuota internet, ya!
-                </p>
-                <ol className="mt-3 font-bold text-left list-decimal pl-5 space-y-1 text-black">
-                  <li>Paket aktif yang sedang digunakan.</li>
-                  <li>Paket tambahan yang baru saja dibeli.</li>
-                </ol>
-                <p className="mt-4 text-black">
-                  Anda tidak dapat membeli paket kuota ketiga selama paket aktif
-                  dan tambahan masih aktif.
-                </p>
-              </div>
-
-              <button
-                className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
-                onClick={() => setOpenModalNotAllowed(false)}
-                // disabled={!selectedPackage}
-              >
-                Oke, Mengerti
-              </button>
-            </div>
-          </ModalTemplate>
-        )}
       </div>
+
+      {openModalNotAllowed && (
+        <ModalTemplate
+          closeModal={() => {
+            setOpenModalNotAllowed(false);
+          }}
+        >
+          <div className="p-6 mt-6">
+            <div className="flex justify-center">
+              <Image
+                src={limitImage}
+                width={170}
+                height={170}
+                alt="limit-image"
+              />
+            </div>
+
+            <h3 className="text-2xl font-bold text-center text-primary mt-6">
+              Paket Anda Masih Aktif
+            </h3>
+
+            <div className="mt-4">
+              <p className="text-center">
+                Anda tidak dapat membeli paket selama paket masih aktif
+              </p>
+              {/* <p className="text-black ">
+                Kamu hanya bisa memiliki dua paket kuota internet, ya!
+              </p>
+              <ol className="mt-3 font-bold text-left list-decimal pl-5 space-y-1 text-black">
+                <li>Paket aktif yang sedang digunakan.</li>
+                <li>Paket tambahan yang baru saja dibeli.</li>
+              </ol>
+              <p className="mt-4 text-black">
+                Anda tidak dapat membeli paket kuota ketiga selama paket aktif
+                dan tambahan masih aktif.
+              </p> */}
+            </div>
+
+            <button
+              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+              onClick={() => setOpenModalNotAllowed(false)}
+              // disabled={!selectedPackage}
+            >
+              Oke, Mengerti
+            </button>
+          </div>
+        </ModalTemplate>
+      )}
     </>
   );
 };
