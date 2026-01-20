@@ -31,8 +31,8 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
         status === "3_days_remaining"
           ? "to-[#67aaff]"
           : status === "expires_today"
-          ? "to-[#f89d66]"
-          : "to-[#FFDCDC]"
+            ? "to-[#f89d66]"
+            : "to-[#FFDCDC]"
       } rounded-xl shadow-lg p-6 max-sm:p-4`}
     >
       {/* Header */}
@@ -74,7 +74,7 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             </p>
             <p className="sm:text-sm text-xs mt-1">
               Nikmati Kuota Unlimited dan koneksi stabil selama{" "}
-              <strong>{label}</strong> hari ke depan.
+              <strong>{label}</strong> ke depan.
             </p>
           </>
         )}
@@ -115,11 +115,10 @@ const ActivePackageCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               {formattedDate(data.end_date) ?? "-"} agar tidak terisolir.
             </p>
             <p className="sm:text-sm text-xs mt-1">
-              Hari ini {data.package_id?.name} mencapai jatuh tempo.
-              Selesaikan pembayaran sebelum{" "}
-              {formattedDate(data.end_date) ?? "-"} agar layanan tetap aktif
-              tanpa jeda. Perpanjangan diproses otomatis begitu pembayaran
-              berhasil.
+              Hari ini {data.package_id?.name} mencapai jatuh tempo. Selesaikan
+              pembayaran sebelum {formattedDate(data.end_date) ?? "-"} agar
+              layanan tetap aktif tanpa jeda. Perpanjangan diproses otomatis
+              begitu pembayaran berhasil.
             </p>
           </>
         )}

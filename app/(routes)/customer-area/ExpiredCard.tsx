@@ -33,7 +33,7 @@ const ExpiredCard = ({
       {/* Judul Utama */}
       {userInfo?.status === "suspend" && (
         <p className="text-sm sm:text-base font-bold text-[#D6211E] mb-2">
-          Internet isolir — Bayar paket untuk aktif kembali.
+          Internet isolir
         </p>
       )}
       {userInfo?.status === "dismantled" && (
@@ -44,7 +44,7 @@ const ExpiredCard = ({
 
       {/* Deskripsi */}
       {userInfo?.status === "suspend" && (
-        <p className="text-xs sm:text-sm  mb-6">
+        <p className="text-sm sm:text-base  mb-6">
           Internet nonaktif sementara karena masa aktif sudah berakhir pada{" "}
           <span className="font-bold">
             {formattedDate(data?.end_date ?? "") ?? "-"}
@@ -55,7 +55,7 @@ const ExpiredCard = ({
       )}
       {userInfo?.status === "dismantled" && (
         <div className="mb-6">
-          <p className="text-xs sm:text-sm">
+          <p className="text-sm sm:text-base">
             Paket internet kamu sudah tidak aktif selama lebih dari 1 bulan
             karena belum diperpanjang.
           </p>
@@ -68,9 +68,17 @@ const ExpiredCard = ({
       {/* Tombol CTA */}
       <button
         onClick={() => router.push("/payment")}
-        className="bg-red-600 cursor-pointer hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-md"
+        className="inline-flex justify-center items-center mt-4 gradient-box-expired rounded-full custom-click cursor-pointer"
+        id="button-beli-paket-sekarang"
       >
-        Beli Paket Sekarang
+        <div className="w-full relative flex justify-center items-center bg-subs-expired rounded-full h-12 md:h-14 overflow-hidden custom-bg-animation">
+          {/* glossy highlight */}
+          <div className="absolute top-1.5 left-1/2 -translate-x-1/2 fancy-background-expired w-[92%] h-6.5 rounded-full z-0" />
+
+          <span className="relative z-10 text-white text-sm sm:text-base md:text-lg font-bold whitespace-nowrap px-6">
+            Beli Paket Sekarang
+          </span>
+        </div>
       </button>
     </div>
   );

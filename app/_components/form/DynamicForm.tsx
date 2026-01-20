@@ -98,7 +98,11 @@ function DynamicForm({
             className="absolute cursor-pointer disabled:cursor-not-allowed right-3 top-12 text-gray-500 hover:text-gray-700"
             title="Salin teks"
           >
-            {copied ? <FaCheck className="text-green-500" /> : <FaCopy />}
+            {copied ? (
+              <FaCheck className="text-green-500" />
+            ) : (
+              <FaCopy className="text-primary" />
+            )}
           </button>
         )}
         {error && <p className="text-red-500 p-0 m-0">{error}</p>}

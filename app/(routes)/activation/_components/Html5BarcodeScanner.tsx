@@ -15,6 +15,7 @@ import ModalScan from "./ModalScan";
 import toast from "react-hot-toast";
 import { CiBarcode } from "react-icons/ci";
 import { MdOutlineQrCodeScanner } from "react-icons/md";
+import { MdCameraswitch } from "react-icons/md";
 
 // 👉 MUI (Material UI) toggle
 import { FormControlLabel, Switch } from "@mui/material";
@@ -134,8 +135,46 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
   const [isDesktop, setIsDesktop] = useState(false);
   const isDesktopRef = useRef<boolean | null>(null);
 
+  const [cameras, setCameras] = useState<{ id: string; label?: string }[]>([]);
+  const [activeDeviceId, setActiveDeviceId] = useState<string | null>(null);
+
   // default zoom yang diminta
   const DEFAULT_ZOOM = 3.5;
+
+  function getOppositeCameraId(
+    cams: { id: string; label?: string }[],
+    currentId: string
+  ) {
+    if (cams.length <= 1) return currentId;
+
+    const cur = cams.find((c) => c.id === currentId);
+    const curLabel = (cur?.label || "").toLowerCase();
+
+    const isFront = /front|user/.test(curLabel);
+    const isBack = /back|rear|environment/.test(curLabel);
+
+    // kalau current terdeteksi front -> cari back
+    if (isFront) {
+      const back = cams.find((c) =>
+        /back|rear|environment/i.test(c.label || "")
+      );
+      if (back) return back.id;
+    }
+
+    // kalau current terdeteksi back -> cari front
+    if (isBack) {
+      const front = cams.find((c) => /front|user/i.test(c.label || ""));
+      if (front) return front.id;
+    }
+
+    // fallback: cycle urutan list
+    const idx = Math.max(
+      0,
+      cams.findIndex((c) => c.id === currentId)
+    );
+    const nextIdx = (idx + 1) % cams.length;
+    return cams[nextIdx].id;
+  }
 
   useEffect(() => {
     pendingRef.current = pending;
@@ -171,7 +210,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     setCaps(c);
 
     if (c.zoom)
-      setZoomVal(typeof s.zoom === "number" ? s.zoom : c.zoom.min ?? 1);
+      setZoomVal(typeof s.zoom === "number" ? s.zoom : (c.zoom.min ?? 1));
     if (c.torch !== undefined) setTorchOn(Boolean(s.torch));
     const modes: string[] = Array.isArray(c.focusMode) ? c.focusMode : [];
     setAfContinuous(modes.includes("continuous"));
@@ -187,8 +226,8 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     const qr = qrRef.current!;
     setStarting(true);
     setError(null);
+    setActiveDeviceId(deviceId);
     await stopSilently(qr);
-
     lastDeviceIdRef.current = deviceId;
 
     const baseConfig: Html5QrcodeCameraScanConfig = {
@@ -280,11 +319,12 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
 
       setStarting(false);
     } catch (e: any) {
-      setError(e?.message || "Gagal membuka kamera");
+      setError(e?.message || "Gagal membuka kamera. Mohon refresh halaman.");
       setStarting(false);
     }
   }
 
+  // init kamera
   useEffect(() => {
     let unmounted = false;
     const qr = new Html5Qrcode(containerId);
@@ -301,6 +341,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
         } catch {}
 
         const list = await Html5Qrcode.getCameras();
+        setCameras(list);
         if (!list.length) throw new Error("Tidak ada kamera");
 
         const ua = navigator.userAgent;
@@ -311,7 +352,9 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
         }
       } catch (err: any) {
         if (!unmounted) {
-          setError(err?.message || "Gagal memuat kamera");
+          setError(
+            err?.message || "Gagal memuat kamera. Mohon refresh halaman"
+          );
           setStarting(false);
         }
       }
@@ -345,6 +388,19 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     const next = !torchOn;
     setTorchOn(next);
     await safeApply(track, { advanced: [{ torch: next }] });
+  };
+  const switchCamera = async () => {
+    if (cameras.length <= 1) return;
+    const current = activeDeviceId || lastDeviceIdRef.current;
+    if (!current) return;
+
+    const nextId = getOppositeCameraId(cameras, current);
+
+    // pastikan modal tidak nge-hold pause state
+    setIsModalSuccessScan(false);
+    setPending(null);
+
+    await startWith(nextId);
   };
   const setAF_Continuous = async () => {
     if (!afContinuous) return;
@@ -423,6 +479,18 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
 
           {!starting && (
             <>
+              {!isDesktop && cameras.length > 1 && (
+                <div className="absolute flex items-center top-2 left-2 z-10">
+                  <button
+                    type="button"
+                    onClick={switchCamera}
+                    className="p-2 rounded-full bg-black/40 active:scale-95"
+                    aria-label="Switch camera"
+                  >
+                    <MdCameraswitch size={24} className="text-white" />
+                  </button>
+                </div>
+              )}
               {/* tombol torch */}
               {hasTorch && (
                 <div className="absolute flex items-center top-2 right-2 z-10">
@@ -493,7 +561,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
             </>
           )}
 
-          {!starting && (
+          {!starting && !error && (
             <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 w-full px-4 max-w-120">
               <button
                 onClick={() => {

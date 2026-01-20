@@ -22,7 +22,7 @@ export const dataVa = [
             title: "Petunjuk mBanking",
             list: [
               "Buka aplikasi <b>BNI Mobile Banking</b> lalu login",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account Billing</b>",
               "Masukkan nomor <b>Virtual Account</b> yang ditampilkan",
               "Konfirmasi data: nama & nominal pembayaran",
@@ -33,7 +33,7 @@ export const dataVa = [
             title: "Petunjuk iBanking",
             list: [
               "Login ke <b>https://ibank.bni.co.id</b>",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account Billing</b>",
               "Masukkan nomor Virtual Account dan klik <b>Lanjut</b>",
               "Konfirmasi dan masukkan <b>kode OTP</b>",
@@ -44,7 +44,7 @@ export const dataVa = [
             title: "Petunjuk ATM",
             list: [
               "Masukkan <b>kartu ATM BNI</b> dan PIN",
-              "Pilih <b>Menu Lain > Transfer > Virtual Account Billing</b>",
+              // "Pilih <b>Menu Lain > Transfer > Virtual Account Billing</b>",
               "Masukkan nomor <b>Virtual Account</b>",
               "Konfirmasi nama dan nominal",
               "Tekan <b>Ya</b> untuk menyelesaikan transaksi",
@@ -60,7 +60,7 @@ export const dataVa = [
             title: "Petunjuk mBanking",
             list: [
               "Buka aplikasi <b>BCA Mobile Banking</b> lalu login",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account Billing</b>",
               "Masukkan nomor <b>Virtual Account</b> yang ditampilkan",
               "Konfirmasi data: nama & nominal pembayaran",
@@ -71,7 +71,7 @@ export const dataVa = [
             title: "Petunjuk iBanking",
             list: [
               "Login ke <b>https://ibank.bca.co.id</b>",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account Billing</b>",
               "Masukkan nomor Virtual Account dan klik <b>Lanjut</b>",
               "Konfirmasi dan masukkan <b>kode OTP</b>",
@@ -82,7 +82,7 @@ export const dataVa = [
             title: "Petunjuk ATM",
             list: [
               "Masukkan <b>kartu ATM BCA</b> dan PIN",
-              "Pilih <b>Menu Lain > Transfer > Virtual Account Billing</b>",
+              "Pilih <b>Menu Lain > Virtual Account Billing</b>",
               "Masukkan nomor <b>Virtual Account</b>",
               "Konfirmasi nama dan nominal",
               "Tekan <b>Ya</b> untuk menyelesaikan transaksi",
@@ -225,7 +225,7 @@ export const dataVa = [
             title: "Petunjuk mBanking",
             list: [
               "Login ke aplikasi <b>PermataMobile X</b>",
-              "Pilih menu <b>Transfer</b>",
+              // "Pilih menu <b>Transfer</b>",
               "Pilih <b>Virtual Account</b>",
               "Masukkan nomor dan konfirmasi nama",
               "Selesaikan transaksi",
@@ -235,7 +235,7 @@ export const dataVa = [
             title: "Petunjuk ATM",
             list: [
               "Masukkan kartu dan PIN",
-              "Pilih menu <b>Transfer > Ke Rekening Permata Lain</b>",
+              "Pilih menu <b>> Ke Rekening Permata Lain</b>",
               "Masukkan nomor Virtual Account",
               "Konfirmasi dan tekan <b>Ya</b>",
             ],
