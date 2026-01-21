@@ -19,6 +19,10 @@ import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import { PackageData } from "@/app/_shared/types/customer-area";
+import { checkPackage } from "@/app/_api/Customer/CustomerArea";
+import ModalTemplate from "@/app/_components/modal/ModalTemplate";
+import Image from "next/image";
+import limitImage from "@/public/assets/Images/limit-images.png";
 
 // Mapping code API -> gambar lokal
 
@@ -55,6 +59,7 @@ const PaymentMehods = () => {
   );
   const { isLoggedIn } = useAppSelector((state) => state.auth);
   const [isCreatePayment, setIsCreatePayment] = useState(false);
+  const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -69,6 +74,23 @@ const PaymentMehods = () => {
       }
     }
   }, [isLoggedIn, router]);
+
+  const handleCheckPackage: () => Promise<void> = async () => {
+    try {
+      const res = await checkPackage();
+
+      if (res?.data?.data === false) {
+        setOpenModalNotAllowed(true);
+        window.location.href = "/customer-area";
+      }
+    } catch (err) {
+      toastErrorFromAPI(err);
+    }
+  };
+
+  useEffect(() => {
+    handleCheckPackage();
+  }, []);
 
   // Filter by category
   const virtualAccounts = paymentChannels.filter(
@@ -349,6 +371,46 @@ const PaymentMehods = () => {
           {isCreatePayment ? "Mohon menunggu.." : "Bayar"}
         </button>
       </div>
+
+      {openModalNotAllowed && (
+        <ModalTemplate
+          closeModal={() => {
+            setOpenModalNotAllowed(false);
+            router.push("/customer-area");
+          }}
+        >
+          <div className="p-6 mt-6">
+            <div className="flex justify-center">
+              <Image
+                src={limitImage}
+                width={170}
+                height={170}
+                alt="limit-image"
+              />
+            </div>
+
+            <h3 className="text-2xl font-bold text-center text-primary mt-6">
+              Paket Anda Masih Aktif
+            </h3>
+
+            <div className="mt-4">
+              <p className="text-center">
+                Anda tidak dapat membeli paket selama paket masih aktif
+              </p>
+            </div>
+
+            <button
+              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+              onClick={() => {
+                setOpenModalNotAllowed(false);
+                router.push("/customer-area");
+              }}
+            >
+              Oke, Mengerti
+            </button>
+          </div>
+        </ModalTemplate>
+      )}
     </div>
   );
 };
