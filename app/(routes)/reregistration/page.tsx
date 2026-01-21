@@ -22,11 +22,9 @@ function Page() {
       if (!user) {
         try {
           const res = await getProfileInfo({});
-          if (res?.data?.statusCode === 200) {
-            const customer = res.data.data.customer;
-            dispatch(getUser(customer));
-            user = customer;
-          }
+          const customerData = res.data.data.customer;
+          dispatch(getUser(customerData));
+          user = customerData;
         } catch (err) {
           console.error("Gagal fetch user info", err);
         }
@@ -43,8 +41,12 @@ function Page() {
           notes: user.notes || "",
           rw: user.rw || "",
           rt: user.rt || "",
-          latitude: user.latitude?.toString() || undefined,
-          longitude: user.longitude?.toString() || undefined,
+          latitude: user.latitude || undefined,
+          longitude: user.longitude || undefined,
+          province: user.province_id?.id || "",
+          city: user.city_id?.id || "",
+          district: user.district_id?.id || "",
+          sub_district: user.sub_district_id?.id || "",
         });
       } else {
         setInitialData({}); // atau redirect ke login

@@ -10,6 +10,8 @@ const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
 function MapGeoapify({
   getAddress,
   onPlaceChange,
+  initialLatitude,
+  initialLongitude,
 }: {
   getAddress: (address: string) => void;
   onPlaceChange?: (payload: {
@@ -18,6 +20,8 @@ function MapGeoapify({
     latitude: number;
     longitude: number;
   }) => void;
+  initialLatitude?: number;
+  initialLongitude?: number;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -49,70 +53,98 @@ function MapGeoapify({
   // ref untuk debounce "berhenti ngetik"
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Ambil Lokasi Saat Ini Saat Pertama Kali Load
   useEffect(() => {
-    if ("geolocation" in navigator) {
-      setIsLoading(true);
+    if (initialLatitude && initialLongitude) {
+      setLocation({ lat: initialLatitude, lng: initialLongitude });
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation({ lat: latitude, lng: longitude });
+      // Optionally, you can get the address from these coordinates (reverse geocoding)
+      fetch(
+        `https://api.geoapify.com/v1/geocode/reverse?lat=${initialLatitude}&lon=${initialLongitude}&apiKey=${GEOAPIFY_API_KEY}&lang=id`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const feature = data.features[0];
+          if (feature) {
+            const addr = feature.properties.formatted;
+            setAddress(addr);
+            inputRef.current!.value = addr;
+            onPlaceChange?.({
+              address: addr,
+              raw_result: feature,
+              latitude: initialLatitude,
+              longitude: initialLongitude,
+            });
+            getAddress(addr);
+          }
+        })
+        .catch((err) => {
+          console.error("Reverse geocoding failed:", err);
+          toast.error("Gagal memuat alamat dari koordinat");
+        });
+    } else {
+      if ("geolocation" in navigator) {
+        setIsLoading(true);
 
-          // Ambil alamat dari koordinat (reverse geocoding)
-          try {
-            const res = await fetch(
-              `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&apiKey=${GEOAPIFY_API_KEY}&lang=id`
-            );
-            const data = await res.json();
-            const feature = data.features[0];
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            setLocation({ lat: latitude, lng: longitude });
 
-            if (feature) {
-              const addr = feature.properties.formatted;
-              setAddress(addr);
-              if (inputRef.current) inputRef.current.value = addr;
+            // Ambil alamat dari koordinat (reverse geocoding)
+            try {
+              const res = await fetch(
+                `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&apiKey=${GEOAPIFY_API_KEY}&lang=id`
+              );
+              const data = await res.json();
+              const feature = data.features[0];
 
-              feature.query = data?.query || null;
+              if (feature) {
+                const addr = feature.properties.formatted;
+                setAddress(addr);
+                if (inputRef.current) inputRef.current.value = addr;
 
+                feature.query = data?.query || null;
+
+                onPlaceChange?.({
+                  address: addr,
+                  raw_result: feature,
+                  latitude,
+                  longitude,
+                });
+                getAddress(addr);
+              }
+            } catch (err: any) {
+              toast.error("Reverse geocoding gagal:", err);
+              // Tetap lanjutkan dengan koordinat meski tanpa alamat
               onPlaceChange?.({
-                address: addr,
-                raw_result: feature,
+                address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+                raw_result: null,
                 latitude,
                 longitude,
               });
-              getAddress(addr);
+              getAddress(`${latitude}, ${longitude}`);
+            } finally {
+              setIsLoading(false);
             }
-          } catch (err: any) {
-            toast.error("Reverse geocoding gagal:", err);
-            // Tetap lanjutkan dengan koordinat meski tanpa alamat
-            onPlaceChange?.({
-              address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
-              raw_result: null,
-              latitude,
-              longitude,
-            });
-            getAddress(`${latitude}, ${longitude}`);
-          } finally {
+          },
+          (error) => {
+            console.error("Gagal dapat lokasi:", error?.message);
+            toast.error(
+              "Mohon izinkan akses lokasi untuk melakukan pendaftaran."
+            );
             setIsLoading(false);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000,
           }
-        },
-        (error) => {
-          console.error("Gagal dapat lokasi:", error?.message);
-          toast.error(
-            "Mohon izinkan akses lokasi untuk melakukan pendaftaran."
-          );
-          setIsLoading(false);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000,
-        }
-      );
-    } else {
-      toast.error("Browser tidak mendukung geolocation");
+        );
+      } else {
+        toast.error("Browser tidak mendukung geolocation");
+      }
     }
-  }, []);
+  }, [initialLatitude, initialLongitude]);
 
   // === Fungsi start cooldown (dengan onFinish) ===
   const startCooldown = (duration: number = 10, onFinish?: () => void) => {

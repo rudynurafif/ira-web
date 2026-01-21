@@ -39,6 +39,7 @@ import {
 import { FormType } from "../types/type";
 import GeoPermissionGate from "./GeoPermissionGate";
 import ModalRegister from "./ModalRegister";
+import { useAppSelector } from "@/app/store/store";
 
 const initialFormData: FormType = {
   fullname: "",
@@ -125,6 +126,76 @@ function RegistrationForm({
     localStorage.setItem(STORAGE_KEY, String(expiry));
     setOtpExpiry(expiry);
   }
+
+  const { userInfo } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (mode === "reregister" && initialData) {
+      const { province, city, district, sub_district } = initialData;
+
+      // Autofill the province
+      if (province) {
+        setFormData((prev) => ({ ...prev, province }));
+        const provinceId = province; // ID for province
+        (async () => {
+          try {
+            const res = await getCity({ province_id: provinceId });
+            setCityOptions(
+              res.data.data.map((it: any) => ({
+                label: it.name,
+                value: String(it.id),
+              }))
+            );
+          } catch (err) {
+            toastErrorFromAPI(err, "Gagal muat data kota");
+          }
+        })();
+      }
+
+      // Autofill the city
+      if (city) {
+        setFormData((prev) => ({ ...prev, city }));
+        const cityId = city;
+        (async () => {
+          try {
+            const res = await getDistrict({ city_id: cityId });
+            setDistrictOptions(
+              res.data.data.map((it: any) => ({
+                label: it.name,
+                value: String(it.id),
+              }))
+            );
+          } catch (err) {
+            toastErrorFromAPI(err, "Gagal muat data kecamatan");
+          }
+        })();
+      }
+
+      // Autofill the district
+      if (district) {
+        setFormData((prev) => ({ ...prev, district }));
+        const districtId = district;
+        (async () => {
+          try {
+            const res = await getSubDistrict({ district_id: districtId });
+            setSubdistrictOptions(
+              res.data.data.map((it: any) => ({
+                label: it.name,
+                value: String(it.id),
+              }))
+            );
+          } catch (err) {
+            toastErrorFromAPI(err, "Gagal muat data kelurahan");
+          }
+        })();
+      }
+
+      // Autofill the sub-district
+      if (sub_district) {
+        setFormData((prev) => ({ ...prev, sub_district }));
+      }
+    }
+  }, [mode, initialData]);
 
   // un comment kalo pakai API autofill
   // async function autofillLocationViaApiWithRaw(rawResult: any) {
@@ -376,7 +447,7 @@ function RegistrationForm({
       errors.email = "Format email salah";
     }
 
-    if (formData.otp.length !== 6) {
+    if (formData.otp.length !== 6 && mode === "register") {
       errors.otp = "Kode OTP harus 6 digit";
     }
 
@@ -424,7 +495,7 @@ function RegistrationForm({
       errors.actual_address = "Alamat Lengkap harus diisi";
     }
 
-    if (otpStatus !== "valid") {
+    if (otpStatus !== "valid" && mode === "register") {
       errors.otp = "OTP belum terverifikasi";
     }
 
@@ -433,6 +504,8 @@ function RegistrationForm({
       setIsLoading(false);
       return;
     }
+
+    console.log("FORM DATA", errors);
 
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
@@ -445,6 +518,12 @@ function RegistrationForm({
         //   ? [normalizeAddressForBackend(formData.address_gmaps)]
         //   : [];
         const addressArray = [formData.address_gmaps];
+        const type =
+          userInfo?.status === "canceled-instalation"
+            ? "tipe-cancel"
+            : userInfo?.status === "inactive"
+              ? "tipe inactive"
+              : "tipe regist baru";
 
         const body: any = {
           phone_number: formData.phone ?? "",
@@ -468,6 +547,7 @@ function RegistrationForm({
           ...(formData.longitude && { longitude: formData.longitude }),
           ...(formData.notes && { notes: formData.notes }),
           ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
+          // type,
         };
 
         const coveredNow = isCovered;
@@ -483,8 +563,12 @@ function RegistrationForm({
                 phone_number_verified: otpStatus === "valid",
               });
         } else if (mode === "reregister") {
-          toast("Fitur registrasi ulang belum tersedia.");
-          return;
+          res = coveredNow
+            ? await registerUser(body)
+            : await requestCoverage({
+                ...body,
+                phone_number_verified: otpStatus === "valid",
+              });
         }
 
         // const res = coveredNow
@@ -547,6 +631,7 @@ function RegistrationForm({
               label="Nama Lengkap"
               isImportant
               name="fullname"
+              disabled={mode === "reregister"}
               value={formData.fullname}
               onChange={(value: string) => {
                 const filtered = sanitizeName(value);
@@ -564,6 +649,7 @@ function RegistrationForm({
               label="Email (opsional)"
               isImportant={false}
               name="email"
+              disabled={mode === "reregister"}
               value={formData.email}
               onChange={(value: string) => {
                 const cleaned = sanitizeEmail(value);
@@ -600,71 +686,78 @@ function RegistrationForm({
               mode="register"
               inputMode="numeric"
               isImportant
-              isDisabled={otpStatus === "valid"}
+              isDisabled={otpStatus === "valid" || mode === "reregister"}
               value={formData.phone}
               onChange={(value: string) => {
                 setFormData((prevData: any) => ({
                   ...prevData,
                   phone: value,
                 }));
-
                 setErrors({ ...errors, phone: "" });
               }}
               placeholder="contoh: 08123456789"
               error={errors.phone}
             />
-            <p className="text-xs text-muted mt-1">
-              *Pastikan nomor yang Anda masukkan benar dan aktif
-            </p>
+            {mode === "register" ? (
+              <p className="text-xs text-muted mt-1">
+                *Pastikan nomor yang Anda masukkan benar dan aktif
+              </p>
+            ) : (
+              <p className="text-xs text-muted mt-1">
+                *Nomor yang sama akan digunakan untuk berlangganan kembali
+              </p>
+            )}
           </div>
 
           {/* OTP */}
-          <div className="max-md:col-span-2 col-span-1">
-            <GroupedOTP
-              isInvalid={!!errors.otp || otpStatus === "invalid"}
-              label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
-              isImportant
-              name="otp"
-              value={formData.otp}
-              isDisabled={otpStatus === "valid"}
-              onChange={(val) => {
-                const cleaned = sanitizeAlphanumeric(val);
-                setFormData((prev) => ({ ...prev, otp: cleaned }));
-                if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
-                if (otpStatus !== "idle") setOtpStatus("idle");
-              }}
-              onComplete={(val) => {
-                handleVerifyOtp(val);
-              }}
-            />
+          {mode === "register" && (
+            <div className="max-md:col-span-2 col-span-1">
+              <GroupedOTP
+                isInvalid={!!errors.otp || otpStatus === "invalid"}
+                label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
+                isImportant
+                name="otp"
+                value={formData.otp}
+                isDisabled={otpStatus === "valid"}
+                onChange={(val) => {
+                  const cleaned = sanitizeAlphanumeric(val);
+                  setFormData((prev) => ({ ...prev, otp: cleaned }));
+                  if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
+                  if (otpStatus !== "idle") setOtpStatus("idle");
+                }}
+                onComplete={(val) => {
+                  handleVerifyOtp(val);
+                }}
+              />
 
-            {otpStatus === "verifying" && (
-              <p className="text-primary mt-1 text-sm italic">
-                Memverifikasi OTP...
-              </p>
-            )}
+              {otpStatus === "verifying" && (
+                <p className="text-primary mt-1 text-sm italic">
+                  Memverifikasi OTP...
+                </p>
+              )}
 
-            {otpStatus === "valid" && (
-              <p className="text-green-600 mt-1 text-sm flex items-center gap-1">
-                <FaCircleCheck className="text-green-600" />
-                OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
-              </p>
-            )}
+              {otpStatus === "valid" && (
+                <p className="text-green-600 mt-1 text-sm flex items-center gap-1">
+                  <FaCircleCheck className="text-green-600" />
+                  OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
+                </p>
+              )}
 
-            {otpStatus === "invalid" && !errors.otp && (
-              <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
-                <FaCircleExclamation className="text-red-500" />
-                Kode OTP tidak valid atau sudah kedaluwarsa.
-              </p>
-            )}
+              {otpStatus === "invalid" && !errors.otp && (
+                <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
+                  <FaCircleExclamation className="text-red-500" />
+                  Kode OTP tidak valid atau sudah kedaluwarsa.
+                </p>
+              )}
 
-            {errors.otp && (
-              <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
-                <FaCircleExclamation className="text-red-500" />
-                {errors.otp}
-              </p>
-            )}
-          </div>
+              {errors.otp && (
+                <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
+                  <FaCircleExclamation className="text-red-500" />
+                  {errors.otp}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* NIK */}
           {/* <div className="max-md:col-span-2 col-span-1">
@@ -998,6 +1091,8 @@ function RegistrationForm({
             {status !== "denied" && (
               <>
                 <MapGeoapify
+                  initialLatitude={Number(initialData?.latitude)}
+                  initialLongitude={Number(initialData?.longitude)}
                   getAddress={(value: string) => {
                     setFormData((prevData: any) => ({
                       ...prevData,
@@ -1038,7 +1133,7 @@ function RegistrationForm({
                 {!isCovered && !isCheckCoverage && (
                   <p className="mt-1 text-red-primary flex items-center gap-1 text-sm">
                     <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
-                    Lokasi Anda belum berada dijangkauan area kami, dan kami
+                    Lokasi Anda belum berada di jangkauan area kami, dan kami
                     sedang menuju ke daerah Anda.
                   </p>
                 )}
@@ -1069,8 +1164,8 @@ function RegistrationForm({
                 status === "denied"
                   ? "Izinkan akses lokasi di browser Anda untuk mengisi alamat"
                   : formData.address_gmaps
-                  ? "Masukkan/rapikan Alamat Lengkap"
-                  : "Pilih alamat dari pencarian peta untuk mengaktifkan"
+                    ? "Masukkan/rapikan Alamat Lengkap"
+                    : "Pilih alamat dari pencarian peta untuk mengaktifkan"
               }
               error={errors.actual_address}
               disabled={!formData.address_gmaps}
