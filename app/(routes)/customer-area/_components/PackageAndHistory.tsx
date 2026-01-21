@@ -357,9 +357,10 @@ const PackageAndHistory = () => {
           onClick={() => window.open("/panduan-cara-bayar", "_blank")}
         />
 
-        {is_coverage && userInfo.is_active && userInfo.status === "active" && (
-          <HistorySection />
-        )}
+        {is_coverage &&
+          (userInfo.status === "active" ||
+            userInfo.status === "suspend" ||
+            userInfo.status === "dismantled") && <HistorySection />}
       </div>
 
       {/* DESKTOP (≥ sm) */}
@@ -438,8 +439,9 @@ const PackageAndHistory = () => {
           />
 
           {is_coverage &&
-            userInfo.is_active &&
-            userInfo.status === "active" && <HistorySection />}
+            (userInfo.status === "active" ||
+              userInfo.status === "suspend" ||
+              userInfo.status === "dismantled") && <HistorySection />}
         </div>
       </div>
 
