@@ -209,7 +209,7 @@ function PhoneOTPForm({
             list={`ira-phone-history-${name}`}
             onChange={(e) => handleNumericChange(e.target.value)}
             onPaste={handlePaste}
-            className={`px-5 py-3 bg-primary-spectrum rounded-xl w-full border ${
+            className={`px-5 py-3 disabled:bg-background-customer disabled:cursor-not-allowed bg-primary-spectrum rounded-xl w-full border ${
               error ? "border-red-500" : "border-[#D5D5D5]"
             } placeholder:text-gray-400 placeholder:text-sm`}
             {...props}
@@ -222,29 +222,31 @@ function PhoneOTPForm({
           </datalist>
         </div>
 
-        <div>
-          <button
-            type="submit"
-            disabled={disabledButton}
-            className={`text-white py-3 px-3 rounded-xl  ${
-              disabledButton
-                ? "bg-slate-400 cursor-not-allowed"
-                : "bg-primary cursor-pointer"
-            }`}
-            onClick={SendOTP}
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center gap-1">
-                <div className="loading w-5 h-5"></div>
-                <span className="italic">Loading...</span>
-              </div>
-            ) : isRunning ? (
-              <span className="font-bold p-2">{formatTimer(timerReset)}</span>
-            ) : (
-              <span className="whitespace-nowrap">Kirim OTP</span>
-            )}
-          </button>
-        </div>
+        {!isDisabled && (
+          <div>
+            <button
+              type="submit"
+              disabled={disabledButton}
+              className={`text-white py-3 px-3 rounded-xl  ${
+                disabledButton
+                  ? "bg-slate-400 cursor-not-allowed"
+                  : "bg-primary cursor-pointer"
+              }`}
+              onClick={SendOTP}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-1">
+                  <div className="loading w-5 h-5"></div>
+                  <span className="italic">Loading...</span>
+                </div>
+              ) : isRunning ? (
+                <span className="font-bold p-2">{formatTimer(timerReset)}</span>
+              ) : (
+                <span className="whitespace-nowrap">Kirim OTP</span>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {hint && (

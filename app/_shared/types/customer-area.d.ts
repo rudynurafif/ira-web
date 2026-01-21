@@ -89,4 +89,20 @@ export type ProfileInfo = {
   reset_count_cell_max: number | null;
   reset_count_cell: number | null;
   no_kk: string | null;
+  province_id: {
+    id: string;
+    name: string;
+  };
+  city_id: {
+    id: string;
+    name: string;
+  };
+  district_id: {
+    id: string;
+    name: string;
+  };
+  sub_district_id: {
+    id: string;
+    name: string;
+  };
 };
