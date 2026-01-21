@@ -131,8 +131,9 @@ function Header() {
   const handleAuthButton = () => {
     if (pathname === "/auth/login") {
       router.push("/auth/register");
-    }
-    if (pathname === "/auth/register") {
+    } else if (pathname === "/auth/register") {
+      router.push("/auth/login");
+    } else {
       router.push("/auth/login");
     }
   };
