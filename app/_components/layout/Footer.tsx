@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaInstagram, FaLinkedin, FaTiktok, FaYoutube } from "react-icons/fa";
 import { AiFillTikTok } from "react-icons/ai";
 import { FaSquareFacebook, FaSquareInstagram } from "react-icons/fa6";
@@ -9,12 +9,36 @@ import Image from "next/image";
 // image
 import iraIcon from "@/public/assets/Icons/IraIconFooter.png";
 import moment from "moment";
+import { getSetting } from "@/app/_api/Settings/Settings";
 
 function Footer() {
-  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
-  const address =
-    process.env.NEXT_PUBLIC_ADDRESS ||
-    "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat";
+  const [phoneCS, setPhoneCS] = useState<string | null>("");
+  const [address, setAddress] = useState<string | null>("");
+
+  useEffect(() => {
+    const getPhoneCS = async () => {
+      const resSetting = await getSetting("cs_phone");
+
+      setPhoneCS(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111"
+      );
+    };
+
+    const getOfficeAddress = async () => {
+      const resSetting = await getSetting("office_address");
+
+      setAddress(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_ADDRESS ||
+          "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat"
+      );
+    };
+
+    getPhoneCS();
+    getOfficeAddress();
+  }, []);
 
   return (
     <div className="bg-white text-xs">
@@ -33,7 +57,7 @@ function Footer() {
                 className="hover:underline"
                 target="_blank"
               >
-                +{phoneCS}
+                {phoneCS}
               </Link>
             </div>
             <div className="col-span-1">
@@ -99,7 +123,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.2101.094</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.2201.095</div>
       </div>
     </div>
   );

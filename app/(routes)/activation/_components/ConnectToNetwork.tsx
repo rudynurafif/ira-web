@@ -31,6 +31,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import { getDealerSuppPhone } from "@/app/_api/Customer/CustomerArea";
 import { Activation } from "@/app/_api/Activation/Activation";
+import { getSetting } from "@/app/_api/Settings/Settings";
 
 type Screen = "loading" | "failed" | "failedFinal" | "success" | "timedOut";
 type StepStatus = "idle" | "loading" | "success" | "failed";
@@ -396,7 +397,7 @@ export default function ConnectToNetwork() {
       } catch {}
       clearTimeoutSafe();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     customer_id,
     serialNumber,
@@ -545,6 +546,22 @@ export default function ConnectToNetwork() {
     addUrlParam("section", "setting");
   }
 
+  const [phoneCSIRA, setPhoneCSIRA] = useState<string | null>("");
+
+  useEffect(() => {
+    const getPhoneCS = async () => {
+      const resSetting = await getSetting("cs_phone");
+
+      setPhoneCSIRA(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111"
+      );
+    };
+
+    getPhoneCS();
+  }, []);
+
   async function contactCS() {
     const msg = encodeURIComponent(
       `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSerial Number CPE: ${serialNumber}`
@@ -553,10 +570,8 @@ export default function ConnectToNetwork() {
       const resPhone = await getDealerSuppPhone();
 
       if (resPhone.data.statusCode === 200) {
-        const phone =
-          resPhone.data?.data?.cs_phone_number ??
-          process.env.NEXT_PUBLIC_PHONE_CS ??
-          "6281110689111";
+        const phone = resPhone.data?.data?.cs_phone_number ?? phoneCSIRA;
+
         window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
       }
     } catch (err: any) {
