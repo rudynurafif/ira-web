@@ -1,7 +1,13 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { FaInstagram, FaLinkedin, FaTiktok, FaYoutube } from "react-icons/fa";
+import {
+  FaInstagram,
+  FaLinkedin,
+  FaTiktok,
+  FaWhatsapp,
+  FaYoutube,
+} from "react-icons/fa";
 import { AiFillTikTok } from "react-icons/ai";
 import { FaSquareFacebook, FaSquareInstagram } from "react-icons/fa6";
 import Image from "next/image";
@@ -10,34 +16,59 @@ import Image from "next/image";
 import iraIcon from "@/public/assets/Icons/IraIconFooter.png";
 import moment from "moment";
 import { getSetting } from "@/app/_api/Settings/Settings";
+import { BsTelephone } from "react-icons/bs";
+import { MdOutlineEmail, MdOutlineMail } from "react-icons/md";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
+import SkeletonBase from "../skeletons/SkeletonBase";
 
 function Footer() {
   const [phoneCS, setPhoneCS] = useState<string | null>("");
+  const [phoneCSTel, setPhoneCSTel] = useState<string | null>("");
+  const [mail, setMail] = useState<string | null>("");
   const [address, setAddress] = useState<string | null>("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const getPhoneCS = async () => {
-      const resSetting = await getSetting("cs_phone");
+    try {
+      setIsLoading(true);
 
-      setPhoneCS(
-        resSetting.data?.data?.value ||
-          process.env.NEXT_PUBLIC_PHONE_CS ||
-          "6281110689111"
-      );
-    };
+      const getPhoneCS = async () => {
+        const resSetting = await getSetting("cs_phone");
+        setPhoneCS(
+          resSetting.data?.data?.value ||
+            process.env.NEXT_PUBLIC_PHONE_CS ||
+            "6281110689111"
+        );
+      };
 
-    const getOfficeAddress = async () => {
-      const resSetting = await getSetting("office_address");
+      const getOfficeAddress = async () => {
+        const resSetting = await getSetting("office_address");
+        setAddress(
+          resSetting.data?.data?.value ||
+            process.env.NEXT_PUBLIC_ADDRESS ||
+            "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat"
+        );
+      };
 
-      setAddress(
-        resSetting.data?.data?.value ||
-          process.env.NEXT_PUBLIC_ADDRESS ||
-          "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat"
-      );
-    };
+      const getCSTel = async () => {
+        const resSetting = await getSetting("cs_phone_tel");
+        setPhoneCSTel(resSetting.data?.data?.value || "+628139954897");
+      };
 
-    getPhoneCS();
-    getOfficeAddress();
+      const getCSMail = async () => {
+        const resSetting = await getSetting("cs_email");
+        setMail(resSetting.data?.data?.value || "cs@internetrakyat.id");
+      };
+
+      getPhoneCS();
+      getOfficeAddress();
+      getCSTel();
+      getCSMail();
+    } catch (err: any) {
+      console.error(err?.response?.data?.message);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   return (
@@ -48,17 +79,56 @@ function Footer() {
             <div className="col-span-1 md:col-span-2">
               <h5 className="font-bold mb-2.5">Address</h5>
               <p className="font-semibold">PT. Telemedia Komunikasi Pratama</p>
-              <p>{address}</p>
+              {isLoading ? (
+                <div className="mt-2">
+                  <SkeletonBase height="h-4" />
+                </div>
+              ) : (
+                <p>{address}</p>
+              )}
             </div>
-            <div className="col-span-1">
-              <h5 className="font-bold mb-2.5">Business Phone Number</h5>
-              <Link
-                href={`https://wa.me/${phoneCS}`}
-                className="hover:underline"
-                target="_blank"
-              >
-                {phoneCS}
-              </Link>
+            <div className="col-span-1 ">
+              <h5 className="font-bold mb-2.5">Business Contact</h5>
+              {isLoading ? (
+                <div className="flex flex-col gap-1">
+                  <SkeletonBase height="h-4" />
+                  <SkeletonBase height="h-4" />
+                  <SkeletonBase height="h-4" />
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-1 items-center">
+                    <FaWhatsapp size={14} />
+                    <Link
+                      href={`https://wa.me/${phoneCS}`}
+                      className="hover:underline"
+                      target="_blank"
+                    >
+                      {phoneCS}
+                    </Link>
+                  </div>
+                  <div className="flex gap-1 items-center">
+                    <BsTelephone size={14} />
+                    <Link
+                      href={`tel:${phoneCSTel}`}
+                      className="hover:underline"
+                      target="_blank"
+                    >
+                      {phoneCSTel}
+                    </Link>
+                  </div>
+                  <div className="flex gap-1 items-center">
+                    <MdOutlineMail size={14} />
+                    <Link
+                      href={`mailto:${mail}`}
+                      className="hover:underline"
+                      target="_blank"
+                    >
+                      {mail}
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="col-span-1">
               <h5 className="font-bold mb-2.5">Social Media</h5>

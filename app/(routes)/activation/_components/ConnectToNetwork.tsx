@@ -357,7 +357,7 @@ export default function ConnectToNetwork() {
           setActivateStatus("loading");
           if (data?.message === "Success") {
             setActivateStatus("success");
-            setInternetStatus("loading");
+            setInternetStatus("success");
             toast.success(
               "Aktivasi jaringan berhasil. Mengecek koneksi internet..."
             );
@@ -373,17 +373,17 @@ export default function ConnectToNetwork() {
           }
         }
 
-        if (
-          data?.type === "ping-test-activate" &&
-          activateStatus === "success"
-        ) {
-          if (data?.message === "Success") {
-            setInternetStatus("success");
-            handleActivationSuccess("sse");
-          } else {
-            setInternetStatus("failed");
-          }
-        }
+        // if (
+        //   data?.type === "ping-test-activate" &&
+        //   activateStatus === "success"
+        // ) {
+        //   if (data?.message === "Success") {
+        //     setInternetStatus("success");
+        //     handleActivationSuccess("sse");
+        //   } else {
+        //     setInternetStatus("failed");
+        //   }
+        // }
       } catch (err) {
         console.error("Failed to parse SSE message:", err);
       }
@@ -443,29 +443,30 @@ export default function ConnectToNetwork() {
       // 🔹 3. Jika aktivasi sukses → LANJUT KE SETTING
       if (activateSuccess) {
         setActivateStatus("success");
-        setInternetStatus("loading");
-        setScreen("loading");
+        // setInternetStatus("loading");
+        setInternetStatus("success");
+        handleActivationSuccess("api");
 
-        try {
-          const resInternet = await refreshTask({ type: "ping-test-activate" });
-          if (resInternet?.data?.code === 0) {
-            setInternetStatus("success");
-            handleActivationSuccess("api");
-          } else if (resInternet?.data?.code === 2) {
-            setInternetStatus("loading");
-            toast.success("Verifikasi koneksi internet sedang berlangsung...", {
-              id: "refresh",
-            });
-          } else {
-            setInternetStatus("failed");
-            toast.error("Gagal memulai verifikasi koneksi internet", {
-              id: "refresh",
-            });
-          }
-        } catch (err: any) {
-          setInternetStatus("failed");
-          toastErrorFromAPI(err, "refresh");
-        }
+        // try {
+        //   const resInternet = await refreshTask({ type: "ping-test-activate" });
+        //   if (resInternet?.data?.code === 0) {
+        //     setInternetStatus("success");
+        //     handleActivationSuccess("api");
+        //   } else if (resInternet?.data?.code === 2) {
+        //     setInternetStatus("loading");
+        //     toast.success("Verifikasi koneksi internet sedang berlangsung...", {
+        //       id: "refresh",
+        //     });
+        //   } else {
+        //     setInternetStatus("failed");
+        //     toast.error("Gagal memulai verifikasi koneksi internet", {
+        //       id: "refresh",
+        //     });
+        //   }
+        // } catch (err: any) {
+        //   setInternetStatus("failed");
+        //   toastErrorFromAPI(err, "refresh");
+        // }
 
         return;
       }
