@@ -190,11 +190,11 @@ export default function ConnectToNetwork() {
       resetAttemptStorage();
       stopCooldown();
       clearTimeoutSafe();
-      clearSse("1");
+      clearSse("1 from activate success");
 
       // pastikan status step 2 success
       setActivateStatus("success");
-      // setInternetStatus("success");
+      setInternetStatus("success");
 
       setScreen("success");
 
@@ -208,7 +208,7 @@ export default function ConnectToNetwork() {
   );
 
   const handleTimeout = useCallback(() => {
-    clearSse("2");
+    clearSse("2 from timeout 10 min");
     clearTimeoutSafe();
 
     // ✅ Jika aktivasi sudah sukses, langsung success (Case 2)
@@ -320,7 +320,7 @@ export default function ConnectToNetwork() {
 
     setSseStatus("connecting");
 
-    clearSse("3");
+    clearSse("3 from sse subs (close prev connection if any)");
     clearTimeoutSafe();
 
     const es = new EventSourcePolyfill(
@@ -357,7 +357,8 @@ export default function ConnectToNetwork() {
           setActivateStatus("loading");
           if (data?.message === "Success") {
             setActivateStatus("success");
-            setInternetStatus("success");
+            // setInternetStatus("success");
+            setInternetStatus("loading");
             toast.success(
               "Aktivasi jaringan berhasil. Mengecek koneksi internet..."
             );
@@ -440,38 +441,47 @@ export default function ConnectToNetwork() {
         return;
       }
 
-      // 🔹 3. Jika aktivasi sukses → LANJUT KE SETTING
+      // 🔹 3a. Jika aktivasi sukses → abaikan ping test, LANJUT KE SETTING
       if (activateSuccess) {
         setActivateStatus("success");
-        // setInternetStatus("loading");
 
         // di force, ga peduli hasil ping test
         setInternetStatus("success");
         handleActivationSuccess("api");
 
-        // try {
-        //   const resInternet = await refreshTask({ type: "ping-test-activate" });
-        //   if (resInternet?.data?.code === 0) {
-        //     setInternetStatus("success");
-        //     handleActivationSuccess("api");
-        //   } else if (resInternet?.data?.code === 2) {
-        //     setInternetStatus("loading");
-        //     toast.success("Verifikasi koneksi internet sedang berlangsung...", {
-        //       id: "refresh",
-        //     });
-        //   } else {
-        //     setInternetStatus("failed");
-        //     toast.error("Gagal memulai verifikasi koneksi internet", {
-        //       id: "refresh",
-        //     });
-        //   }
-        // } catch (err: any) {
-        //   setInternetStatus("failed");
-        //   toastErrorFromAPI(err, "refresh");
-        // }
-
         return;
       }
+
+      // JANGAN DI HAPUS
+      // 🔹 3b. Jika aktivasi sukses → cek ping test dulu, akan sukses jika timeout 10 menit
+      // if (activateSuccess) {
+      //   setActivateStatus("success");
+      //   setInternetStatus("loading");
+      //   setScreen("loading");
+
+      //   try {
+      //     const resInternet = await refreshTask({ type: "ping-test-activate" });
+      //     if (resInternet?.data?.code === 0) {
+      //       setInternetStatus("success");
+      //       handleActivationSuccess("api");
+      //     } else if (resInternet?.data?.code === 2) {
+      //       setInternetStatus("loading");
+      //       toast.success("Verifikasi koneksi internet sedang berlangsung...", {
+      //         id: "refresh",
+      //       });
+      //     } else {
+      //       setInternetStatus("failed");
+      //       toast.error("Gagal memulai verifikasi koneksi internet", {
+      //         id: "refresh",
+      //       });
+      //     }
+      //   } catch (err: any) {
+      //     setInternetStatus("failed");
+      //     toastErrorFromAPI(err, "refresh");
+      //   }
+
+      //   return;
+      // }
 
       // 🔹 4. Jika activate pending → tetap di loading (tunggu SSE)
       setActivateStatus("loading");
