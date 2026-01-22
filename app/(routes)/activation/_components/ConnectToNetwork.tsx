@@ -444,6 +444,8 @@ export default function ConnectToNetwork() {
       if (activateSuccess) {
         setActivateStatus("success");
         // setInternetStatus("loading");
+
+        // di force, ga peduli hasil ping test
         setInternetStatus("success");
         handleActivationSuccess("api");
 

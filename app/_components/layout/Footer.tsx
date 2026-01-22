@@ -80,7 +80,8 @@ function Footer() {
               <h5 className="font-bold mb-2.5">Address</h5>
               <p className="font-semibold">PT. Telemedia Komunikasi Pratama</p>
               {isLoading ? (
-                <div className="mt-2">
+                <div className="mt-2 flex flex-col gap-1">
+                  <SkeletonBase height="h-4" />
                   <SkeletonBase height="h-4" />
                 </div>
               ) : (
