@@ -31,6 +31,7 @@ import {
   selectCustomerPackageState,
   selectShipmentStatusFromPackages,
 } from "@/app/store/slice/customerPackageSlice";
+import { getSetting } from "@/app/_api/Settings/Settings";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
@@ -58,6 +59,21 @@ export default function AreaPelanggan() {
   const [isActivating, setIsActivating] = useState(false);
   const isCancelled = userInfo?.status === "canceled-instalation";
   const dispatch = useAppDispatch();
+  const [phoneCS, setPhoneCS] = useState<string | null>("");
+
+  useEffect(() => {
+    const getPhoneCS = async () => {
+      const resSetting = await getSetting("cs_phone");
+
+      setPhoneCS(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111"
+      );
+    };
+
+    getPhoneCS();
+  }, []);
 
   useEffect(() => {
     if (!userInfo?.customer_code) return;
@@ -193,7 +209,6 @@ export default function AreaPelanggan() {
   }, [activeTab, router]);
 
   const isFetching = !userInfo;
-  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
 
   return (
     <div className="min-h-screen bg-background-customer pb-10">

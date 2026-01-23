@@ -505,8 +505,6 @@ function RegistrationForm({
       return;
     }
 
-    console.log("FORM DATA", errors);
-
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
       toast.error("Lengkapi data Anda terlebih dahulu");

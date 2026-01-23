@@ -31,6 +31,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import { getDealerSuppPhone } from "@/app/_api/Customer/CustomerArea";
 import { Activation } from "@/app/_api/Activation/Activation";
+import { getSetting } from "@/app/_api/Settings/Settings";
 
 type Screen = "loading" | "failed" | "failedFinal" | "success" | "timedOut";
 type StepStatus = "idle" | "loading" | "success" | "failed";
@@ -189,11 +190,11 @@ export default function ConnectToNetwork() {
       resetAttemptStorage();
       stopCooldown();
       clearTimeoutSafe();
-      clearSse("1");
+      clearSse("1 from activate success");
 
       // pastikan status step 2 success
       setActivateStatus("success");
-      // setInternetStatus("success");
+      setInternetStatus("success");
 
       setScreen("success");
 
@@ -207,7 +208,7 @@ export default function ConnectToNetwork() {
   );
 
   const handleTimeout = useCallback(() => {
-    clearSse("2");
+    clearSse("2 from timeout 10 min");
     clearTimeoutSafe();
 
     // ✅ Jika aktivasi sudah sukses, langsung success (Case 2)
@@ -319,7 +320,7 @@ export default function ConnectToNetwork() {
 
     setSseStatus("connecting");
 
-    clearSse("3");
+    clearSse("3 from sse subs (close prev connection if any)");
     clearTimeoutSafe();
 
     const es = new EventSourcePolyfill(
@@ -356,6 +357,7 @@ export default function ConnectToNetwork() {
           setActivateStatus("loading");
           if (data?.message === "Success") {
             setActivateStatus("success");
+            // setInternetStatus("success");
             setInternetStatus("loading");
             toast.success(
               "Aktivasi jaringan berhasil. Mengecek koneksi internet..."
@@ -372,17 +374,17 @@ export default function ConnectToNetwork() {
           }
         }
 
-        if (
-          data?.type === "ping-test-activate" &&
-          activateStatus === "success"
-        ) {
-          if (data?.message === "Success") {
-            setInternetStatus("success");
-            handleActivationSuccess("sse");
-          } else {
-            setInternetStatus("failed");
-          }
-        }
+        // if (
+        //   data?.type === "ping-test-activate" &&
+        //   activateStatus === "success"
+        // ) {
+        //   if (data?.message === "Success") {
+        //     setInternetStatus("success");
+        //     handleActivationSuccess("sse");
+        //   } else {
+        //     setInternetStatus("failed");
+        //   }
+        // }
       } catch (err) {
         console.error("Failed to parse SSE message:", err);
       }
@@ -396,7 +398,7 @@ export default function ConnectToNetwork() {
       } catch {}
       clearTimeoutSafe();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     customer_id,
     serialNumber,
@@ -439,35 +441,47 @@ export default function ConnectToNetwork() {
         return;
       }
 
-      // 🔹 3. Jika aktivasi sukses → LANJUT KE SETTING
+      // 🔹 3a. Jika aktivasi sukses → abaikan ping test, LANJUT KE SETTING
       if (activateSuccess) {
         setActivateStatus("success");
-        setInternetStatus("loading");
-        setScreen("loading");
 
-        try {
-          const resInternet = await refreshTask({ type: "ping-test-activate" });
-          if (resInternet?.data?.code === 0) {
-            setInternetStatus("success");
-            handleActivationSuccess("api");
-          } else if (resInternet?.data?.code === 2) {
-            setInternetStatus("loading");
-            toast.success("Verifikasi koneksi internet sedang berlangsung...", {
-              id: "refresh",
-            });
-          } else {
-            setInternetStatus("failed");
-            toast.error("Gagal memulai verifikasi koneksi internet", {
-              id: "refresh",
-            });
-          }
-        } catch (err: any) {
-          setInternetStatus("failed");
-          toastErrorFromAPI(err, "refresh");
-        }
+        // di force, ga peduli hasil ping test
+        setInternetStatus("success");
+        handleActivationSuccess("api");
 
         return;
       }
+
+      // JANGAN DI HAPUS
+      // 🔹 3b. Jika aktivasi sukses → cek ping test dulu, akan sukses jika timeout 10 menit
+      // if (activateSuccess) {
+      //   setActivateStatus("success");
+      //   setInternetStatus("loading");
+      //   setScreen("loading");
+
+      //   try {
+      //     const resInternet = await refreshTask({ type: "ping-test-activate" });
+      //     if (resInternet?.data?.code === 0) {
+      //       setInternetStatus("success");
+      //       handleActivationSuccess("api");
+      //     } else if (resInternet?.data?.code === 2) {
+      //       setInternetStatus("loading");
+      //       toast.success("Verifikasi koneksi internet sedang berlangsung...", {
+      //         id: "refresh",
+      //       });
+      //     } else {
+      //       setInternetStatus("failed");
+      //       toast.error("Gagal memulai verifikasi koneksi internet", {
+      //         id: "refresh",
+      //       });
+      //     }
+      //   } catch (err: any) {
+      //     setInternetStatus("failed");
+      //     toastErrorFromAPI(err, "refresh");
+      //   }
+
+      //   return;
+      // }
 
       // 🔹 4. Jika activate pending → tetap di loading (tunggu SSE)
       setActivateStatus("loading");
@@ -545,6 +559,22 @@ export default function ConnectToNetwork() {
     addUrlParam("section", "setting");
   }
 
+  const [phoneCSIRA, setPhoneCSIRA] = useState<string | null>("");
+
+  useEffect(() => {
+    const getPhoneCS = async () => {
+      const resSetting = await getSetting("cs_phone");
+
+      setPhoneCSIRA(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111"
+      );
+    };
+
+    getPhoneCS();
+  }, []);
+
   async function contactCS() {
     const msg = encodeURIComponent(
       `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSerial Number CPE: ${serialNumber}`
@@ -553,10 +583,8 @@ export default function ConnectToNetwork() {
       const resPhone = await getDealerSuppPhone();
 
       if (resPhone.data.statusCode === 200) {
-        const phone =
-          resPhone.data?.data?.cs_phone_number ??
-          process.env.NEXT_PUBLIC_PHONE_CS ??
-          "6281110689111";
+        const phone = resPhone.data?.data?.cs_phone_number ?? phoneCSIRA;
+
         window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
       }
     } catch (err: any) {

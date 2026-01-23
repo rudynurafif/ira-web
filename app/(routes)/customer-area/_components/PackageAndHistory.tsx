@@ -36,6 +36,7 @@ import {
   selectCustomerPackages,
   selectCustomerPackageState,
 } from "@/app/store/slice/customerPackageSlice";
+import { getSetting } from "@/app/_api/Settings/Settings";
 
 const PAGE_SIZE = 5;
 
@@ -57,7 +58,6 @@ const PackageAndHistory = () => {
 
   const { userInfo, is_coverage } = useAppSelector((state) => state.auth);
   const router = useRouter();
-  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
   const [addOns, setAddOns] = useState([]);
 
   const [isAllowed, setIsAllowed] = useState(false);
@@ -65,6 +65,21 @@ const PackageAndHistory = () => {
 
   const [startDateFilter, setStartDateFilter] = useState<any>();
   const [endDateFilter, setEndDateFilter] = useState<any>();
+  const [phoneCS, setPhoneCS] = useState<string | null>("");
+
+  useEffect(() => {
+    const getPhoneCS = async () => {
+      const resSetting = await getSetting("cs_phone");
+
+      setPhoneCS(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111"
+      );
+    };
+
+    getPhoneCS();
+  }, []);
 
   // pagination client-side
   const totalPages = Math.max(

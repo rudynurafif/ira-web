@@ -5,9 +5,25 @@ import { MdHeadsetMic } from "react-icons/md";
 import CPEIRA from "@/public/assets/Images/cpe-ira.png";
 import SignalWave from "../_components/SignalWave";
 import SignalArc from "../_components/SignalWave";
+import { useEffect, useState } from "react";
+import { getSetting } from "@/app/_api/Settings/Settings";
 
 const CpeActivationPage = () => {
-  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+  const [phoneCS, setPhoneCS] = useState<string | null>("");
+
+  useEffect(() => {
+    const getPhoneCS = async () => {
+      const resSetting = await getSetting("cs_phone");
+
+      setPhoneCS(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111"
+      );
+    };
+
+    getPhoneCS();
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center px-6 py-12 sm:px-6 lg:px-8">
