@@ -475,9 +475,9 @@ function RegistrationForm({
 
     const errors: { [key: string]: string } = {};
 
-    if (packages.length > 0 && !formData.package_id) {
-      errors.package_id = "Paket harus dipilih";
-    }
+    // if (packages.length > 0 && !formData.package_id) {
+    //   errors.package_id = "Paket harus dipilih";
+    // }
 
     if (!formData.fullname) {
       errors.fullname = "Nama Lengkap harus diisi";
