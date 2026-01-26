@@ -19,6 +19,7 @@ import {
   permata,
   qris,
 } from "@/public/assets/Images/bank";
+import { PackageData } from "../types/customer-area";
 
 export const packageList: any = [
   {
@@ -224,28 +225,82 @@ export const content_terms = [
 ];
 
 export const listConnectedDevices = [
-    {
-      id: 1,
-      name: "Iphone 16",
-      ip: "192.168.1.23",
-      mac: "80:ab:2c:19:aa:12",
-      lastSeen: "1:30:25 PM",
-      isBlocked: false,
-    },
-    {
-      id: 2,
-      name: "Samsung S25 Ultra",
-      ip: "192.168.1.44",
-      mac: "90:ab:2c:19:aa:12",
-      lastSeen: "1:23:34 PM",
-      isBlocked: true,
-    },
-    {
-      id: 3,
-      name: "Macbook Pro",
-      ip: "192.168.1.51",
-      mac: "32:ab:2c:19:aa:12",
-      lastSeen: "2:34:09 PM",
-      isBlocked: false,
-    },
-  ];
+  {
+    id: 1,
+    name: "Iphone 16",
+    ip: "192.168.1.23",
+    mac: "80:ab:2c:19:aa:12",
+    lastSeen: "1:30:25 PM",
+    isBlocked: false,
+  },
+  {
+    id: 2,
+    name: "Samsung S25 Ultra",
+    ip: "192.168.1.44",
+    mac: "90:ab:2c:19:aa:12",
+    lastSeen: "1:23:34 PM",
+    isBlocked: true,
+  },
+  {
+    id: 3,
+    name: "Macbook Pro",
+    ip: "192.168.1.51",
+    mac: "32:ab:2c:19:aa:12",
+    lastSeen: "2:34:09 PM",
+    isBlocked: false,
+  },
+];
+
+export const hardcodedPackages: PackageData[] = [
+  {
+    id: "0a9a2758-3b63-4855-95d2-0d3cde62fe3a",
+    name: "Paket IRA Unlimited 1 Bulan",
+    speed_mbps: "100",
+    quota_mb: "0",
+    discount_price: "0",
+    price: 100000,
+    treshold_isolate_days: 10,
+    description: "",
+    remarks: "",
+    duration: 30,
+    is_active: true,
+    appear_on: "customer",
+    package_type: "regular",
+    eligible_payment_before_days: 0,
+    bts_package_id: [],
+  },
+  {
+    id: "ae26f8a5-d8cf-4fa8-b4fa-9c79a401cbfb",
+    name: "Tahun Baru Paket Baru",
+    speed_mbps: "476",
+    quota_mb: "0",
+    discount_price: "0",
+    price: 5000,
+    treshold_isolate_days: 0,
+    description: "Paket spesial tahun baru",
+    remarks: "",
+    duration: 1,
+    is_active: true,
+    appear_on: "global",
+    package_type: "regular",
+    eligible_payment_before_days: null,
+    bts_package_id: [],
+  },
+  {
+    id: "4e89227d-d04c-4290-8391-c07bd0714cbe",
+    name: "Test Paket Global",
+    speed_mbps: "100",
+    quota_mb: "0",
+    discount_price: "0",
+    price: 100000,
+    treshold_isolate_days: 30,
+    description: "",
+    remarks: "",
+    duration: 30,
+    is_active: true,
+    appear_on: "global",
+    package_type: "regular",
+    eligible_payment_before_days: null,
+    bts_package_id: [],
+  },
+];

@@ -13,7 +13,6 @@ const BannerLatest = () => {
     useState<SubscriptionHistoryAPI | null>(null);
   const router = useRouter();
 
-  // Fetch paket aktif (hanya sekali, tidak dipengaruhi pagination)
   useEffect(() => {
     const fetchActivePackage = async () => {
       try {

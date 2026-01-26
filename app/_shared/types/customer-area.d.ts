@@ -58,6 +58,9 @@ export type PackageData = {
   is_active: boolean;
   duration: number;
   bts_package_id: BtsPackageId[];
+  appear_on: string;
+  package_type: string;
+  eligible_payment_before_days: number | null;
 };
 
 export type ProfileInfo = {

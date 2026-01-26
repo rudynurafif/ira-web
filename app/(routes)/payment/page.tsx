@@ -11,7 +11,6 @@ import {
   getPackageList,
 } from "@/app/_api/Customer/CustomerArea";
 import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
-import ccSvg from "@/public/assets/Icons/payment-method/credit-card-svg.svg";
 import {
   PaymentChannel,
   SubscriptionHistoryAPI,
@@ -22,18 +21,13 @@ import {
   createPaymentRequestQRIS,
   createPaymentRequestVA,
 } from "@/app/_api/Payment/Payment";
-import { IoIosArrowForward } from "react-icons/io";
 import Loader from "@/app/_components/Loader";
 import ErrorFallback from "@/app/_components/ErrorFallback";
-import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
-import BannerLatest from "./_components/BannerLatest";
 import bannerPerpanjang from "@/public/assets/Images/banner-perpanjang-paket.png";
 import bannerPerpanjangMobile from "@/public/assets/Images/banner-perpanjangan-paket-mobile.png";
 import PackageCardMobile from "./_components/PackageCardMobile";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 import limitImage from "@/public/assets/Images/limit-images.png";
-import Lottie from "lottie-react";
 
 const Payment = () => {
   const router = useRouter();
@@ -61,7 +55,7 @@ const Payment = () => {
 
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
-    selectedPackageFromSession
+    selectedPackageFromSession,
   );
   const [latestPackage, setLatestPackage] =
     useState<SubscriptionHistoryAPI | null>(null);
@@ -70,7 +64,7 @@ const Payment = () => {
   const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
-    selectedChannelFromLS
+    selectedChannelFromLS,
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -131,7 +125,7 @@ const Payment = () => {
             setSelectedPackage(latest.package_id);
             sessionStorage.setItem(
               "selectedPackage",
-              JSON.stringify(latest.package_id)
+              JSON.stringify(latest.package_id),
             );
           }
         }
@@ -178,7 +172,7 @@ const Payment = () => {
           break;
         case "card":
           toast.error(
-            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`
+            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`,
           );
           return;
         default:
@@ -188,7 +182,7 @@ const Payment = () => {
       const paymentReqID = (await createRes)?.data?.data?.id;
       sessionStorage.setItem(
         "paymentInfo",
-        JSON.stringify((await createRes).data.data)
+        JSON.stringify((await createRes).data.data),
       );
 
       if (!paymentReqID) {
@@ -196,7 +190,7 @@ const Payment = () => {
       }
 
       router.push(
-        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`
+        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
       );
     } catch (error: any) {
       toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
