@@ -2,10 +2,7 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import {
-  checkPackage,
-  getCustomerPackage,
-} from "@/app/_api/Customer/CustomerArea";
+import { checkPackage } from "@/app/_api/Customer/CustomerArea";
 import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
@@ -16,12 +13,7 @@ import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import bannerCubmu from "@/public/assets/Images/banner-cubmu.png";
 import bannerCubmuMobile from "@/public/assets/Images/banner-cubmu-mobile.png";
 import ActivePackageCard from "./ActivePackageCard";
-import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import {
-  formattedDate,
-  packageCountdown,
-  toastErrorFromAPI,
-} from "@/app/_shared/utils";
+import { packageCountdown, toastErrorFromAPI } from "@/app/_shared/utils";
 import HistorySection from "./HistorySection";
 import thumbClick from "@/public/assets/Icons/thumb-click.png";
 import ExpiredCard from "../ExpiredCard";
@@ -52,7 +44,7 @@ const PackageAndHistory = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const searchParams = useSearchParams();
   const { label, status, days } = packageCountdown(
-    activePacketData?.end_date ?? null
+    activePacketData?.end_date ?? null,
   );
   const [isInactive, setIsInactive] = useState<boolean | null>(null);
 
@@ -74,7 +66,7 @@ const PackageAndHistory = () => {
       setPhoneCS(
         resSetting.data?.data?.value ||
           process.env.NEXT_PUBLIC_PHONE_CS ||
-          "6281110689111"
+          "6281110689111",
       );
     };
 
@@ -84,11 +76,11 @@ const PackageAndHistory = () => {
   // pagination client-side
   const totalPages = Math.max(
     1,
-    Math.ceil((allHistory?.length ?? 0) / PAGE_SIZE)
+    Math.ceil((allHistory?.length ?? 0) / PAGE_SIZE),
   );
   const subscriptionHistory = (allHistory ?? []).slice(
     (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
+    currentPage * PAGE_SIZE,
   );
 
   const [latestIsFree, setLatestIsFree] = useState(false);
@@ -124,8 +116,6 @@ const PackageAndHistory = () => {
   }, [isInactive, userInfo, userInfo?.status]);
 
   const handleCheckPackage: () => Promise<void> = async () => {
-    // router.push("/payment/payment-methods");
-
     try {
       const res = await checkPackage();
 

@@ -15,8 +15,6 @@ import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Lottie from "lottie-react";
-import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
-import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import { setShipmentStatus } from "@/app/store/slice/authSlice";
 import DeviceInformation from "./_components/DeviceInformation";
 import Image from "next/image";
@@ -38,12 +36,12 @@ export default function AreaPelanggan() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { userInfo, isLoggedIn, shipmentStatus, is_coverage } = useAppSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
   const pkgState = useAppSelector(selectCustomerPackageState);
   const packages = useAppSelector(selectCustomerPackages);
   const shipmentStatusFromPkg = useAppSelector(
-    selectShipmentStatusFromPackages
+    selectShipmentStatusFromPackages,
   );
 
   const [tabs, setTabs] = useState([
@@ -68,7 +66,7 @@ export default function AreaPelanggan() {
       setPhoneCS(
         resSetting.data?.data?.value ||
           process.env.NEXT_PUBLIC_PHONE_CS ||
-          "6281110689111"
+          "6281110689111",
       );
     };
 
@@ -81,44 +79,23 @@ export default function AreaPelanggan() {
     dispatch(
       fetchCustomerPackages({
         customerCode: userInfo.customer_code,
-      })
+      }),
     );
   }, [dispatch, userInfo?.customer_code]);
-
-  // const fetchData = async () => {
-  //   try {
-  //     const resSubHistory = await getCustomerPackage({});
-  //     const data = resSubHistory.data?.data;
-  //     setSubscriptionHistory(data);
-
-  //     const hasStartDate = Boolean(data?.[0]?.start_date);
-  //     const active = userInfo && userInfo?.status === "active";
-  //     if (active) setIsActive(active);
-
-  //     if (hasStartDate && active) {
-  //       setTabs((prev) =>
-  //         prev.includes("Informasi Perangkat")
-  //           ? prev
-  //           : [...prev, "Informasi Perangkat"]
-  //       );
-  //     }
-
-  //     const shipmentStatus = data?.[0]?.shipment_status || null;
-  //     dispatch(setShipmentStatus(shipmentStatus));
-  //   } catch (err: any) {
-  //     toastErrorFromAPI(err);
-  //   }
-  // };
 
   const fetchData = async () => {
     if (!userInfo?.customer_code) return;
 
-    dispatch(
-      fetchCustomerPackages({
-        customerCode: userInfo.customer_code,
-        force: true,
-      })
-    );
+    try {
+      await dispatch(
+        fetchCustomerPackages({
+          customerCode: userInfo.customer_code,
+          force: true,
+        }),
+      ).unwrap();
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+    }
   };
 
   useEffect(() => {
@@ -134,7 +111,7 @@ export default function AreaPelanggan() {
       setTabs((prev) =>
         prev.includes("Informasi Perangkat")
           ? prev
-          : [...prev, "Informasi Perangkat"]
+          : [...prev, "Informasi Perangkat"],
       );
     }
 
@@ -167,7 +144,7 @@ export default function AreaPelanggan() {
       // Cek apakah halaman sebelumnya adalah /payment/checkout-payment
       const referrer = document.referrer;
       const isFromCheckoutPayment = referrer.includes(
-        "/payment/checkout-payment"
+        "/payment/checkout-payment",
       );
 
       if (isFromCheckoutPayment) {

@@ -42,7 +42,7 @@ const PaymentMehods = () => {
     }
   })();
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
-    selectedChannelFromLS
+    selectedChannelFromLS,
   );
   const selectedPackageFromSession = (() => {
     if (typeof window === "undefined") return null;
@@ -55,7 +55,7 @@ const PaymentMehods = () => {
     }
   })();
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
-    selectedPackageFromSession
+    selectedPackageFromSession,
   );
   const { isLoggedIn } = useAppSelector((state) => state.auth);
   const [isCreatePayment, setIsCreatePayment] = useState(false);
@@ -66,7 +66,7 @@ const PaymentMehods = () => {
       const currentPath = window.location.pathname;
       if (currentPath !== "/auth/login") {
         router.push(
-          `/auth/login?callbackUrl=${encodeURIComponent(currentPath)}`
+          `/auth/login?callbackUrl=${encodeURIComponent(currentPath)}`,
         );
       } else {
         toast.error("Silahkan login terlebih dulu");
@@ -94,19 +94,19 @@ const PaymentMehods = () => {
 
   // Filter by category
   const virtualAccounts = paymentChannels.filter(
-    (ch) => ch.category === "va" && ch.is_active
+    (ch) => ch.category === "va" && ch.is_active,
   );
   const ewallets = paymentChannels.filter(
-    (ch) => ch.category === "ewallet" && ch.is_active
+    (ch) => ch.category === "ewallet" && ch.is_active,
   );
   const cardChannel = paymentChannels.filter(
-    (ch) => ch.category === "card" && ch.is_active
+    (ch) => ch.category === "card" && ch.is_active,
   );
   const qrisChannels = paymentChannels.filter(
-    (ch) => ch.category === "qris" && ch.is_active
+    (ch) => ch.category === "qris" && ch.is_active,
   );
   const outlets = paymentChannels.filter(
-    (ch) => ch.category === "otc" && ch.is_active
+    (ch) => ch.category === "otc" && ch.is_active,
   );
 
   const fetchData = async () => {
@@ -162,7 +162,7 @@ const PaymentMehods = () => {
           break;
         case "card":
           toast.error(
-            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`
+            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`,
           );
           return;
         default:
@@ -172,7 +172,7 @@ const PaymentMehods = () => {
       const paymentReqID = (await createRes)?.data?.data?.id;
       sessionStorage.setItem(
         "paymentInfo",
-        JSON.stringify((await createRes).data.data)
+        JSON.stringify((await createRes).data.data),
       );
 
       if (!paymentReqID) {
@@ -180,12 +180,13 @@ const PaymentMehods = () => {
       }
 
       router.push(
-        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`
+        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
       );
     } catch (error: any) {
       toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
-    } finally {
       setIsCreatePayment(false);
+    } finally {
+      // setIsCreatePayment(false);
     }
   };
 
@@ -223,7 +224,7 @@ const PaymentMehods = () => {
                       setSelectedChannel(channel);
                       sessionStorage.setItem(
                         "selectedPaymentMethod",
-                        JSON.stringify(channel)
+                        JSON.stringify(channel),
                       );
                     }}
                     selected={selectedChannel?.id === channel.id}
@@ -256,7 +257,7 @@ const PaymentMehods = () => {
                       setSelectedChannel(channel);
                       sessionStorage.setItem(
                         "selectedPaymentMethod",
-                        JSON.stringify(channel)
+                        JSON.stringify(channel),
                       );
                     }}
                     selected={selectedChannel?.id === channel.id}
@@ -316,7 +317,7 @@ const PaymentMehods = () => {
                       setSelectedChannel(channel);
                       sessionStorage.setItem(
                         "selectedPaymentMethod",
-                        JSON.stringify(channel)
+                        JSON.stringify(channel),
                       );
                     }}
                     selected={selectedChannel?.id === channel.id}
@@ -349,7 +350,7 @@ const PaymentMehods = () => {
                       setSelectedChannel(channel);
                       sessionStorage.setItem(
                         "selectedPaymentMethod",
-                        JSON.stringify(channel)
+                        JSON.stringify(channel),
                       );
                     }}
                     selected={selectedChannel?.id === channel.id}

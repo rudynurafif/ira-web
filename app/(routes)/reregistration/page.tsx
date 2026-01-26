@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { getUser } from "@/app/store/slice/authSlice";
 import Loader from "@/app/_components/Loader";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
 
 function Page() {
   const { userInfo } = useAppSelector((state) => state.auth);
@@ -26,7 +27,7 @@ function Page() {
           dispatch(getUser(customerData));
           user = customerData;
         } catch (err) {
-          console.error("Gagal fetch user info", err);
+          toastErrorFromAPI(err);
         }
       }
 

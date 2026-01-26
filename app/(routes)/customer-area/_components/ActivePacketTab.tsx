@@ -2,7 +2,6 @@
 
 // import Image from "next/image";
 // import React, { use, useEffect, useState } from "react";
-// import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
 // import { useRouter } from "next/navigation";
 // import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 // import { useAppSelector } from "@/app/store/store";

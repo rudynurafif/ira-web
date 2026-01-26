@@ -92,3 +92,16 @@ export const verifyOtp = async (body: any) => {
     throw error;
   }
 };
+
+export const getPackagesRegister = async (param: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/package",
+      method: "GET",
+      params: param,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

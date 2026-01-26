@@ -8,7 +8,12 @@ import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { ReactSelectType } from "@/app/_shared/types/form";
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { registerUser, requestCoverage, verifyOtp } from "@/app/_api/Auth/Auth";
+import {
+  getPackagesRegister,
+  registerUser,
+  requestCoverage,
+  verifyOtp,
+} from "@/app/_api/Auth/Auth";
 import {
   getCheckCoverage,
   getCity,
@@ -21,6 +26,7 @@ import {
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
 import {
+  convertToCurrency,
   EMAIL_REGEX,
   PHONE_REGEX,
   regexEmail,
@@ -40,8 +46,14 @@ import { FormType } from "../types/type";
 import GeoPermissionGate from "./GeoPermissionGate";
 import ModalRegister from "./ModalRegister";
 import { useAppSelector } from "@/app/store/store";
+import PackageCardMobile from "@/app/(routes)/payment/_components/PackageCardMobile";
+import { PackageData } from "@/app/_shared/types/customer-area";
+import { hardcodedPackages } from "@/app/_shared/data/data";
+import Loader from "@/app/_components/Loader";
+import { PackageCardMobileSkeletonList } from "@/app/(routes)/payment/_components/PackageCardMobileSkeleton";
 
 const initialFormData: FormType = {
+  package_id: "",
   fullname: "",
   email: "",
   phone: "",
@@ -93,7 +105,9 @@ function RegistrationForm({
     [],
   );
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
-  const [mitraID, setMitraID] = useState([]);
+  const [mitraID, setMitraID] = useState<
+    { id: string | number; [key: string]: any }[]
+  >([]);
   const [btsID, setBtsID] = useState([]);
   const [isCovered, setIsCovered] = useState<boolean>(false);
   const [coveredAtSubmit, setCoveredAtSubmit] = useState<boolean | null>(null);
@@ -101,6 +115,7 @@ function RegistrationForm({
   const [agreement, setAgreement] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState<boolean>();
+  const [isLoadingPackage, setIsLoadingPackage] = useState(true);
   const [isModalRegisterSuccess, setIsModalRegisterSuccess] =
     useState<boolean>(false);
   const [otpStatus, setOtpStatus] = useState<
@@ -110,6 +125,9 @@ function RegistrationForm({
   const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
   const { status, requestLocation, refresh } = useGeoPermission();
   const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
+
+  const [packages, setPackages] = useState<PackageData[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<PackageData | null>();
 
   useEffect(() => {
     if (status === "denied") setIsOpenModalReqLoc(true);
@@ -426,12 +444,40 @@ function RegistrationForm({
     }
   }
 
+  useEffect(() => {
+    const getPackageList = async () => {
+      const params = {
+        mitra_id: mitraID[0]?.id,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      };
+
+      if (params.latitude && params.longitude && params.mitra_id) {
+        try {
+          setIsLoadingPackage(true);
+          const resPkgs = await getPackagesRegister(params);
+          setPackages(resPkgs.data?.data ?? []);
+        } catch (err: any) {
+          toastErrorFromAPI(err);
+        } finally {
+          setIsLoadingPackage(false);
+        }
+      }
+    };
+
+    getPackageList();
+  }, [formData.latitude, formData.longitude, mitraID]);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setIsLoading(true);
 
     const errors: { [key: string]: string } = {};
+
+    if (packages.length > 0 && !formData.package_id) {
+      errors.package_id = "Paket harus dipilih";
+    }
 
     if (!formData.fullname) {
       errors.fullname = "Nama Lengkap harus diisi";
@@ -524,6 +570,7 @@ function RegistrationForm({
               : "tipe regist baru";
 
         const body: any = {
+          ...(formData.package_id && { package_id: formData.package_id }),
           phone_number: formData.phone ?? "",
           name: formData.fullname ?? "",
           ...(formData.email && { email: formData.email }),
@@ -535,7 +582,6 @@ function RegistrationForm({
           city_id: formData.city ?? "",
           district_id: formData.district ?? "",
           sub_district_id: formData.sub_district ?? "",
-          // postal_code_id: formData.postal_code ?? "",
           postal_code: formData.postal_code ?? "",
           rw: formData.rw ?? "",
           rt: formData.rt ?? "",
@@ -583,6 +629,7 @@ function RegistrationForm({
         const token = res?.data?.data || res?.data?.token;
         if (token) setCookie("token-ira", token);
       } catch (error: any) {
+        // error konflik 409
         if (error?.response?.data?.statusCode === 409) {
           setOtpStatus("idle");
           setFormData((prev) => ({ ...prev, otp: "" }));
@@ -596,7 +643,9 @@ function RegistrationForm({
 
   // useEffect(() => {
   //   console.log(formData);
-  // }, [formData]);
+  //   // console.log("mitra IDs: ", mitraID);
+  //   // console.log("bts IDs: ", btsID);
+  // }, [btsID, formData, mitraID]);
 
   function resetForm() {
     setFormData(initialFormData);
@@ -613,15 +662,52 @@ function RegistrationForm({
     if (status === "granted") setIsOpenModalReqLoc(true);
   }, [status]);
 
+  const handleSelect = (pkg: PackageData) => {
+    setSelectedPackage(pkg);
+    setFormData((prev) => ({
+      ...prev,
+      package_id: pkg.id,
+    }));
+    setErrors((prev) => ({ ...prev, package_id: "" }));
+  };
+
   const isValid = isLoading || !agreement || status === "denied";
 
   return (
-    <div className="container mx-auto xl:px-42 lg:px-22 px-6 sm:my-22 my-6">
+    <div className="container mx-auto px-6 lg:px-22 xl:px-42 my-6 sm:my-22 ">
       <h1 className="text-center sm:text-[32px] text-2xl text-old-primary font-bold">
         {title}
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-7">
+        <div className="my-8">
+          <p className="text-xl sm:text-2xl text-old-primary font-medium mb-3">
+            Paket yang tersedia
+          </p>
+
+          {isLoadingPackage ? (
+            <PackageCardMobileSkeletonList count={2} />
+          ) : packages?.length ? (
+            <div className="md:grid grid-cols-1 lg:grid-cols-2 gap-4 max-sm:space-y-6">
+              {packages.map((pkg) => (
+                <PackageCardMobile
+                  key={pkg.id}
+                  pkg={pkg}
+                  selected={selectedPackage?.id === pkg?.id}
+                  onSelect={handleSelect}
+                  convertToCurrency={convertToCurrency}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-primary-text">
+              Belum ada Daftar Paket yang tersedia untuk wilayah Anda
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-gray-border-2 my-6"></div>
+
         <div className="grid grid-cols-2 max-md:grid-cols-1 gap-7">
           {/* Nama */}
           <div className="max-md:col-span-2 col-span-1">
@@ -1100,7 +1186,6 @@ function RegistrationForm({
                     setErrors({ ...errors, actual_address: "" });
                   }}
                   onPlaceChange={async (p) => {
-                    console.log("masuk onplace");
                     setFormData((prev) => ({
                       ...prev,
                       actual_address: p.address,
