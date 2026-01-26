@@ -32,15 +32,6 @@ function Footer() {
     try {
       setIsLoading(true);
 
-      const getPhoneCS = async () => {
-        const resSetting = await getSetting("cs_phone");
-        setPhoneCS(
-          resSetting.data?.data?.value ||
-            process.env.NEXT_PUBLIC_PHONE_CS ||
-            "6281110689111"
-        );
-      };
-
       const getOfficeAddress = async () => {
         const resSetting = await getSetting("office_address");
         setAddress(
@@ -50,9 +41,18 @@ function Footer() {
         );
       };
 
+      const getPhoneCS = async () => {
+        const resSetting = await getSetting("cs_phone");
+        setPhoneCS(
+          resSetting.data?.data?.value ||
+            process.env.NEXT_PUBLIC_PHONE_CS ||
+            "6281110689111"
+        );
+      };
+
       const getCSTel = async () => {
         const resSetting = await getSetting("cs_phone_tel");
-        setPhoneCSTel(resSetting.data?.data?.value || "+628139954897");
+        setPhoneCSTel(resSetting.data?.data?.value || null);
       };
 
       const getCSMail = async () => {
@@ -60,8 +60,8 @@ function Footer() {
         setMail(resSetting.data?.data?.value || "cs@internetrakyat.id");
       };
 
-      getPhoneCS();
       getOfficeAddress();
+      getPhoneCS();
       getCSTel();
       getCSMail();
     } catch (err: any) {
@@ -75,7 +75,7 @@ function Footer() {
     <div className="bg-white text-xs">
       <div className="container mx-auto px-5 my-2">
         <div className="block lg:flex justify-between items-center gap-10 mt-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 w-full lg:w-[60%]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 w-full lg:w-[70%]">
             <div className="col-span-1 md:col-span-2">
               <h5 className="font-bold mb-2.5">Address</h5>
               <p className="font-semibold">PT. Telemedia Komunikasi Pratama</p>
@@ -108,16 +108,18 @@ function Footer() {
                       {phoneCS}
                     </Link>
                   </div>
-                  <div className="flex gap-1 items-center">
-                    <BsTelephone size={14} />
-                    <Link
-                      href={`tel:${phoneCSTel}`}
-                      className="hover:underline"
-                      target="_blank"
-                    >
-                      {phoneCSTel}
-                    </Link>
-                  </div>
+                  {phoneCSTel && (
+                    <div className="flex gap-1 items-center">
+                      <BsTelephone size={14} />
+                      <Link
+                        href={`tel:${phoneCSTel}`}
+                        className="hover:underline"
+                        target="_blank"
+                      >
+                        {phoneCSTel}
+                      </Link>
+                    </div>
+                  )}
                   <div className="flex gap-1 items-center">
                     <MdOutlineMail size={14} />
                     <Link
@@ -165,7 +167,7 @@ function Footer() {
               </div>
             </div>
           </div>
-          <div className="text-left lg:text-right w-full md:w-[40%] lg:mt-0 mt-5">
+          <div className="text-left lg:text-right w-full md:w-[30%] lg:mt-0 mt-5">
             <div className="flex justify-start lg:justify-end gap-5 items-center mb-3">
               <Image src={iraIcon} alt="weave" className="w-[100px]" />
             </div>
@@ -194,7 +196,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.2201.095</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.2601.096</div>
       </div>
     </div>
   );
