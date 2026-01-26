@@ -90,7 +90,7 @@ function RegistrationForm({
     ReactSelectType[]
   >([]);
   const [postalCodeOptions, setPostalCodeOptions] = useState<ReactSelectType[]>(
-    []
+    [],
   );
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
   const [mitraID, setMitraID] = useState([]);
@@ -144,7 +144,7 @@ function RegistrationForm({
               res.data.data.map((it: any) => ({
                 label: it.name,
                 value: String(it.id),
-              }))
+              })),
             );
           } catch (err) {
             toastErrorFromAPI(err, "Gagal muat data kota");
@@ -163,7 +163,7 @@ function RegistrationForm({
               res.data.data.map((it: any) => ({
                 label: it.name,
                 value: String(it.id),
-              }))
+              })),
             );
           } catch (err) {
             toastErrorFromAPI(err, "Gagal muat data kecamatan");
@@ -182,7 +182,7 @@ function RegistrationForm({
               res.data.data.map((it: any) => ({
                 label: it.name,
                 value: String(it.id),
-              }))
+              })),
             );
           } catch (err) {
             toastErrorFromAPI(err, "Gagal muat data kelurahan");
@@ -294,7 +294,7 @@ function RegistrationForm({
           res.data.data.map((it: any) => ({
             label: it.name,
             value: String(it.id),
-          }))
+          })),
         );
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kota");
@@ -316,7 +316,7 @@ function RegistrationForm({
           res.data.data.map((it: any) => ({
             label: it.name,
             value: String(it.id),
-          }))
+          })),
         );
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kecamatan");
@@ -339,7 +339,7 @@ function RegistrationForm({
           res.data.data.map((it: any) => ({
             label: it.name,
             value: String(it.id),
-          }))
+          })),
         );
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kelurahan");
@@ -387,7 +387,7 @@ function RegistrationForm({
     } catch (err: any) {
       if (err.code === 1) {
         toast.error(
-          "Izin lokasi ditolak. Silakan aktifkan di pengaturan browser."
+          "Izin lokasi ditolak. Silakan aktifkan di pengaturan browser.",
         );
       } else {
         toast.error("Gagal mengambil lokasi.");
@@ -1089,6 +1089,7 @@ function RegistrationForm({
             {status !== "denied" && (
               <>
                 <MapGeoapify
+                  mode={mode}
                   initialLatitude={Number(initialData?.latitude)}
                   initialLongitude={Number(initialData?.longitude)}
                   getAddress={(value: string) => {
@@ -1099,6 +1100,7 @@ function RegistrationForm({
                     setErrors({ ...errors, actual_address: "" });
                   }}
                   onPlaceChange={async (p) => {
+                    console.log("masuk onplace");
                     setFormData((prev) => ({
                       ...prev,
                       actual_address: p.address,

@@ -112,7 +112,7 @@ export default function ConnectToNetwork() {
 
   // status SSE sederhana untuk UI
   const [sseStatus, setSseStatus] = useState<"connecting" | "open" | "error">(
-    "connecting"
+    "connecting",
   );
 
   // step status terpisah
@@ -123,6 +123,10 @@ export default function ConnectToNetwork() {
   const eventSourceRef = useRef<EventSourcePolyfill | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activationConfirmedRef = useRef(false);
+
+  const [phoneCSIRA, setPhoneCSIRA] = useState<string | null>("");
+
+  const activateSuccessRef = useRef(false);
 
   // key unik
   const cooldownKey = useMemo(() => {
@@ -163,7 +167,7 @@ export default function ConnectToNetwork() {
     (failedCount: number) => {
       sessionStorage.setItem(attemptKey, String(failedCount));
     },
-    [attemptKey]
+    [attemptKey],
   );
 
   const startCooldown = useCallback(
@@ -173,7 +177,7 @@ export default function ConnectToNetwork() {
       setCooldown(seconds);
       setIsCooldownActive(true);
     },
-    [cooldownKey]
+    [cooldownKey],
   );
 
   const stopCooldown = useCallback(() => {
@@ -204,7 +208,7 @@ export default function ConnectToNetwork() {
         toast.success("Perangkat berhasil diaktivasi.");
       }
     },
-    [resetAttemptStorage, stopCooldown, clearTimeoutSafe, clearSse]
+    [resetAttemptStorage, stopCooldown, clearTimeoutSafe, clearSse],
   );
 
   const handleTimeout = useCallback(() => {
@@ -212,7 +216,7 @@ export default function ConnectToNetwork() {
     clearTimeoutSafe();
 
     // ✅ Jika aktivasi sudah sukses, langsung success (Case 2)
-    if (activateStatus === "success") {
+    if (activateStatus === "success" || activateSuccessRef.current) {
       handleActivationSuccess("timeout");
     } else {
       setScreen("timedOut");
@@ -241,7 +245,7 @@ export default function ConnectToNetwork() {
 
       // Tampilkan konfirmasi
       const confirmed = window.confirm(
-        "Proses aktivasi sedang berlangsung.\nJika Anda meninggalkan halaman, proses akan dibatalkan.\n\nYakin ingin kembali?"
+        "Proses aktivasi sedang berlangsung.\nJika Anda meninggalkan halaman, proses akan dibatalkan.\n\nYakin ingin kembali?",
       );
 
       if (confirmed) {
@@ -327,12 +331,12 @@ export default function ConnectToNetwork() {
       `${
         process.env.NEXT_PUBLIC_API_URL_SSE
       }/sse/events?clientName=${encodeURIComponent(
-        `${customer_id}-web`
+        `${customer_id}-web`,
       )}&replace=true`,
       {
         headers: { "x-sse-token": "LOCALWEAVE" },
         heartbeatTimeout: 600_000,
-      }
+      },
     );
 
     eventSourceRef.current = es;
@@ -356,13 +360,14 @@ export default function ConnectToNetwork() {
         if (data?.type === "activate") {
           setActivateStatus("loading");
           if (data?.message === "Success") {
+            activateSuccessRef.current = true;
             setActivateStatus("success");
-            // setInternetStatus("success");
             setInternetStatus("loading");
             toast.success(
-              "Aktivasi jaringan berhasil. Mengecek koneksi internet..."
+              "Aktivasi jaringan berhasil. Mengecek koneksi internet...",
             );
           } else {
+            activateSuccessRef.current = false;
             stopCooldown();
             setActivateStatus("failed");
             setInternetStatus("failed");
@@ -374,17 +379,15 @@ export default function ConnectToNetwork() {
           }
         }
 
-        // if (
-        //   data?.type === "ping-test-activate" &&
-        //   activateStatus === "success"
-        // ) {
-        //   if (data?.message === "Success") {
-        //     setInternetStatus("success");
-        //     handleActivationSuccess("sse");
-        //   } else {
-        //     setInternetStatus("failed");
-        //   }
-        // }
+        if (data?.type === "ping-test-activate" && activateSuccessRef.current) {
+          if (data?.message === "Success") {
+            setInternetStatus("success");
+            handleActivationSuccess("sse");
+          } else {
+            setInternetStatus("success");
+            handleActivationSuccess("sse");
+          }
+        }
       } catch (err) {
         console.error("Failed to parse SSE message:", err);
       }
@@ -436,13 +439,14 @@ export default function ConnectToNetwork() {
         toast.error(
           resActivate?.data?.data?.error_message ??
             "Aktivasi gagal. Silakan coba lagi.",
-          { id: "refresh" }
+          { id: "refresh" },
         );
         return;
       }
 
       // 🔹 3a. Jika aktivasi sukses → abaikan ping test, LANJUT KE SETTING
       if (activateSuccess) {
+        activateSuccessRef.current = true;
         setActivateStatus("success");
 
         // di force, ga peduli hasil ping test
@@ -522,7 +526,7 @@ export default function ConnectToNetwork() {
         toast.success(
           res.data.message ||
             "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
-          { id: "activate" }
+          { id: "activate" },
         );
 
         // Set status ke loading karena SSE akan menangani update selanjutnya
@@ -538,7 +542,7 @@ export default function ConnectToNetwork() {
       toast.dismiss("activate");
       toastErrorFromAPI(
         err,
-        "Gagal mengirim permintaan aktivasi. Silakan coba lagi."
+        "Gagal mengirim permintaan aktivasi. Silakan coba lagi.",
       );
 
       // Simpan percobaan gagal
@@ -559,8 +563,6 @@ export default function ConnectToNetwork() {
     addUrlParam("section", "setting");
   }
 
-  const [phoneCSIRA, setPhoneCSIRA] = useState<string | null>("");
-
   useEffect(() => {
     const getPhoneCS = async () => {
       const resSetting = await getSetting("cs_phone");
@@ -568,7 +570,7 @@ export default function ConnectToNetwork() {
       setPhoneCSIRA(
         resSetting.data?.data?.value ||
           process.env.NEXT_PUBLIC_PHONE_CS ||
-          "6281110689111"
+          "6281110689111",
       );
     };
 
@@ -577,7 +579,7 @@ export default function ConnectToNetwork() {
 
   async function contactCS() {
     const msg = encodeURIComponent(
-      `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSerial Number CPE: ${serialNumber}`
+      `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSerial Number CPE: ${serialNumber}`,
     );
     try {
       const resPhone = await getDealerSuppPhone();
@@ -594,6 +596,7 @@ export default function ConnectToNetwork() {
 
   const handleRestart = () => {
     activationConfirmedRef.current = false;
+    activateSuccessRef.current = false;
 
     setSseStatus("connecting");
     setScreen("loading");

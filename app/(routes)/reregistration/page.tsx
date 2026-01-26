@@ -51,7 +51,6 @@ function Page() {
       } else {
         setInitialData({}); // atau redirect ke login
       }
-
       setLoading(false);
     };
 
