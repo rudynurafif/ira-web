@@ -161,7 +161,7 @@ deploy-production:
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
     - |
-      ssh -o StrictHostKeyChecking=no -p $SSH_PORT $PROD_SSH_CON \
+      ssh -o StrictHostKeyChecking=no -p $PROD_PORT $PROD_SSH_CON \
       "echo 'Production - Reset and clean the repository to avoid stale changes in container'; \
       cd $PATH_DIR; \
       git reset --hard; \
