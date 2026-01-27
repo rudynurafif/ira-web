@@ -58,6 +58,9 @@ export type PackageData = {
   is_active: boolean;
   duration: number;
   bts_package_id: BtsPackageId[];
+  appear_on: string;
+  package_type: string;
+  eligible_payment_before_days: number | null;
 };
 
 export type ProfileInfo = {
@@ -89,4 +92,20 @@ export type ProfileInfo = {
   reset_count_cell_max: number | null;
   reset_count_cell: number | null;
   no_kk: string | null;
+  province_id: {
+    id: string;
+    name: string;
+  };
+  city_id: {
+    id: string;
+    name: string;
+  };
+  district_id: {
+    id: string;
+    name: string;
+  };
+  sub_district_id: {
+    id: string;
+    name: string;
+  };
 };

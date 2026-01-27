@@ -2,10 +2,7 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import {
-  checkPackage,
-  getCustomerPackage,
-} from "@/app/_api/Customer/CustomerArea";
+import { checkPackage } from "@/app/_api/Customer/CustomerArea";
 import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
@@ -16,12 +13,7 @@ import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import bannerCubmu from "@/public/assets/Images/banner-cubmu.png";
 import bannerCubmuMobile from "@/public/assets/Images/banner-cubmu-mobile.png";
 import ActivePackageCard from "./ActivePackageCard";
-import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import {
-  formattedDate,
-  packageCountdown,
-  toastErrorFromAPI,
-} from "@/app/_shared/utils";
+import { packageCountdown, toastErrorFromAPI } from "@/app/_shared/utils";
 import HistorySection from "./HistorySection";
 import thumbClick from "@/public/assets/Icons/thumb-click.png";
 import ExpiredCard from "../ExpiredCard";
@@ -36,6 +28,7 @@ import {
   selectCustomerPackages,
   selectCustomerPackageState,
 } from "@/app/store/slice/customerPackageSlice";
+import { getSetting } from "@/app/_api/Settings/Settings";
 
 const PAGE_SIZE = 5;
 
@@ -51,13 +44,12 @@ const PackageAndHistory = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const searchParams = useSearchParams();
   const { label, status, days } = packageCountdown(
-    activePacketData?.end_date ?? null
+    activePacketData?.end_date ?? null,
   );
   const [isInactive, setIsInactive] = useState<boolean | null>(null);
 
   const { userInfo, is_coverage } = useAppSelector((state) => state.auth);
   const router = useRouter();
-  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
   const [addOns, setAddOns] = useState([]);
 
   const [isAllowed, setIsAllowed] = useState(false);
@@ -65,15 +57,30 @@ const PackageAndHistory = () => {
 
   const [startDateFilter, setStartDateFilter] = useState<any>();
   const [endDateFilter, setEndDateFilter] = useState<any>();
+  const [phoneCS, setPhoneCS] = useState<string | null>("");
+
+  useEffect(() => {
+    const getPhoneCS = async () => {
+      const resSetting = await getSetting("cs_phone");
+
+      setPhoneCS(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111",
+      );
+    };
+
+    getPhoneCS();
+  }, []);
 
   // pagination client-side
   const totalPages = Math.max(
     1,
-    Math.ceil((allHistory?.length ?? 0) / PAGE_SIZE)
+    Math.ceil((allHistory?.length ?? 0) / PAGE_SIZE),
   );
   const subscriptionHistory = (allHistory ?? []).slice(
     (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
+    currentPage * PAGE_SIZE,
   );
 
   const [latestIsFree, setLatestIsFree] = useState(false);
@@ -109,8 +116,6 @@ const PackageAndHistory = () => {
   }, [isInactive, userInfo, userInfo?.status]);
 
   const handleCheckPackage: () => Promise<void> = async () => {
-    // router.push("/payment/payment-methods");
-
     try {
       const res = await checkPackage();
 
@@ -357,9 +362,10 @@ const PackageAndHistory = () => {
           onClick={() => window.open("/panduan-cara-bayar", "_blank")}
         />
 
-        {is_coverage && userInfo.is_active && userInfo.status === "active" && (
-          <HistorySection />
-        )}
+        {is_coverage &&
+          (userInfo.status === "active" ||
+            userInfo.status === "suspend" ||
+            userInfo.status === "dismantled") && <HistorySection />}
       </div>
 
       {/* DESKTOP (≥ sm) */}
@@ -438,8 +444,9 @@ const PackageAndHistory = () => {
           />
 
           {is_coverage &&
-            userInfo.is_active &&
-            userInfo.status === "active" && <HistorySection />}
+            (userInfo.status === "active" ||
+              userInfo.status === "suspend" ||
+              userInfo.status === "dismantled") && <HistorySection />}
         </div>
       </div>
 

@@ -8,7 +8,12 @@ import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { ReactSelectType } from "@/app/_shared/types/form";
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { registerUser, requestCoverage, verifyOtp } from "@/app/_api/Auth/Auth";
+import {
+  getPackagesRegister,
+  registerUser,
+  requestCoverage,
+  verifyOtp,
+} from "@/app/_api/Auth/Auth";
 import {
   getCheckCoverage,
   getCity,
@@ -21,6 +26,7 @@ import {
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
 import {
+  convertToCurrency,
   EMAIL_REGEX,
   PHONE_REGEX,
   regexEmail,
@@ -39,8 +45,15 @@ import {
 import { FormType } from "../types/type";
 import GeoPermissionGate from "./GeoPermissionGate";
 import ModalRegister from "./ModalRegister";
+import { useAppSelector } from "@/app/store/store";
+import PackageCardMobile from "@/app/(routes)/payment/_components/PackageCardMobile";
+import { PackageData } from "@/app/_shared/types/customer-area";
+import { hardcodedPackages } from "@/app/_shared/data/data";
+import Loader from "@/app/_components/Loader";
+import { PackageCardMobileSkeletonList } from "@/app/(routes)/payment/_components/PackageCardMobileSkeleton";
 
 const initialFormData: FormType = {
+  package_id: "",
   fullname: "",
   email: "",
   phone: "",
@@ -89,10 +102,12 @@ function RegistrationForm({
     ReactSelectType[]
   >([]);
   const [postalCodeOptions, setPostalCodeOptions] = useState<ReactSelectType[]>(
-    []
+    [],
   );
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
-  const [mitraID, setMitraID] = useState([]);
+  const [mitraID, setMitraID] = useState<
+    { id: string | number; [key: string]: any }[]
+  >([]);
   const [btsID, setBtsID] = useState([]);
   const [isCovered, setIsCovered] = useState<boolean>(false);
   const [coveredAtSubmit, setCoveredAtSubmit] = useState<boolean | null>(null);
@@ -100,6 +115,7 @@ function RegistrationForm({
   const [agreement, setAgreement] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState<boolean>();
+  const [isLoadingPackage, setIsLoadingPackage] = useState(true);
   const [isModalRegisterSuccess, setIsModalRegisterSuccess] =
     useState<boolean>(false);
   const [otpStatus, setOtpStatus] = useState<
@@ -109,6 +125,9 @@ function RegistrationForm({
   const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
   const { status, requestLocation, refresh } = useGeoPermission();
   const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
+
+  const [packages, setPackages] = useState<PackageData[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<PackageData | null>();
 
   useEffect(() => {
     if (status === "denied") setIsOpenModalReqLoc(true);
@@ -125,6 +144,76 @@ function RegistrationForm({
     localStorage.setItem(STORAGE_KEY, String(expiry));
     setOtpExpiry(expiry);
   }
+
+  const { userInfo } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (mode === "reregister" && initialData) {
+      const { province, city, district, sub_district } = initialData;
+
+      // Autofill the province
+      if (province) {
+        setFormData((prev) => ({ ...prev, province }));
+        const provinceId = province; // ID for province
+        (async () => {
+          try {
+            const res = await getCity({ province_id: provinceId });
+            setCityOptions(
+              res.data.data.map((it: any) => ({
+                label: it.name,
+                value: String(it.id),
+              })),
+            );
+          } catch (err) {
+            toastErrorFromAPI(err, "Gagal muat data kota");
+          }
+        })();
+      }
+
+      // Autofill the city
+      if (city) {
+        setFormData((prev) => ({ ...prev, city }));
+        const cityId = city;
+        (async () => {
+          try {
+            const res = await getDistrict({ city_id: cityId });
+            setDistrictOptions(
+              res.data.data.map((it: any) => ({
+                label: it.name,
+                value: String(it.id),
+              })),
+            );
+          } catch (err) {
+            toastErrorFromAPI(err, "Gagal muat data kecamatan");
+          }
+        })();
+      }
+
+      // Autofill the district
+      if (district) {
+        setFormData((prev) => ({ ...prev, district }));
+        const districtId = district;
+        (async () => {
+          try {
+            const res = await getSubDistrict({ district_id: districtId });
+            setSubdistrictOptions(
+              res.data.data.map((it: any) => ({
+                label: it.name,
+                value: String(it.id),
+              })),
+            );
+          } catch (err) {
+            toastErrorFromAPI(err, "Gagal muat data kelurahan");
+          }
+        })();
+      }
+
+      // Autofill the sub-district
+      if (sub_district) {
+        setFormData((prev) => ({ ...prev, sub_district }));
+      }
+    }
+  }, [mode, initialData]);
 
   // un comment kalo pakai API autofill
   // async function autofillLocationViaApiWithRaw(rawResult: any) {
@@ -223,7 +312,7 @@ function RegistrationForm({
           res.data.data.map((it: any) => ({
             label: it.name,
             value: String(it.id),
-          }))
+          })),
         );
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kota");
@@ -245,7 +334,7 @@ function RegistrationForm({
           res.data.data.map((it: any) => ({
             label: it.name,
             value: String(it.id),
-          }))
+          })),
         );
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kecamatan");
@@ -268,7 +357,7 @@ function RegistrationForm({
           res.data.data.map((it: any) => ({
             label: it.name,
             value: String(it.id),
-          }))
+          })),
         );
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kelurahan");
@@ -316,7 +405,7 @@ function RegistrationForm({
     } catch (err: any) {
       if (err.code === 1) {
         toast.error(
-          "Izin lokasi ditolak. Silakan aktifkan di pengaturan browser."
+          "Izin lokasi ditolak. Silakan aktifkan di pengaturan browser.",
         );
       } else {
         toast.error("Gagal mengambil lokasi.");
@@ -355,12 +444,40 @@ function RegistrationForm({
     }
   }
 
+  useEffect(() => {
+    const getPackageList = async () => {
+      const params = {
+        mitra_id: mitraID[0]?.id,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      };
+
+      if (params.latitude && params.longitude && params.mitra_id) {
+        try {
+          setIsLoadingPackage(true);
+          const resPkgs = await getPackagesRegister(params);
+          setPackages(resPkgs.data?.data ?? []);
+        } catch (err: any) {
+          toastErrorFromAPI(err);
+        } finally {
+          setIsLoadingPackage(false);
+        }
+      }
+    };
+
+    getPackageList();
+  }, [formData.latitude, formData.longitude, mitraID]);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setIsLoading(true);
 
     const errors: { [key: string]: string } = {};
+
+    // if (packages.length > 0 && !formData.package_id) {
+    //   errors.package_id = "Paket harus dipilih";
+    // }
 
     if (!formData.fullname) {
       errors.fullname = "Nama Lengkap harus diisi";
@@ -376,7 +493,7 @@ function RegistrationForm({
       errors.email = "Format email salah";
     }
 
-    if (formData.otp.length !== 6) {
+    if (formData.otp.length !== 6 && mode === "register") {
       errors.otp = "Kode OTP harus 6 digit";
     }
 
@@ -424,7 +541,7 @@ function RegistrationForm({
       errors.actual_address = "Alamat Lengkap harus diisi";
     }
 
-    if (otpStatus !== "valid") {
+    if (otpStatus !== "valid" && mode === "register") {
       errors.otp = "OTP belum terverifikasi";
     }
 
@@ -445,8 +562,15 @@ function RegistrationForm({
         //   ? [normalizeAddressForBackend(formData.address_gmaps)]
         //   : [];
         const addressArray = [formData.address_gmaps];
+        const type =
+          userInfo?.status === "canceled-instalation"
+            ? "tipe-cancel"
+            : userInfo?.status === "inactive"
+              ? "tipe inactive"
+              : "tipe regist baru";
 
         const body: any = {
+          ...(formData.package_id && { package_id: formData.package_id }),
           phone_number: formData.phone ?? "",
           name: formData.fullname ?? "",
           ...(formData.email && { email: formData.email }),
@@ -458,7 +582,6 @@ function RegistrationForm({
           city_id: formData.city ?? "",
           district_id: formData.district ?? "",
           sub_district_id: formData.sub_district ?? "",
-          // postal_code_id: formData.postal_code ?? "",
           postal_code: formData.postal_code ?? "",
           rw: formData.rw ?? "",
           rt: formData.rt ?? "",
@@ -468,6 +591,7 @@ function RegistrationForm({
           ...(formData.longitude && { longitude: formData.longitude }),
           ...(formData.notes && { notes: formData.notes }),
           ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
+          // type,
         };
 
         const coveredNow = isCovered;
@@ -483,8 +607,12 @@ function RegistrationForm({
                 phone_number_verified: otpStatus === "valid",
               });
         } else if (mode === "reregister") {
-          toast("Fitur registrasi ulang belum tersedia.");
-          return;
+          res = coveredNow
+            ? await registerUser(body)
+            : await requestCoverage({
+                ...body,
+                phone_number_verified: otpStatus === "valid",
+              });
         }
 
         // const res = coveredNow
@@ -501,6 +629,7 @@ function RegistrationForm({
         const token = res?.data?.data || res?.data?.token;
         if (token) setCookie("token-ira", token);
       } catch (error: any) {
+        // error konflik 409
         if (error?.response?.data?.statusCode === 409) {
           setOtpStatus("idle");
           setFormData((prev) => ({ ...prev, otp: "" }));
@@ -514,7 +643,9 @@ function RegistrationForm({
 
   // useEffect(() => {
   //   console.log(formData);
-  // }, [formData]);
+  //   // console.log("mitra IDs: ", mitraID);
+  //   // console.log("bts IDs: ", btsID);
+  // }, [btsID, formData, mitraID]);
 
   function resetForm() {
     setFormData(initialFormData);
@@ -531,15 +662,52 @@ function RegistrationForm({
     if (status === "granted") setIsOpenModalReqLoc(true);
   }, [status]);
 
+  const handleSelect = (pkg: PackageData) => {
+    setSelectedPackage(pkg);
+    setFormData((prev) => ({
+      ...prev,
+      package_id: pkg.id,
+    }));
+    setErrors((prev) => ({ ...prev, package_id: "" }));
+  };
+
   const isValid = isLoading || !agreement || status === "denied";
 
   return (
-    <div className="container mx-auto xl:px-42 lg:px-22 px-6 sm:my-22 my-6">
+    <div className="container mx-auto px-6 lg:px-22 xl:px-42 my-6 sm:my-22 ">
       <h1 className="text-center sm:text-[32px] text-2xl text-old-primary font-bold">
         {title}
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-7">
+        <div className="my-8">
+          <p className="text-xl sm:text-2xl text-old-primary font-medium mb-3">
+            Paket yang tersedia
+          </p>
+
+          {isLoadingPackage ? (
+            <PackageCardMobileSkeletonList count={2} />
+          ) : packages?.length ? (
+            <div className="md:grid grid-cols-1 lg:grid-cols-2 gap-4 max-sm:space-y-6">
+              {packages.map((pkg) => (
+                <PackageCardMobile
+                  key={pkg.id}
+                  pkg={pkg}
+                  selected={selectedPackage?.id === pkg?.id}
+                  onSelect={handleSelect}
+                  convertToCurrency={convertToCurrency}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-primary-text">
+              Belum ada Daftar Paket yang tersedia untuk wilayah Anda
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-gray-border-2 my-6"></div>
+
         <div className="grid grid-cols-2 max-md:grid-cols-1 gap-7">
           {/* Nama */}
           <div className="max-md:col-span-2 col-span-1">
@@ -547,6 +715,7 @@ function RegistrationForm({
               label="Nama Lengkap"
               isImportant
               name="fullname"
+              disabled={mode === "reregister"}
               value={formData.fullname}
               onChange={(value: string) => {
                 const filtered = sanitizeName(value);
@@ -564,6 +733,7 @@ function RegistrationForm({
               label="Email (opsional)"
               isImportant={false}
               name="email"
+              disabled={mode === "reregister"}
               value={formData.email}
               onChange={(value: string) => {
                 const cleaned = sanitizeEmail(value);
@@ -600,71 +770,78 @@ function RegistrationForm({
               mode="register"
               inputMode="numeric"
               isImportant
-              isDisabled={otpStatus === "valid"}
+              isDisabled={otpStatus === "valid" || mode === "reregister"}
               value={formData.phone}
               onChange={(value: string) => {
                 setFormData((prevData: any) => ({
                   ...prevData,
                   phone: value,
                 }));
-
                 setErrors({ ...errors, phone: "" });
               }}
               placeholder="contoh: 08123456789"
               error={errors.phone}
             />
-            <p className="text-xs text-muted mt-1">
-              *Pastikan nomor yang Anda masukkan benar dan aktif
-            </p>
+            {mode === "register" ? (
+              <p className="text-xs text-muted mt-1">
+                *Pastikan nomor yang Anda masukkan benar dan aktif
+              </p>
+            ) : (
+              <p className="text-xs text-muted mt-1">
+                *Nomor yang sama akan digunakan untuk berlangganan kembali
+              </p>
+            )}
           </div>
 
           {/* OTP */}
-          <div className="max-md:col-span-2 col-span-1">
-            <GroupedOTP
-              isInvalid={!!errors.otp || otpStatus === "invalid"}
-              label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
-              isImportant
-              name="otp"
-              value={formData.otp}
-              isDisabled={otpStatus === "valid"}
-              onChange={(val) => {
-                const cleaned = sanitizeAlphanumeric(val);
-                setFormData((prev) => ({ ...prev, otp: cleaned }));
-                if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
-                if (otpStatus !== "idle") setOtpStatus("idle");
-              }}
-              onComplete={(val) => {
-                handleVerifyOtp(val);
-              }}
-            />
+          {mode === "register" && (
+            <div className="max-md:col-span-2 col-span-1">
+              <GroupedOTP
+                isInvalid={!!errors.otp || otpStatus === "invalid"}
+                label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
+                isImportant
+                name="otp"
+                value={formData.otp}
+                isDisabled={otpStatus === "valid"}
+                onChange={(val) => {
+                  const cleaned = sanitizeAlphanumeric(val);
+                  setFormData((prev) => ({ ...prev, otp: cleaned }));
+                  if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
+                  if (otpStatus !== "idle") setOtpStatus("idle");
+                }}
+                onComplete={(val) => {
+                  handleVerifyOtp(val);
+                }}
+              />
 
-            {otpStatus === "verifying" && (
-              <p className="text-primary mt-1 text-sm italic">
-                Memverifikasi OTP...
-              </p>
-            )}
+              {otpStatus === "verifying" && (
+                <p className="text-primary mt-1 text-sm italic">
+                  Memverifikasi OTP...
+                </p>
+              )}
 
-            {otpStatus === "valid" && (
-              <p className="text-green-600 mt-1 text-sm flex items-center gap-1">
-                <FaCircleCheck className="text-green-600" />
-                OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
-              </p>
-            )}
+              {otpStatus === "valid" && (
+                <p className="text-green-600 mt-1 text-sm flex items-center gap-1">
+                  <FaCircleCheck className="text-green-600" />
+                  OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
+                </p>
+              )}
 
-            {otpStatus === "invalid" && !errors.otp && (
-              <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
-                <FaCircleExclamation className="text-red-500" />
-                Kode OTP tidak valid atau sudah kedaluwarsa.
-              </p>
-            )}
+              {otpStatus === "invalid" && !errors.otp && (
+                <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
+                  <FaCircleExclamation className="text-red-500" />
+                  Kode OTP tidak valid atau sudah kedaluwarsa.
+                </p>
+              )}
 
-            {errors.otp && (
-              <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
-                <FaCircleExclamation className="text-red-500" />
-                {errors.otp}
-              </p>
-            )}
-          </div>
+              {errors.otp && (
+                <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
+                  <FaCircleExclamation className="text-red-500" />
+                  {errors.otp}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* NIK */}
           {/* <div className="max-md:col-span-2 col-span-1">
@@ -998,6 +1175,9 @@ function RegistrationForm({
             {status !== "denied" && (
               <>
                 <MapGeoapify
+                  mode={mode}
+                  initialLatitude={Number(initialData?.latitude)}
+                  initialLongitude={Number(initialData?.longitude)}
                   getAddress={(value: string) => {
                     setFormData((prevData: any) => ({
                       ...prevData,
@@ -1038,7 +1218,7 @@ function RegistrationForm({
                 {!isCovered && !isCheckCoverage && (
                   <p className="mt-1 text-red-primary flex items-center gap-1 text-sm">
                     <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
-                    Lokasi Anda belum berada dijangkauan area kami, dan kami
+                    Lokasi Anda belum berada di jangkauan area kami, dan kami
                     sedang menuju ke daerah Anda.
                   </p>
                 )}
@@ -1069,8 +1249,8 @@ function RegistrationForm({
                 status === "denied"
                   ? "Izinkan akses lokasi di browser Anda untuk mengisi alamat"
                   : formData.address_gmaps
-                  ? "Masukkan/rapikan Alamat Lengkap"
-                  : "Pilih alamat dari pencarian peta untuk mengaktifkan"
+                    ? "Masukkan/rapikan Alamat Lengkap"
+                    : "Pilih alamat dari pencarian peta untuk mengaktifkan"
               }
               error={errors.actual_address}
               disabled={!formData.address_gmaps}

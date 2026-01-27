@@ -1,4 +1,5 @@
 export interface FormType {
+  package_id: string;
   fullname: string;
   email: string;
   phone: string;
@@ -16,6 +17,6 @@ export interface FormType {
   actual_address: string;
   voucher_code: string;
   address_gmaps?: any;
-  latitude?: string;
-  longitude?: string;
+  latitude?: string | number;
+  longitude?: string | number;
 }

@@ -31,6 +31,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import { getDealerSuppPhone } from "@/app/_api/Customer/CustomerArea";
 import { Activation } from "@/app/_api/Activation/Activation";
+import { getSetting } from "@/app/_api/Settings/Settings";
 
 type Screen = "loading" | "failed" | "failedFinal" | "success" | "timedOut";
 type StepStatus = "idle" | "loading" | "success" | "failed";
@@ -111,7 +112,7 @@ export default function ConnectToNetwork() {
 
   // status SSE sederhana untuk UI
   const [sseStatus, setSseStatus] = useState<"connecting" | "open" | "error">(
-    "connecting"
+    "connecting",
   );
 
   // step status terpisah
@@ -122,6 +123,10 @@ export default function ConnectToNetwork() {
   const eventSourceRef = useRef<EventSourcePolyfill | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activationConfirmedRef = useRef(false);
+
+  const [phoneCSIRA, setPhoneCSIRA] = useState<string | null>("");
+
+  const activateSuccessRef = useRef(false);
 
   // key unik
   const cooldownKey = useMemo(() => {
@@ -162,7 +167,7 @@ export default function ConnectToNetwork() {
     (failedCount: number) => {
       sessionStorage.setItem(attemptKey, String(failedCount));
     },
-    [attemptKey]
+    [attemptKey],
   );
 
   const startCooldown = useCallback(
@@ -172,7 +177,7 @@ export default function ConnectToNetwork() {
       setCooldown(seconds);
       setIsCooldownActive(true);
     },
-    [cooldownKey]
+    [cooldownKey],
   );
 
   const stopCooldown = useCallback(() => {
@@ -189,11 +194,11 @@ export default function ConnectToNetwork() {
       resetAttemptStorage();
       stopCooldown();
       clearTimeoutSafe();
-      clearSse("1");
+      clearSse("1 from activate success");
 
       // pastikan status step 2 success
       setActivateStatus("success");
-      // setInternetStatus("success");
+      setInternetStatus("success");
 
       setScreen("success");
 
@@ -203,15 +208,15 @@ export default function ConnectToNetwork() {
         toast.success("Perangkat berhasil diaktivasi.");
       }
     },
-    [resetAttemptStorage, stopCooldown, clearTimeoutSafe, clearSse]
+    [resetAttemptStorage, stopCooldown, clearTimeoutSafe, clearSse],
   );
 
   const handleTimeout = useCallback(() => {
-    clearSse("2");
+    clearSse("2 from timeout 10 min");
     clearTimeoutSafe();
 
     // ✅ Jika aktivasi sudah sukses, langsung success (Case 2)
-    if (activateStatus === "success") {
+    if (activateStatus === "success" || activateSuccessRef.current) {
       handleActivationSuccess("timeout");
     } else {
       setScreen("timedOut");
@@ -240,7 +245,7 @@ export default function ConnectToNetwork() {
 
       // Tampilkan konfirmasi
       const confirmed = window.confirm(
-        "Proses aktivasi sedang berlangsung.\nJika Anda meninggalkan halaman, proses akan dibatalkan.\n\nYakin ingin kembali?"
+        "Proses aktivasi sedang berlangsung.\nJika Anda meninggalkan halaman, proses akan dibatalkan.\n\nYakin ingin kembali?",
       );
 
       if (confirmed) {
@@ -319,19 +324,19 @@ export default function ConnectToNetwork() {
 
     setSseStatus("connecting");
 
-    clearSse("3");
+    clearSse("3 from sse subs (close prev connection if any)");
     clearTimeoutSafe();
 
     const es = new EventSourcePolyfill(
       `${
         process.env.NEXT_PUBLIC_API_URL_SSE
       }/sse/events?clientName=${encodeURIComponent(
-        `${customer_id}-web`
+        `${customer_id}-web`,
       )}&replace=true`,
       {
         headers: { "x-sse-token": "LOCALWEAVE" },
         heartbeatTimeout: 600_000,
-      }
+      },
     );
 
     eventSourceRef.current = es;
@@ -355,12 +360,14 @@ export default function ConnectToNetwork() {
         if (data?.type === "activate") {
           setActivateStatus("loading");
           if (data?.message === "Success") {
+            activateSuccessRef.current = true;
             setActivateStatus("success");
             setInternetStatus("loading");
             toast.success(
-              "Aktivasi jaringan berhasil. Mengecek koneksi internet..."
+              "Aktivasi jaringan berhasil. Mengecek koneksi internet...",
             );
           } else {
+            activateSuccessRef.current = false;
             stopCooldown();
             setActivateStatus("failed");
             setInternetStatus("failed");
@@ -372,15 +379,13 @@ export default function ConnectToNetwork() {
           }
         }
 
-        if (
-          data?.type === "ping-test-activate" &&
-          activateStatus === "success"
-        ) {
+        if (data?.type === "ping-test-activate" && activateSuccessRef.current) {
           if (data?.message === "Success") {
             setInternetStatus("success");
             handleActivationSuccess("sse");
           } else {
-            setInternetStatus("failed");
+            setInternetStatus("success");
+            handleActivationSuccess("sse");
           }
         }
       } catch (err) {
@@ -396,7 +401,7 @@ export default function ConnectToNetwork() {
       } catch {}
       clearTimeoutSafe();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     customer_id,
     serialNumber,
@@ -434,40 +439,53 @@ export default function ConnectToNetwork() {
         toast.error(
           resActivate?.data?.data?.error_message ??
             "Aktivasi gagal. Silakan coba lagi.",
-          { id: "refresh" }
+          { id: "refresh" },
         );
         return;
       }
 
-      // 🔹 3. Jika aktivasi sukses → LANJUT KE SETTING
+      // 🔹 3a. Jika aktivasi sukses → abaikan ping test, LANJUT KE SETTING
       if (activateSuccess) {
+        activateSuccessRef.current = true;
         setActivateStatus("success");
-        setInternetStatus("loading");
-        setScreen("loading");
 
-        try {
-          const resInternet = await refreshTask({ type: "ping-test-activate" });
-          if (resInternet?.data?.code === 0) {
-            setInternetStatus("success");
-            handleActivationSuccess("api");
-          } else if (resInternet?.data?.code === 2) {
-            setInternetStatus("loading");
-            toast.success("Verifikasi koneksi internet sedang berlangsung...", {
-              id: "refresh",
-            });
-          } else {
-            setInternetStatus("failed");
-            toast.error("Gagal memulai verifikasi koneksi internet", {
-              id: "refresh",
-            });
-          }
-        } catch (err: any) {
-          setInternetStatus("failed");
-          toastErrorFromAPI(err, "refresh");
-        }
+        // di force, ga peduli hasil ping test
+        setInternetStatus("success");
+        handleActivationSuccess("api");
 
         return;
       }
+
+      // JANGAN DI HAPUS
+      // 🔹 3b. Jika aktivasi sukses → cek ping test dulu, akan sukses jika timeout 10 menit
+      // if (activateSuccess) {
+      //   setActivateStatus("success");
+      //   setInternetStatus("loading");
+      //   setScreen("loading");
+
+      //   try {
+      //     const resInternet = await refreshTask({ type: "ping-test-activate" });
+      //     if (resInternet?.data?.code === 0) {
+      //       setInternetStatus("success");
+      //       handleActivationSuccess("api");
+      //     } else if (resInternet?.data?.code === 2) {
+      //       setInternetStatus("loading");
+      //       toast.success("Verifikasi koneksi internet sedang berlangsung...", {
+      //         id: "refresh",
+      //       });
+      //     } else {
+      //       setInternetStatus("failed");
+      //       toast.error("Gagal memulai verifikasi koneksi internet", {
+      //         id: "refresh",
+      //       });
+      //     }
+      //   } catch (err: any) {
+      //     setInternetStatus("failed");
+      //     toastErrorFromAPI(err, "refresh");
+      //   }
+
+      //   return;
+      // }
 
       // 🔹 4. Jika activate pending → tetap di loading (tunggu SSE)
       setActivateStatus("loading");
@@ -508,7 +526,7 @@ export default function ConnectToNetwork() {
         toast.success(
           res.data.message ||
             "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
-          { id: "activate" }
+          { id: "activate" },
         );
 
         // Set status ke loading karena SSE akan menangani update selanjutnya
@@ -524,7 +542,7 @@ export default function ConnectToNetwork() {
       toast.dismiss("activate");
       toastErrorFromAPI(
         err,
-        "Gagal mengirim permintaan aktivasi. Silakan coba lagi."
+        "Gagal mengirim permintaan aktivasi. Silakan coba lagi.",
       );
 
       // Simpan percobaan gagal
@@ -545,18 +563,30 @@ export default function ConnectToNetwork() {
     addUrlParam("section", "setting");
   }
 
+  useEffect(() => {
+    const getPhoneCS = async () => {
+      const resSetting = await getSetting("cs_phone");
+
+      setPhoneCSIRA(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111",
+      );
+    };
+
+    getPhoneCS();
+  }, []);
+
   async function contactCS() {
     const msg = encodeURIComponent(
-      `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSerial Number CPE: ${serialNumber}`
+      `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSerial Number CPE: ${serialNumber}`,
     );
     try {
       const resPhone = await getDealerSuppPhone();
 
       if (resPhone.data.statusCode === 200) {
-        const phone =
-          resPhone.data?.data?.cs_phone_number ??
-          process.env.NEXT_PUBLIC_PHONE_CS ??
-          "6281110689111";
+        const phone = resPhone.data?.data?.cs_phone_number ?? phoneCSIRA;
+
         window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
       }
     } catch (err: any) {
@@ -566,6 +596,7 @@ export default function ConnectToNetwork() {
 
   const handleRestart = () => {
     activationConfirmedRef.current = false;
+    activateSuccessRef.current = false;
 
     setSseStatus("connecting");
     setScreen("loading");

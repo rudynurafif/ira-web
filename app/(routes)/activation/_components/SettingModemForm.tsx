@@ -19,6 +19,7 @@ import Loader from "@/app/_components/Loader";
 import { useSSEOneTime } from "@/app/hooks/useSSEOneTime";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 interface FormType {
   ssid_24ghz: string;
@@ -46,8 +47,8 @@ function SettingModemForm() {
   const sn = params.get("serial_number")
     ? params.get("serial_number")
     : typeof window !== "undefined"
-    ? localStorage.getItem("ira-cpe-serial-number")
-    : null;
+      ? localStorage.getItem("ira-cpe-serial-number")
+      : null;
 
   const token = getCookie("token-ira");
   const decodedToken = useMemo(() => {
@@ -434,13 +435,18 @@ function SettingModemForm() {
                 !isFormValid || isSubmitting || isWaitingForSetWifi
                   ? "bg-primary/50 cursor-not-allowed"
                   : "cursor-pointer bg-primary hover:bg-dark-primary-2"
-              } shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl`}
+              } flex items-center gap-1 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl`}
             >
+              {isWaitingForSetWifi || isSubmitting}
+              <AiOutlineLoading3Quarters
+                className="animate-spin text-primary"
+                size={18}
+              />
               {isWaitingForSetWifi
                 ? "Menunggu konfirmasi"
                 : isSubmitting
-                ? "Menyimpan..."
-                : "Simpan"}
+                  ? "Menyimpan..."
+                  : "Simpan"}
             </button>
 
             <div className="mx-auto flex justify-center pt-2">
