@@ -65,7 +65,7 @@ const BannerLatest = () => {
             width={360}
             height={360}
             priority
-            className="m-0! p-0! object-contain! block select-none"
+            className="m-0! p-0! object-contain! block"
           />
         </div>
 
@@ -76,7 +76,7 @@ const BannerLatest = () => {
           </h3>
 
           {/* CARD */}
-          <div className="w-full max-w-[420px]">
+          <div className="w-full max-w-105">
             <div className="rounded-2xl overflow-hidden bg-white shadow-[0_14px_30px_rgba(0,0,0,0.25)]">
               {/* Header merah */}
               <div className="bg-gradient-red py-2.5 text-center text-base font-semibold tracking-wide uppercase">

@@ -16,8 +16,8 @@ const CpeActivationPage = () => {
       const resSetting = await getSetting("cs_phone");
 
       setPhoneCS(
-        resSetting.data?.data?.value ||
-          process.env.NEXT_PUBLIC_PHONE_CS ||
+        resSetting.data?.data?.value ??
+          process.env.NEXT_PUBLIC_PHONE_CS ??
           "6281110689111"
       );
     };
