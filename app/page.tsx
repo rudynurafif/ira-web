@@ -7,6 +7,7 @@ import WhyFWAPage from "./Homepage/WhyFWAPage";
 import { verifyOtp } from "@/app/_api/Auth/Auth";
 import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
+import CookieHandler from "./_components/CookieHandler";
 
 export default function Home() {
   const router = useRouter();
@@ -60,6 +61,8 @@ export default function Home() {
 
   return (
     <div>
+      <CookieHandler />
+
       {isVerifying && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg text-center shadow-lg">

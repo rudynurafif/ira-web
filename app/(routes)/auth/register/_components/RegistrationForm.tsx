@@ -641,11 +641,11 @@ function RegistrationForm({
     }
   }
 
-  // useEffect(() => {
-  //   console.log(formData);
-  //   // console.log("mitra IDs: ", mitraID);
-  //   // console.log("bts IDs: ", btsID);
-  // }, [btsID, formData, mitraID]);
+  useEffect(() => {
+    console.log(formData);
+    // console.log("mitra IDs: ", mitraID);
+    // console.log("bts IDs: ", btsID);
+  }, [btsID, formData, mitraID]);
 
   function resetForm() {
     setFormData(initialFormData);
