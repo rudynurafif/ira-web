@@ -128,6 +128,16 @@ function Header() {
     };
   }, [showDropdown]);
 
+  const handleAuthButton = () => {
+    if (pathname === "/auth/login") {
+      router.push("/auth/register");
+    } else if (pathname === "/auth/register") {
+      router.push("/auth/login");
+    } else {
+      router.push("/auth/login");
+    }
+  };
+
   const AuthButton = () => {
     if (isLoggedIn) {
       return (
@@ -181,11 +191,11 @@ function Header() {
 
     return isLoading ? (
       <div className="h-11 w-50 max-sm:h-8 max-sm:w-8 rounded-full">
-        <SkeletonBase height="h-11" />
+        <SkeletonBase className="cursor-not-allowed" height="h-11" />
       </div>
     ) : (
       <button
-        onClick={() => router.push("/auth/login")}
+        onClick={handleAuthButton}
         disabled={isLoading}
         className={`flex gap-1 items-center disabled:bg-slate-400 disabled:cursor-not-allowed ${
           pathname === "/"
@@ -332,15 +342,17 @@ function Header() {
                   </button>
                 </div>
               ) : (
-                <Link
-                  href="/auth/login"
-                  className={`flex gap-1 justify-center items-center ${
+                <button
+                  className={`flex w-full gap-1 justify-center items-center ${
                     pathname === "/" ? "bg-button-login" : "bg-primary"
                   } text-white rounded-full px-5 py-2.5 font-medium`}
-                  onClick={() => setIsOpenMenu(false)}
+                  onClick={() => {
+                    handleAuthButton();
+                    setIsOpenMenu(false);
+                  }}
                 >
                   <FaRegUser /> Masuk/Daftar
-                </Link>
+                </button>
               )}
             </div>
           </div>

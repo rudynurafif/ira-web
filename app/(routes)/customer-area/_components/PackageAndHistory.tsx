@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { getCustomerPackage } from "@/app/_api/Customer/CustomerArea";
+import { checkPackage } from "@/app/_api/Customer/CustomerArea";
 import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppSelector } from "@/app/store/store";
@@ -10,86 +10,126 @@ import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
 import bannerPanduanMobile from "@/public/assets/Images/bannerPanduanMobile.png";
 import bannerCS from "@/public/assets/Images/bannerCS.png";
 import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
+import bannerCubmu from "@/public/assets/Images/banner-cubmu.png";
+import bannerCubmuMobile from "@/public/assets/Images/banner-cubmu-mobile.png";
 import ActivePackageCard from "./ActivePackageCard";
-import SubsHistoryCard from "./SubsHistoryCard";
-import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
-import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
-import empty from "@/public/assets/Images/Empty.svg";
-import toast from "react-hot-toast";
-import DatePickerFilter from "@/app/_components/form/DatePickerFilter";
+import { packageCountdown, toastErrorFromAPI } from "@/app/_shared/utils";
 import HistorySection from "./HistorySection";
 import thumbClick from "@/public/assets/Icons/thumb-click.png";
-import Link from "next/link";
-import { FaSearchLocation } from "react-icons/fa";
+import ExpiredCard from "../ExpiredCard";
+import InactiveCard from "../InactiveCard";
+import { getAddOn } from "@/app/_api/AddOn/AddOn";
+import { Carousel } from "react-responsive-carousel";
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import ModalTemplate from "@/app/_components/modal/ModalTemplate";
+import limitImage from "@/public/assets/Images/limit-images.png";
+import {
+  selectActivePackage,
+  selectCustomerPackages,
+  selectCustomerPackageState,
+} from "@/app/store/slice/customerPackageSlice";
+import { getSetting } from "@/app/_api/Settings/Settings";
 
 const PAGE_SIZE = 5;
 
 const PackageAndHistory = () => {
-  const [activePacketData, setActivePacketData] =
-    useState<SubscriptionHistoryAPI | null>(null);
-  const [subscriptionHistory, setSubscriptionHistory] = useState<
-    SubscriptionHistoryAPI[]
-  >([]);
-  const [totalPages, setTotalPages] = useState(1);
+  const pkgState = useAppSelector(selectCustomerPackageState);
+  const activePacketData = useAppSelector(selectActivePackage);
+  const allHistory = useAppSelector(selectCustomerPackages);
+
   const [currentPage, setCurrentPage] = useState(1);
+  // const [subscriptionHistory, setSubscriptionHistory] = useState<
+  //   SubscriptionHistoryAPI[]
+  // >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const searchParams = useSearchParams();
+  const { label, status, days } = packageCountdown(
+    activePacketData?.end_date ?? null,
+  );
+  const [isInactive, setIsInactive] = useState<boolean | null>(null);
 
   const { userInfo, is_coverage } = useAppSelector((state) => state.auth);
   const router = useRouter();
-  const phoneCS = process.env.NEXT_PUBLIC_PHONE_CS || "6281110689111";
+  const [addOns, setAddOns] = useState([]);
+
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
   const [startDateFilter, setStartDateFilter] = useState<any>();
   const [endDateFilter, setEndDateFilter] = useState<any>();
+  const [phoneCS, setPhoneCS] = useState<string | null>("");
 
-  // Fetch paket aktif (hanya sekali, tidak dipengaruhi pagination)
   useEffect(() => {
-    const fetchActivePackage = async () => {
+    const getPhoneCS = async () => {
+      const resSetting = await getSetting("cs_phone");
+
+      setPhoneCS(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111",
+      );
+    };
+
+    getPhoneCS();
+  }, []);
+
+  // pagination client-side
+  const totalPages = Math.max(
+    1,
+    Math.ceil((allHistory?.length ?? 0) / PAGE_SIZE),
+  );
+  const subscriptionHistory = (allHistory ?? []).slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  const [latestIsFree, setLatestIsFree] = useState(false);
+  useEffect(() => {
+    if (activePacketData) {
+      const packageName = activePacketData.package_id?.name || "";
+      const normalized = packageName.toLowerCase();
+      const isFree =
+        normalized.includes("free") ||
+        normalized.includes("demo") ||
+        normalized.includes("gratis");
+
+      setLatestIsFree(isFree);
+    }
+  }, [activePacketData]);
+
+  useEffect(() => {
+    const fetchAddon = async () => {
       try {
-        const res = await getCustomerPackage({
-          page: 1,
-          pageSize: 1,
-        });
-        const data = res.data?.data || [];
-        if (data[0]) {
-          const isActive = data[0].start_date && data[0].end_date;
-          setActivePacketData(isActive ? data[0] : null);
-        }
+        const resAddon = await getAddOn({});
+        setAddOns(resAddon.data.result || []);
       } catch (err) {
         toastErrorFromAPI(err);
+      } finally {
       }
     };
 
-    fetchActivePackage();
+    fetchAddon();
   }, []);
-
-  // Fetch riwayat dengan pagination
-  const fetchHistory = async (page: number) => {
-    setIsLoadingHistory(true);
-    try {
-      const res = await getCustomerPackage({
-        page,
-        pageSize: PAGE_SIZE,
-      });
-
-      const data = res.data?.data || [];
-      const total = res.data?.total || 0;
-      const pages = Math.ceil(total / PAGE_SIZE);
-
-      setSubscriptionHistory(data);
-      setTotalPages(pages);
-    } catch (err: any) {
-      toastErrorFromAPI(err);
-      setSubscriptionHistory([]);
-      setTotalPages(1);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  };
 
   useEffect(() => {
-    fetchHistory(1);
-  }, []);
+    if (userInfo) setIsInactive(userInfo?.status === "inactive");
+  }, [isInactive, userInfo, userInfo?.status]);
+
+  const handleCheckPackage: () => Promise<void> = async () => {
+    try {
+      const res = await checkPackage();
+
+      if (res?.data?.data === true) {
+        setIsAllowed(true);
+        router.push("/payment/payment-methods");
+      } else {
+        setOpenModalNotAllowed(true);
+        return;
+      }
+    } catch (err) {
+      toastErrorFromAPI(err);
+    }
+  };
 
   const isFetching = !userInfo;
   if (isFetching) return <SkeletonLoadingCard />;
@@ -112,12 +152,12 @@ const PackageAndHistory = () => {
           <div className="bg-white rounded-lg shadow-lg p-0.5 w-full">
             {/* Header Merah */}
             <div
-              className="bg-linear-to-r text-white text-center py-2 rounded-t-lg font-bold text-sm"
+              className="bg-linear-to-r text-white text-center p-2 rounded-t-lg font-bold text-sm"
               style={{
                 background: "linear-gradient(to right, #520201, #9C1816)",
               }}
             >
-              {activePacketData?.package_id.name || "Paket Internet Rakyat"}
+              {activePacketData?.package_id?.name || "Paket Internet Rakyat"}
             </div>
 
             {/* Body: Speed & Price */}
@@ -127,7 +167,7 @@ const PackageAndHistory = () => {
                   Internet sampai dengan
                 </div>
                 <div className="text-2xl font-extrabold text-gradient-red">
-                  {activePacketData?.package_id.speed_mbps || "Speed"}{" "}
+                  {activePacketData?.package_id?.speed_mbps || "Speed"}{" "}
                   <span className="sm:text-base text-xs">Mbps</span>
                 </div>
               </div>
@@ -139,7 +179,7 @@ const PackageAndHistory = () => {
                     Rp{" "}
                   </span>
                   {activePacketData
-                    ? activePacketData.package_id.price
+                    ? activePacketData.package_id?.price
                         .toLocaleString("id-ID")
                         .replace(/,/g, ".")
                     : "0"}
@@ -174,105 +214,137 @@ const PackageAndHistory = () => {
             </div>
           </div>
 
-          <div className="relative min-w-[100px] cursor-pointer hidden sm:block hover:scale-110 transition-transform">
-            <Image
-              src="/assets/Images/button-beli-lagi-home.png"
-              alt="button-beli-lagi-home"
-              width={100}
-              height={152}
-              onClick={() => {
-                sessionStorage.setItem(
-                  "selectedPackage",
-                  JSON.stringify(activePacketData?.package_id)
-                );
-                router.push("payment/payment-methods");
-              }}
-              className="relative z-10"
+          {!latestIsFree && (
+            <div className="relative min-w-[100px] cursor-pointer hidden sm:block hover:scale-110 transition-transform">
+              <Image
+                src="/assets/Images/button-beli-lagi-home.png"
+                alt="button-beli-lagi-home"
+                width={100}
+                height={152}
+                // onClick={() => {
+                //   sessionStorage.setItem(
+                //     "selectedPackage",
+                //     JSON.stringify(activePacketData?.package_id)
+                //   );
+                //   router.push("payment/payment-methods");
+                // }}
+                onClick={handleCheckPackage}
+                className="relative z-10"
+                style={{
+                  filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
+                }}
+              />
+              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+                <div
+                  className="absolute top-0 h-full"
+                  style={{
+                    width: "100px",
+                    background:
+                      "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                    transform: "skew(-20deg)",
+                    animation: "sweep-narrow 2.5s infinite ease-out",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {!latestIsFree && (
+          <div className="relative w-full h-[60px] my-3 sm:hidden">
+            <button
+              className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
               style={{
                 filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
               }}
-            />
+              onClick={handleCheckPackage}
+            >
+              Beli Lagi
+              <Image
+                src={thumbClick}
+                alt="button-beli-lagi-home-mobile"
+                width={24}
+                height={24}
+                // unoptimized
+              />
+            </button>
+
             <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
               <div
                 className="absolute top-0 h-full"
                 style={{
-                  width: "100px",
+                  width: "120px",
                   background:
                     "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
                   transform: "skew(-20deg)",
-                  animation: "sweep-narrow 2.5s infinite ease-out",
+                  animation: "sweep-mobile 3s infinite ease-out",
+                  left: "-120px",
                 }}
               />
             </div>
           </div>
-        </div>
-
-        <div className="relative w-full h-[60px] my-3 sm:hidden">
-          <button
-            className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
-            style={{
-              filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
-            }}
-            onClick={() => {
-              sessionStorage.setItem(
-                "selectedPackage",
-                JSON.stringify(activePacketData?.package_id)
-              );
-              router.push("payment/payment-methods");
-            }}
-          >
-            Beli Lagi
-            <Image
-              src={thumbClick}
-              alt="button-beli-lagi-home-mobile"
-              width={24}
-              height={24}
-              // unoptimized
-            />
-          </button>
-
-          <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
-            <div
-              className="absolute top-0 h-full"
-              style={{
-                width: "120px",
-                background:
-                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
-                transform: "skew(-20deg)",
-                animation: "sweep-mobile 3s infinite ease-out",
-                left: "-120px",
-              }}
-            />
-          </div>
-        </div>
+        )}
       </div>
     );
   };
 
   return (
     <>
-      {!is_coverage && (
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <h1 className="text-2xl font-bold text-primary mb-4">
-            Kami sedang menyiapkan layanan di area kamu
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Jangan khawatir! Kami akan segera memberi tahu kamu melalui WhatsApp
-            dan Aplikasi IRA jika layanan kami tersedia di daerahmu.
-          </p>
-          <Link
-            href="/check-coverage"
-            className="flex max-w-fit items-center gap-2 font-bold bg-primary text-white px-6 py-2 rounded-lg hover:bg-dark-primary-2"
-          >
-            <FaSearchLocation />
-            Cek Jangkauan Terbaru
-          </Link>
-        </div>
-      )}
-
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
-        {activePacketData && <ActivePackageCard data={activePacketData} />}
+        {activePacketData && isInactive ? (
+          <InactiveCard data={activePacketData} />
+        ) : userInfo.status === "dismantled" ||
+          userInfo.status === "suspend" ? (
+          <ExpiredCard data={activePacketData} isDismantled={true} />
+        ) : status === "expired" ? (
+          <ExpiredCard data={activePacketData} />
+        ) : activePacketData ? (
+          <ActivePackageCard data={activePacketData} />
+        ) : null}
+
+        {/* Banner Cubmu */}
+        {addOns.length > 0 && (
+          <div className="relative w-full">
+            <Carousel
+              autoPlay
+              interval={5000}
+              infiniteLoop
+              showThumbs={false}
+              showStatus={false}
+              showIndicators={addOns.length > 1}
+              swipeable={true}
+              emulateTouch={true}
+              stopOnHover={true}
+              onChange={(index) => {
+                // opsional: logika saat slide berubah
+              }}
+            >
+              {addOns.map((addon: any, idx: number) => {
+                // Asumsi addon memiliki field: banner_url (string) dan slug (string)
+                const bannerUrl = addon.banner_url || bannerCubmuMobile;
+                const link = `/add-on/${addon.id}`;
+
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => window.open(link, "_blank")}
+                    className="cursor-pointer"
+                  >
+                    <Image
+                      src={bannerUrl}
+                      alt={`Banner ${addon.name || "Add-on"}`}
+                      width={800} // sesuaikan dengan ukuran asli banner
+                      height={400} // penting untuk Next.js Image
+                      className="w-full object-cover drop-shadow-lg hover:scale-[1.02] transition-transform"
+                      priority={idx === 0} // preload slide pertama
+                    />
+                  </div>
+                );
+              })}
+            </Carousel>
+          </div>
+        )}
 
         <Image
           src={bannerCSMobile}
@@ -281,22 +353,77 @@ const PackageAndHistory = () => {
           onClick={() => window.open(`https://wa.me/${phoneCS}`, "_blank")}
         />
 
-        {activePacketData && <LatestPackage />}
+        {activePacketData?.package_id && <LatestPackage />}
 
         <Image
           src={bannerPanduanMobile}
           alt="Banner Panduan"
           className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
-          onClick={() => window.open("/pandaan-cara-bayar", "_blank")}
+          onClick={() => window.open("/panduan-cara-bayar", "_blank")}
         />
 
-        {is_coverage && <HistorySection />}
+        {is_coverage &&
+          (userInfo.status === "active" ||
+            userInfo.status === "suspend" ||
+            userInfo.status === "dismantled") && <HistorySection />}
       </div>
 
       {/* DESKTOP (≥ sm) */}
       <div className="hidden sm:grid grid-cols-12 gap-6">
         <div className="lg:col-span-5 col-span-12 space-y-5">
-          {activePacketData && <ActivePackageCard data={activePacketData} />}
+          {activePacketData && isInactive ? (
+            <InactiveCard data={activePacketData} />
+          ) : userInfo.status === "dismantled" ||
+            userInfo.status === "suspend" ? (
+            <ExpiredCard data={activePacketData} isDismantled={true} />
+          ) : status === "expired" ? (
+            <ExpiredCard data={activePacketData} />
+          ) : activePacketData ? (
+            <ActivePackageCard data={activePacketData} />
+          ) : null}
+
+          {addOns.length > 0 && (
+            <div className="relative w-full">
+              <Carousel
+                autoPlay
+                interval={5000}
+                infiniteLoop
+                showThumbs={false}
+                showStatus={false}
+                showIndicators={addOns.length > 1}
+                swipeable={true}
+                emulateTouch={true}
+                stopOnHover={true}
+                onChange={(index) => {
+                  // opsional: logika saat slide berubah
+                }}
+              >
+                {addOns.map((addon: any, idx: number) => {
+                  // Asumsi addon memiliki field: banner_url (string) dan slug (string)
+                  const bannerUrl = addon.banner_url || bannerCubmu;
+                  const link = `/add-on/${addon.id}`;
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => window.open(link, "_blank")}
+                      className="cursor-pointer"
+                    >
+                      <Image
+                        src={bannerUrl}
+                        alt={`Banner ${addon.name || "Add-on"}`}
+                        width={800} // sesuaikan dengan ukuran asli banner
+                        height={400} // penting untuk Next.js Image
+                        className="w-full object-cover drop-shadow-lg hover:scale-[1.02] transition-transform"
+                        priority={idx === 0} // preload slide pertama
+                      />
+                    </div>
+                  );
+                })}
+              </Carousel>
+            </div>
+          )}
+
           <Image
             src={bannerCS}
             alt="banner CS"
@@ -307,7 +434,7 @@ const PackageAndHistory = () => {
 
         <div className="lg:col-span-7 col-span-12 flex flex-col gap-6">
           {/* Paket terakhir dibeli */}
-          {activePacketData && <LatestPackage />}
+          {activePacketData?.package_id && <LatestPackage />}
 
           <Image
             src={bannerPanduan}
@@ -316,9 +443,60 @@ const PackageAndHistory = () => {
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
 
-          {is_coverage && <HistorySection />}
+          {is_coverage &&
+            (userInfo.status === "active" ||
+              userInfo.status === "suspend" ||
+              userInfo.status === "dismantled") && <HistorySection />}
         </div>
       </div>
+
+      {openModalNotAllowed && (
+        <ModalTemplate
+          closeModal={() => {
+            setOpenModalNotAllowed(false);
+          }}
+        >
+          <div className="p-6 mt-6">
+            <div className="flex justify-center">
+              <Image
+                src={limitImage}
+                width={170}
+                height={170}
+                alt="limit-image"
+              />
+            </div>
+
+            <h3 className="text-2xl font-bold text-center text-primary mt-6">
+              Paket Anda Masih Aktif
+            </h3>
+
+            <div className="mt-4">
+              <p className="text-center">
+                Anda tidak dapat membeli paket selama paket masih aktif
+              </p>
+              {/* <p className="text-black ">
+                Kamu hanya bisa memiliki dua paket kuota internet, ya!
+              </p>
+              <ol className="mt-3 font-bold text-left list-decimal pl-5 space-y-1 text-black">
+                <li>Paket aktif yang sedang digunakan.</li>
+                <li>Paket tambahan yang baru saja dibeli.</li>
+              </ol>
+              <p className="mt-4 text-black">
+                Anda tidak dapat membeli paket kuota ketiga selama paket aktif
+                dan tambahan masih aktif.
+              </p> */}
+            </div>
+
+            <button
+              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+              onClick={() => setOpenModalNotAllowed(false)}
+              // disabled={!selectedPackage}
+            >
+              Oke, Mengerti
+            </button>
+          </div>
+        </ModalTemplate>
+      )}
     </>
   );
 };

@@ -17,7 +17,7 @@ function ModalTemplate({
 
       {/* Modal Container */}
       <div
-        className={`relative bg-white rounded-2xl max-h-[90vh] w-full max-w-2xl overflow-hidden ${
+        className={`relative bg-white rounded-2xl max-h-[90vh] w-full max-w-2xl  ${
           classNameModal || ""
         }`}
       >

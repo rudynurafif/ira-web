@@ -14,10 +14,6 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
     window.location.href = "/customer-area";
   };
 
-  const toHomePage = () => {
-    window.location.href = "/";
-  };
-
   return (
     <div className="">
       <div className="flex justify-center">
@@ -41,7 +37,7 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
       {isCovered ? (
         <div className="text-center">
           <button
-            className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer"
+            className="w-full py-3 font-bold text-white bg-primary hover:bg-dark-primary-2 mt-8 rounded-xl cursor-pointer"
             onClick={toCustomerArea}
           >
             Pantau pengiriman di sini
@@ -51,7 +47,7 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
         <div className="text-center">
           <button
             className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer"
-            onClick={toHomePage}
+            onClick={toCustomerArea}
           >
             Selesai
           </button>

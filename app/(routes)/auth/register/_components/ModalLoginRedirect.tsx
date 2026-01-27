@@ -47,7 +47,7 @@ export default function ModalLoginRedirect({
           onClick={onClose}
           className="w-full border-2 cursor-pointer border-primary bg-white hover:bg-red-50 text-primary font-semibold py-3 rounded-xl"
         >
-          Daftar Nomor HP Baru
+          Daftar Nomor HP Lain
         </button>
       </div>
     </div>

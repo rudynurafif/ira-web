@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { PackageData } from "@/app/_shared/types/customer-area";
 import {
+  checkPackage,
   getCustomerPackage,
   getPackageList,
 } from "@/app/_api/Customer/CustomerArea";
 import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
-import ccSvg from "@/public/assets/Icons/payment-method/credit-card-svg.svg";
 import {
   PaymentChannel,
   SubscriptionHistoryAPI,
@@ -21,17 +21,17 @@ import {
   createPaymentRequestQRIS,
   createPaymentRequestVA,
 } from "@/app/_api/Payment/Payment";
-import { IoIosArrowForward } from "react-icons/io";
 import Loader from "@/app/_components/Loader";
 import ErrorFallback from "@/app/_components/ErrorFallback";
-import { PAYMENT_LOGOS } from "@/app/_shared/data/payment";
-import BannerLatest from "./_components/BannerLatest";
 import bannerPerpanjang from "@/public/assets/Images/banner-perpanjang-paket.png";
 import bannerPerpanjangMobile from "@/public/assets/Images/banner-perpanjangan-paket-mobile.png";
 import PackageCardMobile from "./_components/PackageCardMobile";
+import ModalTemplate from "@/app/_components/modal/ModalTemplate";
+import limitImage from "@/public/assets/Images/limit-images.png";
 
 const Payment = () => {
   const router = useRouter();
+
   const selectedPackageFromSession = (() => {
     if (typeof window === "undefined") return null;
     const item = sessionStorage.getItem("selectedPackage");
@@ -55,13 +55,16 @@ const Payment = () => {
 
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
-    selectedPackageFromSession
+    selectedPackageFromSession,
   );
   const [latestPackage, setLatestPackage] =
     useState<SubscriptionHistoryAPI | null>(null);
+  const [isLatestPackageFree, setIsLatestPackageFree] = useState(false);
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
-    selectedChannelFromLS
+    selectedChannelFromLS,
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,12 +111,23 @@ const Payment = () => {
         if (isActive) {
           setLatestPackage(latest);
 
-          // ✅ jadikan default selectedPackage
-          setSelectedPackage(latest.package_id);
-          sessionStorage.setItem(
-            "selectedPackage",
-            JSON.stringify(latest.package_id)
-          );
+          // ✅ Cek apakah nama paket mengandung kata "free", "demo", atau "gratis"
+          const packageName = latest.package_id?.name || "";
+          const normalized = packageName.toLowerCase();
+          const isFree =
+            normalized.includes("free") ||
+            normalized.includes("demo") ||
+            normalized.includes("gratis");
+
+          setIsLatestPackageFree(isFree);
+
+          if (!isFree) {
+            setSelectedPackage(latest.package_id);
+            sessionStorage.setItem(
+              "selectedPackage",
+              JSON.stringify(latest.package_id),
+            );
+          }
         }
       } catch (err) {
         toastErrorFromAPI(err);
@@ -158,7 +172,7 @@ const Payment = () => {
           break;
         case "card":
           toast.error(
-            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`
+            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`,
           );
           return;
         default:
@@ -168,7 +182,7 @@ const Payment = () => {
       const paymentReqID = (await createRes)?.data?.data?.id;
       sessionStorage.setItem(
         "paymentInfo",
-        JSON.stringify((await createRes).data.data)
+        JSON.stringify((await createRes).data.data),
       );
 
       if (!paymentReqID) {
@@ -176,10 +190,28 @@ const Payment = () => {
       }
 
       router.push(
-        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`
+        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
       );
     } catch (error: any) {
       toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
+    }
+  };
+
+  const handleCheckPackage: () => Promise<void> = async () => {
+    // router.push("/payment/payment-methods");
+
+    try {
+      const res = await checkPackage();
+
+      if (res?.data?.data === true) {
+        setIsAllowed(true);
+        router.push("/payment/payment-methods");
+      } else {
+        setOpenModalNotAllowed(true);
+        return;
+      }
+    } catch (err) {
+      toastErrorFromAPI(err);
     }
   };
 
@@ -208,38 +240,36 @@ const Payment = () => {
       />
 
       <div className="sm:p-6 sm:shadow-lg my-8 rounded-lg">
-        <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
-          Paket yang terakhir dibeli
-        </h2>
+        {latestPackage && !isLatestPackageFree && (
+          <>
+            <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
+              Paket yang terakhir dibeli
+            </h2>
 
-        <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
-          {latestPackage ? (
-            <PackageCardMobile
-              pkg={latestPackage.package_id}
-              selected={selectedPackage?.id === latestPackage.package_id.id}
-              onSelect={handleSelect}
-              convertToCurrency={convertToCurrency}
-            />
-          ) : (
-            <div className="text-gray-500 italic">
-              Anda belum memiliki paket aktif
+            <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
+              <PackageCardMobile
+                pkg={latestPackage.package_id}
+                selected={selectedPackage?.id === latestPackage?.package_id?.id}
+                onSelect={handleSelect}
+                convertToCurrency={convertToCurrency}
+              />
             </div>
-          )}
-        </div>
 
-        <div className="border border-gray-border my-6"></div>
+            <div className="border border-gray-border my-6"></div>
+          </>
+        )}
 
         <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
-          Paket lainnya
+          {isLatestPackageFree ? "Daftar Paket" : "Paket Lainnya"}
         </h2>
 
         <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
-          {packages && packages.length ? (
+          {packages && packages?.length ? (
             packages.map((pkg) => (
               <PackageCardMobile
                 key={pkg.id}
                 pkg={pkg}
-                selected={selectedPackage?.id === pkg.id}
+                selected={selectedPackage?.id === pkg?.id}
                 onSelect={handleSelect}
                 convertToCurrency={convertToCurrency}
               />
@@ -298,13 +328,61 @@ const Payment = () => {
           <button
             className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
             // onClick={handleCreatePayment}
-            onClick={() => router.push("/payment/payment-methods")}
+            onClick={handleCheckPackage}
             disabled={!selectedPackage}
           >
             Pilih Metode Pembayaran
           </button>
         </div>
       </div>
+
+      {openModalNotAllowed && (
+        <ModalTemplate
+          closeModal={() => {
+            setOpenModalNotAllowed(false);
+          }}
+        >
+          <div className="p-6 mt-6">
+            <div className="flex justify-center">
+              <Image
+                src={limitImage}
+                width={170}
+                height={170}
+                alt="limit-image"
+              />
+            </div>
+
+            <h3 className="text-2xl font-bold text-center text-primary mt-6">
+              Paket Anda Masih Aktif
+            </h3>
+
+            <div className="mt-4">
+              <p className="text-center">
+                Anda tidak dapat membeli paket selama paket masih aktif
+              </p>
+              {/* <p className="text-black ">
+                Kamu hanya bisa memiliki dua paket kuota internet, ya!
+              </p>
+              <ol className="mt-3 font-bold text-left list-decimal pl-5 space-y-1 text-black">
+                <li>Paket aktif yang sedang digunakan.</li>
+                <li>Paket tambahan yang baru saja dibeli.</li>
+              </ol>
+              <p className="mt-4 text-black">
+                Anda tidak dapat membeli paket kuota ketiga selama paket aktif
+                dan tambahan masih aktif.
+              </p> */}
+            </div>
+
+            <button
+              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+              onClick={() => setOpenModalNotAllowed(false)}
+              disabled={!selectedPackage}
+            >
+              Oke, Mengerti
+            </button>
+          </div>
+        </ModalTemplate>
+      )}
     </div>
   );
 };

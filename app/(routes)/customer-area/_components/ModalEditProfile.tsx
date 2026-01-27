@@ -23,6 +23,12 @@ import {
 } from "@/app/_shared/utils";
 import { getUser } from "@/app/store/slice/authSlice";
 import { useAppDispatch } from "@/app/store/store";
+import {
+  sanitizeAddress,
+  sanitizeAlphanumeric,
+  sanitizeEmail,
+  sanitizeName,
+} from "@/app/_shared/utils/formatter";
 
 type Props = {
   open: boolean;
@@ -38,6 +44,8 @@ type Props = {
     phone_number: string;
     email: string;
     actual_address: string;
+    latitude: number;
+    longitude: number;
   }>;
 };
 
@@ -82,6 +90,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
   const [phone_number, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [actualAddress, setActualAddress] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [latitude, setLatitude] = useState("");
   const otpCacheRef = useRef<Record<string, string>>({});
   const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null);
   const [otp, setOtp] = useState<string>("");
@@ -100,6 +110,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
       setPhoneNumber(initial?.phone_number ?? "");
       setEmail(initial?.email ?? "");
       setActualAddress(initial?.actual_address ?? "");
+      setLongitude(initial?.longitude ? String(initial.longitude) : "");
+      setLatitude(initial?.latitude ? String(initial.latitude) : "");
 
       baselineRef.current = {
         name: initial?.name ?? "",
@@ -123,6 +135,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
     initial?.phone_number,
     initial?.email,
     initial?.actual_address,
+    initial?.longitude,
+    initial?.latitude,
   ]);
 
   useEffect(() => {
@@ -329,15 +343,10 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 name="name"
                 value={name}
                 onChange={(value: string) => {
-                  const filtered = value.replace(/[^a-zA-Z\s.\-]/g, "");
+                  const filtered = sanitizeName(value);
                   setName(filtered);
 
-                  if (!NAME_REGEX.test(filtered)) {
-                    setErrors((e) => ({
-                      ...e,
-                      name: "Nama hanya boleh huruf, spasi, titik, atau tanda hubung",
-                    }));
-                  } else if (filtered.length < 2) {
+                  if (filtered.length < 2) {
                     setErrors((e) => ({ ...e, name: "Nama minimal 2 huruf" }));
                   } else {
                     setErrors((e) => ({ ...e, name: "" }));
@@ -355,6 +364,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 storageKey={`otp:change-profile:phone_number`}
                 otpDurationSec={0}
                 label="Nomor Handphone"
+                inputMode="numeric"
                 name="phone_number"
                 onChange={(value: string) => {
                   const digitsOnly = value.replace(/\D/g, "").slice(0, 15);
@@ -400,7 +410,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                   isDisabled={otpStatus === "valid"}
                   name="otp"
                   onChange={(value: string) => {
-                    setOtp(value);
+                    const cleaned = sanitizeAlphanumeric(value);
+                    setOtp(cleaned);
                   }}
                   onComplete={(val) => {
                     handleVerifyOtp(val);
@@ -444,14 +455,16 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 name="email"
                 value={email}
                 onChange={(value: string) => {
-                  setEmail(value);
+                  const cleaned = sanitizeEmail(value);
 
-                  if (value && !EMAIL_REGEX.test(value)) {
+                  setEmail(cleaned);
+
+                  if (cleaned && !EMAIL_REGEX.test(cleaned)) {
                     setErrors((e) => ({
                       ...e,
                       email: "Format email tidak valid",
                     }));
-                  } else if (initial?.email && !value) {
+                  } else if (initial?.email && !cleaned) {
                     setErrors((e) => ({
                       ...e,
                       email: "Email tidak bisa dihapus, hanya bisa diganti",
@@ -480,17 +493,20 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 type="textarea"
                 isImportant
                 rows={4}
+                showCopyButton={false}
                 name="actual_address"
                 value={actualAddress}
+                onCopy={(value) => toast.success(`Alamat berhasil disalin`)}
                 onChange={(value: string) => {
-                  setActualAddress(value);
+                  const cleaned = sanitizeAddress(value);
+                  setActualAddress(cleaned);
 
-                  if (value.trim().length > 0 && value.trim().length < 5) {
+                  if (cleaned.trim().length > 0 && cleaned.trim().length < 5) {
                     setErrors((e) => ({
                       ...e,
                       actual_address: "Alamat terlalu pendek",
                     }));
-                  } else if (value.trim().length === 0) {
+                  } else if (cleaned.trim().length === 0) {
                     setErrors((e) => ({
                       ...e,
                       actual_address: "Alamat wajib diisi",
@@ -503,10 +519,45 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 error={errors.actual_address}
               />
             </div>
+
+            {/* Longitude Latitude */}
+            <div className="max-sm:col-span-2 col-span-1">
+              <DynamicForm
+                label="Longitude"
+                isImportant={false}
+                disabled
+                name="longitude"
+                value={longitude}
+                onChange={() => {}}
+                showCopyButton={true}
+                onCopy={(value) =>
+                  toast.success(`Longitude ${value} berhasil disalin`)
+                }
+                placeholder="Masukkan Longitude"
+                error={errors.longitude}
+              />
+            </div>
+
+            <div className="max-sm:col-span-2 col-span-1">
+              <DynamicForm
+                label="Latitude"
+                isImportant={false}
+                name="latitude"
+                value={latitude}
+                disabled
+                onChange={() => {}}
+                showCopyButton={true}
+                onCopy={(value) =>
+                  toast.success(`Latitude ${value} berhasil disalin`)
+                }
+                placeholder="Masukkan Latitude"
+                error={errors.latitude}
+              />
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="flex max-md:flex-col gap-3 md:gap-6 px-6 pb-6">
+          <div className="flex sticky max-md:flex-col gap-3 md:gap-6 p-6 border-t border-t-gray-200 ">
             <button
               type="button"
               onClick={onClose}

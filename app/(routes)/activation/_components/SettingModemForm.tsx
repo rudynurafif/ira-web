@@ -13,11 +13,13 @@ import {
 } from "@/app/_shared/types/CoreNetwork";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import toast from "react-hot-toast";
-import { useSSE } from "@/app/_context/SSEContext";
 import { getCookie } from "cookies-next";
 import { DecodedToken } from "@/app/_context/sse.type";
 import Loader from "@/app/_components/Loader";
 import { useSSEOneTime } from "@/app/hooks/useSSEOneTime";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { IoEyeSharp } from "react-icons/io5";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 interface FormType {
   ssid_24ghz: string;
@@ -41,10 +43,10 @@ function SettingModemForm() {
   const [showPassword5, setShowPassword5] = useState(false);
   const [isLoadingCPE, setIsLoadingCPE] = useState(true);
   const [isWaitingForSetWifi, setIsWaitingForSetWifi] = useState(false);
-  // const { wifiConfig } = useSSE();
 
-  const sn =
-    typeof window !== "undefined"
+  const sn = params.get("serial_number")
+    ? params.get("serial_number")
+    : typeof window !== "undefined"
       ? localStorage.getItem("ira-cpe-serial-number")
       : null;
 
@@ -62,6 +64,23 @@ function SettingModemForm() {
       ssid === null && ssid5 === null && password === null && password5 === null
     );
   };
+
+  useEffect(() => {
+    if (isSubmitting || isWaitingForSetWifi) {
+      // Pasang event handler
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = ""; // Diperlukan untuk beberapa browser
+        return ""; // Meski diabaikan, tetap diperlukan
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [isSubmitting, isWaitingForSetWifi]);
 
   // 🔥 1. Dengarkan SSE untuk `get_wifi` jika API null
   useSSEOneTime(
@@ -83,12 +102,20 @@ function SettingModemForm() {
     (payload: SSEPayload) => payload.type === "get_wifi" && payload.sn === sn // filter event
   );
 
-  // 🔥 2. Dengarkan SSE untuk `set_wifi` setelah submit
+  // 🔥 2. Dengarkan SSE untuk `set wifi` setelah submit
   useSSEOneTime(
     customer_id || "",
-    () => {
+    (payload: SSEPayload) => {
+      const { message } = payload;
+
       setIsWaitingForSetWifi(false);
-      addUrlParam("section", "check_signal");
+
+      if (message === "Success") {
+        toast.success("SSID berhasil diperbarui!");
+        addUrlParam("section", "check_signal");
+      } else {
+        toast.error(message || "Gagal memperbarui SSID. Silakan coba lagi.");
+      }
     },
     isWaitingForSetWifi,
     (payload: SSEPayload) => payload.type === "set_wifi" && payload.sn === sn
@@ -111,6 +138,33 @@ function SettingModemForm() {
     };
 
     fetchCPE();
+  }, []);
+
+  // Cegah back navigation & redirect ke /customer-area jika dipaksa
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Dorong kembali ke halaman ini agar tidak benar-benar keluar
+      window.history.pushState(null, "", window.location.href);
+
+      // Tampilkan konfirmasi
+      const confirmed = window.confirm(
+        "Anda sedang mengatur modem.\nJika Anda meninggalkan halaman ini, perubahan belum tersimpan akan hilang.\n\nYakin ingin kembali?"
+      );
+
+      if (confirmed) {
+        // Redirect ke /customer-area
+        window.location.href = "/customer-area";
+      }
+      // Jika tidak dikonfirmasi, user tetap di halaman (karena pushState di atas)
+    };
+
+    // Push state saat komponen mount
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, []);
 
   // useEffect(() => {
@@ -200,15 +254,19 @@ function SettingModemForm() {
         setSSIDRes.data.statusCode === 201 ||
         setSSIDRes.data.statusCode === 200
       ) {
-        toast.success("Setting SSID berhasil disimpan");
+        toast.success(
+          setSSIDRes.data.message ??
+            "Permintaan pengaturan SSID dikirim. Menunggu konfirmasi..."
+        );
         setIsWaitingForSetWifi(true);
       } else {
         throw new Error(setSSIDRes?.data?.message || "Gagal menyimpan SSID");
       }
 
       // lanjut ke step berikutnya
-      addUrlParam("section", "check_signal");
+      // addUrlParam("section", "check_signal");
     } catch (err: any) {
+      setIsWaitingForSetWifi(false);
       toastErrorFromAPI(err);
     } finally {
       setIsSubmitting(false);
@@ -229,15 +287,15 @@ function SettingModemForm() {
   }, [cpeDetail]);
 
   const isFormValid =
-    formData.ssid_24ghz.trim().length >= 5 &&
+    formData.ssid_24ghz.trim().length >= 3 &&
     formData.ssid_24ghz.trim().length <= 32 &&
     formData.password_24ghz.length >= 8 &&
     formData.password_24ghz.length <= 63 &&
-    formData.ssid_5ghz.trim().length >= 5 &&
+    formData.ssid_5ghz.trim().length >= 3 &&
     formData.ssid_5ghz.trim().length <= 32 &&
     formData.password_5ghz.length >= 8 &&
-    formData.password_5ghz.length <= 63 &&
-    Object.keys(errors).length === 0;
+    formData.password_5ghz.length <= 63;
+  // && Object.keys(errors).length === 0;
 
   if (isLoadingCPE) {
     return <Loader />;
@@ -271,7 +329,7 @@ function SettingModemForm() {
             error={errors.ssid_24ghz}
           />
           <p className="text-xs text-gray-500 mt-1">
-            SSID (5-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
+            SSID (3-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
           </p>
 
           <div className="pt-2 relative">
@@ -296,20 +354,12 @@ function SettingModemForm() {
             <button
               type="button"
               onClick={() => setShowPassword2(!showPassword2)}
-              className="absolute right-3 top-[53px] text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-13.25 text-primary hover:text-dark-primary-2"
             >
               {showPassword2 ? (
-                <Image
-                  src={eye}
-                  className="w-6 h-6 cursor-pointer"
-                  alt="showPassword"
-                />
+                <IoEyeSharp className="w-6 h-6 cursor-pointer" />
               ) : (
-                <Image
-                  src={eyeClose}
-                  className="w-6 h-6 cursor-pointer"
-                  alt="hidePassword"
-                />
+                <FaEyeSlash className="w-6 h-6 cursor-pointer" />
               )}
             </button>
           </div>
@@ -338,7 +388,7 @@ function SettingModemForm() {
             error={errors.ssid_5ghz}
           />
           <p className="text-xs text-gray-500 mt-1">
-            SSID (5-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
+            SSID (3-32 karakter) dapat berisi huruf, angka, spasi, dan simbol.
           </p>
 
           <div className="pt-2 relative">
@@ -364,20 +414,12 @@ function SettingModemForm() {
             <button
               type="button"
               onClick={() => setShowPassword5(!showPassword5)}
-              className="absolute right-3 top-13.25 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-13.25 text-primary hover:text-dark-primary-2"
             >
               {showPassword5 ? (
-                <Image
-                  src={eye}
-                  className="w-6 h-6 cursor-pointer"
-                  alt="showPassword"
-                />
+                <IoEyeSharp className="w-6 h-6 cursor-pointer" />
               ) : (
-                <Image
-                  src={eyeClose}
-                  className="w-6 h-6 cursor-pointer"
-                  alt="hidePassword"
-                />
+                <FaEyeSlash className="w-6 h-6 cursor-pointer" />
               )}
             </button>
           </div>
@@ -393,13 +435,18 @@ function SettingModemForm() {
                 !isFormValid || isSubmitting || isWaitingForSetWifi
                   ? "bg-primary/50 cursor-not-allowed"
                   : "cursor-pointer bg-primary hover:bg-dark-primary-2"
-              } shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-[12px]`}
+              } flex items-center gap-1 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl`}
             >
+              {isWaitingForSetWifi || isSubmitting}
+              <AiOutlineLoading3Quarters
+                className="animate-spin text-primary"
+                size={18}
+              />
               {isWaitingForSetWifi
                 ? "Menunggu konfirmasi"
                 : isSubmitting
-                ? "Menyimpan..."
-                : "Simpan"}
+                  ? "Menyimpan..."
+                  : "Simpan"}
             </button>
 
             <div className="mx-auto flex justify-center pt-2">
@@ -413,7 +460,7 @@ function SettingModemForm() {
                     addUrlParam("section", "check_signal");
                 }}
                 type="button"
-                className="w-full hover:brightness-[1.05] hover:bg-gray-200 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-[12px]"
+                className="w-full hover:brightness-[1.05] hover:bg-red-50 cursor-pointer border border-primary text-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]  px-2 py-3 font-bold rounded-xl"
               >
                 Lewati
               </button>

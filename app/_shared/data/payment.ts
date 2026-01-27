@@ -38,11 +38,11 @@ export const PAYMENT_LOGOS: Record<string, any> = {
   // E-Wallet
   GOPAY: gopay,
   ID_DANA: dana,
-  OVO: ovo,
-  LINKAJA: linkAja,
-  ASTRAPAY: astraPay,
+  ID_OVO: ovo,
+  ID_LINKAJA: linkAja,
+  ID_ASTRAPAY: astraPay,
   ID_SHOPEEPAY: shopeePay,
-  JENIUSPAY: jeniusPay,
+  ID_JENIUSPAY: jeniusPay,
 
   // Card
   CARDS: ccSvg,

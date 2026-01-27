@@ -1,14 +1,16 @@
 import { sendOtpLogin, sendOtpRegister } from "@/app/_api/Auth/Auth";
 import {
   formatTimer,
+  getPhoneHistory,
   PHONE_REGEX,
+  savePhoneToHistory,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import ModalTemplate from "../modal/ModalTemplate";
 import ModalLoginRedirect from "@/app/(routes)/auth/register/_components/ModalLoginRedirect";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 function PhoneOTPForm({
   label,
@@ -49,13 +51,18 @@ function PhoneOTPForm({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [timerReset, setTimerReset] = useState(0);
   const [openModalLogin, setOpenModalLogin] = useState(false);
+  const [phoneHistory, setPhoneHistory] = useState<string[]>([]);
+
+  const router = useRouter();
+
   const pathname = usePathname();
 
-  // ✅ key dinamis (fallback ke name)
   const key = storageKey ?? `otp:${name}`;
-
-  // simpan ref interval agar aman dibersihkan
   const intervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setPhoneHistory(getPhoneHistory());
+  }, []);
 
   useEffect(() => {
     if (!externalExpiry) return;
@@ -127,14 +134,17 @@ function PhoneOTPForm({
   async function SendOTP() {
     setIsLoading(true);
     try {
+      savePhoneToHistory(value);
+      setPhoneHistory(getPhoneHistory());
+
       // ✅ Jika parent menyediakan onSendOTP, delegasikan ke parent dan keluar.
       if (onSendOTP) {
         await Promise.resolve(onSendOTP());
         return;
       }
 
-      // === Fallback: child kirim OTP sendiri jika tidak ada onSendOTP ===
       const body = { phone_number: value };
+
       const res_sendOTP =
         mode === "login"
           ? await sendOtpLogin(body)
@@ -190,53 +200,68 @@ function PhoneOTPForm({
       </label>
 
       <div className="flex gap-2  w-full mt-2">
-        <div className="grow">
+        <div className="grow relative">
           <input
             type={type}
             name={name}
             value={value}
             disabled={isDisabled}
+            list={`ira-phone-history-${name}`}
             onChange={(e) => handleNumericChange(e.target.value)}
             onPaste={handlePaste}
-            className={`px-5 py-3 bg-primary-spectrum rounded-xl w-full border ${
+            className={`px-5 py-3 disabled:bg-background-customer disabled:cursor-not-allowed bg-primary-spectrum rounded-xl w-full border ${
               error ? "border-red-500" : "border-[#D5D5D5]"
             } placeholder:text-gray-400 placeholder:text-sm`}
             {...props}
           />
+
+          <datalist id={`ira-phone-history-${name}`}>
+            {phoneHistory.map((phone, idx) => (
+              <option key={idx} value={phone} />
+            ))}
+          </datalist>
         </div>
 
-        <div>
-          <button
-            type="submit"
-            disabled={disabledButton}
-            className={`text-white py-3 px-3 rounded-xl  ${
-              disabledButton
-                ? "bg-slate-400 cursor-not-allowed"
-                : "bg-primary cursor-pointer"
-            }`}
-            onClick={SendOTP}
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center gap-1">
-                <div className="loading w-5 h-5"></div>
-                <span className="italic">Loading...</span>
-              </div>
-            ) : isRunning ? (
-              <span className="font-bold p-2">{formatTimer(timerReset)}</span>
-            ) : (
-              <span className="whitespace-nowrap">Kirim OTP</span>
-            )}
-          </button>
-        </div>
+        {!isDisabled && (
+          <div>
+            <button
+              type="submit"
+              disabled={disabledButton}
+              className={`text-white py-3 px-3 rounded-xl  ${
+                disabledButton
+                  ? "bg-slate-400 cursor-not-allowed"
+                  : "bg-primary cursor-pointer"
+              }`}
+              onClick={SendOTP}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-1">
+                  <div className="loading w-5 h-5"></div>
+                  <span className="italic">Loading...</span>
+                </div>
+              ) : isRunning ? (
+                <span className="font-bold p-2">{formatTimer(timerReset)}</span>
+              ) : (
+                <span className="whitespace-nowrap">Kirim OTP</span>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {hint && (
-        <p className="text-xs md:text-sm mt-1">
+        <p className="text-sm md:text-sm mt-3">
           <span className="text-red-500">*</span>Gunakan{" "}
           <span className="font-bold">
             nomor handphone yang sudah terdaftar.
           </span>{" "}
-          Jika belum punya akun, klik Register.
+          Jika belum punya akun, klik{" "}
+          <span
+            onClick={() => router.push("/auth/register")}
+            className="font-bold text-primary cursor-pointer hover:text-dark-primary-2"
+          >
+            daftar disini
+          </span>
         </p>
       )}
 

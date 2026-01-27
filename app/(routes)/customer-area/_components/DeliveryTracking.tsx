@@ -36,7 +36,7 @@ const DeliveryTracking = ({
     (state) => state.auth
   );
 
-  type ShipmentStatus = "waiting" | "assigned" | "done";
+  type ShipmentStatus = "waiting" | "assigned" | "done" | "unknown";
 
   const [shipmentStatusData, setShipmentStatusData] = useState<ShipmentStatus>(
     (data?.shipment_status as ShipmentStatus) ?? "waiting"
@@ -46,6 +46,7 @@ const DeliveryTracking = ({
     waiting: 0,
     assigned: 1,
     done: 2,
+    unknown: -1,
   };
   const currentRank = rankMap[shipmentStatusData];
 
@@ -111,11 +112,15 @@ const DeliveryTracking = ({
     if (data?.shipment_status === "assigned") fetchData();
   }, [data?.shipment_status]);
 
+  if (shipmentStatusData === "unknown") {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex max-lg:flex-col border border-gray-border justify-between gap-6 lg:gap-16 items-center bg-white rounded-xl max-sm:p-6 py-6 px-8">
         {/* Progress Steps */}
-        <div className="flex items-center max-w-2xl w-full relative">
+        <div className="flex max-sm:items-start items-center max-w-2xl w-full relative">
           {steps.map((step, index) => {
             return (
               <React.Fragment key={index}>
@@ -138,7 +143,7 @@ const DeliveryTracking = ({
                 {/* Connector Line (kecuali setelah step terakhir) */}
                 {index < steps.length - 1 && (
                   <div
-                    className={`h-0.5 flex-1 mx-2 ${
+                    className={`h-0.5 max-sm:mt-4 flex-1 mx-2 ${
                       step.isDone ? "bg-green-2" : "bg-gray-300"
                     }`}
                   ></div>

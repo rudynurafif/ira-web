@@ -1,4 +1,3 @@
-// components/BannerLatest.tsx
 "use client";
 
 import Image from "next/image";
@@ -14,7 +13,6 @@ const BannerLatest = () => {
     useState<SubscriptionHistoryAPI | null>(null);
   const router = useRouter();
 
-  // Fetch paket aktif (hanya sekali, tidak dipengaruhi pagination)
   useEffect(() => {
     const fetchActivePackage = async () => {
       try {
@@ -82,9 +80,7 @@ const BannerLatest = () => {
             <div className="rounded-2xl overflow-hidden bg-white shadow-[0_14px_30px_rgba(0,0,0,0.25)]">
               {/* Header merah */}
               <div className="bg-gradient-red py-2.5 text-center text-base font-semibold tracking-wide uppercase">
-                {activePacketData
-                  ? activePacketData.package_id.name
-                  : "Speed"}
+                {activePacketData ? activePacketData.package_id.name : "Speed"}
               </div>
 
               {/* Isi */}

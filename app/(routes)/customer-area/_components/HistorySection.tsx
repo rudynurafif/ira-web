@@ -184,7 +184,7 @@ const HistorySection = () => {
           Tidak ada riwayat pembelian paket Internet Rakyat pada rentang{" "}
           {startDateFilter && endDateFilter
             ? `tanggal ${formatDateFilter2(
-                startDateFilter
+                startDateFilter,
               )} hingga ${formatDateFilter2(endDateFilter)}.`
             : "tanggal yang dipilih."}
         </div>

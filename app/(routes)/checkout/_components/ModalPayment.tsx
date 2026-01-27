@@ -11,9 +11,9 @@ function ModalPayment({
 }) {
   const [choosePayment, setChoosePayment] = useState<any>(null);
 
-  useEffect(() => {
-    console.log(choosePayment);
-  }, [choosePayment]);
+  // useEffect(() => {
+  //   console.log(choosePayment);
+  // }, [choosePayment]);
 
   return (
     <div>

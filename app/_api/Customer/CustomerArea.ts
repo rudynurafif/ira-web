@@ -14,6 +14,19 @@ export const getPackageList = async (params: any) => {
   }
 };
 
+export const checkPackage = async () => {
+  try {
+    const data = await FwaAxios({
+      url: `/app/billing/check-package`,
+      method: "GET",
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getProfileInfo = async (params: any) => {
   try {
     const data = await FwaAxios({
@@ -24,7 +37,7 @@ export const getProfileInfo = async (params: any) => {
 
     return data;
   } catch (error) {
-    throw error;
+  throw error;
   }
 };
 
@@ -56,13 +69,26 @@ export const getCustomerPackage = async (params: any) => {
   }
 };
 
-
 export const downloadInvoice = async (params: any) => {
   try {
     const data = await FwaAxios({
       url: "/app/billing/pdf",
       method: "GET",
       params: params,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getDealerSuppPhone = async () => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/customer/get-mitra-phone",
+      method: "GET",
+      // params: params,
     });
 
     return data;

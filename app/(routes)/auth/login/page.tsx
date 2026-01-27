@@ -16,6 +16,7 @@ import {
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { useAppDispatch } from "@/app/store/store";
 import { login } from "@/app/store/slice/authSlice";
+import { sanitizeAlphanumeric } from "@/app/_shared/utils/formatter";
 
 type Step = "enterPhone" | "enterOtp" | "blocked";
 const MAX_ATTEMPT = 4;
@@ -39,6 +40,35 @@ const Page = () => {
   const [resendLeft, setResendLeft] = useState<number>(0);
   const [blockLeft, setBlockLeft] = useState<number>(0);
 
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number | null;
+    longitude: number | null;
+  }>({ latitude: null, longitude: null });
+
+  const getUserLocation = (): Promise<{
+    latitude: number;
+    longitude: number;
+  } | null> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(null);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          resolve({ latitude, longitude });
+        },
+        (error) => {
+          console.warn("Geolocation error:", error);
+          resolve(null);
+        },
+        { timeout: 10000, maximumAge: 60000 }
+      );
+    });
+  };
+
   const validPhoneNumber = PHONE_REGEX.test(phone);
   const storageKeys = useMemo(() => {
     const p = phone || "__none__";
@@ -52,10 +82,13 @@ const Page = () => {
 
   const dispatch = useAppDispatch();
 
-  // Restore state dari localStorage saat nomor berubah
+  // Restore state dari sessionStorage saat nomor berubah
   useEffect(() => {
-    const cnt = parseInt(localStorage.getItem(storageKeys.reqCount) || "0", 10);
-    const blk = localStorage.getItem(storageKeys.blockUntil);
+    const cnt = parseInt(
+      sessionStorage.getItem(storageKeys.reqCount) || "0",
+      10
+    );
+    const blk = sessionStorage.getItem(storageKeys.blockUntil);
     setRequestCount(Number.isFinite(cnt) ? cnt : 0);
     setBlockUntil(blk ? parseInt(blk, 10) : null);
   }, [storageKeys.reqCount, storageKeys.blockUntil]);
@@ -73,11 +106,11 @@ const Page = () => {
     }
   }, [blockUntil, step]);
 
-  // ---- Hook ringan untuk membaca sisa detik dari localStorage (resend timer)
+  // ---- Hook ringan untuk membaca sisa detik dari sessionStorage (resend timer)
   useEffect(() => {
     const readLeft = () => {
       const exp = parseInt(
-        localStorage.getItem(storageKeys.resendTimer) || "0",
+        sessionStorage.getItem(storageKeys.resendTimer) || "0",
         10
       );
       const left =
@@ -92,7 +125,7 @@ const Page = () => {
   const startResendTimer = (durationSec: number) => {
     if (!Number.isFinite(durationSec) || durationSec <= 0) return;
     const expiry = Date.now() + durationSec * 1000;
-    localStorage.setItem(storageKeys.resendTimer, String(expiry));
+    sessionStorage.setItem(storageKeys.resendTimer, String(expiry));
     setResendLeft(durationSec);
     setOtpExpiry(expiry);
   };
@@ -117,7 +150,7 @@ const Page = () => {
       const left = Math.max(0, Math.floor((blockUntil - Date.now()) / 1000));
       setBlockLeft(left);
       if (left === 0) {
-        localStorage.removeItem(storageKeys.blockUntil);
+        sessionStorage.removeItem(storageKeys.blockUntil);
         setBlockUntil(null);
         if (step === "blocked") setStep("enterPhone");
       }
@@ -151,7 +184,7 @@ const Page = () => {
       const apiData = res.data.data || {};
       const attemptFromApi = Number(apiData.attempt ?? 0);
       // simpan attempt dari API
-      localStorage.setItem(storageKeys.reqCount, String(attemptFromApi));
+      sessionStorage.setItem(storageKeys.reqCount, String(attemptFromApi));
       setRequestCount(attemptFromApi);
 
       // === Cooldown setelah sukses kirim (DINAMIS):
@@ -176,14 +209,14 @@ const Page = () => {
       const seconds = error?.response?.data?.data?.second;
 
       const lastAttempt = Number(
-        localStorage.getItem(storageKeys.reqCount) ?? requestCount ?? 0
+        sessionStorage.getItem(storageKeys.reqCount) ?? requestCount ?? 0
       );
 
       if (lastAttempt >= MAX_ATTEMPT) {
         // attempt sudah 4 atau resend sudah 3 kali → request berikutnya memicu tampilan blokir
         if (Number.isFinite(seconds) && seconds! > 0) {
           const until = Date.now() + seconds! * 1000;
-          localStorage.setItem(storageKeys.blockUntil, String(until));
+          sessionStorage.setItem(storageKeys.blockUntil, String(until));
           setBlockUntil(until);
         }
         setStep("blocked");
@@ -202,7 +235,7 @@ const Page = () => {
   useEffect(() => {
     if (!blockUntil) return;
     if (Date.now() >= blockUntil) {
-      localStorage.removeItem(storageKeys.blockUntil);
+      sessionStorage.removeItem(storageKeys.blockUntil);
       setBlockUntil(null);
       if (step === "blocked") setStep("enterPhone");
     }
@@ -210,9 +243,9 @@ const Page = () => {
 
   // Reset counter kalau user ganti nomor
   const resetCountersForNewPhone = () => {
-    localStorage.removeItem(storageKeys.reqCount);
-    localStorage.removeItem(storageKeys.resendTimer);
-    localStorage.removeItem(storageKeys.blockUntil);
+    sessionStorage.removeItem(storageKeys.reqCount);
+    sessionStorage.removeItem(storageKeys.resendTimer);
+    sessionStorage.removeItem(storageKeys.blockUntil);
     setRequestCount(0);
     setBlockUntil(null);
     setStep("enterPhone");
@@ -226,16 +259,39 @@ const Page = () => {
       toast.error("Nomor handphone belum valid");
       return;
     }
+
     try {
       setOtpStatus("verifying");
-      const payload = { phone_number: phone, otp: val, type: "login" };
+
+      let locationPayload = { longitude: "", latitude: "" };
+
+      try {
+        const location = await getUserLocation();
+        if (location) {
+          locationPayload = {
+            longitude: location.longitude.toString(),
+            latitude: location.latitude.toString(),
+          };
+          setUserLocation(location);
+        }
+      } catch (geoErr) {
+        console.warn("Gagal dapatkan lokasi:", geoErr);
+      }
+
+      const payload = {
+        phone_number: phone,
+        ...locationPayload,
+        platform: "web",
+        otp: val,
+        type: "login",
+      };
+
       const res = await verifyOtp(payload);
 
       if (res?.data?.statusCode === 200) {
         const { data, message } = res.data;
 
         dispatch(login({ token: data }));
-
         setCookie("token-ira", data);
 
         setOtpStatus("valid");
@@ -243,8 +299,8 @@ const Page = () => {
         toast.success(message || "OTP terverifikasi ✔");
         toast.success("Login Berhasil!");
 
-        dispatch(login(data));
         window.location.href = "/customer-area";
+        // router.push("/customer-area");
       }
     } catch (err: any) {
       setOtpStatus("invalid");
@@ -268,6 +324,7 @@ const Page = () => {
               storageKey={storageKeys.resendTimer}
               otpDurationSec={60}
               label="Nomor Handphone"
+              inputMode="numeric"
               name="phone"
               mode="login"
               hint
@@ -290,7 +347,7 @@ const Page = () => {
             )}
           </div>
 
-          <p className="text-center text-md text-primary-text">
+          {/* <p className="text-center text-md text-primary-text">
             Belum punya akun IRA?{" "}
             <Link
               href="/auth/register"
@@ -298,7 +355,7 @@ const Page = () => {
             >
               Daftar disini
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>
@@ -335,7 +392,8 @@ const Page = () => {
               value={otp}
               isInvalid={otpStatus === "invalid"}
               onChange={(value: string) => {
-                setOtp(value);
+                const cleaned = sanitizeAlphanumeric(value);
+                setOtp(cleaned);
                 if (otpStatus !== "idle") setOtpStatus("idle");
               }}
               onComplete={(val) => handleVerifyOtp(val)}
@@ -421,8 +479,8 @@ const Page = () => {
               <button
                 onClick={() => {
                   // bersihkan blokir dan counter
-                  localStorage.removeItem(storageKeys.blockUntil);
-                  localStorage.removeItem(storageKeys.reqCount);
+                  sessionStorage.removeItem(storageKeys.blockUntil);
+                  sessionStorage.removeItem(storageKeys.reqCount);
                   setBlockUntil(null);
                   setRequestCount(0);
                   setStep("enterPhone");

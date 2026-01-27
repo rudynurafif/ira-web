@@ -13,8 +13,6 @@ function PackageCardMobile({
   onSelect: (p: PackageData) => void;
   convertToCurrency: (v: number) => string;
 }) {
-  const isUnlimited = !pkg.quota_mb || Number(pkg.quota_mb) === 0;
-
   return (
     <div
       onClick={() => onSelect(pkg)}
@@ -31,7 +29,7 @@ function PackageCardMobile({
           <Image src={petir} alt="icon" />
         </span>
         <h3 className="text-base sm:text-xl font-semibold text-secondary">
-          {pkg.name ?? "-"}
+          {pkg?.name ?? "-"}
         </h3>
       </div>
 
@@ -44,7 +42,7 @@ function PackageCardMobile({
               <div className="text-xs sm:text-sm">Up to</div>
               <div className="flex pt-2 gap-1">
                 <div className="text-3xl sm:text-4xl leading-none font-extrabold tracking-tight">
-                  {pkg.speed_mbps}
+                  {pkg?.speed_mbps}
                 </div>
                 <div className="flex flex-col items-start">
                   <div className="text-xs sm:text-sm font-semibold">Mbps</div>
@@ -57,9 +55,9 @@ function PackageCardMobile({
             <div className="shrink-0 ml-2">
               <span className="inline-flex flex-col sm:flex-row max-w-[400px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm text-black whitespace-nowrap">
                 <p className="max-sm:font-bold font-semibold">
-                  {convertToCurrency(pkg.price ?? 0)}
+                  {convertToCurrency(pkg?.price ?? 0)}
                 </p>
-                <p className="font-semibold">/{pkg.duration ?? 0} Hari</p>
+                <p className="font-semibold">/{pkg?.duration ?? 0} Hari</p>
               </span>
             </div>
           </div>
@@ -67,9 +65,9 @@ function PackageCardMobile({
       </div>
 
       {/* remarks optional */}
-      {pkg.remarks ? (
+      {pkg?.remarks ? (
         <div className="mt-2 text-[10px] sm:text-xs text-dark-primary">
-          {pkg.remarks}
+          {pkg?.remarks}
         </div>
       ) : null}
     </div>

@@ -87,5 +87,5 @@ export function useGeoPermission() {
     watcherId.current = null;
   }, []);
 
-  return { status, refresh, requestLocation, startWatch, stopWatch };
+  return { status, setStatus, refresh, requestLocation, startWatch, stopWatch };
 }
