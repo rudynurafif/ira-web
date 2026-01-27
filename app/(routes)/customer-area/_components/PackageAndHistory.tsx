@@ -64,8 +64,8 @@ const PackageAndHistory = () => {
       const resSetting = await getSetting("cs_phone");
 
       setPhoneCS(
-        resSetting.data?.data?.value ||
-          process.env.NEXT_PUBLIC_PHONE_CS ||
+        resSetting.data?.data?.value ??
+          process.env.NEXT_PUBLIC_PHONE_CS ??
           "6281110689111",
       );
     };
@@ -101,7 +101,7 @@ const PackageAndHistory = () => {
     const fetchAddon = async () => {
       try {
         const resAddon = await getAddOn({});
-        setAddOns(resAddon.data.result || []);
+        setAddOns(resAddon.data?.result ?? []);
       } catch (err) {
         toastErrorFromAPI(err);
       } finally {
@@ -115,16 +115,18 @@ const PackageAndHistory = () => {
     if (userInfo) setIsInactive(userInfo?.status === "inactive");
   }, [isInactive, userInfo, userInfo?.status]);
 
-  const handleCheckPackage: () => Promise<void> = async () => {
+  const handleCheckPackage = async (pkg?: any) => {
     try {
+      if (pkg) {
+        sessionStorage.setItem("selectedPackage", JSON.stringify(pkg));
+      }
+
       const res = await checkPackage();
 
       if (res?.data?.data === true) {
-        setIsAllowed(true);
         router.push("/payment/payment-methods");
       } else {
         setOpenModalNotAllowed(true);
-        return;
       }
     } catch (err) {
       toastErrorFromAPI(err);
@@ -215,7 +217,7 @@ const PackageAndHistory = () => {
           </div>
 
           {!latestIsFree && (
-            <div className="relative min-w-[100px] cursor-pointer hidden sm:block hover:scale-110 transition-transform">
+            <div className="relative min-w-25 cursor-pointer hidden sm:block hover:scale-110 transition-transform">
               <Image
                 src="/assets/Images/button-beli-lagi-home.png"
                 alt="button-beli-lagi-home"
@@ -228,7 +230,7 @@ const PackageAndHistory = () => {
                 //   );
                 //   router.push("payment/payment-methods");
                 // }}
-                onClick={handleCheckPackage}
+                onClick={() => handleCheckPackage(activePacketData?.package_id)}
                 className="relative z-10"
                 style={{
                   filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
@@ -257,7 +259,7 @@ const PackageAndHistory = () => {
               style={{
                 filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
               }}
-              onClick={handleCheckPackage}
+              onClick={() => handleCheckPackage(activePacketData?.package_id)}
             >
               Beli Lagi
               <Image

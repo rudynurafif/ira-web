@@ -96,7 +96,7 @@ const DeviceInformation = () => {
   useSSEOneTime(
     customer_id || "",
     (payload) => {
-      const { rsrp, rsrq, sinr, cell_id } = payload.data || {};
+      const { rsrp, rsrq, sinr, cell_id } = payload.data ?? {};
       const message = payload.message || null;
       let newSignalData;
 
@@ -138,7 +138,7 @@ const DeviceInformation = () => {
       setIsLoadingSignal(false);
       setIsWaitingForSignal(false);
       toast.error("Gagal mendapatkan sinyal. Coba lagi.");
-    }
+    },
   );
 
   // 🔥 Dengarkan SSE untuk get_wifi
@@ -162,7 +162,7 @@ const DeviceInformation = () => {
       setIsWaitingForWifi(false);
     },
     isWaitingForWifi,
-    (payload) => payload.type === "get_wifi" && payload.sn === serialNumber
+    (payload) => payload.type === "get_wifi" && payload.sn === serialNumber,
   );
 
   // 🔥 Dengarkan SSE untuk set wifi
@@ -176,7 +176,7 @@ const DeviceInformation = () => {
         try {
           const resCPE = await getDetailCPE();
           if (resCPE?.data?.data) {
-            const updatedCpeData = resCPE.data.data;
+            const updatedCpeData = resCPE.data?.data ?? {};
             setCpeDetail(updatedCpeData);
 
             const sn =
@@ -197,7 +197,7 @@ const DeviceInformation = () => {
       setIsWaitingForSetWifi(false);
     },
     isWaitingForSetWifi,
-    (payload) => payload.type === "set_wifi" && payload.sn === serialNumber
+    (payload) => payload.type === "set_wifi" && payload.sn === serialNumber,
   );
 
   const fetchCPEDetail = async () => {
@@ -205,7 +205,7 @@ const DeviceInformation = () => {
       const resCPE = await getDetailCPE();
 
       if (resCPE?.data?.data) {
-        const cpeData = resCPE.data.data;
+        const cpeData = resCPE.data?.data ?? {};
         setCpeDetail(cpeData);
 
         const sn =
@@ -259,7 +259,7 @@ const DeviceInformation = () => {
       const resSignal = await getSignal({ sn });
 
       if (resSignal?.data?.statusCode === 200)
-        toast.success(resSignal.data.message);
+        toast.success(resSignal.data?.message ?? "Mendapatkan data sinyal..");
     } catch (err: any) {
       toastErrorFromAPI(err);
       setIsLoadingSignal(false);
@@ -310,8 +310,8 @@ const DeviceInformation = () => {
       prev.map((device) =>
         device.id === deviceId
           ? { ...device, isBlocked: !device.isBlocked }
-          : device
-      )
+          : device,
+      ),
     );
   };
 

@@ -24,7 +24,7 @@ export default function AddOnPage({
     const fetchAndFindAddon = async () => {
       try {
         const resAddon = await getAddOn({});
-        const addons = resAddon.data?.result || [];
+        const addons = resAddon.data?.result ?? [];
 
         // Cari addon berdasarkan ID (UUID) — exact match
         const matched = addons.find((addon: any) => addon.id === uuidFromUrl);

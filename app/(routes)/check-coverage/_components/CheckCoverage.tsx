@@ -100,8 +100,8 @@ function CheckCoverage() {
       };
 
       const res = await getCheckCoverage(payload);
-      setIsCoverage(res.data.result.inside_coverage);
-      setMitraPaket(res.data.result.mitra_id || null);
+      setIsCoverage(res.data?.result.inside_coverage);
+      setMitraPaket(res.data?.result.mitra_id || null);
       setModalResult(true);
     } catch (err: any) {
       console.error("Check coverage error:", err);

@@ -159,7 +159,7 @@ function RegistrationForm({
           try {
             const res = await getCity({ province_id: provinceId });
             setCityOptions(
-              res.data.data.map((it: any) => ({
+              (res.data?.data ?? []).map((it: any) => ({
                 label: it.name,
                 value: String(it.id),
               })),
@@ -178,7 +178,7 @@ function RegistrationForm({
           try {
             const res = await getDistrict({ city_id: cityId });
             setDistrictOptions(
-              res.data.data.map((it: any) => ({
+              (res.data?.data ?? []).map((it: any) => ({
                 label: it.name,
                 value: String(it.id),
               })),
@@ -197,7 +197,7 @@ function RegistrationForm({
           try {
             const res = await getSubDistrict({ district_id: districtId });
             setSubdistrictOptions(
-              res.data.data.map((it: any) => ({
+              (res.data?.data ?? []).map((it: any) => ({
                 label: it.name,
                 value: String(it.id),
               })),
@@ -269,8 +269,8 @@ function RegistrationForm({
           longitude: formData.longitude,
         });
 
-        setMitraID(resCoverage.data?.result?.mitra_ids || []);
-        setBtsID(resCoverage.data?.result?.bts_ids || []);
+        setMitraID(resCoverage.data?.result?.mitra_ids ?? []);
+        setBtsID(resCoverage.data?.result?.bts_ids ?? []);
         setIsCovered(!!resCoverage.data?.result?.inside_coverage);
       } catch (error: any) {
         toastErrorFromAPI(error, "Gagal check coverage");
@@ -287,7 +287,7 @@ function RegistrationForm({
     const loadProvince = async () => {
       try {
         const res = await getProvince();
-        const options: ReactSelectType[] = res.data.data.map((item: any) => ({
+        const options: ReactSelectType[] = (res.data?.data ?? []).map((item: any) => ({
           label: item.name,
           value: item.id.toString(),
         }));
@@ -309,7 +309,7 @@ function RegistrationForm({
       try {
         const res = await getCity({ province_id: formData.province });
         setCityOptions(
-          res.data.data.map((it: any) => ({
+          (res.data?.data ?? []).map((it: any) => ({
             label: it.name,
             value: String(it.id),
           })),
@@ -331,7 +331,7 @@ function RegistrationForm({
       try {
         const res = await getDistrict({ city_id: formData.city });
         setDistrictOptions(
-          res.data.data.map((it: any) => ({
+          (res.data?.data ?? []).map((it: any) => ({
             label: it.name,
             value: String(it.id),
           })),
@@ -354,7 +354,7 @@ function RegistrationForm({
       try {
         const res = await getSubDistrict({ district_id: formData.district });
         setSubdistrictOptions(
-          res.data.data.map((it: any) => ({
+          (res.data?.data ?? []).map((it: any) => ({
             label: it.name,
             value: String(it.id),
           })),
@@ -377,7 +377,7 @@ function RegistrationForm({
         const res = await getPostalCode({
           sub_district_id: formData.sub_district,
         });
-        const options: ReactSelectType[] = (res.data.data || [])
+        const options: ReactSelectType[] = ((res.data?.data ?? []) || [])
           .map((item: any) => {
             const codeStr = String(item.code ?? item.name ?? "");
             const idStr = String(item.id);
@@ -626,7 +626,7 @@ function RegistrationForm({
         setOtpStatus("idle");
         resetForm();
 
-        const token = res?.data?.data || res?.data?.token;
+        const token = res?.data?.data ?? res?.data?.token;
         if (token) setCookie("token-ira", token);
       } catch (error: any) {
         // error konflik 409

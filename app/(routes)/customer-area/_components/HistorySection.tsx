@@ -39,8 +39,8 @@ const HistorySection = () => {
 
       const res = await getCustomerPackage(params);
 
-      const data = res.data?.data || [];
-      const total = res.data?.total || 0;
+      const data = res.data?.data ?? [];
+      const total = res.data?.total ?? 0;
       const pages = Math.ceil(total / 5);
 
       setSubscriptionHistory(data);
