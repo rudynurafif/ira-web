@@ -641,11 +641,11 @@ function RegistrationForm({
     }
   }
 
-  useEffect(() => {
-    console.log(formData);
-    // console.log("mitra IDs: ", mitraID);
-    // console.log("bts IDs: ", btsID);
-  }, [btsID, formData, mitraID]);
+  // useEffect(() => {
+  //   console.log(formData);
+  //   // console.log("mitra IDs: ", mitraID);
+  //   // console.log("bts IDs: ", btsID);
+  // }, [btsID, formData, mitraID]);
 
   function resetForm() {
     setFormData(initialFormData);
@@ -663,6 +663,15 @@ function RegistrationForm({
   }, [status]);
 
   const handleSelect = (pkg: PackageData) => {
+    const isSame = selectedPackage?.id === pkg.id;
+
+    if (isSame) {
+      // ✅ unselect
+      setSelectedPackage(null);
+      setFormData((prev) => ({ ...prev, package_id: "" }));
+      return;
+    }
+
     setSelectedPackage(pkg);
     setFormData((prev) => ({
       ...prev,

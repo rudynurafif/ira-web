@@ -122,7 +122,7 @@ function Header() {
           toast.error(
             "Terjadi gangguan pada server. Mengalihkan ke halaman error...",
           );
-          router.push(`/500?from=${encodeURIComponent(pathname)}`);
+          router.push(`/error?from=${encodeURIComponent(pathname)}`);
           return;
         }
 
