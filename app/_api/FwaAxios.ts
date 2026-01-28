@@ -33,7 +33,7 @@ FwaAxios.interceptors.response.use(
   async (err) => {
     // error in global place here
     throw err;
-  }
+  },
 );
 
 export default FwaAxios;

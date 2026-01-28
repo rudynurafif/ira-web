@@ -68,6 +68,7 @@ export default function AreaPelanggan() {
     dispatch(
       fetchCustomerPackages({
         customerCode: userInfo.customer_code,
+        force: true,
       }),
     );
   }, [dispatch, userInfo?.customer_code]);

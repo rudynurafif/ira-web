@@ -411,8 +411,8 @@ export default function ConnectToNetwork() {
     handleTimeout,
     handleActivationSuccess,
     stopCooldown,
-    attempt,
-    saveFailedAttemptStorage,
+    // attempt,
+    // saveFailedAttemptStorage,
     // activateStatus,
   ]);
 
@@ -451,7 +451,14 @@ export default function ConnectToNetwork() {
 
         // di force, ga peduli hasil ping test
         setInternetStatus("success");
-        handleActivationSuccess("api");
+
+        // ⏳ kasih jeda 2 detik biar icon centang sempat terlihat
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // guard kalau user sudah sukses duluan via SSE selama jeda
+        if (!activationConfirmedRef.current) {
+          handleActivationSuccess("api");
+        }
 
         return;
       }
@@ -560,7 +567,8 @@ export default function ConnectToNetwork() {
   }
 
   function goNextSetting() {
-    addUrlParam("section", "setting");
+    window.location.href = "/customer-area";
+    // addUrlParam("section", "setting");
   }
 
   useEffect(() => {
@@ -574,8 +582,8 @@ export default function ConnectToNetwork() {
       );
     };
 
-    getPhoneCS();
-  }, []);
+    if (screen === "failedFinal" || screen === "timedOut") getPhoneCS();
+  }, [screen]);
 
   async function contactCS() {
     const msg = encodeURIComponent(

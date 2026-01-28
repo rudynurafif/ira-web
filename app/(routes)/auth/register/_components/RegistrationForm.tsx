@@ -115,7 +115,7 @@ function RegistrationForm({
   const [agreement, setAgreement] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState<boolean>();
-  const [isLoadingPackage, setIsLoadingPackage] = useState(true);
+  const [isLoadingPackage, setIsLoadingPackage] = useState(false);
   const [isModalRegisterSuccess, setIsModalRegisterSuccess] =
     useState<boolean>(false);
   const [otpStatus, setOtpStatus] = useState<
@@ -257,7 +257,14 @@ function RegistrationForm({
 
   useEffect(() => {
     const checkCoverage = async () => {
-      if (!formData.latitude || !formData.longitude) {
+      if (
+        !formData.latitude ||
+        formData.latitude === "0" ||
+        formData.longitude === "0" ||
+        !formData.longitude
+      ) {
+        setIsCovered(false);
+        setMitraID([]);
         return;
       }
 
@@ -283,14 +290,28 @@ function RegistrationForm({
     checkCoverage();
   }, [formData.latitude, formData.longitude]);
 
+  // Paket terpilih harus di-reset saat paket list atau lokasi berubah
+  useEffect(() => {
+    if (!formData.package_id) return;
+    const stillExists = packages.some(
+      (p) => String(p.id) === String(formData.package_id),
+    );
+    if (!stillExists) {
+      setSelectedPackage(null);
+      setFormData((prev) => ({ ...prev, package_id: "" }));
+    }
+  }, [formData.package_id, packages]);
+
   useEffect(() => {
     const loadProvince = async () => {
       try {
         const res = await getProvince();
-        const options: ReactSelectType[] = (res.data?.data ?? []).map((item: any) => ({
-          label: item.name,
-          value: item.id.toString(),
-        }));
+        const options: ReactSelectType[] = (res.data?.data ?? []).map(
+          (item: any) => ({
+            label: item.name,
+            value: item.id.toString(),
+          }),
+        );
         setProvinceOptions(options);
       } catch (error: any) {
         toastErrorFromAPI(error, "Gagal muat data provinsi");
@@ -452,7 +473,14 @@ function RegistrationForm({
         longitude: formData.longitude,
       };
 
-      if (params.latitude && params.longitude && params.mitra_id) {
+      const readyToFetch =
+        params.latitude &&
+        params.latitude !== "0" &&
+        params.longitude &&
+        params.longitude !== "0" &&
+        params.mitra_id;
+
+      if (readyToFetch) {
         try {
           setIsLoadingPackage(true);
           const resPkgs = await getPackagesRegister(params);
@@ -462,6 +490,8 @@ function RegistrationForm({
         } finally {
           setIsLoadingPackage(false);
         }
+      } else {
+        setPackages([]);
       }
     };
 
@@ -642,10 +672,11 @@ function RegistrationForm({
   }
 
   // useEffect(() => {
-  //   console.log(formData);
+  //   // console.log(formData);
   //   // console.log("mitra IDs: ", mitraID);
   //   // console.log("bts IDs: ", btsID);
-  // }, [btsID, formData, mitraID]);
+  //   console.log(isCovered);
+  // }, [btsID, formData, mitraID, isCovered]);
 
   function resetForm() {
     setFormData(initialFormData);
@@ -680,7 +711,8 @@ function RegistrationForm({
     setErrors((prev) => ({ ...prev, package_id: "" }));
   };
 
-  const isValid = isLoading || !agreement || status === "denied";
+  const isValid =
+    isLoading || !agreement || status === "denied" || isCheckCoverage;
 
   return (
     <div className="container mx-auto px-6 lg:px-22 xl:px-42 my-6 sm:my-22 ">
@@ -1349,7 +1381,7 @@ function RegistrationForm({
           }}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >
-          <ModalRegister isCovered={isCovered} />
+          <ModalRegister isCovered={coveredAtSubmit ?? false} />
         </ModalTemplate>
       )}
 
@@ -1366,8 +1398,8 @@ function RegistrationForm({
               onGotLocation={(lat, lng) => {
                 setFormData((prev) => ({
                   ...prev,
-                  lat: String(lat),
-                  lng: String(lng),
+                  latitude: String(lat),
+                  longitude: String(lng),
                 }));
               }}
             />
