@@ -67,6 +67,7 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
         }
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
   const handleOpenCheckoutUrl = () => {
@@ -142,7 +143,7 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
             <div
               className={`overflow-hidden transition-all duration-500 ease-in-out ${
                 activeInstructions[item.title]
-                  ? "max-h-[500px] opacity-100"
+                  ? "max-h-125 opacity-100"
                   : "max-h-0 opacity-0"
               } pt-2`}
             >

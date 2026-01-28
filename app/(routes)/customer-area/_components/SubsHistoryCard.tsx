@@ -53,7 +53,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             alt="ira-icon"
             height={40}
             width={40}
-            className="w-[40px] h-[40px] min-w-[40px] min-h-[40px] shrink-0"
+            className="w-10 h-10 min-w-10 min-h-10 shrink-0"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -70,7 +70,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
                 <Image
                   src={iraIcon}
                   alt="ira-icon"
-                  className="w-[30px] h-[30px] min-w-[30px] min-h-[30px] shrink-0"
+                  className="w-7.5 h-7.5 min-w-7.5 min-h-7.5 shrink-0"
                   height={30}
                   width={30}
                 />

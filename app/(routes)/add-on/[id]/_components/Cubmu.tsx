@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -55,7 +54,7 @@ const Cubmu = ({ items }: CubmuProps) => {
     <div className="min-h-screen bg-black text-white">
       {/* HERO */}
       <section className="relative w-full ">
-        <div className="relative h-[520px] w-full md:h-[560px]">
+        <div className="relative h-130 w-full md:h-140">
           {/* bg image */}
           <Image
             src="/assets/Images/cubmu-hero-bg.png"
@@ -80,12 +79,12 @@ const Cubmu = ({ items }: CubmuProps) => {
           <div className="absolute inset-0 bg-[#b10000]/20" />
 
           {/* overlay 3: bottom heavy gradient */}
-          <div className="absolute inset-x-0 bottom-0 h-[240px] bg-gradient-to-b from-black/0 via-black/35 to-black/90" />
+          <div className="absolute inset-x-0 bottom-0 h-60 bg-linear-to-b from-black/0 via-black/35 to-black/90" />
 
           {/* topbar (state 2 & 3) */}
           {isConnected && (
             <div className="absolute left-0 right-0 top-0 z-30">
-              <div className="h-[84px] bg-black/30 backdrop-blur-md">
+              <div className="h-21 bg-black/30 backdrop-blur-md">
                 <div className="mx-auto flex h-full container px-6 items-center justify-between">
                   {/* left user info */}
                   <div className="flex flex-col gap-2 text-white/95">
@@ -146,7 +145,7 @@ const Cubmu = ({ items }: CubmuProps) => {
                   {/* right pill button */}
                   <button
                     onClick={() => setShowCredentialModal(true)}
-                    className="rounded-full bg-white px-10 py-3 text-sm font-extrabold text-red-600 shadow-[0_18px_45px_rgba(0,0,0,0.35)] ring-1 ring-white/40 transition hover:translate-y-[-1px] hover:shadow-[0_22px_60px_rgba(0,0,0,0.45)] active:translate-y-0"
+                    className="rounded-full bg-white px-10 py-3 text-sm font-extrabold text-red-600 shadow-[0_18px_45px_rgba(0,0,0,0.35)] ring-1 ring-white/40 transition hover:-translate-y-px hover:shadow-[0_22px_60px_rgba(0,0,0,0.45)] active:translate-y-0"
                   >
                     Lihat username dan kata sandi untuk login
                   </button>
@@ -162,7 +161,7 @@ const Cubmu = ({ items }: CubmuProps) => {
           <div
             className={[
               "absolute inset-0 z-20",
-              isConnected ? "pt-[120px]" : "pt-[72px]",
+              isConnected ? "pt-30" : "pt-18",
             ].join(" ")}
           >
             <div className="mx-auto h-full container px-6">
@@ -187,15 +186,15 @@ const Cubmu = ({ items }: CubmuProps) => {
               </div>
 
               {/* left text + right download */}
-              <div className="mt-12 flex h-[360px] items-center justify-between gap-12">
-                <div className="max-w-[860px]">
+              <div className="mt-12 flex h-90 items-center justify-between gap-12">
+                <div className="max-w-215">
                   <h1 className="text-[46px] font-extrabold leading-[1.06] tracking-[-0.02em] md:text-[54px]">
                     Internet cepat sudah kamu punya.
                     <br />
                     Sekarang saatnya nikmati hiburannya!
                   </h1>
 
-                  <p className="mt-5 max-w-[760px] text-lg text-white/90 md:text-xl">
+                  <p className="mt-5 max-w-190 text-lg text-white/90 md:text-xl">
                     Nonton film, series, anime, sampai channel TV favorit kamu
                     di aplikasi CubMu.
                   </p>
@@ -208,8 +207,8 @@ const Cubmu = ({ items }: CubmuProps) => {
                       "text-xl font-extrabold text-red-600",
                       "shadow-[0_18px_55px_rgba(0,0,0,0.45)]",
                       "ring-1 ring-white/55",
-                      "bg-gradient-to-r from-white via-[#ffe1e1] to-white",
-                      "transition hover:translate-y-[-1px] active:translate-y-0",
+                      "bg-linear-to-r from-white via-[#ffe1e1] to-white",
+                      "transition hover:-translate-y-px active:translate-y-0",
                     ].join(" ")}
                   >
                     Mulai Streaming Sekarang!
@@ -228,7 +227,7 @@ const Cubmu = ({ items }: CubmuProps) => {
                       alt="App Store"
                       width={190}
                       height={60}
-                      className="h-[58px] w-auto"
+                      className="h-14.5 w-auto"
                       priority
                     />
                     <Image
@@ -236,7 +235,7 @@ const Cubmu = ({ items }: CubmuProps) => {
                       alt="Google Play"
                       width={190}
                       height={60}
-                      className="h-[58px] w-auto"
+                      className="h-14.5 w-auto"
                       priority
                     />
                   </div>
@@ -271,7 +270,7 @@ const Cubmu = ({ items }: CubmuProps) => {
                     alt={item.title}
                     width={210}
                     height={310}
-                    className="h-[310px] w-[210px] object-cover object-center"
+                    className="h-77.5 w-52.5 object-cover object-center"
                     onClick={() => {
                       if (!item.call_to_action) return;
                       const url = item.call_to_action.startsWith("http")
@@ -295,14 +294,14 @@ const Cubmu = ({ items }: CubmuProps) => {
               alt="App Store"
               width={190}
               height={60}
-              className="h-[58px] w-auto"
+              className="h-14.5 w-auto"
             />
             <Image
               src="/assets/Images/cubmu/google-play-button.png"
               alt="Google Play"
               width={190}
               height={60}
-              className="h-[58px] w-auto"
+              className="h-14.5 w-auto"
             />
           </div>
         </div>

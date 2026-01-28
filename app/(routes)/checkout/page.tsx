@@ -115,7 +115,7 @@ function Page() {
                   Ganti Metode Pembayaran
                 </button>
 
-                <div className="bg-[#A7A7A7] w-full h-[1px] my-10" />
+                <div className="bg-[#A7A7A7] w-full h-px my-10" />
 
                 {/* Rincian Pembayaran */}
                 <h2 className="text-xl font-bold">Rincian Pembayaran</h2>
@@ -132,7 +132,7 @@ function Page() {
                   <p>Biaya Bank</p>
                   <p>{convertToCurrency(7000)}</p>
                 </div>
-                <div className="bg-[#A7A7A7] w-full h-[1px] my-3" />
+                <div className="bg-[#A7A7A7] w-full h-px my-3" />
                 <div className="flex justify-between items-center gap-10 mt-5">
                   <p className="text-lg font-bold ">Total Pembayaran</p>
                   <p className="text-lg font-bold ">
@@ -161,7 +161,7 @@ function Page() {
               </p>
             </div>
             <div className="col-span-1 flex justify-end items-center">
-              <button className="text-lg font-bold text-white bg-primary py-[15px] px-20 rounded-xl w-1/2">
+              <button className="text-lg font-bold text-white bg-primary py-3.75 px-20 rounded-xl w-1/2">
                 Bayar
               </button>
             </div>

@@ -152,6 +152,7 @@ function MapGeoapify({
         toast.error("Browser tidak mendukung geolocation");
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialLatitude, initialLongitude]);
 
   // === Fungsi start cooldown (dengan onFinish) ===
@@ -268,6 +269,7 @@ function MapGeoapify({
     } else {
       renderMap();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   useEffect(() => {
@@ -508,7 +510,7 @@ function MapGeoapify({
       {/* Peta */}
       <div
         ref={mapContainerRef}
-        className="w-full h-[400px] rounded-xl border border-gray-300 relative  overflow-hidden"
+        className="w-full h-100 rounded-xl border border-gray-300 relative  overflow-hidden"
         style={{ minHeight: "300px" }}
       >
         {!location && (

@@ -296,7 +296,7 @@ function Header() {
               <Image
                 src={pathname === "/" ? IraWhiteIcon : IraIcon}
                 alt="Internet Rakyat"
-                className="w-[125px]"
+                className="w-31.25"
               />
             </Link>
 
