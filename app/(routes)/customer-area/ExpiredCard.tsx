@@ -2,6 +2,8 @@ import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import Image from "next/image";
 import React from "react";
 import expiredIcon from "@/public/assets/Images/internet-mati.png";
+import dismantledImage from "@/public/assets/Images/internet-dismantled.png";
+import suspendImage from "@/public/assets/Images/internet-suspend-isolir.png";
 import { formattedDate } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/app/store/store";
@@ -22,9 +24,11 @@ const ExpiredCard = ({
       {/* Ikon Peringatan Besar */}
       <div className="flex justify-center mb-4">
         <Image
-          src={expiredIcon} // Gunakan exclamationIcon atau expiredIcon, sesuaikan visual
-          width={120}
-          height={120}
+          src={
+            userInfo?.status === "dismantled" ? dismantledImage : suspendImage
+          } // Gunakan exclamationIcon atau expiredIcon, sesuaikan visual
+          width={140}
+          height={140}
           alt="warning-icon"
           className="animate-pulse"
         />
