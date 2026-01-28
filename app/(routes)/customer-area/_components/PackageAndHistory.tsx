@@ -253,7 +253,7 @@ const PackageAndHistory = () => {
         </div>
 
         {!latestIsFree && (
-          <div className="relative w-full h-[60px] my-3 sm:hidden">
+          <div className="relative w-full h-15 my-3 sm:hidden">
             <button
               className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
               style={{

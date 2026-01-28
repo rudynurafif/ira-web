@@ -29,7 +29,7 @@ const CpeActivationPage = () => {
     <div className="flex flex-col items-center justify-center px-6 py-12 sm:px-6 lg:px-8">
       <div className="mb-8 relative flex justify-center items-center">
         {/* Kiri */}
-        <div className="absolute left-[-90px] top-1/2 transform -translate-y-1/2 z-0">
+        <div className="absolute -left-22.5 top-1/2 transform -translate-y-1/2 z-0">
           <SignalArc isLeft={true} />
         </div>
 
@@ -37,11 +37,11 @@ const CpeActivationPage = () => {
         <Image
           src={CPEIRA}
           alt="Activating CPE"
-          className="w-auto h-auto max-w-[150px] sm:max-w-[200px] z-10 relative"
+          className="w-auto h-auto max-w-37.5 sm:max-w-50 z-10 relative"
         />
 
         {/* Kanan */}
-        <div className="absolute right-[-90px] top-1/2 transform -translate-y-1/2 z-0">
+        <div className="absolute -right-22.5 top-1/2 transform -translate-y-1/2 z-0">
           <SignalArc isLeft={false} />
         </div>
       </div>
