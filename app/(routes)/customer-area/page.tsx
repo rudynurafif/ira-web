@@ -55,23 +55,12 @@ export default function AreaPelanggan() {
   const [successPayment, setSuccessPayment] = useState<boolean>(false);
   const [isActive, setIsActive] = useState<boolean>(false);
   const [isActivating, setIsActivating] = useState(false);
-  const isCancelled = userInfo?.status === "canceled-instalation";
   const dispatch = useAppDispatch();
-  const [phoneCS, setPhoneCS] = useState<string | null>("");
 
-  useEffect(() => {
-    const getPhoneCS = async () => {
-      const resSetting = await getSetting("cs_phone");
-
-      setPhoneCS(
-        resSetting.data?.data?.value ||
-          process.env.NEXT_PUBLIC_PHONE_CS ||
-          "6281110689111",
-      );
-    };
-
-    getPhoneCS();
-  }, []);
+  const isCancelled = userInfo?.status === "canceled-instalation";
+  // TODO: Untuk case ganti CPE dll (Reaktivasi)
+  const isReactivation =
+    userInfo?.status === "active" && userInfo?.cpe_sim_binding_id;
 
   useEffect(() => {
     if (!userInfo?.customer_code) return;
@@ -79,6 +68,7 @@ export default function AreaPelanggan() {
     dispatch(
       fetchCustomerPackages({
         customerCode: userInfo.customer_code,
+        force: true,
       }),
     );
   }, [dispatch, userInfo?.customer_code]);
@@ -198,7 +188,7 @@ export default function AreaPelanggan() {
           {/* Avatar + Info */}
           <div className="flex flex-col md:flex-row items-center gap-6 md:items-end justify-between">
             <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
-              <div className="h-[170px] w-[170px] max-sm:h-[100px] max-sm:w-[100px] max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center flex-shrink-0">
+              <div className="h-42.5 w-42.5 max-sm:h-25 max-sm:w-25 max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center shrink-0">
                 <span className="text-6xl max-sm:text-2xl font-bold">
                   {isFetching ? (
                     <SkeletonLarge />
@@ -212,7 +202,7 @@ export default function AreaPelanggan() {
 
               {/* Info */}
               <div className="flex justify-between items-center">
-                <div className="text-center md:text-left select-none">
+                <div className="text-center md:text-left">
                   <div className="">
                     {isLoading ? (
                       <SkeletonBase />
@@ -226,7 +216,7 @@ export default function AreaPelanggan() {
                     {isFetching ? (
                       <SkeletonBase />
                     ) : (
-                      <p>ID: {userInfo?.customer_code ?? "-"}</p>
+                      <div>ID: {userInfo?.customer_code ?? "-"}</div>
                     )}
                   </div>
                 </div>

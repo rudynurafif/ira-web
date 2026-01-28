@@ -1,4 +1,5 @@
 import { getListLocation } from "@/app/_api/Location/Location";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
 import React, { useEffect, useState } from "react";
 import { FaMapLocationDot } from "react-icons/fa6";
 
@@ -43,14 +44,14 @@ function ListComingSoon() {
   async function getListArea() {
     try {
       const params = {
-        status: "coming_soon",
+        status: "live",
       };
 
       const res_getListLocation = await getListLocation(params);
 
       // console.log(res_getListLocation.data);
 
-      const temp = res_getListLocation.map((item: any) => {
+      const temp = (res_getListLocation ?? []).map((item: any) => {
         return {
           id: item.id,
           name: item.name,
@@ -58,8 +59,8 @@ function ListComingSoon() {
       });
 
       setListArea(temp);
-    } catch (error: any) {
-      console.log(error.response.data.message);
+    } catch (err: any) {
+      toastErrorFromAPI(err);
     }
   }
 

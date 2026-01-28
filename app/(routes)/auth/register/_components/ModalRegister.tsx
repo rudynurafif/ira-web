@@ -20,7 +20,7 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
         <Lottie
           width={104}
           height={104}
-          className="w-[170px] sm:w-[190px] md:w-[200px] lg:w-60 lg:h-60"
+          className="w-42.5 sm:w-47.5 md:w-50 lg:w-60 lg:h-60"
           animationData={isCovered ? gifBox : gifConstruction}
         />
       </div>
