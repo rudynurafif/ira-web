@@ -213,7 +213,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
       setErrors((e) => ({
         ...e,
         otp:
-          err?.response?.data?.message ||
+          err?.response?.data?.message ??
           "Kode OTP tidak valid atau sudah kedaluwarsa",
       }));
       toastErrorFromAPI(err, "Verifikasi OTP gagal");

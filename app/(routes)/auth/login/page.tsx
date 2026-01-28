@@ -181,7 +181,7 @@ const Page = () => {
         throw new Error(res?.data?.message || "Gagal mengirim OTP");
       }
 
-      const apiData = res.data.data || {};
+      const apiData = res.data.data ?? {};
       const attemptFromApi = Number(apiData.attempt ?? 0);
       // simpan attempt dari API
       sessionStorage.setItem(storageKeys.reqCount, String(attemptFromApi));

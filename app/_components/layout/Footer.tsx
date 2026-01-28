@@ -8,8 +8,6 @@ import {
   FaWhatsapp,
   FaYoutube,
 } from "react-icons/fa";
-import { AiFillTikTok } from "react-icons/ai";
-import { FaSquareFacebook, FaSquareInstagram } from "react-icons/fa6";
 import Image from "next/image";
 
 // image
@@ -17,8 +15,7 @@ import iraIcon from "@/public/assets/Icons/IraIconFooter.png";
 import moment from "moment";
 import { getSetting } from "@/app/_api/Settings/Settings";
 import { BsTelephone } from "react-icons/bs";
-import { MdOutlineEmail, MdOutlineMail } from "react-icons/md";
-import { toastErrorFromAPI } from "@/app/_shared/utils";
+import { MdOutlineMail } from "react-icons/md";
 import SkeletonBase from "../skeletons/SkeletonBase";
 
 function Footer() {
@@ -37,7 +34,7 @@ function Footer() {
         setAddress(
           resSetting.data?.data?.value ||
             process.env.NEXT_PUBLIC_ADDRESS ||
-            "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat"
+            "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat",
         );
       };
 
@@ -46,7 +43,7 @@ function Footer() {
         setPhoneCS(
           resSetting.data?.data?.value ||
             process.env.NEXT_PUBLIC_PHONE_CS ||
-            "6281110689111"
+            "6281110689111",
         );
       };
 
@@ -57,7 +54,11 @@ function Footer() {
 
       const getCSMail = async () => {
         const resSetting = await getSetting("cs_email");
-        setMail(resSetting.data?.data?.value || "cs@internetrakyat.id");
+        setMail(
+          resSetting.data?.data?.value ||
+            process.env.NEXT_PUBLIC_EMAIL_CS ||
+            "cs@internetrakyat.id",
+        );
       };
 
       getOfficeAddress();
@@ -169,7 +170,7 @@ function Footer() {
           </div>
           <div className="text-left lg:text-right w-full md:w-[30%] lg:mt-0 mt-5">
             <div className="flex justify-start lg:justify-end gap-5 items-center mb-3">
-              <Image src={iraIcon} alt="weave" className="w-[100px]" />
+              <Image src={iraIcon} alt="weave" className="w-25" />
             </div>
             <p className="mb-3 ">
               <span>
@@ -196,7 +197,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.2601.098</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.2801.103</div>
       </div>
     </div>
   );

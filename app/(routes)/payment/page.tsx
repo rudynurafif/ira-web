@@ -73,7 +73,7 @@ const Payment = () => {
     try {
       const res = await getPackageList({});
       if (res?.data?.statusCode === 200) {
-        setPackages(res.data?.data);
+        setPackages(res.data?.data ?? []);
       }
     } catch (err: any) {
       const errorStatusCode =

@@ -14,8 +14,8 @@ const InactiveCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
       <div className="flex justify-center mb-4">
         <Image
           src={inActiveIcon} // Gunakan exclamationIcon atau inActiveIcon, sesuaikan visual
-          width={120}
-          height={120}
+          width={140}
+          height={140}
           alt="warning-icon"
           className="animate-pulse"
         />

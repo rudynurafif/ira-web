@@ -418,6 +418,7 @@ function MapInputForm({
     (ev: MapCameraChangedEvent) => setCameraProps(ev.detail),
     []
   );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedFetchLocationData = useCallback(
     debounce(getLocation, 10000),
     []
@@ -439,6 +440,7 @@ function MapInputForm({
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -530,7 +532,7 @@ function MapInputForm({
           <Maps
             {...cameraProps}
             onCameraChanged={handleCameraChange}
-            className="w-full h-[400px] rounded-xl border border-[#D5D5D5] overflow-hidden"
+            className="w-full h-100 rounded-xl border border-[#D5D5D5] overflow-hidden"
             mapTypeControl={false}
             fullscreenControl={false}
             streetViewControl={false}

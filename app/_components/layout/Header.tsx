@@ -1,16 +1,12 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaRegUser, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
-import starliteWhiteIcon from "@/public/assets/Icons/icon-starlite-white.svg";
-import weaveWhiteIcon from "@/public/assets/Icons/icon-weave-white.svg";
-import starliteIcon from "@/public/assets/Icons/icon-starlite.svg";
-import weaveIcon from "@/public/assets/Icons/icon-weave.svg";
 import IraIcon from "@/public/assets/Icons/IraIcon.svg";
 import IraWhiteIcon from "@/public/assets/Icons/IraWhiteIcon.svg";
 import { getCookie } from "cookies-next";
@@ -29,7 +25,6 @@ import {
   setCoverageStatus,
 } from "@/app/store/slice/authSlice";
 import { DecodedToken } from "@/app/_context/sse.type";
-import SkeletonLarge from "../skeletons/SkeletonLarge";
 import SkeletonBase from "../skeletons/SkeletonBase";
 
 function Header() {
@@ -42,10 +37,61 @@ function Header() {
   const [customerData, setCustomerData] = useState<ProfileInfo>();
   const dispatch = useAppDispatch();
   const { token: tokenfromState, is_coverage } = useAppSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
   // const token = getCookie("token-ira") ?? tokenfromState;
   const [token, setToken] = useState<string | null>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  // ===============
+
+  // Fungsi untuk sinkronisasi token dari cookie
+  const syncTokenFromCookie = useCallback(() => {
+    const cookieToken = getCookie("token-ira") as string | null;
+    setToken(cookieToken);
+  }, []);
+
+  // Bagian dalam Header component
+  useEffect(() => {
+    // Sinkronisasi token pertama kali
+    syncTokenFromCookie();
+  }, [syncTokenFromCookie]);
+
+  // Dengarkan perubahan dari localStorage (untuk tab lain)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "token-ira-sync") {
+        syncTokenFromCookie();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [syncTokenFromCookie]);
+
+  // Dengarkan custom event (untuk tab yang sama)
+  useEffect(() => {
+    const handleTokenUpdate = (e: CustomEvent) => {
+      syncTokenFromCookie(); // Atau Anda bisa menggunakan e.detail jika ingin memperbarui state token langsung
+    };
+
+    window.addEventListener(
+      "token-ira-updated",
+      handleTokenUpdate as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "token-ira-updated",
+        handleTokenUpdate as EventListener,
+      );
+    };
+  }, [syncTokenFromCookie]);
+
+  // ===============
 
   useEffect(() => {
     const cookieToken = getCookie("token-ira") as string | null;
@@ -74,16 +120,16 @@ function Header() {
 
         if (statusCode === 500 && pathname !== "/500") {
           toast.error(
-            "Terjadi gangguan pada server. Mengalihkan ke halaman error..."
+            "Terjadi gangguan pada server. Mengalihkan ke halaman error...",
           );
-          router.push(`/500?from=${encodeURIComponent(pathname)}`);
+          router.push(`/error?from=${encodeURIComponent(pathname)}`);
           return;
         }
 
         if (statusCode === 401) {
           toastErrorFromAPI(
             error,
-            "Sesi Anda telah berakhir, silakan login kembali."
+            "Sesi Anda telah berakhir, silakan login kembali.",
           );
           dispatch(logout());
           setIsLoggedIn(false);
@@ -127,6 +173,28 @@ function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showDropdown]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isOpenMenu &&
+        headerRef.current &&
+        !headerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpenMenu(false);
+      }
+    };
+
+    // Hanya pasang listener jika di mobile (opsional)
+    const isMobile = window.innerWidth < 1024; // sesuaikan dengan breakpoint 'lg' Tailwind (1024px)
+    if (isMobile && isOpenMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpenMenu]);
 
   const handleAuthButton = () => {
     if (pathname === "/auth/login") {
@@ -210,7 +278,7 @@ function Header() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={headerRef}>
       <div
         className={
           pathname === "/"
@@ -228,7 +296,7 @@ function Header() {
               <Image
                 src={pathname === "/" ? IraWhiteIcon : IraIcon}
                 alt="Internet Rakyat"
-                className="w-[125px]"
+                className="w-31.25"
               />
             </Link>
 

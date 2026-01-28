@@ -382,10 +382,18 @@ export default function ConnectToNetwork() {
         if (data?.type === "ping-test-activate" && activateSuccessRef.current) {
           if (data?.message === "Success") {
             setInternetStatus("success");
-            handleActivationSuccess("sse");
+            setTimeout(() => {
+              if (!activationConfirmedRef.current) {
+                handleActivationSuccess("sse");
+              }
+            }, 2000);
           } else {
             setInternetStatus("success");
-            handleActivationSuccess("sse");
+            setTimeout(() => {
+              if (!activationConfirmedRef.current) {
+                handleActivationSuccess("sse");
+              }
+            }, 2000);
           }
         }
       } catch (err) {
@@ -411,8 +419,8 @@ export default function ConnectToNetwork() {
     handleTimeout,
     handleActivationSuccess,
     stopCooldown,
-    attempt,
-    saveFailedAttemptStorage,
+    // attempt,
+    // saveFailedAttemptStorage,
     // activateStatus,
   ]);
 
@@ -451,7 +459,14 @@ export default function ConnectToNetwork() {
 
         // di force, ga peduli hasil ping test
         setInternetStatus("success");
-        handleActivationSuccess("api");
+
+        // ⏳ kasih jeda 2 detik biar icon centang sempat terlihat
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // guard kalau user sudah sukses duluan via SSE selama jeda
+        if (!activationConfirmedRef.current) {
+          handleActivationSuccess("api");
+        }
 
         return;
       }
@@ -491,7 +506,7 @@ export default function ConnectToNetwork() {
       setActivateStatus("loading");
       setInternetStatus("loading");
       setScreen("loading");
-      toast.success("Permintaan aktivasi dikirim. Menunggu konfirmasi...", {
+      toast.loading("Permintaan aktivasi dikirim. Menunggu konfirmasi...", {
         id: "refresh",
       });
     } catch (err: any) {
@@ -523,7 +538,7 @@ export default function ConnectToNetwork() {
       const res = await Activation({ serial_number: serialNumber });
 
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
-        toast.success(
+        toast.loading(
           res.data.message ||
             "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
           { id: "activate" },
@@ -560,7 +575,8 @@ export default function ConnectToNetwork() {
   }
 
   function goNextSetting() {
-    addUrlParam("section", "setting");
+    window.location.href = "/customer-area";
+    // addUrlParam("section", "setting");
   }
 
   useEffect(() => {
@@ -574,8 +590,8 @@ export default function ConnectToNetwork() {
       );
     };
 
-    getPhoneCS();
-  }, []);
+    if (screen === "failedFinal" || screen === "timedOut") getPhoneCS();
+  }, [screen]);
 
   async function contactCS() {
     const msg = encodeURIComponent(

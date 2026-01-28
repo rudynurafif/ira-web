@@ -61,7 +61,7 @@ const DeliveryTracking = ({
       const intervalId = setInterval(() => {
         refetch();
         // console.log("status shipment refetched");
-      }, 20000);
+      }, 60_000);
 
       return () => clearInterval(intervalId);
     }
@@ -381,7 +381,7 @@ const DeliveryTracking = ({
                   <Image
                     src={CPEIRA}
                     alt="Activating CPE"
-                    className="w-[110px] sm:w-[140px] object-contain drop-shadow-md"
+                    className="w-27.5 sm:w-35 object-contain drop-shadow-md"
                   />
                 </div>
 

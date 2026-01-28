@@ -115,7 +115,7 @@ function RegistrationForm({
   const [agreement, setAgreement] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState<boolean>();
-  const [isLoadingPackage, setIsLoadingPackage] = useState(true);
+  const [isLoadingPackage, setIsLoadingPackage] = useState(false);
   const [isModalRegisterSuccess, setIsModalRegisterSuccess] =
     useState<boolean>(false);
   const [otpStatus, setOtpStatus] = useState<
@@ -159,7 +159,7 @@ function RegistrationForm({
           try {
             const res = await getCity({ province_id: provinceId });
             setCityOptions(
-              res.data.data.map((it: any) => ({
+              (res.data?.data ?? []).map((it: any) => ({
                 label: it.name,
                 value: String(it.id),
               })),
@@ -178,7 +178,7 @@ function RegistrationForm({
           try {
             const res = await getDistrict({ city_id: cityId });
             setDistrictOptions(
-              res.data.data.map((it: any) => ({
+              (res.data?.data ?? []).map((it: any) => ({
                 label: it.name,
                 value: String(it.id),
               })),
@@ -197,7 +197,7 @@ function RegistrationForm({
           try {
             const res = await getSubDistrict({ district_id: districtId });
             setSubdistrictOptions(
-              res.data.data.map((it: any) => ({
+              (res.data?.data ?? []).map((it: any) => ({
                 label: it.name,
                 value: String(it.id),
               })),
@@ -257,7 +257,14 @@ function RegistrationForm({
 
   useEffect(() => {
     const checkCoverage = async () => {
-      if (!formData.latitude || !formData.longitude) {
+      if (
+        !formData.latitude ||
+        formData.latitude === "0" ||
+        formData.longitude === "0" ||
+        !formData.longitude
+      ) {
+        setIsCovered(false);
+        setMitraID([]);
         return;
       }
 
@@ -269,8 +276,8 @@ function RegistrationForm({
           longitude: formData.longitude,
         });
 
-        setMitraID(resCoverage.data?.result?.mitra_ids || []);
-        setBtsID(resCoverage.data?.result?.bts_ids || []);
+        setMitraID(resCoverage.data?.result?.mitra_ids ?? []);
+        setBtsID(resCoverage.data?.result?.bts_ids ?? []);
         setIsCovered(!!resCoverage.data?.result?.inside_coverage);
       } catch (error: any) {
         toastErrorFromAPI(error, "Gagal check coverage");
@@ -283,14 +290,28 @@ function RegistrationForm({
     checkCoverage();
   }, [formData.latitude, formData.longitude]);
 
+  // Paket terpilih harus di-reset saat paket list atau lokasi berubah
+  useEffect(() => {
+    if (!formData.package_id) return;
+    const stillExists = packages.some(
+      (p) => String(p.id) === String(formData.package_id),
+    );
+    if (!stillExists) {
+      setSelectedPackage(null);
+      setFormData((prev) => ({ ...prev, package_id: "" }));
+    }
+  }, [formData.package_id, packages]);
+
   useEffect(() => {
     const loadProvince = async () => {
       try {
         const res = await getProvince();
-        const options: ReactSelectType[] = res.data.data.map((item: any) => ({
-          label: item.name,
-          value: item.id.toString(),
-        }));
+        const options: ReactSelectType[] = (res.data?.data ?? []).map(
+          (item: any) => ({
+            label: item.name,
+            value: item.id.toString(),
+          }),
+        );
         setProvinceOptions(options);
       } catch (error: any) {
         toastErrorFromAPI(error, "Gagal muat data provinsi");
@@ -309,7 +330,7 @@ function RegistrationForm({
       try {
         const res = await getCity({ province_id: formData.province });
         setCityOptions(
-          res.data.data.map((it: any) => ({
+          (res.data?.data ?? []).map((it: any) => ({
             label: it.name,
             value: String(it.id),
           })),
@@ -331,7 +352,7 @@ function RegistrationForm({
       try {
         const res = await getDistrict({ city_id: formData.city });
         setDistrictOptions(
-          res.data.data.map((it: any) => ({
+          (res.data?.data ?? []).map((it: any) => ({
             label: it.name,
             value: String(it.id),
           })),
@@ -354,7 +375,7 @@ function RegistrationForm({
       try {
         const res = await getSubDistrict({ district_id: formData.district });
         setSubdistrictOptions(
-          res.data.data.map((it: any) => ({
+          (res.data?.data ?? []).map((it: any) => ({
             label: it.name,
             value: String(it.id),
           })),
@@ -377,7 +398,7 @@ function RegistrationForm({
         const res = await getPostalCode({
           sub_district_id: formData.sub_district,
         });
-        const options: ReactSelectType[] = (res.data.data || [])
+        const options: ReactSelectType[] = ((res.data?.data ?? []) || [])
           .map((item: any) => {
             const codeStr = String(item.code ?? item.name ?? "");
             const idStr = String(item.id);
@@ -452,7 +473,14 @@ function RegistrationForm({
         longitude: formData.longitude,
       };
 
-      if (params.latitude && params.longitude && params.mitra_id) {
+      const readyToFetch =
+        params.latitude &&
+        params.latitude !== "0" &&
+        params.longitude &&
+        params.longitude !== "0" &&
+        params.mitra_id;
+
+      if (readyToFetch) {
         try {
           setIsLoadingPackage(true);
           const resPkgs = await getPackagesRegister(params);
@@ -462,6 +490,8 @@ function RegistrationForm({
         } finally {
           setIsLoadingPackage(false);
         }
+      } else {
+        setPackages([]);
       }
     };
 
@@ -475,9 +505,9 @@ function RegistrationForm({
 
     const errors: { [key: string]: string } = {};
 
-    // if (packages.length > 0 && !formData.package_id) {
-    //   errors.package_id = "Paket harus dipilih";
-    // }
+    if (packages.length > 0 && !formData.package_id) {
+      errors.package_id = "Paket harus dipilih";
+    }
 
     if (!formData.fullname) {
       errors.fullname = "Nama Lengkap harus diisi";
@@ -626,7 +656,7 @@ function RegistrationForm({
         setOtpStatus("idle");
         resetForm();
 
-        const token = res?.data?.data || res?.data?.token;
+        const token = res?.data?.data ?? res?.data?.token;
         if (token) setCookie("token-ira", token);
       } catch (error: any) {
         // error konflik 409
@@ -642,10 +672,11 @@ function RegistrationForm({
   }
 
   // useEffect(() => {
-  //   console.log(formData);
+  //   // console.log(formData);
   //   // console.log("mitra IDs: ", mitraID);
   //   // console.log("bts IDs: ", btsID);
-  // }, [btsID, formData, mitraID]);
+  //   console.log(isCovered);
+  // }, [btsID, formData, mitraID, isCovered]);
 
   function resetForm() {
     setFormData(initialFormData);
@@ -663,6 +694,15 @@ function RegistrationForm({
   }, [status]);
 
   const handleSelect = (pkg: PackageData) => {
+    // const isSame = selectedPackage?.id === pkg.id;
+
+    // if (isSame) {
+    //   // ✅ unselect
+    //   setSelectedPackage(null);
+    //   setFormData((prev) => ({ ...prev, package_id: "" }));
+    //   return;
+    // }
+
     setSelectedPackage(pkg);
     setFormData((prev) => ({
       ...prev,
@@ -671,7 +711,8 @@ function RegistrationForm({
     setErrors((prev) => ({ ...prev, package_id: "" }));
   };
 
-  const isValid = isLoading || !agreement || status === "denied";
+  const isValid =
+    isLoading || !agreement || status === "denied" || isCheckCoverage;
 
   return (
     <div className="container mx-auto px-6 lg:px-22 xl:px-42 my-6 sm:my-22 ">
@@ -682,7 +723,7 @@ function RegistrationForm({
       <form onSubmit={handleSubmit} className="mt-7">
         <div className="my-8">
           <p className="text-xl sm:text-2xl text-old-primary font-medium mb-3">
-            Paket yang tersedia
+            Paket yang tersedia*
           </p>
 
           {isLoadingPackage ? (
@@ -703,6 +744,13 @@ function RegistrationForm({
             <div className="text-primary-text">
               Belum ada Daftar Paket yang tersedia untuk wilayah Anda
             </div>
+          )}
+
+          {errors.package_id && (
+            <p className="text-red-500 animate-bounce mt-3 text-sm flex items-center gap-1">
+              <FaCircleExclamation className="text-red-500" />
+              {errors.package_id}
+            </p>
           )}
         </div>
 
@@ -1340,7 +1388,7 @@ function RegistrationForm({
           }}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >
-          <ModalRegister isCovered={isCovered} />
+          <ModalRegister isCovered={coveredAtSubmit ?? false} />
         </ModalTemplate>
       )}
 
@@ -1357,8 +1405,8 @@ function RegistrationForm({
               onGotLocation={(lat, lng) => {
                 setFormData((prev) => ({
                   ...prev,
-                  lat: String(lat),
-                  lng: String(lng),
+                  latitude: String(lat),
+                  longitude: String(lng),
                 }));
               }}
             />

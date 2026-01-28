@@ -23,7 +23,7 @@ function Page() {
       if (!user) {
         try {
           const res = await getProfileInfo({});
-          const customerData = res.data.data.customer;
+          const customerData = res.data?.data?.customer ?? {};
           dispatch(getUser(customerData));
           user = customerData;
         } catch (err) {
