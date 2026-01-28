@@ -382,10 +382,18 @@ export default function ConnectToNetwork() {
         if (data?.type === "ping-test-activate" && activateSuccessRef.current) {
           if (data?.message === "Success") {
             setInternetStatus("success");
-            handleActivationSuccess("sse");
+            setTimeout(() => {
+              if (!activationConfirmedRef.current) {
+                handleActivationSuccess("sse");
+              }
+            }, 2000);
           } else {
             setInternetStatus("success");
-            handleActivationSuccess("sse");
+            setTimeout(() => {
+              if (!activationConfirmedRef.current) {
+                handleActivationSuccess("sse");
+              }
+            }, 2000);
           }
         }
       } catch (err) {
