@@ -506,7 +506,7 @@ export default function ConnectToNetwork() {
       setActivateStatus("loading");
       setInternetStatus("loading");
       setScreen("loading");
-      toast.success("Permintaan aktivasi dikirim. Menunggu konfirmasi...", {
+      toast.loading("Permintaan aktivasi dikirim. Menunggu konfirmasi...", {
         id: "refresh",
       });
     } catch (err: any) {

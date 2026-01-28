@@ -259,7 +259,7 @@ const DeviceInformation = () => {
       const resSignal = await getSignal({ sn });
 
       if (resSignal?.data?.statusCode === 200)
-        toast.success(resSignal.data?.message ?? "Mendapatkan data sinyal..");
+        toast.loading(resSignal.data?.message ?? "Mendapatkan data sinyal..");
     } catch (err: any) {
       toastErrorFromAPI(err);
       setIsLoadingSignal(false);
