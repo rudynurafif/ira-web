@@ -505,9 +505,9 @@ function RegistrationForm({
 
     const errors: { [key: string]: string } = {};
 
-    // if (packages.length > 0 && !formData.package_id) {
-    //   errors.package_id = "Paket harus dipilih";
-    // }
+    if (packages.length > 0 && !formData.package_id) {
+      errors.package_id = "Paket harus dipilih";
+    }
 
     if (!formData.fullname) {
       errors.fullname = "Nama Lengkap harus diisi";
@@ -694,14 +694,14 @@ function RegistrationForm({
   }, [status]);
 
   const handleSelect = (pkg: PackageData) => {
-    const isSame = selectedPackage?.id === pkg.id;
+    // const isSame = selectedPackage?.id === pkg.id;
 
-    if (isSame) {
-      // ✅ unselect
-      setSelectedPackage(null);
-      setFormData((prev) => ({ ...prev, package_id: "" }));
-      return;
-    }
+    // if (isSame) {
+    //   // ✅ unselect
+    //   setSelectedPackage(null);
+    //   setFormData((prev) => ({ ...prev, package_id: "" }));
+    //   return;
+    // }
 
     setSelectedPackage(pkg);
     setFormData((prev) => ({
@@ -723,7 +723,7 @@ function RegistrationForm({
       <form onSubmit={handleSubmit} className="mt-7">
         <div className="my-8">
           <p className="text-xl sm:text-2xl text-old-primary font-medium mb-3">
-            Paket yang tersedia
+            Paket yang tersedia*
           </p>
 
           {isLoadingPackage ? (
@@ -744,6 +744,13 @@ function RegistrationForm({
             <div className="text-primary-text">
               Belum ada Daftar Paket yang tersedia untuk wilayah Anda
             </div>
+          )}
+
+          {errors.package_id && (
+            <p className="text-red-500 animate-bounce mt-3 text-sm flex items-center gap-1">
+              <FaCircleExclamation className="text-red-500" />
+              {errors.package_id}
+            </p>
           )}
         </div>
 

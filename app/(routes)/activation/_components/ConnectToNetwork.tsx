@@ -382,10 +382,18 @@ export default function ConnectToNetwork() {
         if (data?.type === "ping-test-activate" && activateSuccessRef.current) {
           if (data?.message === "Success") {
             setInternetStatus("success");
-            handleActivationSuccess("sse");
+            setTimeout(() => {
+              if (!activationConfirmedRef.current) {
+                handleActivationSuccess("sse");
+              }
+            }, 2000);
           } else {
             setInternetStatus("success");
-            handleActivationSuccess("sse");
+            setTimeout(() => {
+              if (!activationConfirmedRef.current) {
+                handleActivationSuccess("sse");
+              }
+            }, 2000);
           }
         }
       } catch (err) {
@@ -498,7 +506,7 @@ export default function ConnectToNetwork() {
       setActivateStatus("loading");
       setInternetStatus("loading");
       setScreen("loading");
-      toast.success("Permintaan aktivasi dikirim. Menunggu konfirmasi...", {
+      toast.loading("Permintaan aktivasi dikirim. Menunggu konfirmasi...", {
         id: "refresh",
       });
     } catch (err: any) {
