@@ -6,11 +6,13 @@ import ModalCheckCoverage from "./ModalCheckCoverage";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { getCheckCoverage } from "@/app/_api/Location/Location";
 import { IoCloseSharp } from "react-icons/io5";
+import { FaSearch } from "react-icons/fa";
 
 const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
 
 function CheckCoverage() {
   const inputRef = useRef<HTMLInputElement>(null);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [predictions, setPredictions] = useState<any[]>([]);
   const [modalResult, setModalResult] = useState<boolean>(false);
@@ -18,30 +20,70 @@ function CheckCoverage() {
   const [mitraPaket, setMitraPaket] = useState<string | null>(null);
   const [dataChooseMap, setDataChooseMap] = useState<any>(null);
 
-  // Debounce timeout
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // ✅ controlled input
+  const [address, setAddress] = useState<string>("");
 
-  // Handle input change (autocomplete)
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setDataChooseMap(null); // Reset pilihan saat input berubah
+  // ✅ cooldown 10 detik
+  const [isCooldown, setIsCooldown] = useState(false);
+  const [cooldownCount, setCooldownCount] = useState(0);
+  const cooldownRef = useRef<NodeJS.Timeout | null>(null);
 
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
+  // dedupe query
+  const lastAutocompleteQueryRef = useRef<string | null>(null);
 
-    if (value.length < 3) {
+  const startCooldown = (duration: number = 10, onFinish?: () => void) => {
+    if (cooldownRef.current) clearInterval(cooldownRef.current);
+
+    setIsCooldown(true);
+    setCooldownCount(duration);
+
+    cooldownRef.current = setInterval(() => {
+      setCooldownCount((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current!);
+          setIsCooldown(false);
+          if (onFinish) onFinish();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // ✅ search autocomplete (manual via button/enter)
+  const performAutocompleteSearch = async (query: string) => {
+    const q = (query || "").trim();
+
+    if (q.length < 3) {
       setPredictions([]);
+      toast.error("Minimal 3 karakter untuk mencari lokasi");
       return;
     }
 
-    typingTimeoutRef.current = setTimeout(async () => {
-      setIsLoading(true);
+    if (isCooldown) {
+      toast.error(
+        `Harap tunggu ${cooldownCount} detik lagi sebelum mencari lagi`,
+      );
+      return;
+    }
+
+    if (lastAutocompleteQueryRef.current === q) {
+      // same query, no need fetch again
+      return;
+    }
+
+    lastAutocompleteQueryRef.current = q;
+
+    setIsLoading(true);
+
+    // mulai cooldown dan lakukan fetch setelah cooldown selesai
+    // (biar persis pola MapGeoapify kamu)
+    startCooldown(10, async () => {
       try {
         const res = await fetch(
           `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
-            value
-          )}&filter=countrycode:id&lang=id&apiKey=${GEOAPIFY_KEY}`
+            q,
+          )}&filter=countrycode:id&lang=id&apiKey=${GEOAPIFY_KEY}`,
         );
         const data = await res.json();
         setPredictions(data.features || []);
@@ -52,18 +94,30 @@ function CheckCoverage() {
       } finally {
         setIsLoading(false);
       }
-    }, 1000); // debounce
+    });
   };
 
-  // Pilih alamat dari dropdown
+  // input change: reset pilihan + tutup dropdown (opsional: biarkan predictions sampai user cari lagi)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setAddress(value);
+    setDataChooseMap(null);
+
+    // kalau user edit input, sebaiknya tutup list lama
+    if (predictions.length) setPredictions([]);
+  };
+
+  // pilih alamat dari dropdown
   const handlePredictionClick = (feature: any) => {
     const { properties, geometry } = feature;
     const formattedAddress = properties.formatted;
     const lat = geometry.coordinates[1];
     const lng = geometry.coordinates[0];
 
+    setAddress(formattedAddress);
+
     if (inputRef.current) {
-      inputRef.current.value = formattedAddress;
+      inputRef.current.value = formattedAddress; // optional, karena controlled
     }
 
     setDataChooseMap({
@@ -73,17 +127,19 @@ function CheckCoverage() {
       rawData: feature,
     });
 
-    setPredictions([]); // Tutup dropdown
-  };
-
-  // Clear input
-  const clearInput = () => {
-    if (inputRef.current) inputRef.current.value = "";
-    setDataChooseMap(null);
     setPredictions([]);
   };
 
-  // Cek ketersediaan berdasarkan lokasi yang dipilih
+  // clear input
+  const clearInput = () => {
+    setAddress("");
+    if (inputRef.current) inputRef.current.value = "";
+    setDataChooseMap(null);
+    setPredictions([]);
+    lastAutocompleteQueryRef.current = null;
+  };
+
+  // cek coverage
   const checkRadius = async () => {
     if (!dataChooseMap) {
       toast.error("Lokasi belum dipilih. Harap pilih lokasi terlebih dahulu.");
@@ -111,12 +167,10 @@ function CheckCoverage() {
     }
   };
 
-  // Cleanup timeout saat unmount
+  // cleanup
   useEffect(() => {
     return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
     };
   }, []);
 
@@ -127,42 +181,70 @@ function CheckCoverage() {
           Apakah area Anda berada dalam jangkauan Internet Rakyat (IRA)?
         </h1>
       </div>
-      <p className="text-center text-white mt-[30px] text-base sm:text-xl md:text-2xl">
+      <p className="text-center text-white mt-7.5 text-base sm:text-xl md:text-2xl">
         Yuk, cek alamat Anda di sini!
       </p>
 
       <div className="flex flex-col sm:flex-row gap-5 items-center mt-7 xl:w-3/5 lg:w-4/5 w-full mx-auto">
-        {/* Input Alamat */}
+        {/* Input + Search + Clear */}
         <div className="w-full sm:w-4/5 md:w-3/5 relative">
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="Masukkan alamat Anda"
-            onChange={handleInputChange}
-            className="text-base bg-white sm:text-lg md:text-xl px-6 py-4 w-full rounded-xl"
-          />
-
-          {/* Tombol Clear */}
-          {inputRef.current?.value && (
+          <div className="relative flex items-center gap-2">
+            {/* ✅ Button Cari */}
             <button
               type="button"
-              onClick={clearInput}
-              className="absolute bg-white rounded-full p-1 cursor-pointer right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              disabled={isLoading}
+              onClick={() => performAutocompleteSearch(address)}
+              className="flex items-center justify-center gap-2 bg-white p-4 rounded-xl cursor-pointer shadow-md disabled:cursor-not-allowed"
             >
-              <IoCloseSharp color="#d7201d" size={28} />
+              <span className="font-bold font-semibol sm:block hidden sm:text-lg md:text-xl">
+                Cari
+              </span>
+              <FaSearch size={24} color="black" />
             </button>
-          )}
 
-          {/* Loading */}
+            <input
+              ref={inputRef}
+              type="text"
+              value={address}
+              placeholder="Masukkan alamat Anda"
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  performAutocompleteSearch(address);
+                }
+              }}
+              className="text-base bg-white sm:text-lg md:text-xl px-6 py-4 w-full rounded-xl"
+              disabled={isLoading}
+            />
+
+            {/* ✅ Tombol Clear */}
+            {address && (
+              <button
+                type="button"
+                onClick={clearInput}
+                className="absolute bg-white rounded-full p-1 cursor-pointer right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                <IoCloseSharp color="#d7201d" size={28} />
+              </button>
+            )}
+          </div>
+
+          {/* Loading + cooldown counter */}
           {isLoading && (
-            <div className="border-2 rounded-lg px-2 py-2 w-full block absolute z-50 bg-white">
-              Mencari lokasi...
+            <div className="border-2 rounded-lg px-4 py-2 w-full block absolute z-50 bg-white mt-2">
+              Mencari lokasi...{" "}
+              {cooldownCount > 0 && (
+                <span className="text-primary font-semibold">
+                  ({cooldownCount})
+                </span>
+              )}
             </div>
           )}
 
           {/* Prediksi */}
           {!isLoading && predictions.length > 0 && (
-            <div className="border-2 rounded-lg px-2 py-2 absolute z-50 bg-white max-h-60 overflow-y-auto w-full">
+            <div className="border-2 rounded-lg px-2 py-2 absolute z-50 bg-white max-h-60 overflow-y-auto w-full mt-2">
               {predictions.map((feature, idx) => (
                 <div
                   key={idx}
@@ -205,7 +287,7 @@ function CheckCoverage() {
             type="button"
             onClick={checkRadius}
             disabled={!dataChooseMap || isLoading}
-            className={`px-6 py-4 text-white disabled:cursor-not-allowed font-semibold cursor-pointer rounded-xl text-base sm:text-xl text-center w-full ${
+            className={`px-6 py-4 text-white disabled:cursor-not-allowed font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${
               dataChooseMap && !isLoading
                 ? "bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white hover:opacity-90"
                 : "bg-slate-500 cursor-not-allowed"

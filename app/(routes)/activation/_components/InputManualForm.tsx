@@ -43,7 +43,7 @@ function InputManualForm() {
       const res = await Activation({ serial_number: serialNumber });
 
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
-        toast.success(
+        toast.loading(
           res.data.message ||
             "Sedang proses aktivasi, silakan cek status secara berkala"
         );
