@@ -530,7 +530,7 @@ export default function ConnectToNetwork() {
       const res = await Activation({ serial_number: serialNumber });
 
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
-        toast.success(
+        toast.loading(
           res.data.message ||
             "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
           { id: "activate" },
