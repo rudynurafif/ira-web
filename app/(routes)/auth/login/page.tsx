@@ -210,7 +210,7 @@ const Page = () => {
         resForgotPassword.data?.message ||
           "Link reset password telah dikirim ke WhatsApp Anda. Silakan cek pesan WhatsApp Anda.",
       );
-      setStep("CHECK_PHONE")
+      setStep("CHECK_PHONE");
       // router.push("forgot-password");
       // window.location.href = "/forgot-password";
     } catch (err: any) {
@@ -255,17 +255,22 @@ const Page = () => {
           />
 
           {step !== "CHECK_PHONE" && (
-            <DynamicPasswordForm
-              label="Password"
-              name="password"
-              isImportant
-              value={password}
-              onChange={(val) => {
-                setPasswordValue(val);
-                setErrors({});
-              }}
-              error={errors.password}
-            />
+            <div>
+              <DynamicPasswordForm
+                label="Password"
+                name="password"
+                isImportant
+                value={password}
+                onChange={(val) => {
+                  setPasswordValue(val);
+                  setErrors({});
+                }}
+                error={errors.password}
+              />
+              <p className="text-xs text-secondary mt-1">
+                Password minimal 6 karakter dan mudah Anda ingat.
+              </p>
+            </div>
           )}
 
           {step === "SET_PASSWORD" && (

@@ -122,18 +122,23 @@ const Page = () => {
         />
 
         {/* PASSWORD */}
-        <DynamicPasswordForm
-          label="Password Baru"
-          name="password"
-          isImportant
-          value={password}
-          placeholder="Masukkan password baru"
-          onChange={(val) => {
-            setPasswordValue(val);
-            setErrors((e) => ({ ...e, password: "" }));
-          }}
-          error={errors.password}
-        />
+        <div>
+          <DynamicPasswordForm
+            label="Password Baru"
+            name="password"
+            isImportant
+            value={password}
+            placeholder="Masukkan password baru"
+            onChange={(val) => {
+              setPasswordValue(val);
+              setErrors((e) => ({ ...e, password: "" }));
+            }}
+            error={errors.password}
+          />
+          <p className="text-xs text-secondary mt-1">
+            Password minimal 6 karakter dan mudah Anda ingat.
+          </p>
+        </div>
 
         {/* CONFIRM PASSWORD */}
         <DynamicPasswordForm
