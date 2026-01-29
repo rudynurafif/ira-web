@@ -4,6 +4,8 @@ export interface FormType {
   email: string;
   phone: string;
   otp: string;
+  // password: string;
+  // confirm_password: string;
   nik: string;
   nokk: string;
   province: string;

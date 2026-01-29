@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
+export const PHONE_LIVE_REGEX = /^(08|62)\d{5,13}$/;
 export const PHONE_REGEX2 = /^\d{8,15}$/;
 export const regexEmail =
   /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -15,7 +16,7 @@ export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function convertToCurrency(
   number: number | undefined,
   locale = "id-ID",
-  currency = "IDR"
+  currency = "IDR",
 ) {
   if (number) {
     return number.toLocaleString(locale, {
@@ -30,7 +31,7 @@ export function convertToCurrency(
 
 export function debounce<T extends (...args: any[]) => void>(
   func: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
@@ -134,7 +135,7 @@ export const formatDateFilter2 = (date: Date | null): string | undefined => {
 
 export function formatISODate(
   isoString: string | null,
-  timezoneOffsetHours: number = 7
+  timezoneOffsetHours: number = 7,
 ): string {
   if (!isoString) return "";
 
@@ -282,7 +283,7 @@ export const maskPassword = (password: string) => {
 export const getSignalLevel = (
   rsrp?: number,
   rsrq?: number,
-  sinr?: number
+  sinr?: number,
 ): "verygood" | "good" | "poor" | "bad" | "disconnected" => {
   if (rsrp == null) {
     return "disconnected";
@@ -298,7 +299,7 @@ export const getSignalLevel = (
 export const mapSignalToLevel = (
   rsrp: number | null,
   rsrq: number | null,
-  sinr: number | null
+  sinr: number | null,
 ): Level => {
   if (rsrp === null) return 0;
 
@@ -311,7 +312,7 @@ export const mapSignalToLevel = (
 
 export const htmlToPdf = async (
   htmlString: string,
-  filename: string = "invoice.pdf"
+  filename: string = "invoice.pdf",
 ) => {
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = htmlString;
@@ -356,7 +357,7 @@ export const savePhoneToHistory = (phone: string) => {
   if (!phone) return;
   try {
     const history = JSON.parse(
-      localStorage.getItem(PHONE_HISTORY_KEY) || "[]"
+      localStorage.getItem(PHONE_HISTORY_KEY) || "[]",
     ) as string[];
     const filtered = history.filter((p) => p !== phone);
     const newHistory = [phone, ...filtered].slice(0, MAX_HISTORY);
@@ -369,7 +370,7 @@ export const savePhoneToHistory = (phone: string) => {
 export const getPhoneHistory = (): string[] => {
   try {
     return JSON.parse(
-      localStorage.getItem(PHONE_HISTORY_KEY) || "[]"
+      localStorage.getItem(PHONE_HISTORY_KEY) || "[]",
     ) as string[];
   } catch (e) {
     return [];

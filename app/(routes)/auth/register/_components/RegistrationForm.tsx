@@ -1,9 +1,7 @@
 "use client";
 import CheckboxAgreeForm from "@/app/_components/form/CheckboxAgreeForm";
 import DynamicForm from "@/app/_components/form/DynamicForm";
-import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import DynamicSelectForm from "@/app/_components/form/DynamicSelectForm";
-import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { ReactSelectType } from "@/app/_shared/types/form";
 import Link from "next/link";
@@ -28,6 +26,7 @@ import { setCookie } from "cookies-next";
 import {
   convertToCurrency,
   EMAIL_REGEX,
+  PHONE_LIVE_REGEX,
   PHONE_REGEX,
   regexEmail,
   toastErrorFromAPI,
@@ -52,6 +51,10 @@ import { hardcodedPackages } from "@/app/_shared/data/data";
 import Loader from "@/app/_components/Loader";
 import { PackageCardMobileSkeletonList } from "@/app/(routes)/payment/_components/PackageCardMobileSkeleton";
 import { buildErrorToast, scrollToFirstError } from "../helper";
+import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
+import PhoneNumberForm from "@/app/_components/form/PhoneForm";
+import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
+import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 
 const initialFormData: FormType = {
   package_id: "",
@@ -59,6 +62,8 @@ const initialFormData: FormType = {
   email: "",
   phone: "",
   otp: "",
+  // password: "",
+  // confirm_password: "",
   nik: "",
   nokk: "",
   province: "",
@@ -532,19 +537,31 @@ function RegistrationForm({
       errors.fullname = "Nama Lengkap harus diisi";
     }
 
-    if (!formData.phone) {
-      errors.phone = "No handphone harus diisi";
-    } else if (!PHONE_REGEX.test(formData.phone)) {
-      errors.phone = "Nomor handphone tidak valid.";
-    }
-
     if (formData.email && !regexEmail.test(formData.email)) {
       errors.email = "Format email salah";
+    }
+
+    if (!formData.phone) {
+      errors.phone = "No handphone harus diisi";
+    } else if (!PHONE_LIVE_REGEX.test(formData.phone)) {
+      errors.phone = "Nomor handphone tidak valid.";
     }
 
     if (formData.otp.length !== 6 && mode === "register") {
       errors.otp = "Kode OTP harus 6 digit";
     }
+
+    // if (!formData.password || formData.password.length < 6) {
+    //   errors.password = "Password minimal 6 karakter";
+    // }
+
+    // if (formData.password !== formData.confirm_password) {
+    //   errors.confirm_password = "Password tidak sama";
+    // }
+
+    // if (!formData.confirm_password) {
+    //   errors.confirm_password = "Konfirmasi password wajib diisi";
+    // }
 
     // if (!formData.nik) {
     //   errors.nik = "NIK harus diisi";
@@ -563,7 +580,7 @@ function RegistrationForm({
     }
 
     if (!formData.city) {
-      errors.city = "Kota harus diisi";
+      errors.city = "Kota/Kab harus diisi";
     }
 
     if (!formData.district) {
@@ -634,6 +651,7 @@ function RegistrationForm({
           ...(btsID.length > 0 && { bts_ids: btsID }),
           // nik: formData.nik ?? "",
           // no_kk: formData.nokk ?? "",
+          // password: formData.password ?? "",
           province_id: formData.province ?? "",
           city_id: formData.city ?? "",
           district_id: formData.district ?? "",
@@ -697,12 +715,12 @@ function RegistrationForm({
     }
   }
 
-  // useEffect(() => {
-  //   console.log(formData);
-  //   // console.log("mitra IDs: ", mitraID);
-  //   // console.log("bts IDs: ", btsID);
-  //   // console.log(isCovered);
-  // }, [btsID, formData, mitraID, isCovered]);
+  useEffect(() => {
+    console.log(formData);
+    // console.log("mitra IDs: ", mitraID);
+    // console.log("bts IDs: ", btsID);
+    // console.log(isCovered);
+  }, [btsID, formData, mitraID, isCovered]);
 
   function resetForm() {
     setFormData(initialFormData);
@@ -753,11 +771,17 @@ function RegistrationForm({
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData, isLoading]);
+
+  // const isPasswordMismatch =
+  //   Boolean(formData.password) &&
+  //   Boolean(formData.confirm_password) &&
+  //   formData.password !== formData.confirm_password;
 
   const isValid =
     isLoading || !agreement || status === "denied" || isCheckCoverage;
+  // || isPasswordMismatch;
 
   return (
     <div className="container mx-auto px-6 lg:px-22 xl:px-42 my-6 sm:my-22 ">
@@ -853,7 +877,7 @@ function RegistrationForm({
             />
           </div>
 
-          {/* Nomor Handphone */}
+          {/* Nomor Handphone + Button OTP */}
           <div className="max-md:col-span-2 col-span-1">
             <PhoneOTPForm
               storageKey={`otp:register:phone`}
@@ -935,6 +959,123 @@ function RegistrationForm({
               )}
             </div>
           )}
+
+          {/* Nomor Handphone (NGGA JADI) */}
+          {/* <div className="max-md:col-span-2 col-span-1">
+            <PhoneNumberForm
+              label="Nomor Handphone"
+              name="phone"
+              isImportant
+              value={formData.phone}
+              disabled={mode === "reregister"}
+              onChange={(val) => {
+                setFormData((prev) => ({ ...prev, phone: val }));
+
+                // kosong → jangan error
+                if (!val) {
+                  setErrors((e) => ({ ...e, phone: "" }));
+                  return;
+                }
+
+                // ❌ awalan salah
+                if (!val.startsWith("08") && !val.startsWith("62")) {
+                  setErrors((e) => ({
+                    ...e,
+                    phone: "Nomor harus diawali 08 atau 62",
+                  }));
+                  return;
+                }
+
+                // ❌ kependekan / kepanjangan
+                if (val.length < 7 || val.length > 15) {
+                  setErrors((e) => ({
+                    ...e,
+                    phone: "Nomor harus 7–15 digit",
+                  }));
+                  return;
+                }
+
+                // ❌ format tidak valid
+                if (!PHONE_LIVE_REGEX.test(val)) {
+                  setErrors((e) => ({
+                    ...e,
+                    phone: "Format nomor handphone tidak valid",
+                  }));
+                  return;
+                }
+
+                // ✅ valid
+                setErrors((e) => ({ ...e, phone: "" }));
+              }}
+              error={errors.phone}
+            />
+            {mode === "register" ? (
+              <p className="text-xs text-muted mt-1">
+                *Pastikan nomor yang Anda masukkan benar dan aktif
+              </p>
+            ) : (
+              <p className="text-xs text-muted mt-1">
+                *Nomor yang sama akan digunakan untuk berlangganan kembali
+              </p>
+            )}
+          </div> */}
+
+          {/* Password */}
+          {/* <div className="max-md:col-span-2 col-span-1">
+            <DynamicPasswordForm
+              label="Password"
+              name="password"
+              isImportant
+              value={formData.password}
+              placeholder="Minimal 6 karakter"
+              onChange={(val) => {
+                setFormData((prev) => ({ ...prev, password: val }));
+
+                // kosong → jangan error dulu
+                if (!val) {
+                  setErrors((e) => ({ ...e, password: "" }));
+                  return;
+                }
+
+                // ❌ terlalu pendek
+                if (val.length < 6) {
+                  setErrors((e) => ({
+                    ...e,
+                    password: "Password minimal 6 karakter",
+                  }));
+                  return;
+                }
+
+                // ✅ valid
+                setErrors((e) => ({ ...e, password: "" }));
+              }}
+              error={errors.password}
+            />
+          </div> */}
+
+          {/* Konfirmasi Password */}
+          {/* <div className="max-md:col-span-2 col-span-1">
+            <DynamicPasswordForm
+              label="Konfirmasi Password"
+              name="confirm_password"
+              isImportant
+              value={formData.confirm_password}
+              placeholder="Ulangi password"
+              onChange={(val) => {
+                setFormData((prev) => ({ ...prev, confirm_password: val }));
+
+                if (val && val !== formData.password) {
+                  setErrors((e) => ({
+                    ...e,
+                    confirm_password: "Password belum sama",
+                  }));
+                } else {
+                  setErrors((e) => ({ ...e, confirm_password: "" }));
+                }
+              }}
+              error={errors.confirm_password}
+            />
+          </div> */}
 
           {/* NIK */}
           {/* <div className="max-md:col-span-2 col-span-1">
@@ -1079,7 +1220,7 @@ function RegistrationForm({
               isClearable
               placeholder={`${
                 !formData.city
-                  ? "Pilih Kota/Kabupaten Terlebih Dahulu"
+                  ? "Pilih Kota/Kab Terlebih Dahulu"
                   : "Pilih Kecamatan"
               }`}
               error={errors.district}
