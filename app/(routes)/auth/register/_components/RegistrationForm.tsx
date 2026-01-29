@@ -318,7 +318,7 @@ function RegistrationForm({
         setErrors((prev) => ({ ...prev, package_id: "" }));
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [packages]);
 
   useEffect(() => {
@@ -736,6 +736,25 @@ function RegistrationForm({
     }));
     setErrors((prev) => ({ ...prev, package_id: "" }));
   };
+
+  const isFormDirty = () => {
+    return Object.values(formData).some(
+      (v) => v !== "" && v !== null && v !== undefined,
+    );
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isFormDirty() || isLoading) return;
+
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData, isLoading]);
 
   const isValid =
     isLoading || !agreement || status === "denied" || isCheckCoverage;
