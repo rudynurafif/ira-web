@@ -151,7 +151,7 @@ function PhoneOTPForm({
           : await sendOtpRegister(body);
 
       toast.success(
-        `${res_sendOTP?.data?.message ?? "OTP terkirim"} ke ${value}`
+        `${res_sendOTP?.data?.message ?? "OTP terkirim"} ke ${value}`,
       );
       startOtpTimer();
     } catch (error: any) {
@@ -160,6 +160,7 @@ function PhoneOTPForm({
       if (seconds) {
         // toastErrorFromAPI(error);
         startOtpTimer(seconds); // set cooldown sesuai server
+        toastErrorFromAPI(error);
       } else {
         if (
           error?.response?.data?.statusCode === 409 &&

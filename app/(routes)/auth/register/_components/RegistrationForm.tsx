@@ -51,6 +51,7 @@ import { PackageData } from "@/app/_shared/types/customer-area";
 import { hardcodedPackages } from "@/app/_shared/data/data";
 import Loader from "@/app/_components/Loader";
 import { PackageCardMobileSkeletonList } from "@/app/(routes)/payment/_components/PackageCardMobileSkeleton";
+import { buildErrorToast, scrollToFirstError } from "../helper";
 
 const initialFormData: FormType = {
   package_id: "",
@@ -301,6 +302,24 @@ function RegistrationForm({
       setFormData((prev) => ({ ...prev, package_id: "" }));
     }
   }, [formData.package_id, packages]);
+
+  useEffect(() => {
+    // auto-select kalau hanya ada 1 paket
+    if (packages.length === 1) {
+      const onlyPkg = packages[0];
+
+      // kalau belum ke-select
+      if (String(formData.package_id) !== String(onlyPkg.id)) {
+        setSelectedPackage(onlyPkg);
+        setFormData((prev) => ({
+          ...prev,
+          package_id: onlyPkg.id,
+        }));
+        setErrors((prev) => ({ ...prev, package_id: "" }));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [packages]);
 
   useEffect(() => {
     const loadProvince = async () => {
@@ -583,7 +602,14 @@ function RegistrationForm({
 
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
-      toast.error("Lengkapi data Anda terlebih dahulu");
+
+      // Scroll ke error paling atas (setTimeout biar state sempat render error message)
+      setTimeout(() => {
+        scrollToFirstError(errors);
+      }, 0);
+
+      toast.error(buildErrorToast(errors));
+
       setIsLoading(false);
       return;
     } else {
@@ -672,10 +698,10 @@ function RegistrationForm({
   }
 
   // useEffect(() => {
-  //   // console.log(formData);
+  //   console.log(formData);
   //   // console.log("mitra IDs: ", mitraID);
   //   // console.log("bts IDs: ", btsID);
-  //   console.log(isCovered);
+  //   // console.log(isCovered);
   // }, [btsID, formData, mitraID, isCovered]);
 
   function resetForm() {
@@ -710,6 +736,25 @@ function RegistrationForm({
     }));
     setErrors((prev) => ({ ...prev, package_id: "" }));
   };
+
+  const isFormDirty = () => {
+    return Object.values(formData).some(
+      (v) => v !== "" && v !== null && v !== undefined,
+    );
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isFormDirty() || isLoading) return;
+
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData, isLoading]);
 
   const isValid =
     isLoading || !agreement || status === "denied" || isCheckCoverage;
