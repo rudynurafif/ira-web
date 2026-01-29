@@ -20,6 +20,7 @@ import {
   setPassword,
   forgotPassword,
 } from "@/app/_api/Auth/Auth";
+import { IoMdArrowRoundBack } from "react-icons/io";
 
 /**
  * STEP FLOW
@@ -240,6 +241,17 @@ const Page = () => {
           Login Internet Rakyat (IRA)
         </h1>
 
+        {step !== "CHECK_PHONE" && (
+          <div className="">
+            <button
+              onClick={() => setStep("CHECK_PHONE")}
+              className=" py-2 mb-5 flex items-center gap-2 rounded-lg text-xl cursor-pointer hover:underline"
+            >
+              <IoMdArrowRoundBack /> Kembali
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <PhoneNumberForm
             label="Nomor Handphone"
@@ -267,9 +279,11 @@ const Page = () => {
                 }}
                 error={errors.password}
               />
-              <p className="text-xs text-secondary mt-1">
-                Password minimal 6 karakter dan mudah Anda ingat.
-              </p>
+              {step === "SET_PASSWORD" && (
+                <p className="text-xs text-secondary mt-1">
+                  Password minimal 6 karakter dan mudah Anda ingat.
+                </p>
+              )}
             </div>
           )}
 
