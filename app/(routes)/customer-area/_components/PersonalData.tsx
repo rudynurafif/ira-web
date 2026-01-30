@@ -47,7 +47,7 @@ export const ProfileLabel = ({
             type="button"
             onClick={handleCopy}
             disabled={copied}
-            className="cursor-pointer ml-1 inline disabled:cursor-not-allowed! right-3 top-12 text-gray-500 hover:text-gray-700"
+            className="cursor-pointer ml-1 inline disabled:cursor-not-allowed right-3 top-12 text-gray-500 hover:text-gray-700"
             title="Salin teks"
           >
             {copied ? (
@@ -98,10 +98,10 @@ const PersonalData = () => {
           />
           <ProfileLabel
             showCopyButton={true}
-            value={userInfo?.longitude + ", " + userInfo?.latitude || "-"}
-            onCopy={(value) => toast.success(`LongLat berhasil disalin`)}
-            label="Longitude Latitude"
-            data={userInfo?.longitude + ", " + userInfo?.latitude || "-"}
+            value={userInfo?.latitude + ", " + userInfo?.longitude || "-"}
+            onCopy={(value) => toast.success(`LatLon berhasil disalin`)}
+            label="Latitude Longitude"
+            data={userInfo?.latitude + ", " + userInfo?.longitude || "-"}
           />
 
           <div className="flex max-sm:gap-2 gap-6 justify-between p-4">
