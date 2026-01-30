@@ -258,6 +258,11 @@ const Page = () => {
     }
   };
 
+  useEffect(() => {
+    setPasswordValue("");
+    setConfirmPassword("");
+  }, [step]);
+
   const isPhoneValid = !validatePhone(phone);
 
   const isSetPasswordValid =
