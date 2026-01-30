@@ -1525,7 +1525,7 @@ function RegistrationForm({
               mode === "register" ? "w-1/2" : "px-8"
             } font-bold text-white ${
               isValid
-                ? "bg-slate-400 cursor-not-allowed"
+                ? "bg-slate-400 cursor-not-allowed!"
                 : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             } text-xl rounded-xl mx-auto `}
           >

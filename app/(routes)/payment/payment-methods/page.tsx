@@ -367,7 +367,7 @@ const PaymentMehods = () => {
           disabled={!selectedChannel || isCreatePayment}
           // onClick={() => router.push("/payment")}
           onClick={handleCreatePayment}
-          className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-full sm:rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-full sm:rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed! disabled:bg-slate-400"
         >
           {isCreatePayment ? "Mohon menunggu.." : "Bayar"}
         </button>
@@ -401,7 +401,7 @@ const PaymentMehods = () => {
             </div>
 
             <button
-              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
               onClick={() => {
                 setOpenModalNotAllowed(false);
                 router.push("/customer-area");

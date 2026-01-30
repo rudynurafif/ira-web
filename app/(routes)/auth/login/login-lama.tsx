@@ -64,7 +64,7 @@ const Page = () => {
           console.warn("Geolocation error:", error);
           resolve(null);
         },
-        { timeout: 10000, maximumAge: 60000 }
+        { timeout: 10000, maximumAge: 60000 },
       );
     });
   };
@@ -86,7 +86,7 @@ const Page = () => {
   useEffect(() => {
     const cnt = parseInt(
       sessionStorage.getItem(storageKeys.reqCount) || "0",
-      10
+      10,
     );
     const blk = sessionStorage.getItem(storageKeys.blockUntil);
     setRequestCount(Number.isFinite(cnt) ? cnt : 0);
@@ -111,7 +111,7 @@ const Page = () => {
     const readLeft = () => {
       const exp = parseInt(
         sessionStorage.getItem(storageKeys.resendTimer) || "0",
-        10
+        10,
       );
       const left =
         exp > 0 ? Math.max(0, Math.floor((exp - Date.now()) / 1000)) : 0;
@@ -209,7 +209,7 @@ const Page = () => {
       const seconds = error?.response?.data?.data?.second;
 
       const lastAttempt = Number(
-        sessionStorage.getItem(storageKeys.reqCount) ?? requestCount ?? 0
+        sessionStorage.getItem(storageKeys.reqCount) ?? requestCount ?? 0,
       );
 
       if (lastAttempt >= MAX_ATTEMPT) {
@@ -306,7 +306,7 @@ const Page = () => {
       setOtpStatus("invalid");
       toastErrorFromAPI(err, "Verifikasi OTP gagal. Silahkan coba lagi.");
       setErrorVerifyOtp(
-        err?.response?.data?.message ?? "Verifikasi OTP gagal. Coba lagi."
+        err?.response?.data?.message ?? "Verifikasi OTP gagal. Coba lagi.",
       );
     }
   }
@@ -421,7 +421,7 @@ const Page = () => {
         <div className="mt-6 text-center text-sm text-gray-700">
           Tidak menerima OTP?{" "}
           {resendLeft > 0 ? (
-            <span className="inline-flex cursor-not-allowed items-center gap-1 font-semibold">
+            <span className="inline-flex cursor-not-allowed! items-center gap-1 font-semibold">
               Tunggu ⏳ {formatTimer(resendLeft)} untuk kirim ulang
             </span>
           ) : (
@@ -467,7 +467,7 @@ const Page = () => {
           </div>
 
           <button
-            className="mt-8 w-full max-w-md mx-auto bg-gray-400 text-white py-3 rounded-xl cursor-not-allowed"
+            className="mt-8 w-full max-w-md mx-auto bg-gray-400 text-white py-3 rounded-xl cursor-not-allowed!"
             disabled
           >
             Coba Lagi

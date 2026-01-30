@@ -176,7 +176,7 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
             disabled={
               isSaving || Boolean(errors.ssid) || Boolean(errors.password)
             }
-            className="w-full disabled:cursor-not-allowed disabled:bg-slate-400 cursor-pointer py-3 bg-primary text-white font-medium rounded-lg hover:bg-dark-primary-2 transition-colors"
+            className="w-full disabled:cursor-not-allowed! disabled:bg-slate-400 cursor-pointer py-3 bg-primary text-white font-medium rounded-lg hover:bg-dark-primary-2 transition-colors"
           >
             {isSaving ? "Mohon menunggu..." : "Simpan Perubahan"}
           </button>

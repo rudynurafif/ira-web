@@ -136,7 +136,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
               ? "bg-primary hover:bg-dark-primary-2"
               : "bg-red-primary hover:bg-dark-primary"
           } text-white font-medium cursor-pointer whitespace-nowrap px-5 py-2 max-sm:p-2 rounded-lg text-sm max-sm:text-[10px] ${
-            isToastCooldown ? "opacity-70 cursor-not-allowed" : ""
+            isToastCooldown ? "opacity-70 cursor-not-allowed!" : ""
           }`}
         >
           {isToastCooldown

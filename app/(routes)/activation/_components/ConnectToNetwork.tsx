@@ -722,7 +722,7 @@ export default function ConnectToNetwork() {
             className={`w-full border-2 font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]
             ${
               isCooldownActive
-                ? "bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed"
+                ? "bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed!"
                 : "bg-white border-primary text-primary hover:bg-red-50 cursor-pointer"
             }`}
             type="button"

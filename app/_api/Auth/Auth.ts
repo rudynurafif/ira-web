@@ -80,6 +80,19 @@ export const forgotPassword = async (body: any) => {
   }
 };
 
+export const checkTemplate = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/check-template",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const sendOtpRegister = async (body: any) => {
   try {
     const data = await FwaAxios({

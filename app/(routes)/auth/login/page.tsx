@@ -149,6 +149,8 @@ const Page = () => {
         toastErrorFromAPI(err, "Gagal cek password");
       }
     } finally {
+      setPasswordValue("");
+      setConfirmPassword("");
       setIsLoading(false);
     }
   };
@@ -184,6 +186,8 @@ const Page = () => {
       toastErrorFromAPI(err, "Gagal set password");
     } finally {
       setIsLoading(false);
+      setPasswordValue("");
+      setConfirmPassword("");
     }
   };
 
@@ -215,10 +219,13 @@ const Page = () => {
 
       toast.success(res.data?.message ?? "Login berhasil");
       window.location.href = "/customer-area";
+      // router.push("/customer-area");
     } catch (err) {
       toastErrorFromAPI(err, "Login gagal");
     } finally {
       setIsLoading(false);
+      setPasswordValue("");
+      setConfirmPassword("");
     }
   };
 
@@ -246,8 +253,32 @@ const Page = () => {
       toastErrorFromAPI(err);
     } finally {
       setIsLoading(false);
+      setPasswordValue("");
+      setConfirmPassword("");
     }
   };
+
+  useEffect(() => {
+    setPasswordValue("");
+    setConfirmPassword("");
+  }, [step]);
+
+  const isPhoneValid = !validatePhone(phone);
+
+  const isSetPasswordValid =
+    !validatePassword(password) &&
+    password === confirmPassword &&
+    !!password &&
+    !!confirmPassword;
+
+  const isLoginValid = !!password && !validatePassword(password) && !!location;
+
+  const isFormValid = (() => {
+    if (step === "CHECK_PHONE") return isPhoneValid;
+    if (step === "SET_PASSWORD") return isSetPasswordValid;
+    if (step === "LOGIN") return isLoginValid;
+    return false;
+  })();
 
   // ===============================
   // FORM SUBMIT
@@ -268,7 +299,11 @@ const Page = () => {
         {step !== "CHECK_PHONE" && (
           <div className="">
             <button
-              onClick={() => setStep("CHECK_PHONE")}
+              onClick={() => {
+                setStep("CHECK_PHONE");
+                setPasswordValue("");
+                setConfirmPassword("");
+              }}
               className=" py-2 mb-5 flex items-center gap-2 rounded-lg text-xl cursor-pointer hover:underline"
             >
               <IoMdArrowRoundBack /> Kembali
@@ -348,13 +383,13 @@ const Page = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !isFormValid}
             className={`py-4 flex items-center justify-center gap-2 font-bold text-white text-xl rounded-xl
-              ${
-                isLoading
-                  ? "bg-slate-400 cursor-not-allowed"
-                  : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
-              }`}
+            ${
+              isLoading || !isFormValid
+                ? "bg-slate-400 cursor-not-allowed!"
+                : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
+            }`}
           >
             {isLoading && <div className="loading w-5 h-5"></div>}
             {isLoading

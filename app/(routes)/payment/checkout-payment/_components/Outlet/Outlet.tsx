@@ -60,11 +60,11 @@ function Outlet({ data }: { data: OtcPaymentData }) {
 
     if (type && selected) {
       const matchedType = dataOutlet.find(
-        (item) => item.route.toLowerCase() === type
+        (item) => item.route.toLowerCase() === type,
       );
       if (matchedType) {
         const matchedLogo: any = matchedType.logo.find(
-          (logo) => logo.name === selected
+          (logo) => logo.name === selected,
         );
         if (matchedLogo) {
           setSelectedImage(matchedLogo);
@@ -158,7 +158,7 @@ function Outlet({ data }: { data: OtcPaymentData }) {
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
+          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>
