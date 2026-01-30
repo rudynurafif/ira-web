@@ -21,7 +21,11 @@ import { MdCameraswitch } from "react-icons/md";
 import { FormControlLabel, Switch } from "@mui/material";
 import { QrDimensions } from "html5-qrcode/esm/core";
 import { addUrlParam } from "@/app/_shared/utils";
-import { FaExclamationTriangle } from "react-icons/fa";
+import {
+  FaExclamation,
+  FaExclamationCircle,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 type Props = {
   onDetected?: (text: string) => void;
@@ -564,8 +568,11 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
 
           {!starting && !error && (
             <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 w-full px-4 max-w-120">
-              <p className="flex flex-col items-center justify-center gap-2 text-white font-bold text-center text-sm bg-[#1075FF] rounded-lg py-2 px-3">
-                <FaExclamationTriangle className="text-yellow-300" size={24} />
+              <p className="flex items-start gap-2 text-white font-bold text-sm bg-[#1075FF] rounded-lg py-2 px-3">
+                <FaExclamationCircle
+                  className="text-yellow-300 mt-0.5 shrink-0"
+                  size={20}
+                />
                 <span>
                   Pastikan Serial Number sistem sama dengan yang ada pada modem
                   CPE
