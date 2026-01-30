@@ -85,15 +85,8 @@ const PackageAndHistory = () => {
 
   const [latestIsFree, setLatestIsFree] = useState(false);
   useEffect(() => {
-    if (activePacketData) {
-      const packageName = activePacketData.package_id?.name || "";
-      const normalized = packageName.toLowerCase();
-      const isFree =
-        normalized.includes("free") ||
-        normalized.includes("demo") ||
-        normalized.includes("gratis");
-
-      setLatestIsFree(isFree);
+    if (activePacketData?.package_id.package_type === "free") {
+      setLatestIsFree(true);
     }
   }, [activePacketData]);
 
