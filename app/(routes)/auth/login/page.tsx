@@ -219,6 +219,8 @@ const Page = () => {
       toastErrorFromAPI(err, "Login gagal");
     } finally {
       setIsLoading(false);
+      setPassword("");
+      setConfirmPassword("");
     }
   };
 

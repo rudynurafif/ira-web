@@ -111,6 +111,8 @@ const Page = () => {
       toastErrorFromAPI(err, "Gagal reset password");
     } finally {
       setIsLoading(false);
+      setPassword("");
+      setConfirmPassword("");
     }
   };
 
