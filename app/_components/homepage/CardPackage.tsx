@@ -24,7 +24,7 @@ function CardPackage() {
     slidesToShow: 3,
     speed: 500,
     afterChange: (current: number) => {
-      console.log(current);
+      // console.log(current);
       setCenterIndex(current);
     },
   };
