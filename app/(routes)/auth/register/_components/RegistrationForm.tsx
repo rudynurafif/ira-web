@@ -529,7 +529,10 @@ function RegistrationForm({
 
     const errors: { [key: string]: string } = {};
 
-    if (packages.length > 0 && !formData.package_id) {
+    const coveredNow = isCovered;
+    setCoveredAtSubmit(coveredNow);
+
+    if (coveredNow && !formData.package_id) {
       errors.package_id = "Paket harus dipilih";
     }
 
@@ -643,7 +646,8 @@ function RegistrationForm({
               : "tipe regist baru";
 
         const body: any = {
-          ...(formData.package_id && { package_id: formData.package_id }),
+          // ...(formData.package_id && { package_id: formData.package_id }),
+          package_id: formData.package_id ?? null,
           phone_number: formData.phone ?? "",
           name: formData.fullname ?? "",
           ...(formData.email && { email: formData.email }),
@@ -667,9 +671,6 @@ function RegistrationForm({
           ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
           // type,
         };
-
-        const coveredNow = isCovered;
-        setCoveredAtSubmit(coveredNow);
 
         let res;
 
@@ -715,12 +716,12 @@ function RegistrationForm({
     }
   }
 
-  useEffect(() => {
-    console.log(formData);
-    // console.log("mitra IDs: ", mitraID);
-    // console.log("bts IDs: ", btsID);
-    // console.log(isCovered);
-  }, [btsID, formData, mitraID, isCovered]);
+  // useEffect(() => {
+  //   console.log(formData);
+  //   // console.log("mitra IDs: ", mitraID);
+  //   // console.log("bts IDs: ", btsID);
+  //   // console.log(isCovered);
+  // }, [btsID, formData, mitraID, isCovered]);
 
   function resetForm() {
     setFormData(initialFormData);
@@ -781,6 +782,7 @@ function RegistrationForm({
 
   const isValid =
     isLoading || !agreement || status === "denied" || isCheckCoverage;
+  // !formData.package_id;
   // || isPasswordMismatch;
 
   return (
@@ -811,7 +813,8 @@ function RegistrationForm({
             </div>
           ) : (
             <div className="text-primary-text">
-              Belum ada Daftar Paket yang tersedia untuk wilayah Anda
+              Belum ada Daftar Paket yang tersedia untuk wilayah Anda, pastikan
+              titik alamat pada peta sudah benar.
             </div>
           )}
 
