@@ -520,24 +520,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
               />
             </div>
 
-            {/* Longitude Latitude */}
-            <div className="max-sm:col-span-2 col-span-1">
-              <DynamicForm
-                label="Longitude"
-                isImportant={false}
-                disabled
-                name="longitude"
-                value={longitude}
-                onChange={() => {}}
-                showCopyButton={true}
-                onCopy={(value) =>
-                  toast.success(`Longitude ${value} berhasil disalin`)
-                }
-                placeholder="Masukkan Longitude"
-                error={errors.longitude}
-              />
-            </div>
-
+            {/* Latitude Longitude */}
             <div className="max-sm:col-span-2 col-span-1">
               <DynamicForm
                 label="Latitude"
@@ -552,6 +535,23 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 }
                 placeholder="Masukkan Latitude"
                 error={errors.latitude}
+              />
+            </div>
+
+            <div className="max-sm:col-span-2 col-span-1">
+              <DynamicForm
+                label="Longitude"
+                isImportant={false}
+                disabled
+                name="longitude"
+                value={longitude}
+                onChange={() => {}}
+                showCopyButton={true}
+                onCopy={(value) =>
+                  toast.success(`Longitude ${value} berhasil disalin`)
+                }
+                placeholder="Masukkan Longitude"
+                error={errors.longitude}
               />
             </div>
           </div>
