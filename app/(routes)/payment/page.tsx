@@ -111,13 +111,7 @@ const Payment = () => {
         if (isActive) {
           setLatestPackage(latest);
 
-          // ✅ Cek apakah nama paket mengandung kata "free", "demo", atau "gratis"
-          const packageName = latest.package_id?.name || "";
-          const normalized = packageName.toLowerCase();
-          const isFree =
-            normalized.includes("free") ||
-            normalized.includes("demo") ||
-            normalized.includes("gratis");
+          const isFree = latest?.package_id.package_type === "free";
 
           setIsLatestPackageFree(isFree);
 
