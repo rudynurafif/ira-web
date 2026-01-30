@@ -647,7 +647,7 @@ function RegistrationForm({
 
         const body: any = {
           // ...(formData.package_id && { package_id: formData.package_id }),
-          package_id: formData.package_id ?? null,
+          ...(coveredNow && { package_id: formData.package_id }),
           phone_number: formData.phone ?? "",
           name: formData.fullname ?? "",
           ...(formData.email && { email: formData.email }),
@@ -792,41 +792,43 @@ function RegistrationForm({
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-7">
-        <div className="my-8">
-          <p className="text-xl sm:text-2xl text-old-primary font-medium mb-3">
-            Paket yang tersedia*
-          </p>
-
-          {isLoadingPackage ? (
-            <PackageCardMobileSkeletonList count={2} />
-          ) : packages?.length ? (
-            <div className="md:grid grid-cols-1 lg:grid-cols-2 gap-4 max-sm:space-y-6">
-              {packages.map((pkg) => (
-                <PackageCardMobile
-                  key={pkg.id}
-                  pkg={pkg}
-                  selected={selectedPackage?.id === pkg?.id}
-                  onSelect={handleSelect}
-                  convertToCurrency={convertToCurrency}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-primary-text">
-              Belum ada Daftar Paket yang tersedia untuk wilayah Anda, pastikan
-              titik alamat pada peta sudah benar.
-            </div>
-          )}
-
-          {errors.package_id && (
-            <p className="text-red-500 animate-bounce mt-3 text-sm flex items-center gap-1">
-              <FaCircleExclamation className="text-red-500" />
-              {errors.package_id}
+        {isCovered && (
+          <div className="my-8">
+            <p className="text-xl sm:text-2xl text-old-primary font-medium mb-3">
+              Paket yang tersedia*
             </p>
-          )}
-        </div>
 
-        <div className="border-t border-gray-border-2 my-6"></div>
+            {isLoadingPackage ? (
+              <PackageCardMobileSkeletonList count={2} />
+            ) : packages?.length ? (
+              <div className="md:grid grid-cols-1 lg:grid-cols-2 gap-4 max-sm:space-y-6">
+                {packages.map((pkg) => (
+                  <PackageCardMobile
+                    key={pkg.id}
+                    pkg={pkg}
+                    selected={selectedPackage?.id === pkg?.id}
+                    onSelect={handleSelect}
+                    convertToCurrency={convertToCurrency}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-primary-text">
+                Belum ada Daftar Paket yang tersedia untuk wilayah Anda,
+                pastikan titik alamat Anda pada peta sudah benar.
+              </div>
+            )}
+
+            {errors.package_id && (
+              <p className="text-red-500 animate-bounce mt-3 text-sm flex items-center gap-1">
+                <FaCircleExclamation className="text-red-500" />
+                {errors.package_id}
+              </p>
+            )}
+
+            <div className="border-t border-gray-border-2 my-6"></div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 max-md:grid-cols-1 gap-7">
           {/* Nama */}
