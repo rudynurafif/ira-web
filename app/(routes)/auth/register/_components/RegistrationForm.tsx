@@ -1455,7 +1455,7 @@ function RegistrationForm({
                   </p>
                 )}
                 {!isCovered && !isCheckCoverage && (
-                  <p className="mt-1 text-red-primary flex items-center gap-1 text-sm">
+                  <p className="mt-1 animate-bounce text-red-primary flex items-center gap-1 text-sm">
                     <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
                     Lokasi Anda belum berada di jangkauan area kami, dan kami
                     sedang menuju ke daerah Anda.
