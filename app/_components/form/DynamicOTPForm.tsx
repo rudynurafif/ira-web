@@ -96,7 +96,7 @@ export default function GroupedOTP({
 }
 
 function Slot(
-  props: SlotProps & { isInvalid?: boolean; isDisabled?: boolean }
+  props: SlotProps & { isInvalid?: boolean; isDisabled?: boolean },
 ) {
   return (
     <div
@@ -106,7 +106,7 @@ function Slot(
         ${props.isInvalid ? "border-red-500" : "border-gray-300"}
         ${
           props.isDisabled
-            ? "cursor-not-allowed bg-background-customer"
+            ? "cursor-not-allowed! bg-background-customer"
             : "group-hover:border-gray-400 bg-[#F7F9FD] group-focus-within:border-gray-400"
         }
         outline-0 outline-blue-300 

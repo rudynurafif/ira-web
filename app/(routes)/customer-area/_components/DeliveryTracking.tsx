@@ -33,13 +33,13 @@ const DeliveryTracking = ({
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [packageData, setPackageData] = useState<Shipment>();
   const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
 
   type ShipmentStatus = "waiting" | "assigned" | "done" | "unknown";
 
   const [shipmentStatusData, setShipmentStatusData] = useState<ShipmentStatus>(
-    (data?.shipment_status as ShipmentStatus) ?? "waiting"
+    (data?.shipment_status as ShipmentStatus) ?? "waiting",
   );
 
   const rankMap: Record<ShipmentStatus, number> = {
@@ -166,7 +166,7 @@ const DeliveryTracking = ({
         ) : (
           <div className="flex-col max-sm:w-full text-end max-lg:text-center">
             <button
-              className="py-3 mb-4 px-6 disabled:bg-slate-400 disabled:cursor-not-allowed font-bold max-sm:w-full bg-primary hover:bg-dark-primary-2 text-white rounded-lg cursor-pointer"
+              className="py-3 mb-4 px-6 disabled:bg-slate-400 disabled:cursor-not-allowed! font-bold max-sm:w-full bg-primary hover:bg-dark-primary-2 text-white rounded-lg cursor-pointer"
               onClick={() => setShowQRModal(true)}
               disabled={!steps[1].isDone}
             >
@@ -216,7 +216,7 @@ const DeliveryTracking = ({
             <div className="mb-6">
               <p className="text-base mb-2 text-gray-600">
                 {getFirstTwoWords(
-                  packageData?.customer_id.name ?? "Nama Customer"
+                  packageData?.customer_id.name ?? "Nama Customer",
                 )}{" "}
                 - {packageData?.customer_id.customer_code ?? "ID Customer"}
               </p>
@@ -353,7 +353,7 @@ const DeliveryTracking = ({
             </div>
 
             <button
-              className="my-6 py-3 px-6 disabled:bg-slate-400 disabled:cursor-not-allowed font-bold max-sm:w-full bg-primary hover:bg-dark-primary-2 text-white sm:rounded-lg rounded-full cursor-pointer"
+              className="my-6 py-3 px-6 disabled:bg-slate-400 disabled:cursor-not-allowed! font-bold max-sm:w-full bg-primary hover:bg-dark-primary-2 text-white sm:rounded-lg rounded-full cursor-pointer"
               onClick={() => {
                 router.push(`/activation`);
                 // router.push(`/activation/activating-cpe`); // manual activation page

@@ -326,7 +326,7 @@ const Payment = () => {
 
         <div className="mt-6">
           <button
-            className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+            className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
             // onClick={handleCreatePayment}
             onClick={handleCheckPackage}
             disabled={!selectedPackage}
@@ -374,7 +374,7 @@ const Payment = () => {
             </div>
 
             <button
-              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
               onClick={() => setOpenModalNotAllowed(false)}
               disabled={!selectedPackage}
             >

@@ -53,7 +53,7 @@ function DynamicForm({
           name={name}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`px-5 disabled:cursor-not-allowed py-3 bg-primary-spectrum rounded-xl w-full mt-2 border ${
+          className={`px-5 disabled:cursor-not-allowed! py-3 bg-primary-spectrum rounded-xl w-full mt-2 border ${
             error ? "border-red-500" : "border-[#D5D5D5]"
           } placeholder:text-gray-400 placeholder:text-sm`}
           {...props}
@@ -63,7 +63,7 @@ function DynamicForm({
             type="button"
             onClick={handleCopy}
             disabled={copied}
-            className="absolute cursor-pointer disabled:cursor-not-allowed right-3 top-12 text-gray-500 hover:text-gray-700"
+            className="absolute cursor-pointer disabled:cursor-not-allowed! right-3 top-12 text-gray-500 hover:text-gray-700"
             title="Salin teks"
           >
             {copied ? <FaCheck className="text-green-500" /> : <FaCopy />}
@@ -85,7 +85,7 @@ function DynamicForm({
           value={value}
           list={datalist}
           onChange={(e) => onChange(e.target.value)}
-          className={`px-5 py-3 disabled:cursor-not-allowed disabled:bg-[#f5f5f5] bg-primary-spectrum rounded-xl w-full mt-2 border ${
+          className={`px-5 py-3 disabled:cursor-not-allowed! disabled:bg-[#f5f5f5] bg-primary-spectrum rounded-xl w-full mt-2 border ${
             error ? "border-red-500" : "border-[#D5D5D5]"
           } placeholder:text-gray-400 placeholder:text-sm`}
           {...props}
@@ -95,7 +95,7 @@ function DynamicForm({
             type="button"
             onClick={handleCopy}
             disabled={copied}
-            className="absolute cursor-pointer disabled:cursor-not-allowed right-3 top-12 text-gray-500 hover:text-gray-700"
+            className="absolute cursor-pointer disabled:cursor-not-allowed! right-3 top-12 text-gray-500 hover:text-gray-700"
             title="Salin teks"
           >
             {copied ? (

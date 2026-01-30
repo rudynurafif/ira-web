@@ -186,7 +186,7 @@ const Page = () => {
           className={`py-4 font-bold text-white text-xl rounded-xl
             ${
               isLoading || !code
-                ? "bg-slate-400 cursor-not-allowed"
+                ? "bg-slate-400 cursor-not-allowed!"
                 : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             }`}
         >

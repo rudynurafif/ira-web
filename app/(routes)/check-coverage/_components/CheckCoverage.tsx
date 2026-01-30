@@ -194,7 +194,7 @@ function CheckCoverage() {
               type="button"
               disabled={isLoading}
               onClick={() => performAutocompleteSearch(address)}
-              className="flex items-center justify-center gap-2 bg-white p-4 rounded-xl cursor-pointer shadow-md disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 bg-white p-4 rounded-xl cursor-pointer shadow-md disabled:cursor-not-allowed!"
             >
               <span className="font-bold font-semibol sm:block hidden sm:text-lg md:text-xl">
                 Cari
@@ -287,10 +287,10 @@ function CheckCoverage() {
             type="button"
             onClick={checkRadius}
             disabled={!dataChooseMap || isLoading}
-            className={`px-6 py-4 text-white disabled:cursor-not-allowed font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${
+            className={`px-6 py-4 text-white disabled:cursor-not-allowed! font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${
               dataChooseMap && !isLoading
                 ? "bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white hover:opacity-90"
-                : "bg-slate-500 cursor-not-allowed"
+                : "bg-slate-500 cursor-not-allowed!"
             }`}
           >
             Cek Ketersediaan

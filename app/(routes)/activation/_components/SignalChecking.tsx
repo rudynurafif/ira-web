@@ -58,7 +58,7 @@ const levelAdvice: Record<Level, string> = {
 };
 
 const mapSignalLevelToBar = (
-  level: "" | "verygood" | "good" | "poor" | "bad" | "disconnected"
+  level: "" | "verygood" | "good" | "poor" | "bad" | "disconnected",
 ): Level => {
   switch (level) {
     case "verygood":
@@ -124,7 +124,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
 
       // Tampilkan konfirmasi
       const confirmed = window.confirm(
-        "Anda sedang mengecel sinyal modem. Yakin ingin kembali?"
+        "Anda sedang mengecel sinyal modem. Yakin ingin kembali?",
       );
 
       if (confirmed) {
@@ -192,13 +192,13 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
       setIsWaitingForSignal(false);
     },
     isWaitingForSignal,
-    (payload) => payload.type === "get_signal" && payload.sn === sn
+    (payload) => payload.type === "get_signal" && payload.sn === sn,
   );
 
   useEffect(() => {
     setSn(
       params.get("serial_number") ||
-        localStorage.getItem("ira-cpe-serial-number")
+        localStorage.getItem("ira-cpe-serial-number"),
     );
     setCellId(localStorage.getItem("ira-cpe-cell-id"));
   }, [params]);
@@ -217,7 +217,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
       await getSignal({ sn });
       // Biarkan SSE yang mengakhiri proses
     } catch (err: any) {
-      setErrMsg(err.response?.data?.message)
+      setErrMsg(err.response?.data?.message);
       toastErrorFromAPI(err);
       setIsScanning(false);
       setIsWaitingForSignal(false);
@@ -375,8 +375,8 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             <div className="font-tertiary text-black text-xl font-bold">
               {isScanning
                 ? "Mohon tunggu beberapa saat..."
-                // : levelTitle[resultLevel] + ' ' + errMsg}
-                : levelTitle[resultLevel]}
+                : // : levelTitle[resultLevel] + ' ' + errMsg}
+                  levelTitle[resultLevel]}
             </div>
             <div className="font-tertiary text-sm text-black font-medium">
               {isScanning
@@ -400,7 +400,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleRetry}
             disabled={isScanning}
-            className="h-10 font-semibold rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="h-10 font-semibold rounded-full border border-gray-300 bg-white px-4 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed! cursor-pointer"
           >
             {retryLabel}
           </button>
@@ -408,7 +408,7 @@ const SignalChecking: React.FC<SignalCheckingProps> = ({
             type="button"
             onClick={handleNext}
             disabled={isScanning}
-            className="h-10 font-bold rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="h-10 font-bold rounded-full bg-button px-5 text-sm text-white hover:bg-dark-primary-2 disabled:opacity-50 disabled:cursor-not-allowed! cursor-pointer"
           >
             {primaryLabel}
           </button>

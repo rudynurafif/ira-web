@@ -66,7 +66,7 @@ export default function DynamicPasswordForm({
           autoComplete="new-password"
           onInput={handleInput}
           className={`px-5 py-3 pr-12 mt-2 w-full rounded-xl bg-primary-spectrum
-            disabled:bg-[#f5f5f5] disabled:cursor-not-allowed
+            disabled:bg-[#f5f5f5] disabled:cursor-not-allowed!
             border ${error ? "border-red-500" : "border-[#D5D5D5]"}
             placeholder:text-gray-400 placeholder:text-sm
             focus:outline-none`}
