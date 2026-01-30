@@ -490,7 +490,7 @@ const PackageAndHistory = () => {
             </div>
 
             <button
-              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
               onClick={() => setOpenModalNotAllowed(false)}
               // disabled={!selectedPackage}
             >

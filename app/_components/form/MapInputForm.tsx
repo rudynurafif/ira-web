@@ -170,7 +170,7 @@ function MapInputForm({
     if (isLoaded && placeAutoCompleteRef.current) {
       const autoCompleteService = new google.maps.places.AutocompleteService();
       const placesService = new google.maps.places.PlacesService(
-        document.createElement("div")
+        document.createElement("div"),
       );
 
       let timeoutId: NodeJS.Timeout;
@@ -211,7 +211,7 @@ function MapInputForm({
                   setPredictions([]); // Handle the case where there are no predictions
                 }
                 setIsLoadingSearch(false);
-              }
+              },
             );
           }, 10000); // Tunggu 10 detik sesuai countdown
         } else {
@@ -248,7 +248,7 @@ function MapInputForm({
   ]);
 
   const handlePredictionClick = (
-    prediction: google.maps.places.AutocompletePrediction
+    prediction: google.maps.places.AutocompletePrediction,
   ) => {
     if (isCooldown) {
       toast.error("Silakan tunggu sebelum melakukan aksi lagi");
@@ -261,7 +261,7 @@ function MapInputForm({
     stopInputTimeout();
 
     const placesService = new google.maps.places.PlacesService(
-      document.createElement("div")
+      document.createElement("div"),
     );
     const request = {
       placeId: prediction.place_id,
@@ -416,12 +416,12 @@ function MapInputForm({
 
   const handleCameraChange = useCallback(
     (ev: MapCameraChangedEvent) => setCameraProps(ev.detail),
-    []
+    [],
   );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedFetchLocationData = useCallback(
     debounce(getLocation, 10000),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -435,12 +435,12 @@ function MapInputForm({
         },
         (error) => {
           console.error("Error getting current location:", error);
-        }
+        },
       );
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -451,7 +451,7 @@ function MapInputForm({
             placeholder="Masukkan Alamat"
             ref={placeAutoCompleteRef}
             className={`w-full py-2 pl-2 pr-10 border bg-white border-[#ccc] text-black max-sm:text-sm rounded shadow-sm ${
-              isCooldown ? "opacity-50 cursor-not-allowed" : ""
+              isCooldown ? "opacity-50 cursor-not-allowed!" : ""
             }`}
             disabled={isCooldown}
           />
@@ -514,7 +514,7 @@ function MapInputForm({
       <div className="relative">
         {/* Tampilkan overlay jika dalam cooldown */}
         {isCooldown && (
-          <div className="absolute cursor-not-allowed inset-0 bg-black/30 flex items-center justify-center z-10 rounded">
+          <div className="absolute cursor-not-allowed! inset-0 bg-black/30 flex items-center justify-center z-10 rounded">
             <div className="bg-white p-4 rounded shadow-lg">
               <p className="text-center">
                 Sedang mencari dalam {cooldownCount}

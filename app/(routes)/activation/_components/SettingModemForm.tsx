@@ -99,7 +99,7 @@ function SettingModemForm() {
       setIsLoadingCPE(false);
     },
     isLoadingCPE && hasNullWifiConfig(cpeDetail), // hanya dengarkan jika belum dapat data
-    (payload: SSEPayload) => payload.type === "get_wifi" && payload.sn === sn // filter event
+    (payload: SSEPayload) => payload.type === "get_wifi" && payload.sn === sn, // filter event
   );
 
   // 🔥 2. Dengarkan SSE untuk `set wifi` setelah submit
@@ -118,7 +118,7 @@ function SettingModemForm() {
       }
     },
     isWaitingForSetWifi,
-    (payload: SSEPayload) => payload.type === "set_wifi" && payload.sn === sn
+    (payload: SSEPayload) => payload.type === "set_wifi" && payload.sn === sn,
   );
 
   useEffect(() => {
@@ -148,7 +148,7 @@ function SettingModemForm() {
 
       // Tampilkan konfirmasi
       const confirmed = window.confirm(
-        "Anda sedang mengatur modem.\nJika Anda meninggalkan halaman ini, perubahan belum tersimpan akan hilang.\n\nYakin ingin kembali?"
+        "Anda sedang mengatur modem.\nJika Anda meninggalkan halaman ini, perubahan belum tersimpan akan hilang.\n\nYakin ingin kembali?",
       );
 
       if (confirmed) {
@@ -256,7 +256,7 @@ function SettingModemForm() {
       ) {
         toast.success(
           setSSIDRes.data.message ??
-            "Permintaan pengaturan SSID dikirim. Menunggu konfirmasi..."
+            "Permintaan pengaturan SSID dikirim. Menunggu konfirmasi...",
         );
         setIsWaitingForSetWifi(true);
       } else {
@@ -433,7 +433,7 @@ function SettingModemForm() {
               type="submit"
               className={`w-full ${
                 !isFormValid || isSubmitting || isWaitingForSetWifi
-                  ? "bg-primary/50 cursor-not-allowed"
+                  ? "bg-primary/50 cursor-not-allowed!"
                   : "cursor-pointer bg-primary hover:bg-dark-primary-2"
               } flex items-center gap-1 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl`}
             >
@@ -454,7 +454,7 @@ function SettingModemForm() {
                 onClick={() => {
                   if (
                     window.confirm(
-                      "Apakah Anda yakin ingin melewati pengaturan modem? Pengaturan modem akan menggunakan pengaturan default."
+                      "Apakah Anda yakin ingin melewati pengaturan modem? Pengaturan modem akan menggunakan pengaturan default.",
                     )
                   )
                     addUrlParam("section", "check_signal");

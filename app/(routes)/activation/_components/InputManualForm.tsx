@@ -14,14 +14,14 @@ import Image from "next/image";
 function InputManualForm() {
   const params = useSearchParams();
   const [serialNumber, setSerialNumber] = useState<string | null>(
-    params.get("serial_number") ? params.get("serial_number") : ""
+    params.get("serial_number") ? params.get("serial_number") : "",
   );
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
   const [isSNUsed, setIsSNUsed] = useState(false);
   const savedSN = JSON.parse(
-    localStorage.getItem("savedSerialNumbers") || "[]"
+    localStorage.getItem("savedSerialNumbers") || "[]",
   );
   const [isSNNotFound, setIsSNNotFound] = useState(false);
 
@@ -45,13 +45,13 @@ function InputManualForm() {
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
         toast.loading(
           res.data.message ||
-            "Sedang proses aktivasi, silakan cek status secara berkala"
+            "Sedang proses aktivasi, silakan cek status secara berkala",
         );
       } else {
         errors.serial_number =
           res.data.message || "Serial Number tidak valid. Silakan coba lagi.";
         throw new Error(
-          res?.data?.message || "Serial Number tidak valid. Silakan coba lagi."
+          res?.data?.message || "Serial Number tidak valid. Silakan coba lagi.",
         );
       }
 
@@ -92,12 +92,12 @@ function InputManualForm() {
       });
       toastErrorFromAPI(
         error,
-        "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi."
+        "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.",
       );
     } finally {
       setIsSubmitting(false);
       const saved = JSON.parse(
-        localStorage.getItem("savedSerialNumbers") || "[]"
+        localStorage.getItem("savedSerialNumbers") || "[]",
       );
       const updated = [
         serialNumber,
@@ -138,7 +138,7 @@ function InputManualForm() {
             <button
               disabled={isSubmitting || !serialNumber}
               type="submit"
-              className="w-full disabled:bg-slate-400 hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary hover:border-dark-primary-2 disabled:border-slate-400 disabled:cursor-not-allowed"
+              className="w-full disabled:bg-slate-400 hover:bg-dark-primary-2 cursor-pointer bg-primary shadow-[0_6px_45px_0_rgba(0,48,120,0.10)] text-white px-2 py-3 font-bold rounded-xl border border-primary hover:border-dark-primary-2 disabled:border-slate-400 disabled:cursor-not-allowed!"
             >
               Submit
             </button>

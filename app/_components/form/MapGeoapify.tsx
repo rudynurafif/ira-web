@@ -152,7 +152,7 @@ function MapGeoapify({
         toast.error("Browser tidak mendukung geolocation");
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialLatitude, initialLongitude]);
 
   // === Fungsi start cooldown (dengan onFinish) ===
@@ -269,7 +269,7 @@ function MapGeoapify({
     } else {
       renderMap();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   useEffect(() => {
@@ -465,7 +465,7 @@ function MapGeoapify({
                 performAutocompleteSearch(e.currentTarget.value);
               }
             }}
-            className="w-full disabled:cursor-not-allowed bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full disabled:cursor-not-allowed! bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {address && (
             <button

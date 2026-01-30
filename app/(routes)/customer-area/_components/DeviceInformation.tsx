@@ -394,10 +394,10 @@ const DeviceInformation = () => {
                   {cpeDetail?.cpe_id?.cpe_brand_model_id?.model ?? "-"}
                 </p>
               </div>
-              {/* <div className="flex gap-2">
-                <p className="min-w-30">Firmware:</p>
-                <p className="">-</p>
-              </div> */}
+              <div className="flex gap-2">
+                <p className="min-w-30">Nomor SN CPE:</p>
+                <p className=""> {cpeDetail?.cpe_id?.serial_number ?? "-"}</p>
+              </div>
             </div>
           </div>
 

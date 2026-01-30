@@ -259,13 +259,13 @@ function Header() {
 
     return isLoading ? (
       <div className="h-11 w-50 max-sm:h-8 max-sm:w-8 rounded-full">
-        <SkeletonBase className="cursor-not-allowed" height="h-11" />
+        <SkeletonBase className="cursor-not-allowed!" height="h-11" />
       </div>
     ) : (
       <button
         onClick={handleAuthButton}
         disabled={isLoading}
-        className={`flex gap-1 items-center disabled:bg-slate-400 disabled:cursor-not-allowed ${
+        className={`flex gap-1 items-center disabled:bg-slate-400 disabled:cursor-not-allowed! ${
           pathname === "/"
             ? "bg-button-login"
             : "bg-primary hover:bg-dark-primary-2"

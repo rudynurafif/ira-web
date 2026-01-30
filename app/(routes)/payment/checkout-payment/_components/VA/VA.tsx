@@ -63,11 +63,11 @@ function VA({ data }: { data: VAPaymentData }) {
 
     if (type && selected) {
       const matchedType = dataVa.find(
-        (item) => item.route.toLowerCase() === type
+        (item) => item.route.toLowerCase() === type,
       );
       if (matchedType) {
         const matchedLogo: any = matchedType.logo.find(
-          (logo) => logo.name === selected
+          (logo) => logo.name === selected,
         );
         if (matchedLogo) {
           setSelectedImage(matchedLogo.image);
@@ -118,7 +118,7 @@ function VA({ data }: { data: VAPaymentData }) {
               }}
               className={`bg-dark-primary-2 text-sm rounded-lg px-6 py-3 mt-1 flex text-white justify-center items-center gap-1 ${
                 isCopied
-                  ? "opacity-60 cursor-not-allowed"
+                  ? "opacity-60 cursor-not-allowed!"
                   : "hover:bg-dark-primary cursor-pointer"
               } transition`}
             >
@@ -210,7 +210,7 @@ function VA({ data }: { data: VAPaymentData }) {
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
+          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>
