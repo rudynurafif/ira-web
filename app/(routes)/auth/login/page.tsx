@@ -214,12 +214,13 @@ const Page = () => {
       setCookie("token-ira", token);
 
       toast.success(res.data?.message ?? "Login berhasil");
-      window.location.href = "/customer-area";
+      // window.location.href = "/customer-area";
+      router.push("/customer-area");
     } catch (err) {
       toastErrorFromAPI(err, "Login gagal");
     } finally {
       setIsLoading(false);
-      setPassword("");
+      setPasswordValue("");
       setConfirmPassword("");
     }
   };
