@@ -21,6 +21,7 @@ import { MdCameraswitch } from "react-icons/md";
 import { FormControlLabel, Switch } from "@mui/material";
 import { QrDimensions } from "html5-qrcode/esm/core";
 import { addUrlParam } from "@/app/_shared/utils";
+import { FaExclamationTriangle } from "react-icons/fa";
 
 type Props = {
   onDetected?: (text: string) => void;
@@ -63,7 +64,7 @@ async function safeApply(track: MediaStreamTrack | null, c: any) {
 // pilih kamera sesuai user-agent
 function pickByUserAgent(
   cams: { id: string; label?: string }[],
-  ua: string
+  ua: string,
 ): { id: string; label?: string } {
   const isAndroid = /Android/i.test(ua);
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
@@ -76,13 +77,13 @@ function pickByUserAgent(
   if (isAndroid) {
     // target: "camera 0, facing back"
     const exact = cams.find((c) =>
-      /camera\s*0.*facing\s*back/i.test(c.label || "")
+      /camera\s*0.*facing\s*back/i.test(c.label || ""),
     );
     if (exact) return exact;
 
     // fallback: label mengandung back/rear/environment
     const backish = cams.find((c) =>
-      /back|rear|environment/i.test(c.label || "")
+      /back|rear|environment/i.test(c.label || ""),
     );
     if (backish) return backish;
 
@@ -96,7 +97,7 @@ function pickByUserAgent(
 
     // fallback: back/rear
     const backish = cams.find((c) =>
-      /back|rear|environment/i.test(c.label || "")
+      /back|rear|environment/i.test(c.label || ""),
     );
     if (backish) return backish;
 
@@ -143,7 +144,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
 
   function getOppositeCameraId(
     cams: { id: string; label?: string }[],
-    currentId: string
+    currentId: string,
   ) {
     if (cams.length <= 1) return currentId;
 
@@ -156,7 +157,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     // kalau current terdeteksi front -> cari back
     if (isFront) {
       const back = cams.find((c) =>
-        /back|rear|environment/i.test(c.label || "")
+        /back|rear|environment/i.test(c.label || ""),
       );
       if (back) return back.id;
     }
@@ -170,7 +171,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     // fallback: cycle urutan list
     const idx = Math.max(
       0,
-      cams.findIndex((c) => c.id === currentId)
+      cams.findIndex((c) => c.id === currentId),
     );
     const nextIdx = (idx + 1) % cams.length;
     return cams[nextIdx].id;
@@ -198,7 +199,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
 
   async function setupControlsFromVideo() {
     const video = document.querySelector<HTMLVideoElement>(
-      `#${containerId} video`
+      `#${containerId} video`,
     );
     const t =
       video && (video.srcObject as MediaStream | null)?.getVideoTracks()[0];
@@ -270,13 +271,13 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
           setIsModalSuccessScan(true);
           qr.pause();
         },
-        () => {}
+        () => {},
       );
 
       // ---- AMBIL TRACK LANGSUNG, JANGAN ANDALKAN STATE ----
       await sleep(30);
       const video = document.querySelector<HTMLVideoElement>(
-        `#${containerId} video`
+        `#${containerId} video`,
       );
 
       const media = video?.srcObject as MediaStream | null;
@@ -310,7 +311,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
 
       if (isDesktopRef.current) {
         const video = document.querySelector<HTMLVideoElement>(
-          `#${containerId} video`
+          `#${containerId} video`,
         );
         if (video) {
           video.style.transform = "scaleX(-1)";
@@ -353,7 +354,7 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
       } catch (err: any) {
         if (!unmounted) {
           setError(
-            err?.message || "Gagal memuat kamera. Mohon refresh halaman"
+            err?.message || "Gagal memuat kamera. Mohon refresh halaman",
           );
           setStarting(false);
         }
@@ -559,6 +560,18 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
                 </div>
               )} */}
             </>
+          )}
+
+          {!starting && !error && (
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 w-full px-4 max-w-120">
+              <p className="flex flex-col items-center justify-center gap-2 text-white font-bold text-center text-sm bg-[#1075FF] rounded-lg py-2 px-3">
+                <FaExclamationTriangle className="text-yellow-300" size={24} />
+                <span>
+                  Pastikan Serial Number sistem sama dengan yang ada pada modem
+                  CPE
+                </span>
+              </p>
+            </div>
           )}
 
           {!starting && !error && (
