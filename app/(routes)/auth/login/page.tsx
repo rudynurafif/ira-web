@@ -39,6 +39,7 @@ const Page = () => {
   const [phone, setPhone] = useState("");
   const [password, setPasswordValue] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmError, setConfirmError] = useState<string>("");
 
   const [errors, setErrors] = useState<{
     phone?: string;
@@ -96,6 +97,29 @@ const Page = () => {
     return "";
   };
 
+  useEffect(() => {
+    if (step !== "SET_PASSWORD") return;
+
+    // jangan ganggu sebelum user mulai isi konfirmasi
+    if (!confirmPassword) {
+      setConfirmError("");
+      return;
+    }
+
+    // kalau password belum valid, fokusin error password dulu
+    const passError = validatePassword(password);
+    if (passError) {
+      setConfirmError("");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setConfirmError("Password dan konfirmasi tidak sama");
+    } else {
+      setConfirmError("");
+    }
+  }, [step, password, confirmPassword]);
+
   // ===============================
   // STEP 1 — CHECK PASSWORD
   // ===============================
@@ -134,25 +158,29 @@ const Page = () => {
   // ===============================
   const handleSetPassword = async () => {
     const passError = validatePassword(password);
-    if (passError || password !== confirmPassword) {
-      setErrors({
-        password: passError || "Password dan konfirmasi tidak sama",
-      });
+
+    if (passError) {
+      setErrors({ password: passError });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setConfirmError("Password dan konfirmasi tidak sama");
       return;
     }
 
     try {
       setIsLoading(true);
 
-      await setPassword({
+      const resSetPW = await setPassword({
         phone_number: phone,
         password,
-        confirm_password: confirmPassword,
+        // confirm_password: confirmPassword,
       });
 
-      toast.success("Password berhasil dibuat");
+      toast.success(resSetPW.data?.message || "Password berhasil dibuat");
       setStep("LOGIN");
-    } catch (err) {
+    } catch (err: any) {
       toastErrorFromAPI(err, "Gagal set password");
     } finally {
       setIsLoading(false);
@@ -237,10 +265,6 @@ const Page = () => {
   return (
     <div className="flex w-full justify-center px-6 my-10">
       <div className="w-full max-w-xl">
-        <h1 className="mb-8 text-center text-old-primary font-extrabold text-2xl sm:text-[32px]">
-          Login Internet Rakyat (IRA)
-        </h1>
-
         {step !== "CHECK_PHONE" && (
           <div className="">
             <button
@@ -249,6 +273,19 @@ const Page = () => {
             >
               <IoMdArrowRoundBack /> Kembali
             </button>
+          </div>
+        )}
+
+        <h1 className="mb-8 text-center text-old-primary font-extrabold text-2xl sm:text-[32px]">
+          {step === "SET_PASSWORD"
+            ? "Buat Password Baru"
+            : "Login Internet Rakyat (IRA)"}
+        </h1>
+
+        {step === "SET_PASSWORD" && (
+          <div className="my-6 text-center">
+            Demi keamanan akun Anda, silakan buat password baru sebelum
+            melanjutkan menggunakan layanan Internet Rakyat.
           </div>
         )}
 
@@ -269,7 +306,7 @@ const Page = () => {
           {step !== "CHECK_PHONE" && (
             <div>
               <DynamicPasswordForm
-                label="Password"
+                label={step === "SET_PASSWORD" ? "Password Baru" : "Password"}
                 name="password"
                 isImportant
                 value={password}
@@ -277,11 +314,12 @@ const Page = () => {
                   setPasswordValue(val);
                   setErrors({});
                 }}
-                error={errors.password}
               />
               {step === "SET_PASSWORD" && (
-                <p className="text-xs text-secondary mt-1">
-                  Password minimal 6 karakter dan mudah Anda ingat.
+                <p className="text-xs text-gray-spectrum py-1 px-2 mt-2 bg-[#FEFAEE] rounded-lg">
+                  Password minimal{" "}
+                  <span className="font-bold text-primary">6 karakter</span> dan
+                  mudah Anda ingat.
                 </p>
               )}
             </div>
@@ -289,11 +327,15 @@ const Page = () => {
 
           {step === "SET_PASSWORD" && (
             <DynamicPasswordForm
-              label="Konfirmasi Password"
+              label="Konfirmasi Password Baru"
               name="confirm_password"
               isImportant
               value={confirmPassword}
-              onChange={setConfirmPassword}
+              onChange={(val) => {
+                setConfirmPassword(val);
+                setErrors((prev) => ({ ...prev, password: "" }));
+              }}
+              error={confirmError}
             />
           )}
 
@@ -307,14 +349,21 @@ const Page = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`py-4 font-bold text-white text-xl rounded-xl
+            className={`py-4 flex items-center justify-center gap-2 font-bold text-white text-xl rounded-xl
               ${
                 isLoading
                   ? "bg-slate-400 cursor-not-allowed"
                   : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
               }`}
           >
-            {isLoading ? "Loading..." : "Lanjutkan"}
+            {isLoading && <div className="loading w-5 h-5"></div>}
+            {isLoading
+              ? "Loading..."
+              : step === "SET_PASSWORD"
+                ? "Submit"
+                : step === "LOGIN"
+                  ? "LOGIN"
+                  : "Lanjutkan"}
           </button>
         </form>
 

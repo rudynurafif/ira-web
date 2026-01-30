@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -19,6 +19,7 @@ const Page = () => {
   const [phone, setPhone] = useState("");
   const [password, setPasswordValue] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmError, setConfirmError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
   const [errors, setErrors] = useState<{
@@ -45,6 +46,27 @@ const Page = () => {
     if (val.length < 6) return "Password minimal 6 karakter";
     return "";
   };
+
+  useEffect(() => {
+    // jangan ganggu sebelum user mulai isi konfirmasi
+    if (!confirmPassword) {
+      setConfirmError("");
+      return;
+    }
+
+    // kalau password belum valid, fokusin error password dulu
+    const passError = validatePassword(password);
+    if (passError) {
+      setConfirmError("");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setConfirmError("Password dan konfirmasi tidak sama");
+    } else {
+      setConfirmError("");
+    }
+  }, [password, confirmPassword]);
 
   // ===============================
   // SUBMIT RESET PASSWORD
@@ -135,8 +157,10 @@ const Page = () => {
             }}
             error={errors.password}
           />
-          <p className="text-xs text-secondary mt-1">
-            Password minimal 6 karakter dan mudah Anda ingat.
+          <p className="text-xs text-gray-spectrum py-1 px-2 mt-2 bg-[#FEFAEE] rounded-lg">
+            Password minimal{" "}
+            <span className="font-bold text-primary">6 karakter</span> dan mudah
+            Anda ingat.
           </p>
         </div>
 
@@ -151,7 +175,7 @@ const Page = () => {
             setConfirmPassword(val);
             setErrors((e) => ({ ...e, confirmPassword: "" }));
           }}
-          error={errors.confirmPassword}
+          error={confirmError}
         />
 
         <button

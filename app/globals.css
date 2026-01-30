@@ -26,6 +26,7 @@
   --mute: #666666;
   --ads-platform-dark: #2c2c2c;
   --gray-spectrum-800: #050503;
+  --gray-spectrum: #333333;
 }
 
 /* Terapkan ke semua Steps */
@@ -64,6 +65,7 @@
   --color-muted: var(--mute);
   --color-primary-text: var(--primary-text);
   --color-gray-spectrum-800: var(--gray-spectrum-800);
+  --color-gray-spectrum: var(--gray-spectrum);
 
   --font-primary: var(--font-be-vietnam);
   --font-secondary: var(--font-figtree);
@@ -102,6 +104,10 @@ body {
 
 .fade-in {
   animation: fadeIn 0.5s ease-in-out;
+}
+
+button {
+  cursor: pointer;
 }
 
 @keyframes fadeOut {
@@ -256,9 +262,8 @@ body {
 .bg-subs-expired {
   background: linear-gradient(
     173.48deg,
-    /* #ff5f5d -12.78%, */
-    #520201 7.72%,
-    #D6211E 91.2%
+    /* #ff5f5d -12.78%, */ #520201 7.72%,
+    #d6211e 91.2%
   );
 
   /* filter: drop-shadow(0px 0px 21.349px #ffaae3); */
