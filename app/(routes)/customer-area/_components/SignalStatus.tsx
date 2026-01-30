@@ -143,7 +143,7 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
                 disabled={isCooldown}
                 className={`p-1 rounded transition-colors ${
                   isCooldown
-                    ? "text-gray-400 cursor-not-allowed"
+                    ? "text-gray-400 cursor-not-allowed!"
                     : "text-primary hover:text-dark-primary-2 cursor-pointer"
                 }`}
                 aria-label="Salin Cell ID"
@@ -162,9 +162,9 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
       <button
         onClick={onCheckSignal}
         disabled={isLoading}
-        className={`py-2 w-full disabled:cursor-not-allowed cursor-pointer rounded-lg font-medium text-white transition ${
+        className={`py-2 w-full disabled:cursor-not-allowed! cursor-pointer rounded-lg font-medium text-white transition ${
           isLoading
-            ? "bg-gray-400 cursor-not-allowed"
+            ? "bg-gray-400 cursor-not-allowed!"
             : "bg-primary hover:bg-dark-primary-2"
         }`}
       >

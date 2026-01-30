@@ -322,9 +322,9 @@ export default function ConnectToNetwork() {
     if (!customer_id || !serialNumber) return;
     if (activationConfirmedRef.current) return;
 
-    setSseStatus("connecting");
+    if (eventSourceRef.current) return;
 
-    clearSse("3 from sse subs (close prev connection if any)");
+    setSseStatus("connecting");
     clearTimeoutSafe();
 
     const es = new EventSourcePolyfill(
@@ -407,22 +407,11 @@ export default function ConnectToNetwork() {
       try {
         es.close();
       } catch {}
+      eventSourceRef.current = null;
       clearTimeoutSafe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    customer_id,
-    serialNumber,
-    screen,
-    clearSse,
-    clearTimeoutSafe,
-    handleTimeout,
-    handleActivationSuccess,
-    stopCooldown,
-    // attempt,
-    // saveFailedAttemptStorage,
-    // activateStatus,
-  ]);
+  }, [customer_id, serialNumber, screen, clearTimeoutSafe, handleTimeout]);
 
   async function handleCheckStatus() {
     if (!serialNumber) return;
@@ -733,7 +722,7 @@ export default function ConnectToNetwork() {
             className={`w-full border-2 font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]
             ${
               isCooldownActive
-                ? "bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed"
+                ? "bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed!"
                 : "bg-white border-primary text-primary hover:bg-red-50 cursor-pointer"
             }`}
             type="button"

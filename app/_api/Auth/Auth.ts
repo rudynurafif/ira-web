@@ -1,19 +1,6 @@
 import axios from "axios";
 import FwaAxios from "../FwaAxios";
 
-export const loginUser = async (body: any) => {
-  try {
-    const data = await FwaAxios({
-      url: "/app/auth/login",
-      method: "POST",
-      data: body,
-    });
-    return data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const registerUser = async (body: any) => {
   try {
     const data = await FwaAxios({
@@ -32,6 +19,71 @@ export const requestCoverage = async (body: any) => {
   try {
     const data = await FwaAxios({
       url: "/app/coverage/request",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const loginUser = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/login",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const checkPassword = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/check-password",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const setPassword = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/set-password",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const forgotPassword = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/forgot-password",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const checkTemplate = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/check-template",
       method: "POST",
       data: body,
     });

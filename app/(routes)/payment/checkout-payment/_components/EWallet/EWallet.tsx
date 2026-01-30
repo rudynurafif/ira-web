@@ -25,8 +25,8 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
   const [paymentStatus, setPaymentStatus] = useState<boolean | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
 
-   const type = params.get("type");
-    const selected = params.get("selected_payment");
+  const type = params.get("type");
+  const selected = params.get("selected_payment");
 
   const checkPaymentStatus = async () => {
     setIsLoadingStatus(true);
@@ -52,14 +52,13 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
   };
 
   useEffect(() => {
-   
     if (type && selected) {
       const matchedType = dataEWallet.find(
-        (item) => item.route.toLowerCase() === type
+        (item) => item.route.toLowerCase() === type,
       );
       if (matchedType) {
         const matchedLogo: any = matchedType.logo.find(
-          (logo) => logo.name === selected
+          (logo) => logo.name === selected,
         );
         if (matchedLogo) {
           setSelectedImage(matchedLogo.image);
@@ -67,7 +66,7 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
         }
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
   const handleOpenCheckoutUrl = () => {
@@ -170,7 +169,7 @@ const EWallet = ({ data }: { data: EWalletPaymentData }) => {
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
+          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>

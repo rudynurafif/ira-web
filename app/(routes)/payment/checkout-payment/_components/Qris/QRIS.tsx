@@ -154,7 +154,7 @@ function QRIS({ data }: { data: QRISPaymentData }) {
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
+          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>
