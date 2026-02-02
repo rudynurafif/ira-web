@@ -242,7 +242,7 @@ export default function AreaPelanggan() {
         )}
 
         {/* Banner Is Not Covered */}
-        {!is_coverage && !isFetching && (
+        {/* {!is_coverage && !isFetching && (
           <div className="max-md:mt-6 px-8 mt-12">
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
               <h1 className="text-2xl max-sm:text-center font-bold text-primary mb-4">
@@ -264,7 +264,7 @@ export default function AreaPelanggan() {
               </Link>
             </div>
           </div>
-        )}
+        )} */}
 
         {isCancelled && !isFetching && (
           <div className="max-md:mt-6 px-8 mt-12">
