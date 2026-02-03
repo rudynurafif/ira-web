@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import QRIS from "./_components/Qris/QRIS";
 import VA from "./_components/VA/VA";
-import { convertToCurrency } from "@/app/_shared/utils";
+import { convertToCurrency, convertToCurrency2 } from "@/app/_shared/utils";
 import Outlet from "./_components/Outlet/Outlet";
 import {
   EWalletPaymentData,
@@ -65,6 +65,14 @@ function Page() {
       ? parseInt((paymentInfo as any).channel_payment_id?.fee_flat ?? "0")
       : 0;
 
+  const bankFeeBackup =
+    (typeof paymentInfo?.amount === "string"
+      ? parseFloat(paymentInfo.amount)
+      : (paymentInfo?.amount ?? 0)) -
+    (typeof paymentInfo?.package_id?.price === "string"
+      ? parseFloat(paymentInfo.package_id?.price)
+      : (paymentInfo?.package_id?.price ?? 0));
+
   if (isLoading) {
     return <Loader />;
   }
@@ -81,20 +89,24 @@ function Page() {
         <div className="mt-5 bg-white shadow-[0px_4px_20px_0px_rgba(0,0,0,0.12)] rounded-xl p-6">
           <div className="grid grid-cols-2 gap-y-2 sm:text-base text-xs">
             <div>Nama Paket</div>
-            <div className="text-right">{paymentInfo?.package_id.name}</div>
+            <div className="text-right">
+              {paymentInfo?.package_id?.name || "-"}
+            </div>
 
             <div>Deskripsi</div>
             <div className="text-right">
-              {paymentInfo?.package_id.description}
+              {paymentInfo?.package_id?.description || "-"}
             </div>
 
             <div>Subtotal</div>
             <div className="text-right">
-              {convertToCurrency(paymentInfo?.package_id?.price)}
+              {convertToCurrency(paymentInfo?.package_id?.price || 0)}
             </div>
 
             <div>Biaya Bank/Admin</div>
-            <div className="text-right">{convertToCurrency(bankFee) || 0}</div>
+            <div className="text-right">
+              {convertToCurrency2(bankFee) ?? convertToCurrency2(bankFeeBackup)}
+            </div>
           </div>
 
           <div className="border border-gray-border sm:my-5 my-3"></div>
@@ -104,7 +116,7 @@ function Page() {
               Total Pembayaran
             </div>
             <div className="text-right text-primary font-bold text-lg sm:text-2xl">
-              {convertToCurrency(parseInt(String(paymentInfo?.amount ?? "0")))}
+              {convertToCurrency2(paymentInfo?.amount ?? "0")}
             </div>
           </div>
 
@@ -129,7 +141,7 @@ function Page() {
           <button
             type="button"
             onClick={() => router.push("/customer-area")}
-            className="cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold text-primary hover:text-dark-primary hover:underline-animation-activation w-full max-sm:text-sm py-3"
+            className="cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold text-primary hover:text-dark-primary-2 w-full max-sm:text-sm py-3"
           >
             Kembali ke Area Pelanggan
           </button>

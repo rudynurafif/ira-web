@@ -22,6 +22,7 @@ function ModalCheckCoverage({
       <Step1
         status={statusCoverage}
         setStep={(val) => setCurrentPosition(val)}
+        onClose={closeModal}
       />
     );
   }
