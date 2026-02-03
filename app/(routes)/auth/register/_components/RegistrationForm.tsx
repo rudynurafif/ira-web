@@ -55,7 +55,6 @@ import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
 import PhoneNumberForm from "@/app/_components/form/PhoneForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
-import BannerNoCoveredPackage from "./BannerNoCoveredPackage";
 import Image from "next/image";
 import bannerImageNoCovered from "@/public/assets/Images/banner-out-coverage.png";
 
@@ -637,9 +636,6 @@ function RegistrationForm({
       return;
     } else {
       try {
-        // const addressArray = formData.address_gmaps
-        //   ? [normalizeAddressForBackend(formData.address_gmaps)]
-        //   : [];
         const addressArray = [formData.address_gmaps];
         const type =
           userInfo?.status === "canceled-instalation"
@@ -649,7 +645,6 @@ function RegistrationForm({
               : "tipe regist baru";
 
         const body: any = {
-          // ...(formData.package_id && { package_id: formData.package_id }),
           ...(coveredNow && { package_id: formData.package_id }),
           phone_number: formData.phone ?? "",
           name: formData.fullname ?? "",
@@ -692,13 +687,6 @@ function RegistrationForm({
                 phone_number_verified: otpStatus === "valid",
               });
         }
-
-        // const res = coveredNow
-        //   ? await registerUser(body)
-        //   : await requestCoverage({
-        //       ...body,
-        //       phone_number_verified: otpStatus === "valid",
-        //     });
 
         setIsModalRegisterSuccess(true);
         setOtpStatus("idle");
@@ -835,9 +823,16 @@ function RegistrationForm({
           <div className="my-6">
             <Image
               src={bannerImageNoCovered}
-              className="w-full"
+              className="w-full hidden sm:block"
               alt="banner-no-coverage"
             />
+            <div className="block sm:hidden bg-[#FEFCE8] py-2 px-3 border border-[#A16207] rounded-lg">
+              <p className="text-xs text-[#A16207]">
+                <strong>Layanan di areamu segera hadir:</strong> Jangan
+                khawatir! Silakan daftar sekarang agar akunmu tersimpan di
+                sistem kami.
+              </p>
+            </div>
           </div>
         )}
 
@@ -1394,33 +1389,6 @@ function RegistrationForm({
 
           {/* Map */}
           <div className="col-span-2">
-            {/* Versi Google */}
-            {/* <MapInputForm
-              getAddress={(value: string) => {
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  actual_address: value,
-                }));
-                setErrors({ ...errors, actual_address: "" });
-              }}
-              onPlaceChange={async (p) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  actual_address: p.address,
-                  address_gmaps: p.raw_result,
-                  lat: String(p.latitude),
-                  lng: String(p.longitude),
-                  province: "",
-                  city: "",
-                  district: "",
-                  sub_district: "",
-                  postal_code: "",
-                }));
-
-                await autofillLocationViaApiWithRaw(p.raw_result);
-              }}
-            /> */}
-
             {/* Versi Geoapify */}
             {status !== "denied" && (
               <>
@@ -1466,7 +1434,7 @@ function RegistrationForm({
                   </p>
                 )}
                 {!isCovered && !isCheckCoverage && (
-                  <p className="mt-1 animate-bounce text-red-primary flex items-center gap-1 text-sm">
+                  <p className="mt-3 animate-bounce text-red-primary flex items-center gap-1 text-sm">
                     <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
                     Lokasi Anda belum berada di jangkauan area kami, dan kami
                     sedang menuju ke daerah Anda.
