@@ -285,7 +285,7 @@ button {
 .fancy-background-expired {
   background: linear-gradient(
     180deg,
-    #f9d3d2 -78.1%,
+    #f6f6f6 -78.1%,
     rgba(255, 147, 202, 0) 101.42%
   );
 }

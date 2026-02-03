@@ -72,12 +72,15 @@ const HistorySection = () => {
   };
 
   const hasHistory = subscriptionHistory && subscriptionHistory[0]?.start_date;
+  const isFilterActive = !!startDateFilter && !!endDateFilter;
   const isEmpty = subscriptionHistory.length === 0;
 
   return (
     <div>
       <div className="flex sm:flex-row flex-col justify-between sm:items-center gap-2 mb-4">
         <p className="text-xl font-bold text-black">Riwayat Pembelian Paket</p>
+
+        {/* Komponen Filter berdasarkan Tanggal */}
         {(hasHistory || isEmpty) && (
           <div className="max-sm:self-end">
             <DatePickerFilter
@@ -178,15 +181,17 @@ const HistorySection = () => {
             </div>
           )}
         </>
-      ) : isEmpty ? (
+      ) : isFilterActive ? (
         <div className="flex text-secondary flex-col gap-4 justify-center items-center text-center py-10">
-          <Image src={emptyFilter} width={100} alt="empty-filter" />
-          Tidak ada riwayat pembelian paket Internet Rakyat pada rentang{" "}
-          {startDateFilter && endDateFilter
-            ? `tanggal ${formatDateFilter2(
-                startDateFilter,
-              )} hingga ${formatDateFilter2(endDateFilter)}.`
-            : "tanggal yang dipilih."}
+          <Image src={empty} width={200} alt="empty-filter" />
+          <p className="my-3">
+            Tidak ada riwayat pembelian paket Internet Rakyat pada rentang{" "}
+            {startDateFilter && endDateFilter
+              ? `tanggal ${formatDateFilter2(
+                  startDateFilter,
+                )} hingga ${formatDateFilter2(endDateFilter)}.`
+              : "tanggal yang dipilih."}
+          </p>
         </div>
       ) : (
         <div className="flex text-secondary flex-col gap-4 justify-center items-center text-center py-10">

@@ -133,7 +133,7 @@ function QRIS({ data }: { data: QRISPaymentData }) {
           <button
             type="button"
             onClick={downloadQRCode}
-            className="group cursor-pointer flex items-center gap-2 mt-2 px-4 py-2 rounded-full bg-white border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all duration-300 shadow-md hover:shadow-lg"
+            className="group cursor-pointer flex items-center gap-2 mt-2 px-4 py-2 rounded-full bg-white border-2 border-primary text-primary font-bold hover:bg-red-50 transition-all duration-300 shadow-md hover:shadow-lg"
           >
             <LuDownload className="w-4 h-4 hover:animate-bounce" />
             Download QR Code
@@ -154,7 +154,7 @@ function QRIS({ data }: { data: QRISPaymentData }) {
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
+          className="bg-primary hover:bg-dark-primary-2 text-white disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>

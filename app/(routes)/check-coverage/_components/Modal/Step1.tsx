@@ -3,16 +3,28 @@ import React from "react";
 
 import imageSuccess from "@/public/assets/check-coverage/check-success.png";
 import imageFailed from "@/public/assets/check-coverage/check-failed.png";
+import toast from "react-hot-toast";
 
 function Step1({
   status,
   setStep,
+  onClose,
 }: {
   status: boolean;
   setStep: (e: number) => void;
+  onClose: () => void;
 }) {
+  const handleNext = () => {
+    // jika sudah tercover
+    if (status) {
+      toast("Please wait, this feature is still on development");
+    } else {
+      onClose();
+    }
+  };
+
   return (
-    <div className="">
+    <div className="rounded-xl overflow-hidden">
       <div className="w-full">
         <Image
           alt="image-status"
@@ -24,20 +36,18 @@ function Step1({
         <h1 className="text-primary text-2xl font-bold w-full sm:w-3/4 mx-auto">
           {status
             ? "Selamat! Alamat Anda berada di dalam jangkauan kami."
-            : "Maaf, alamat Anda berada di luar jangkauan kami."}
+            : "Layanan di Areamu Segera Hadir"}
         </h1>
-        <p className="mt-3 w-full sm:w-3/4 mx-auto">
+        <p className="mt-3 w-full mx-auto">
           {status
             ? "Klik tombol di bawah ini untuk mulai berlangganan paket internet Internet Rakyat."
-            : "Bantu kami agar wilayah Anda dapat terjangkau dengan mengisi data berikut ini."}
+            : "Jangan khwatir! Kami akan segera memberi tahu kamu melalui WhatsApp dan Aplikasi IRA jika layanan kami tersedia di daerahmu."}
         </p>
         <button
-          onClick={() => {
-            window.location.href = "/auth/register"
-          }}
-          className="w-full cursor-pointer py-4 text-white font-bold bg-primary rounded-xl mt-6"
+          onClick={handleNext}
+          className="w-full cursor-pointer py-4 text-white font-bold bg-primary hover:bg-dark-primary-2 rounded-xl mt-6"
         >
-          Isi Data
+          {status ? "Pilih Paket" : "Tutup"}
         </button>
       </div>
     </div>

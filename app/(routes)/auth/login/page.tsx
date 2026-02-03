@@ -21,6 +21,9 @@ import {
   forgotPassword,
 } from "@/app/_api/Auth/Auth";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import ModalTemplate from "@/app/_components/modal/ModalTemplate";
+import GeoPermissionGate from "../register/_components/GeoPermissionGate";
+import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 
 /**
  * STEP FLOW
@@ -40,6 +43,9 @@ const Page = () => {
   const [password, setPasswordValue] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmError, setConfirmError] = useState<string>("");
+  const { status, requestLocation, refresh } = useGeoPermission();
+
+  const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
 
   const [errors, setErrors] = useState<{
     phone?: string;
@@ -54,6 +60,10 @@ const Page = () => {
   } | null>(null);
 
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (status === "denied") setIsOpenModalReqLoc(true);
+  }, [status]);
 
   // ===============================
   // LOCATION
@@ -330,7 +340,7 @@ const Page = () => {
             name="phone"
             isImportant
             value={phone}
-            disabled={step !== "CHECK_PHONE"}
+            disabled={step !== "CHECK_PHONE" || !location}
             onChange={(val) => {
               setPhone(val);
               setErrors({});
@@ -376,8 +386,17 @@ const Page = () => {
 
           {locationError && (
             <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-600">
-              <b>Akses lokasi diperlukan.</b>
-              <div>{locationError}</div>
+              <b>Akses lokasi diperlukan untuk login.</b>
+              <div>
+                {locationError}, refresh halaman jika sudah mengizinkan akses
+                lokasi browser
+              </div>
+              <button
+                className="bg-primary hover:bg-dark-primary-2 py-2 px-4 rounded-xl text-white mt-2"
+                onClick={() => window.location.reload()}
+              >
+                Refresh
+              </button>
             </div>
           )}
 
@@ -422,6 +441,20 @@ const Page = () => {
           </Link>
         </div>
       </div>
+
+      {isOpenModalReqLoc && status === "denied" && (
+        <ModalTemplate
+          closeModal={() => {
+            setIsOpenModalReqLoc(false);
+            toast("Mohon izinkan akses lokasi browser");
+            router.push("/");
+          }}
+        >
+          <div className="p-6 mt-6">
+            <GeoPermissionGate onGotLocation={(lat, lng) => {}} />
+          </div>
+        </ModalTemplate>
+      )}
     </div>
   );
 };

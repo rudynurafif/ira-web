@@ -175,7 +175,10 @@ const PackageAndHistory = () => {
                     Rp{" "}
                   </span>
                   {activePacketData
-                    ? activePacketData.package_id?.price
+                    ? Number(
+                        activePacketData?.billing_id[0]?.invoice_id[0]
+                          ?.paid_amount,
+                      )
                         .toLocaleString("id-ID")
                         .replace(/,/g, ".")
                     : "0"}
@@ -360,10 +363,7 @@ const PackageAndHistory = () => {
           onClick={() => window.open("/panduan-cara-bayar", "_blank")}
         />
 
-        {is_coverage &&
-          (userInfo.status === "active" ||
-            userInfo.status === "suspend" ||
-            userInfo.status === "dismantled") && <HistorySection />}
+        <HistorySection />
       </div>
 
       {/* DESKTOP (≥ sm) */}
@@ -443,10 +443,7 @@ const PackageAndHistory = () => {
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
 
-          {is_coverage &&
-            (userInfo.status === "active" ||
-              userInfo.status === "suspend" ||
-              userInfo.status === "dismantled") && <HistorySection />}
+          <HistorySection />
         </div>
       </div>
 

@@ -3,6 +3,7 @@
 import React from "react";
 import toast from "react-hot-toast";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
+import { VscSettings } from "react-icons/vsc";
 
 type Props = {
   onGotLocation: (lat: number, lng: number) => void;
@@ -56,12 +57,18 @@ export default function GeoPermissionGate({ onGotLocation, className }: Props) {
       {status === "denied" && (
         <div className="space-y-2">
           <p className="font-semibold text-red-700">
-            Anda belum mengizinkan akses lokasi untuk IRA.
+            Anda belum mengizinkan akses lokasi untuk IRA. Untuk melakukan
+            proses pendaftaran/login, silahkan izinkah akses lokasi di browser
+            Anda.
           </p>
           <ol className="text-sm text-red-800 list-decimal pl-4 space-y-1">
-            <li>
-              Buka ikon <strong>kunci (🔒) atau ⓘ</strong> di address bar →{" "}
-              <strong>Site settings</strong> / <strong>Izin</strong>.
+            <li className="">
+              Buka ikon <strong>Kunci (🔒) atau Setting</strong>{" "}
+              <span className="inline-flex items-center">
+                <VscSettings />
+              </span>{" "}
+              di address bar → <strong>Site settings</strong> /{" "}
+              <strong>Izin</strong>.
             </li>
             <li>
               Ubah <strong>Location</strong> menjadi <strong>Allow</strong>.
