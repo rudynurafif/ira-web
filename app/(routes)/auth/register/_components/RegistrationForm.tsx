@@ -57,6 +57,7 @@ import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import Image from "next/image";
 import bannerImageNoCovered from "@/public/assets/Images/banner-out-coverage.png";
+import bannerImageCovered from "@/public/assets/Images/banner-in-coverage.png";
 
 const initialFormData: FormType = {
   package_id: "",
@@ -88,6 +89,8 @@ type RegistrationFormProps = {
   initialData?: Partial<FormType>; // opsional, untuk autofill
   customerId?: string; // opsional, jika butuh ID untuk submit
   title: string;
+  showCancelButton?: boolean;
+  showBannerCovered?: boolean;
 };
 
 function RegistrationForm({
@@ -95,6 +98,8 @@ function RegistrationForm({
   initialData,
   customerId,
   title = "Registrasi Internet Rakyat (IRA)",
+  showCancelButton = false,
+  showBannerCovered = false,
 }: RegistrationFormProps) {
   const [formData, setFormData] = useState<FormType>({
     ...initialFormData,
@@ -777,7 +782,7 @@ function RegistrationForm({
   // || isPasswordMismatch;
 
   return (
-    <div className="container mx-auto px-6 lg:px-22 xl:px-42 my-6 sm:my-22 ">
+    <div className="container mx-auto">
       <h1 className="text-center sm:text-[32px] text-2xl text-old-primary font-bold">
         {title}
       </h1>
@@ -785,6 +790,14 @@ function RegistrationForm({
       <form onSubmit={handleSubmit} className="mt-7">
         {isCovered ? (
           <div className="my-8">
+            {showBannerCovered && (
+              <Image
+                src={bannerImageCovered}
+                className="w-full hidden sm:block my-6"
+                alt="banner-in-coverage"
+              />
+            )}
+
             <p className="text-xl sm:text-2xl text-old-primary font-medium mb-3">
               Paket yang tersedia*
             </p>
@@ -1502,28 +1515,40 @@ function RegistrationForm({
         </div>
 
         <div className="mt-7 flex flex-col gap-3 justify-center">
-          <button
-            type="submit"
-            disabled={isValid}
-            className={`py-4 ${
-              mode === "register" ? "w-1/2" : "px-8"
-            } font-bold text-white ${
-              isValid
-                ? "bg-slate-400 cursor-not-allowed!"
-                : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
-            } text-xl rounded-xl mx-auto `}
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="loading w-5 h-5"></div>
-                <span className="italic text-white">Loading...</span>
-              </div>
-            ) : mode === "register" ? (
-              "Registrasi"
-            ) : (
-              "Berlangganan Kembali"
+          <div className="flex justify-center items-center gap-2 w-full">
+            {showCancelButton && (
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="border-2 w-full font-bold p-4 border-primary text-primary hover:bg-red-50 rounded-xl"
+              >
+                Batal
+              </button>
             )}
-          </button>
+            <button
+              type="submit"
+              disabled={isValid}
+              className={`py-4  ${
+                mode === "register" ? "w-1/2" : "px-8"
+              } font-bold text-white ${
+                isValid
+                  ? "bg-slate-400 cursor-not-allowed!"
+                  : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
+              } text-xl rounded-xl ${showCancelButton ? "w-full" : "mx-auto"} `}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="loading w-5 h-5"></div>
+                  <span className="italic text-white">Loading...</span>
+                </div>
+              ) : mode === "register" ? (
+                "Registrasi"
+              ) : (
+                "Berlangganan Kembali"
+              )}
+            </button>
+          </div>
+
           {status === "denied" && (
             <p className="mx-auto text-muted text-sm">
               *Pastikan anda sudah mengizinkan akses lokasi, lalu refresh

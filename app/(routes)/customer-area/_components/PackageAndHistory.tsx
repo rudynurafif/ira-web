@@ -30,6 +30,7 @@ import {
 } from "@/app/store/slice/customerPackageSlice";
 import { getSetting } from "@/app/_api/Settings/Settings";
 import OutCoverage from "../OutCoverage";
+import InCoverage from "../InCoverage";
 
 const PAGE_SIZE = 5;
 
@@ -300,8 +301,10 @@ const PackageAndHistory = () => {
           <ExpiredCard data={activePacketData} />
         ) : activePacketData ? (
           <ActivePackageCard data={activePacketData} />
-        ) : !is_coverage ? (
+        ) : userInfo.is_coverage === false ? (
           <OutCoverage />
+        ) : userInfo.is_coverage === true ? (
+          <InCoverage />
         ) : null}
 
         {/* Banner Cubmu */}
@@ -378,8 +381,10 @@ const PackageAndHistory = () => {
             <ExpiredCard data={activePacketData} />
           ) : activePacketData ? (
             <ActivePackageCard data={activePacketData} />
-          ) : !is_coverage ? (
+          ) : userInfo.is_coverage === false ? (
             <OutCoverage />
+          ) : userInfo.is_coverage === true ? (
+            <InCoverage />
           ) : null}
 
           {addOns.length > 0 && (

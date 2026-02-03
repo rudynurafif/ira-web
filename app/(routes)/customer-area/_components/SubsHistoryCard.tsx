@@ -117,7 +117,6 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             {convertToCurrency2(
               Number(data.billing_id[0]?.invoice_id[0]?.paid_amount),
             ) ?? "0"}
-            /bulan
           </p>
           <p className="sm:text-sm text-[10px]">
             {" "}
@@ -133,7 +132,6 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
           {convertToCurrency2(
             Number(data.billing_id[0]?.invoice_id[0]?.paid_amount),
           ) ?? "0"}
-          /bulan
         </p>
         {/* {!data.billing_id[0]?.is_free && ( */}
         <button

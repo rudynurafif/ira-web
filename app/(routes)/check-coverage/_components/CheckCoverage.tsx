@@ -7,6 +7,7 @@ import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { getCheckCoverage } from "@/app/_api/Location/Location";
 import { IoCloseSharp } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
+import RegistrationForm from "../../auth/register/_components/RegistrationForm";
 
 const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
 
@@ -117,31 +118,31 @@ function CheckCoverage() {
     setAddress(formattedAddress);
 
     if (inputRef.current) {
-      inputRef.current.value = formattedAddress; // optional, karena controlled
+      inputRef.current.value = formattedAddress;
     }
 
-    setDataChooseMap({
+    const newData = {
       location: formattedAddress,
       lat,
       lng,
       rawData: feature,
-    });
+    };
+
+    setDataChooseMap(newData);
+
+    // ✅ Langsung jalankan check radius setelah pilih prediksi
+    if (!isLoading) {
+      checkRadius(newData);
+    }
 
     setPredictions([]);
-  };
-
-  // clear input
-  const clearInput = () => {
-    setAddress("");
-    if (inputRef.current) inputRef.current.value = "";
-    setDataChooseMap(null);
-    setPredictions([]);
-    lastAutocompleteQueryRef.current = null;
   };
 
   // cek coverage
-  const checkRadius = async () => {
-    if (!dataChooseMap) {
+  const checkRadius = async (customData?: any) => {
+    const dataToUse = customData || dataChooseMap;
+
+    if (!dataToUse) {
       toast.error("Lokasi belum dipilih. Harap pilih lokasi terlebih dahulu.");
       return;
     }
@@ -149,10 +150,10 @@ function CheckCoverage() {
     setIsLoading(true);
     try {
       const payload = {
-        latitude: String(dataChooseMap.lat),
-        longitude: String(dataChooseMap.lng),
-        address: dataChooseMap.location,
-        raw_result: dataChooseMap.rawData,
+        latitude: String(dataToUse.lat),
+        longitude: String(dataToUse.lng),
+        address: dataToUse.location,
+        raw_result: dataToUse.rawData,
       };
 
       const res = await getCheckCoverage(payload);
@@ -173,6 +174,15 @@ function CheckCoverage() {
       if (cooldownRef.current) clearInterval(cooldownRef.current);
     };
   }, []);
+
+  // clear input
+  const clearInput = () => {
+    setAddress("");
+    if (inputRef.current) inputRef.current.value = "";
+    setDataChooseMap(null);
+    setPredictions([]);
+    lastAutocompleteQueryRef.current = null;
+  };
 
   return (
     <div className="sm:bg-[url(/assets/check-coverage/background-check-coverage.png)] bg-[url(/assets/check-coverage/background-coverage-mobile.png)] bg-cover bg-no-repeat py-52 px-[5%] min-[1261px]:px-[10%]">
@@ -282,8 +292,8 @@ function CheckCoverage() {
             disabled={isLoading}
             className={`px-6 py-4 text-white disabled:cursor-not-allowed! font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${"bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white"}`}
           >
-            <span className="font-bold hidden sm:block sm:text-lg md:text-xl">
-              {dataChooseMap ? "Cek Ketersediaan" : "Cari"}
+            <span className="font-bold sm:text-lg md:text-xl">
+              Cek Ketersediaan
             </span>
           </button>
         </div>
@@ -293,13 +303,20 @@ function CheckCoverage() {
       {modalResult && (
         <ModalTemplate
           closeModal={() => setModalResult(false)}
-          classNameModal="max-md:!rounded-none"
+          classNameModal="p-8"
+          width="max-w-[1200px]"
         >
-          <ModalCheckCoverage
-            statusCoverage={isCoverage}
-            mitraPaket={mitraPaket}
-            address={dataChooseMap}
-            closeModal={() => setModalResult(false)}
+          <RegistrationForm
+            mode="register"
+            title="Registrasi IRA"
+            showCancelButton={true}
+            showBannerCovered={true}
+            initialData={{
+              latitude: String(dataChooseMap?.lat || ""),
+              longitude: String(dataChooseMap?.lng || ""),
+              actual_address: dataChooseMap?.location || "",
+              address_gmaps: dataChooseMap?.rawData,
+            }}
           />
         </ModalTemplate>
       )}

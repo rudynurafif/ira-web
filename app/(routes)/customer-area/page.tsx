@@ -62,6 +62,28 @@ export default function AreaPelanggan() {
   const isReactivation =
     userInfo?.status === "active" && userInfo?.cpe_sim_binding_id;
 
+  // ✅ Tambah useEffect untuk detect status change
+  useEffect(() => {
+    if (
+      userInfo?.status === "waiting-for-installation" &&
+      userInfo?.customer_code
+    ) {
+      // Refetch packages ketika status berubah
+      dispatch(
+        fetchCustomerPackages({
+          customerCode: userInfo.customer_code,
+          force: true,
+        }),
+      );
+    }
+  }, [dispatch, userInfo?.status, userInfo?.customer_code]);
+
+  useEffect(() => {
+    if (userInfo && userInfo.name && userInfo.customer_code) {
+      setIsLoading(false);
+    }
+  }, [userInfo]);
+
   useEffect(() => {
     if (!userInfo?.customer_code) return;
 
@@ -226,13 +248,11 @@ export default function AreaPelanggan() {
         </div>
 
         {/* Delivery Tracking */}
-        {userInfo?.status === "waiting-for-installation" &&
-          is_coverage &&
-          !isLoading && (
-            <div className="max-md:mt-6 px-8 mt-12">
-              <DeliveryTracking refetch={fetchData} data={packages?.[0]} />
-            </div>
-          )}
+        {userInfo?.status === "waiting-for-installation" && !isLoading && (
+          <div className="max-md:mt-6 px-8 mt-12">
+            <DeliveryTracking refetch={fetchData} data={packages?.[0]} />
+          </div>
+        )}
 
         {/* Banner Aktivasi CPE */}
         {isActivating && (
