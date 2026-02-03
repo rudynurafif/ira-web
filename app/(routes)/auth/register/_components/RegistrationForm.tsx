@@ -55,6 +55,9 @@ import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
 import PhoneNumberForm from "@/app/_components/form/PhoneForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
+import BannerNoCoveredPackage from "./BannerNoCoveredPackage";
+import Image from "next/image";
+import bannerImageNoCovered from "@/public/assets/Images/banner-out-coverage.png";
 
 const initialFormData: FormType = {
   package_id: "",
@@ -792,7 +795,7 @@ function RegistrationForm({
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-7">
-        {isCovered && (
+        {isCovered ? (
           <div className="my-8">
             <p className="text-xl sm:text-2xl text-old-primary font-medium mb-3">
               Paket yang tersedia*
@@ -827,6 +830,14 @@ function RegistrationForm({
             )}
 
             <div className="border-t border-gray-border-2 my-6"></div>
+          </div>
+        ) : (
+          <div className="my-6">
+            <Image
+              src={bannerImageNoCovered}
+              className="w-full"
+              alt="banner-no-coverage"
+            />
           </div>
         )}
 

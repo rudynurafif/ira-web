@@ -29,7 +29,7 @@ function MainPage() {
   };
 
   const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
 
   async function getBannerImage() {
@@ -130,9 +130,6 @@ function MainPage() {
             FREE TRIAL🎉 Yuk, coba gratis layanan IRA tanpa ribet, tanpa
             komitmen panjang!
           </p> */}
-          {/* <button className="w-1/2 py-7 bg-primary rounded-full mt-10">
-            Coba GRATIS selama 7 hari
-          </button> */}
           <Link
             href="/auth/register"
             className="inline-flex gap-2 justify-center items-center mt-10 py-1.5 max-sm:py-1 max-sm:px-0.5 gradient-box rounded-full custom-click cursor-pointer"
@@ -142,7 +139,7 @@ function MainPage() {
               <div className="absolute top-1.5 left-1/2 transform -translate-x-1/2 fancy-background w-[93%] z-0 h-[30px] rounded-full"></div>
 
               <span className="text-white text-base sm:text-lg md:text-2xl xl:text-3xl font-bold text-nowrap whitespace-nowrap relative max-sm:px-2 px-8">
-                Coba GRATIS selama 30 hari
+                GRATIS 1 Bulan Pertama
               </span>
             </div>
           </Link>

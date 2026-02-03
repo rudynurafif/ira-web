@@ -53,7 +53,7 @@ function PackageCardMobile({
 
             {/* badge harga */}
             <div className="shrink-0 ml-2">
-              <span className="inline-flex flex-col sm:flex-row max-w-[400px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm text-black whitespace-nowrap">
+              <span className="inline-flex flex-col sm:flex-row max-w-100 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm text-black whitespace-nowrap">
                 <p className="max-sm:font-bold font-semibold">
                   {convertToCurrency(pkg?.price ?? 0)}
                 </p>
