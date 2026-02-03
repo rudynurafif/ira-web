@@ -280,7 +280,7 @@ function CheckCoverage() {
               }
             }}
             disabled={isLoading}
-            className={`px-6 py-4 text-white disabled:cursor-not-allowed! font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${"bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white hover:opacity-90"}`}
+            className={`px-6 py-4 text-white disabled:cursor-not-allowed! font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${"bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white"}`}
           >
             <span className="font-bold hidden sm:block sm:text-lg md:text-xl">
               {dataChooseMap ? "Cek Ketersediaan" : "Cari"}
