@@ -29,6 +29,26 @@ export function convertToCurrency(
   }
 }
 
+export function convertToCurrency2(
+  number: string | number,
+  locale = "id-ID",
+  currency = "IDR",
+) {
+  // Mengonversi string ke number
+  const num = typeof number === "string" ? parseFloat(number) : number;
+
+  // Validasi angka yang benar
+  if (!isNaN(num)) {
+    return num.toLocaleString(locale, {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 0,
+    });
+  } else {
+    return "";
+  }
+}
+
 export function debounce<T extends (...args: any[]) => void>(
   func: T,
   delay: number,
@@ -125,12 +145,11 @@ export const formatDateFilter = (date: Date | null): string | undefined => {
 export const formatDateFilter2 = (date: Date | null): string | undefined => {
   if (!date) return undefined;
 
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0"); // bulan dimulai dari 0
-  const day = String(d.getDate()).padStart(2, "0");
-
-  return `${day}-${month}-${year}`;
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(date));
 };
 
 export function formatISODate(

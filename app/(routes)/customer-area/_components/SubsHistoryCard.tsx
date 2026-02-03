@@ -3,8 +3,7 @@ import redAlert from "@/public/assets/Icons/carbon_warning-filled.svg";
 import greenCheck from "@/public/assets/Icons/mdi_tick-circle.svg";
 import iraIcon from "@/public/assets/Icons/Logo-Ira-Red.svg";
 import {
-  convertToCurrency,
-  formatDate,
+  convertToCurrency2,
   formatISODate,
   htmlToPdf,
   toastErrorFromAPI,
@@ -47,6 +46,7 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   return (
     <div className="flex-1 gap-4 bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] px-8 py-5 max-sm:p-4 flex justify-between items-center">
       <div className="flex items-center gap-2">
+        {/* Desktop */}
         <div className="py-4 pr-3 max-sm:hidden">
           <Image
             src={iraIcon}
@@ -112,8 +112,12 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
             </div>
           </div>
 
+          {/* Harga in Mobile View */}
           <p className="max-sm:block hidden text-sm font-medium">
-            {convertToCurrency(data.package_id?.price) ?? "-"}/bulan
+            {convertToCurrency2(
+              Number(data.billing_id[0]?.invoice_id[0]?.paid_amount),
+            ) ?? "0"}
+            /bulan
           </p>
           <p className="sm:text-sm text-[10px]">
             {" "}
@@ -124,8 +128,12 @@ const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
       </div>
 
       <div className="flex-col text-right">
+        {/* Harga in Desktop View */}
         <p className="font-medium text-xl max-sm:hidden mb-2">
-          {convertToCurrency(data.package_id?.price) ?? "-"}/bulan
+          {convertToCurrency2(
+            Number(data.billing_id[0]?.invoice_id[0]?.paid_amount),
+          ) ?? "0"}
+          /bulan
         </p>
         {/* {!data.billing_id[0]?.is_free && ( */}
         <button

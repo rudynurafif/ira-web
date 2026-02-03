@@ -18,22 +18,22 @@ function WhyFWAPage() {
     {
       id: 1,
       image: desc1,
-      description: "Mulai dari harga hemat, cocok buat semua kebutuhan.",
+      description: "Cuma Rp100.000 & kecepatan up to 100 Mbps tanpa kuota",
     },
     {
       id: 2,
       image: desc2,
-      description: "Streaming, kerja, main game? Semua lancar!",
+      description: "Streaming, belajar, kerja, main game? Semua lancar!",
     },
     {
       id: 3,
       image: desc3,
-      description: "Harian, mingguan, atau bulanan? Terserah kamu!",
+      description: "Gratis biaya instalasi & sewa modem",
     },
   ];
 
   const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
 
   return (

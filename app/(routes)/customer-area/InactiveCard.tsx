@@ -27,7 +27,7 @@ const InactiveCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
       </p>
 
       {/* Deskripsi */}
-      <p className="text-xs sm:text-sm text-gray-800 mb-6">
+      <p className="text-xs sm:text-sm mb-6">
         <span className="font-bold">
           Perangkat (CPE) Anda telah berhasil diambil.{" "}
         </span>
@@ -40,14 +40,14 @@ const InactiveCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
       {/* Tombol CTA */}
       <button
         onClick={() => router.push("/reregistration")}
-        className="inline-flex justify-center items-center mt-4 gradient-box-expired rounded-full custom-click cursor-pointer"
+        className="inline-flex justify-center items-center my-4 gradient-box-expired rounded-full cursor-pointer"
         id="button-beli-paket-sekarang"
       >
         <div className="w-full relative flex justify-center items-center bg-subs-expired rounded-full h-11 overflow-hidden custom-bg-animation drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">
           {/* glossy highlight */}
           <div className="absolute top-1.5 left-1/2 -translate-x-1/2 fancy-background-expired w-[92%] h-6.5 rounded-full z-0" />
 
-          <span className="relative z-10 text-white text-sm sm:text-base md:text-lg font-bold whitespace-nowrap px-6">
+          <span className="relative z-10 text-white text-sm sm:text-base md:text-lg font-bold whitespace-nowrap px-16">
             Daftar Ulang
           </span>
         </div>

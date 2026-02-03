@@ -189,19 +189,6 @@ function CheckCoverage() {
         {/* Input + Search + Clear */}
         <div className="w-full sm:w-4/5 md:w-3/5 relative">
           <div className="relative flex items-center gap-2">
-            {/* ✅ Button Cari */}
-            <button
-              type="button"
-              disabled={isLoading}
-              onClick={() => performAutocompleteSearch(address)}
-              className="flex items-center justify-center gap-2 bg-white p-4 rounded-xl cursor-pointer shadow-md disabled:cursor-not-allowed!"
-            >
-              <span className="font-bold font-semibol sm:block hidden sm:text-lg md:text-xl">
-                Cari
-              </span>
-              <FaSearch size={24} color="black" />
-            </button>
-
             <input
               ref={inputRef}
               type="text"
@@ -285,15 +272,19 @@ function CheckCoverage() {
         <div className="w-full sm:w-1/5 md:w-2/5">
           <button
             type="button"
-            onClick={checkRadius}
-            disabled={!dataChooseMap || isLoading}
-            className={`px-6 py-4 text-white disabled:cursor-not-allowed! font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${
-              dataChooseMap && !isLoading
-                ? "bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white hover:opacity-90"
-                : "bg-slate-500 cursor-not-allowed!"
-            }`}
+            onClick={() => {
+              if (dataChooseMap && !isLoading) {
+                checkRadius();
+              } else if (!isLoading) {
+                performAutocompleteSearch(address);
+              }
+            }}
+            disabled={isLoading}
+            className={`px-6 py-4 text-white disabled:cursor-not-allowed! font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${"bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white hover:opacity-90"}`}
           >
-            Cek Ketersediaan
+            <span className="font-bold hidden sm:block sm:text-lg md:text-xl">
+              {dataChooseMap ? "Cek Ketersediaan" : "Cari"}
+            </span>
           </button>
         </div>
       </div>

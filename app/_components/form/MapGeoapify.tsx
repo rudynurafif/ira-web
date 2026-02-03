@@ -1,5 +1,6 @@
 "use client";
 
+import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { FaSearch } from "react-icons/fa";
@@ -47,6 +48,8 @@ function MapGeoapify({
     null,
   );
 
+  const { status, requestLocation, refresh } = useGeoPermission();
+
   // ref untuk menyimpan address terbaru (dipakai di fetch setelah cooldown)
   const latestAddressRef = useRef(address);
   useEffect(() => {
@@ -57,6 +60,8 @@ function MapGeoapify({
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    if (status === "denied") return;
+
     if (initialLatitude && initialLongitude) {
       setLocation({ lat: initialLatitude, lng: initialLongitude });
 
