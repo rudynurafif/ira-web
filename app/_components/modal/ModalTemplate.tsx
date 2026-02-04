@@ -16,10 +16,13 @@ function ModalTemplate({
 }) {
   return (
     <div
-      className={`fixed z-[9999] inset-0 flex items-center ${justify} p-4 sm:p-6`}
+      className={`fixed z-[9999] inset-0 flex items-center ${justify} p-4 sm:p-8`}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50" onClick={closeModal} />
+      <div
+        className="absolute h-screen inset-0 bg-black/50"
+        onClick={closeModal}
+      />
 
       {/* Modal Container */}
       <div

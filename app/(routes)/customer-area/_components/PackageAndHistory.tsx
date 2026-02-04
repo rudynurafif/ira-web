@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { checkPackage } from "@/app/_api/Customer/CustomerArea";
+import { checkPackage, getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { useRouter, useSearchParams } from "next/navigation";
 import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
-import { useAppSelector } from "@/app/store/store";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
 import bannerPanduanMobile from "@/public/assets/Images/bannerPanduanMobile.png";
 import bannerCS from "@/public/assets/Images/bannerCS.png";
@@ -31,6 +31,11 @@ import {
 import { getSetting } from "@/app/_api/Settings/Settings";
 import OutCoverage from "../OutCoverage";
 import InCoverage from "../InCoverage";
+import { getCheckCoverageLogin } from "@/app/_api/Location/Location";
+import { getUser } from "@/app/store/slice/authSlice";
+import toast from "react-hot-toast";
+import RegistrationSummary from "./Modal/RegistrationSummary";
+import imageFailed from "@/public/assets/check-coverage/check-failed.png";
 
 const PAGE_SIZE = 5;
 
@@ -60,6 +65,42 @@ const PackageAndHistory = () => {
   const [startDateFilter, setStartDateFilter] = useState<any>();
   const [endDateFilter, setEndDateFilter] = useState<any>();
   const [phoneCS, setPhoneCS] = useState<string | null>("");
+
+  const [modalResult, setModalResult] = useState<boolean>(false);
+  const [isCoverage, setIsCoverage] = useState<boolean>(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const dispatch = useAppDispatch();
+
+  const handleCheckCoverage = async () => {
+    try {
+      const payload = {
+        latitude: userInfo?.latitude,
+        longitude: userInfo?.longitude,
+      };
+
+      const res = await getCheckCoverageLogin(payload);
+      const insideCoverage = res.data?.result.inside_coverage ?? false;
+
+      setIsCoverage(insideCoverage);
+      setModalResult(true);
+
+      if (insideCoverage) {
+        setShowRegistrationModal(true);
+
+        const profileRes = await getProfileInfo({});
+        const customerData = profileRes.data?.data?.customer ?? {};
+        dispatch(getUser(customerData));
+
+        toast.success("Area Anda sudah tercakup! Silakan daftar paket.");
+      } else {
+        setShowRegistrationModal(false);
+      }
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+      toast.error("Gagal mengecek ketersediaan");
+      setModalResult(false);
+    }
+  };
 
   useEffect(() => {
     const getPhoneCS = async () => {
@@ -302,7 +343,7 @@ const PackageAndHistory = () => {
         ) : activePacketData ? (
           <ActivePackageCard data={activePacketData} />
         ) : userInfo.is_coverage === false ? (
-          <OutCoverage />
+          <OutCoverage onCheckCoverage={handleCheckCoverage} />
         ) : userInfo.is_coverage === true ? (
           <InCoverage />
         ) : null}
@@ -382,7 +423,7 @@ const PackageAndHistory = () => {
           ) : activePacketData ? (
             <ActivePackageCard data={activePacketData} />
           ) : userInfo.is_coverage === false ? (
-            <OutCoverage />
+            <OutCoverage onCheckCoverage={handleCheckCoverage} />
           ) : userInfo.is_coverage === true ? (
             <InCoverage />
           ) : null}
@@ -476,17 +517,6 @@ const PackageAndHistory = () => {
               <p className="text-center">
                 Anda tidak dapat membeli paket selama paket masih aktif
               </p>
-              {/* <p className="text-black ">
-                Kamu hanya bisa memiliki dua paket kuota internet, ya!
-              </p>
-              <ol className="mt-3 font-bold text-left list-decimal pl-5 space-y-1 text-black">
-                <li>Paket aktif yang sedang digunakan.</li>
-                <li>Paket tambahan yang baru saja dibeli.</li>
-              </ol>
-              <p className="mt-4 text-black">
-                Anda tidak dapat membeli paket kuota ketiga selama paket aktif
-                dan tambahan masih aktif.
-              </p> */}
             </div>
 
             <button
@@ -497,6 +527,50 @@ const PackageAndHistory = () => {
               Oke, Mengerti
             </button>
           </div>
+        </ModalTemplate>
+      )}
+
+      {modalResult && (
+        <ModalTemplate
+          closeModal={() => setModalResult(false)}
+          classNameModal={isCoverage && showRegistrationModal ? "" : ""}
+          width={
+            isCoverage && showRegistrationModal ? "max-w-[736px]" : "max-w-2xl"
+          }
+        >
+          {isCoverage && showRegistrationModal ? (
+            <RegistrationSummary
+              onBack={() => {
+                setShowRegistrationModal(false);
+                setModalResult(false);
+              }}
+            />
+          ) : (
+            <div className="rounded-xl overflow-hidden">
+              <div className="w-full">
+                <Image
+                  alt="image-status"
+                  src={imageFailed}
+                  className="w-full"
+                />
+              </div>
+              <div className="my-8 text-start px-5">
+                <h1 className="text-primary text-center text-2xl font-bold w-full sm:w-3/4 mx-auto">
+                  Layanan di Areamu Segera Hadir
+                </h1>
+                <p className="mt-3 w-full mx-auto text-center">
+                  Jangan khwatir! Kami akan segera memberi tahu kamu melalui
+                  Aplikasi IRA jika layanan kami tersedia di daerahmu.
+                </p>
+                <button
+                  onClick={() => setModalResult(false)}
+                  className="w-full cursor-pointer py-4 text-white font-bold bg-primary hover:bg-dark-primary-2 rounded-xl mt-6"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          )}
         </ModalTemplate>
       )}
     </>

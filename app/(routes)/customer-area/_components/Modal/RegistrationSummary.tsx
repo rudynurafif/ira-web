@@ -262,7 +262,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
       {isLoadingPackage ? (
         <PackageCardMobileSkeletonList count={2} />
       ) : packages?.length ? (
-        <div className="md:grid grid-cols-2 gap-4 max-sm:space-y-6">
+        <div className="px-2 md:grid grid-cols-2 gap-4 max-sm:space-y-6">
           {packages.map((pkg) => (
             <PackageCardMobile
               key={pkg.id}
@@ -284,7 +284,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
       {/* Informasi Pelanggan */}
       <div className="mb-6">
-        <h2 className="font-bold text-xl sm:text-2xl mb-3 text-gray-800">
+        <h2 className="font-bold text-xl sm:text-2xl mb-3 text-old-primary">
           Informasi Pelanggan
         </h2>
         <div className="grid grid-cols-1 gap-4">

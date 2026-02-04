@@ -20,6 +20,8 @@
     "axios": "^1.11.0",
     "cookies-next": "^6.1.0",
     "event-source-polyfill": "^1.0.31",
+    "firebase": "^10.8.0",
+    "firebase-admin": "^13.6.0",
     "framer-motion": "^12.23.12",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",

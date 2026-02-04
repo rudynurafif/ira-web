@@ -20,8 +20,6 @@ import DeviceInformation from "./_components/DeviceInformation";
 import Image from "next/image";
 import iraLogo from "@/public/assets/Images/LogoIra.png";
 import CpeActivationStatus from "./_components/CpeActivation";
-import Link from "next/link";
-import { FaSearchLocation } from "react-icons/fa";
 
 import {
   fetchCustomerPackages,
@@ -29,7 +27,6 @@ import {
   selectCustomerPackageState,
   selectShipmentStatusFromPackages,
 } from "@/app/store/slice/customerPackageSlice";
-import { getSetting } from "@/app/_api/Settings/Settings";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
