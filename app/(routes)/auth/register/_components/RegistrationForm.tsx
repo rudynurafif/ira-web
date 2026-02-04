@@ -712,12 +712,12 @@ function RegistrationForm({
     }
   }
 
-  // useEffect(() => {
-  //   console.log(formData);
-  //   // console.log("mitra IDs: ", mitraID);
-  //   // console.log("bts IDs: ", btsID);
-  //   // console.log(isCovered);
-  // }, [btsID, formData, mitraID, isCovered]);
+  useEffect(() => {
+    console.log(formData);
+    // console.log("mitra IDs: ", mitraID);
+    // console.log("bts IDs: ", btsID);
+    // console.log(isCovered);
+  }, [btsID, formData, mitraID, isCovered]);
 
   function resetForm() {
     setFormData(initialFormData);

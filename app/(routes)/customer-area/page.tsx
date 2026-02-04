@@ -20,6 +20,7 @@ import DeviceInformation from "./_components/DeviceInformation";
 import Image from "next/image";
 import iraLogo from "@/public/assets/Images/LogoIra.png";
 import CpeActivationStatus from "./_components/CpeActivation";
+import notifBellIcon from "@/public/assets/Icons/notif-bell.png";
 
 import {
   fetchCustomerPackages,
@@ -27,6 +28,8 @@ import {
   selectCustomerPackageState,
   selectShipmentStatusFromPackages,
 } from "@/app/store/slice/customerPackageSlice";
+import DrawerComponent from "@/app/_components/DrawerComponent";
+import NotifikasiDrawerContent from "@/app/_components/NotifikasiDrawerContent";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +56,7 @@ export default function AreaPelanggan() {
   const [isActive, setIsActive] = useState<boolean>(false);
   const [isActivating, setIsActivating] = useState(false);
   const dispatch = useAppDispatch();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isCancelled = userInfo?.status === "canceled-instalation";
   // TODO: Untuk case ganti CPE dll (Reaktivasi)
@@ -203,9 +207,10 @@ export default function AreaPelanggan() {
 
       <div className="max-w-332.25 mx-auto">
         {/* Customer Info */}
+        {/* Customer Info + Drawer Container */}
         <div className="relative z-10 px-8 -mt-28">
-          {/* Avatar + Info */}
-          <div className="flex flex-col md:flex-row items-center gap-6 md:items-end justify-between">
+          <div className="flex flex-col md:flex-row gap-6 md:items-end justify-between">
+            {/* Avatar + Info (Right Side) */}
             <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
               <div className="h-42.5 w-42.5 max-sm:h-25 max-sm:w-25 max-sm:mt-8 max-sm:p-6 rounded-full bg-white ring-8 ring-white shadow-[0_0_20px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center shrink-0">
                 <span className="text-6xl max-sm:text-2xl font-bold">
@@ -220,26 +225,53 @@ export default function AreaPelanggan() {
               </div>
 
               {/* Info */}
-              <div className="flex justify-between items-center">
-                <div className="text-center md:text-left">
-                  <div className="">
-                    {isLoading ? (
-                      <SkeletonBase />
-                    ) : (
-                      <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
-                        {userInfo?.name}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-xl max-sm:text-[16px] text-ads-platform-dark">
-                    {isFetching ? (
-                      <SkeletonBase />
-                    ) : (
-                      <div>ID: {userInfo?.customer_code ?? "-"}</div>
-                    )}
-                  </div>
+              <div className="text-center md:text-left">
+                <div className="">
+                  {isLoading ? (
+                    <SkeletonBase />
+                  ) : (
+                    <div className="text-2xl max-sm:text-[20px] font-bold text-ads-platform-dark">
+                      {userInfo?.name}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xl max-sm:text-[16px] text-ads-platform-dark">
+                  {isFetching ? (
+                    <SkeletonBase />
+                  ) : (
+                    <div>ID: {userInfo?.customer_code ?? "-"}</div>
+                  )}
                 </div>
               </div>
+            </div>
+
+            <div className="shrink-0 flex items-end h-full pb-1 max-md:items-start max-md:justify-end max-md:self-auto">
+              {/* Tombol untuk membuka drawer (opsional tapi disarankan) */}
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="text-primary font-medium hover:underline"
+                aria-label="Buka menu tambahan"
+              >
+                <Image
+                  src={notifBellIcon}
+                  alt="notif-icon"
+                  className="w-10 sm:w-20 sm:-mb-4"
+                />
+              </button>
+
+              {/* Drawer Component */}
+              <DrawerComponent
+                isOpen={drawerOpen}
+                anchor="right"
+                closeDrawer={() => setDrawerOpen(false)}
+                paperSx={{
+                  width: { xs: "80%", sm: 500 },
+                  backgroundColor: "#ffffff",
+                  zIndex: 1301,
+                }}
+              >
+                <NotifikasiDrawerContent />
+              </DrawerComponent>
             </div>
           </div>
         </div>
@@ -258,31 +290,6 @@ export default function AreaPelanggan() {
           </div>
         )}
 
-        {/* Banner Is Not Covered */}
-        {/* {!is_coverage && !isFetching && (
-          <div className="max-md:mt-6 px-8 mt-12">
-            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-              <h1 className="text-2xl max-sm:text-center font-bold text-primary mb-4">
-                Kami sedang menyiapkan layanan di area kamu
-              </h1>
-              <p className="text-gray-600 mb-6 max-sm:text-center">
-                Jangan khawatir! Kami akan segera memberi tahu kamu melalui{" "}
-                <span className="font-bold text-primary">
-                  WhatsApp dan Aplikasi IRA
-                </span>{" "}
-                jika layanan kami tersedia di daerahmu.
-              </p>
-              <Link
-                href="/check-coverage"
-                className="flex max-w-fit items-center gap-2 font-bold bg-primary text-white px-6 py-2 rounded-lg hover:bg-dark-primary-2"
-              >
-                <FaSearchLocation className="hidden sm:block" />
-                Cek Jangkauan Terbaru
-              </Link>
-            </div>
-          </div>
-        )} */}
-
         {isCancelled && !isFetching && (
           <div className="max-md:mt-6 px-8 mt-12">
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
@@ -300,15 +307,6 @@ export default function AreaPelanggan() {
                 >
                   Berlangganan Kembali
                 </button>
-
-                {/* <button
-                  className="underline hover:text-dark-primary-2 flex gap-1 cursor-pointer items-center text-primary font-bold justify-center"
-                  onClick={() =>
-                    window.open(`https://wa.me/${phoneCS}`, "_blank")
-                  }
-                >
-                  Hubungi Customer Service <MdHeadsetMic size={20} />
-                </button> */}
               </div>
             </div>
           </div>

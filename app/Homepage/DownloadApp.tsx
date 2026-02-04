@@ -1,11 +1,26 @@
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 
 import googlePlay from "@/public/assets/Images/GooglePlayBlack.png";
 import appStore from "@/public/assets/Images/AppStoreBlack.png";
 import faqImage from "@/public/assets/Images/faq-image.png";
+import toast from "react-hot-toast";
 
 const DownloadApp = () => {
+  const [isToastCooldown, setIsToastCooldown] = useState<boolean>(false);
+
+  const handleDownloadInvoice = () => {
+    if (isToastCooldown) return;
+
+    try {
+      setIsToastCooldown(true);
+      toast("Cooming Soon!");
+    } catch (error) {
+    } finally {
+      setTimeout(() => setIsToastCooldown(false), 3000);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-16 max-sm:py-8">
       <div className="flex flex-col lg:flex-row justify-between items-center gap-8">
@@ -43,16 +58,16 @@ const DownloadApp = () => {
               src={googlePlay}
               width={180}
               height={60}
-              className="max-sm:w-48 max-sm:h-auto"
-              onClick={() => {}}
+              className="max-sm:w-48 max-sm:h-auto cursor-pointer hover:scale-110"
+              onClick={handleDownloadInvoice}
             />
             <Image
               alt="AppStore"
               src={appStore}
               width={180}
               height={60}
-              className="max-sm:w-48 max-sm:h-auto"
-              onClick={() => {}}
+              className="max-sm:w-48 max-sm:h-auto cursor-pointer hover:scale-110"
+              onClick={handleDownloadInvoice}
             />
           </div>
         </div>

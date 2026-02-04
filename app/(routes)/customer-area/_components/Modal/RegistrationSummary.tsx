@@ -167,20 +167,20 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
   const getSubmitData = () => {
     return {
-      name: initialData?.fullname || "",
-      ...(initialData?.email && { email: initialData?.email }),
+      // name: initialData?.fullname || "",
+      // ...(initialData?.email && { email: initialData?.email }),
+      // postal_code: initialData?.postal_code || "",
+      // actual_address: initialData?.actual_address || "",
+      // notes: initialData?.notes || "",
+      // rw: initialData?.rw || "",
+      // rt: initialData?.rt || "",
+      // latitude: initialData?.latitude || "",
+      // longitude: initialData?.longitude || "",
+      // province_id: initialData?.province_id || "", // Kirim ID
+      // city_id: initialData?.city_id || "", // Kirim ID
+      // district_id: initialData?.district_id || "", // Kirim ID
+      // sub_district_id: initialData?.sub_district_id || "", // Kirim ID
       phone_number: initialData?.phone || "",
-      postal_code: initialData?.postal_code || "",
-      actual_address: initialData?.actual_address || "",
-      notes: initialData?.notes || "",
-      rw: initialData?.rw || "",
-      rt: initialData?.rt || "",
-      latitude: initialData?.latitude || "",
-      longitude: initialData?.longitude || "",
-      province_id: initialData?.province_id || "", // Kirim ID
-      city_id: initialData?.city_id || "", // Kirim ID
-      district_id: initialData?.district_id || "", // Kirim ID
-      sub_district_id: initialData?.sub_district_id || "", // Kirim ID
       package_id: selectedPackage?.id || "",
     };
   };

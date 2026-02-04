@@ -8,7 +8,7 @@ import Footer from "./_components/layout/Footer";
 import { Suspense } from "react";
 import ClientProvider from "./_components/ClientProvider";
 import { AppProvider } from "./_shared/context/AppContext";
-import ConditionalFcm from "./_components/FCM/ConditionalFcm";
+import { Notification } from "./_components/Notification";
 
 export const metadata: Metadata = {
   title: "Internet Rakyat",
@@ -37,13 +37,13 @@ export default function RootLayout({
         <Suspense>
           <AppProvider>
             <ClientProvider>
-              <ConditionalFcm />
               {/* {!maintenanceMode && <Header />} */}
               <Header />
               <main className="flex-1">
                 {/* Non-aktif perubahan consume SSE behaviour */}
                 {/* <SSEProvider> */}
                 {children}
+                {/* <Notification /> */}
                 {/* </SSEProvider> */}
               </main>
               <Footer />
