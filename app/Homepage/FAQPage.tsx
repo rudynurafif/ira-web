@@ -17,7 +17,8 @@ function FAQPage() {
         category: "TESTING",
       };
 
-      const resData = await getFAQs(params);
+      // const resData = await getFAQs(params);
+      const resData = await getFAQs({});
       const result = resData?.data?.result;
 
       if (Array.isArray(result) && result.length > 0) {

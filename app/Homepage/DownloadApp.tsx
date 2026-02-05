@@ -58,7 +58,7 @@ const DownloadApp = () => {
               src={googlePlay}
               width={180}
               height={60}
-              className="max-sm:w-48 max-sm:h-auto cursor-pointer hover:scale-110"
+              className="max-sm:w-48 max-sm:h-auto cursor-pointer hover:scale-105"
               onClick={handleDownloadInvoice}
             />
             <Image
@@ -66,7 +66,7 @@ const DownloadApp = () => {
               src={appStore}
               width={180}
               height={60}
-              className="max-sm:w-48 max-sm:h-auto cursor-pointer hover:scale-110"
+              className="max-sm:w-48 max-sm:h-auto cursor-pointer hover:scale-105"
               onClick={handleDownloadInvoice}
             />
           </div>

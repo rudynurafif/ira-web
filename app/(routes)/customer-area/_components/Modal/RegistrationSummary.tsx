@@ -411,7 +411,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
           onClick={onBack}
           className="w-full sm:w-1/2 py-3 text-lg font-bold border-2 border-[#d7201d] text-[#d7201d] rounded-xl hover:bg-[#f8f8f8]"
         >
-          Batal
+          Tutup
         </button>
         <button
           type="button"
@@ -429,7 +429,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
               <span>Memproses...</span>
             </>
           ) : (
-            "Daftar Sekarang"
+            "Berlangganan Sekarang"
           )}
         </button>
       </div>
