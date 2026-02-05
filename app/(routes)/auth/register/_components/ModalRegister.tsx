@@ -6,12 +6,18 @@ import gifConstruction from "@/public/assets/Icons/construction.json";
 
 import registerIcon from "@/public/assets/Icons/success-register.svg";
 import { useRouter } from "next/navigation";
+import { getCookie } from "cookies-next";
 
 function ModalRegister({ isCovered }: { isCovered?: boolean }) {
   const router = useRouter();
+  const token = getCookie("token-ira");
 
-  const toCustomerArea = () => {
-    window.location.href = "/customer-area";
+  const handleNext = () => {
+    if (token) {
+      window.location.href = "/customer-area";
+    } else {
+      window.location.href = "/auth/login";
+    }
   };
 
   return (
@@ -34,25 +40,14 @@ function ModalRegister({ isCovered }: { isCovered?: boolean }) {
             : "Kami dalam proses pembangunan di daerah Anda. Kami akan menghubungi Anda dalam waktu dekat."}
         </p>
       </div>
-      {isCovered ? (
-        <div className="text-center">
-          <button
-            className="w-full py-3 font-bold text-white bg-primary hover:bg-dark-primary-2 mt-8 rounded-xl cursor-pointer"
-            onClick={toCustomerArea}
-          >
-            Pantau pengiriman di sini
-          </button>
-        </div>
-      ) : (
-        <div className="text-center">
-          <button
-            className="w-full py-3 font-bold text-white bg-primary mt-8 rounded-xl cursor-pointer"
-            onClick={toCustomerArea}
-          >
-            Selesai
-          </button>
-        </div>
-      )}
+      <div className="text-center">
+        <button
+          className="w-full py-3 font-bold text-white bg-primary hover:bg-dark-primary-2 mt-8 rounded-xl cursor-pointer"
+          onClick={handleNext}
+        >
+          Selanjutnya
+        </button>
+      </div>
     </div>
   );
 }

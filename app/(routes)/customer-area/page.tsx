@@ -30,6 +30,8 @@ import {
 } from "@/app/store/slice/customerPackageSlice";
 import DrawerComponent from "@/app/_components/DrawerComponent";
 import NotifikasiDrawerContent from "@/app/_components/NotifikasiDrawerContent";
+import { countAllNotif } from "@/app/_api/Notification/Notification";
+import { Notification } from "@/app/_components/Notification";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
@@ -57,11 +59,34 @@ export default function AreaPelanggan() {
   const [isActivating, setIsActivating] = useState(false);
   const dispatch = useAppDispatch();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   const isCancelled = userInfo?.status === "canceled-instalation";
   // TODO: Untuk case ganti CPE dll (Reaktivasi)
   const isReactivation =
     userInfo?.status === "active" && userInfo?.cpe_sim_binding_id;
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await countAllNotif();
+
+        const count =
+          res?.data?.result ??
+          res?.data?.count ??
+          res?.data?.data?.result ??
+          res?.data?.data?.count ??
+          0;
+
+        setUnreadCount(Number(count) || 0);
+      } catch (error) {
+        console.error("Gagal ambil unread notif:", error);
+        setUnreadCount(0);
+      }
+    };
+
+    fetchUnreadCount();
+  }, [drawerOpen]);
 
   // ✅ Tambah useEffect untuk detect status change
   useEffect(() => {
@@ -202,6 +227,8 @@ export default function AreaPelanggan() {
 
   return (
     <div className="min-h-screen bg-background-customer pb-10">
+      <Notification />
+
       {/* Banner Background */}
       <CustomerHeader />
 
@@ -245,19 +272,30 @@ export default function AreaPelanggan() {
               </div>
             </div>
 
-            <div className="shrink-0 flex items-end h-full pb-1 max-md:items-start max-md:justify-end max-md:self-auto">
-              {/* Tombol untuk membuka drawer (opsional tapi disarankan) */}
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="text-primary font-medium hover:underline"
-                aria-label="Buka menu tambahan"
-              >
-                <Image
-                  src={notifBellIcon}
-                  alt="notif-icon"
-                  className="w-10 sm:w-20 sm:-mb-4"
-                />
-              </button>
+            {/* Notification Component */}
+            <div className="shrink-0 flex items-end h-full pb-1 max-md:items-start max-md:justify-end max-md:self-auto md:-mb-4">
+              <div className="relative">
+                {/* Tombol buka drawer */}
+                <button
+                  onClick={() => setDrawerOpen(true)}
+                  className="text-primary font-medium hover:underline"
+                  aria-label="Buka menu notifikasi"
+                >
+                  <div className="relative inline-flex leading-none">
+                    <Image
+                      src={notifBellIcon}
+                      alt="notif-icon"
+                      className="w-10 sm:w-20"
+                    />
+
+                    {unreadCount > 0 && (
+                      <span className="absolute sm:top-2 top-0 sm:right-2 right-0 translate-x-1/2 -translate-y-1/2 sm:w-5.5 w-3.5 sm:h-5.5 h-3.5 bg-primary text-white text-[10px] sm:text-lg font-bold rounded-full flex items-center justify-center pointer-events-none">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              </div>
 
               {/* Drawer Component */}
               <DrawerComponent

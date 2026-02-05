@@ -4,8 +4,11 @@ import Image from "next/image";
 import { FaCheckCircle } from "react-icons/fa";
 import MapGeoapify from "@/app/_components/form/MapGeoapify";
 import { PackageData } from "@/app/_shared/types/customer-area";
-import { FormType } from "@/app/(routes)/auth/register/types/type";
-import { getPackagesRegister, registerUser } from "@/app/_api/Auth/Auth";
+import {
+  getPackagesRegister,
+  registerUser,
+  registerUserFromCoverage,
+} from "@/app/_api/Auth/Auth";
 import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
 import CheckboxAgreeForm from "@/app/_components/form/CheckboxAgreeForm";
 import { PackageCardMobileSkeletonList } from "@/app/(routes)/payment/_components/PackageCardMobileSkeleton";
@@ -30,6 +33,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
   const [mitraID, setMitraID] = useState<
     { id: string | number; [key: string]: any }[]
   >([]);
+  const [btsID, setBtsID] = useState([]);
   const [isLoadingPackage, setIsLoadingPackage] = useState(false);
   const [agreement, setAgreement] = useState<boolean>(false);
 
@@ -113,6 +117,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
         });
 
         setMitraID(resCoverage.data?.result?.mitra_ids ?? []);
+        setBtsID(resCoverage.data?.result?.bts_ids ?? []);
       } catch (error: any) {
         toastErrorFromAPI(error, "Gagal check coverage");
         setMitraID([]);
@@ -165,26 +170,6 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
     return value ? String(value) : defaultValue;
   };
 
-  const getSubmitData = () => {
-    return {
-      // name: initialData?.fullname || "",
-      // ...(initialData?.email && { email: initialData?.email }),
-      // postal_code: initialData?.postal_code || "",
-      // actual_address: initialData?.actual_address || "",
-      // notes: initialData?.notes || "",
-      // rw: initialData?.rw || "",
-      // rt: initialData?.rt || "",
-      // latitude: initialData?.latitude || "",
-      // longitude: initialData?.longitude || "",
-      // province_id: initialData?.province_id || "", // Kirim ID
-      // city_id: initialData?.city_id || "", // Kirim ID
-      // district_id: initialData?.district_id || "", // Kirim ID
-      // sub_district_id: initialData?.sub_district_id || "", // Kirim ID
-      phone_number: initialData?.phone || "",
-      package_id: selectedPackage?.id || "",
-    };
-  };
-
   // si untuk menampilkan alamat lengkap
   const getFullAddress = () => {
     const addressParts = [getFieldValue("actual_address")].filter(Boolean);
@@ -219,7 +204,14 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
     try {
       setIsSubmitting(true);
 
-      const res = await registerUser(getSubmitData());
+      const body = {
+        phone_number: initialData?.phone || "",
+        package_id: selectedPackage?.id || "",
+        mitra_ids: mitraID,
+        bts_ids: btsID,
+      };
+
+      const res = await registerUserFromCoverage(body);
       const token = res?.data?.data ?? res?.data?.token;
       if (token) setCookie("token-ira", token);
       toast.success(res?.data?.message);
@@ -239,7 +231,6 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
         ).unwrap();
       }
 
-      toast.success("Registrasi berhasil!");
       onBack();
     } catch (err: any) {
       toastErrorFromAPI(err);
@@ -250,7 +241,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
   return (
     <div className=" bg-white rounded-xl">
-      <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
+      <h1 className="text-3xl font-bold text-center mb-6 text-old-primary">
         Informasi Data Pelanggan
       </h1>
 
@@ -290,7 +281,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
         <div className="grid grid-cols-1 gap-4">
           {/* Nama Pelanggan */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Nama Pelanggan
             </span>
             <p className="font-medium flex-1">
@@ -300,7 +291,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
           {/* Email */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Email
             </span>
             <p className="font-medium flex-1">{getFieldValue("email", "-")}</p>
@@ -308,7 +299,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
           {/* Nomor Handphone */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Nomor Handphone
             </span>
             <p className="font-medium flex-1">{getFieldValue("phone", "-")}</p>
@@ -316,7 +307,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
           {/* Provinsi */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Provinsi
             </span>
             <p className="font-medium flex-1">
@@ -326,7 +317,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
           {/* Kabupaten */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Kabupaten
             </span>
             <p className="font-medium flex-1">
@@ -336,7 +327,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
           {/* Kecamatan */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Kecamatan
             </span>
             <p className="font-medium flex-1">
@@ -346,7 +337,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
           {/* Kelurahan */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Kelurahan
             </span>
             <p className="font-medium flex-1">
@@ -356,7 +347,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
           {/* Kode Pos */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Kode Pos
             </span>
             <p className="font-medium flex-1">
@@ -366,7 +357,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
           {/* Alamat Lengkap */}
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Alamat Lengkap
             </span>
             <p className="font-medium flex-1">{getFullAddress()}</p>
@@ -374,7 +365,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
           {/* Patokan Alamat */}
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-2">
-            <span className="text-gray-500 text-sm min-w-[180px] lg:min-w-[200px]">
+            <span className="text-gray-500 text-sm min-w-45 lg:min-w-50">
               Patokan Alamat
             </span>
             <p className="font-medium flex-1">{getFieldValue("notes", "-")}</p>
@@ -409,7 +400,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
         <button
           type="button"
           onClick={onBack}
-          className="w-full sm:w-1/2 py-3 text-lg font-bold border-2 border-[#d7201d] text-[#d7201d] rounded-xl hover:bg-[#f8f8f8]"
+          className="w-full sm:w-1/2 py-3 text-lg font-bold border-2 border-primary text-primary rounded-xl hover:bg-red-50"
         >
           Tutup
         </button>
@@ -420,7 +411,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
           className={`w-full sm:w-1/2 py-3 text-lg font-bold text-white rounded-xl flex items-center justify-center ${
             isSubmitting || !agreement || !selectedPackage
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-[#d7201d] hover:bg-[#b31b1a]"
+              : "bg-primary hover:bg-[#b31b1a]"
           }`}
         >
           {isSubmitting ? (

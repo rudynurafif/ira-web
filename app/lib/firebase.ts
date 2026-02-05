@@ -36,7 +36,7 @@ export const requestNotificationPermission = async () => {
         vapidKey:
           "BBKnzRgbLhXbQJMMXpDEhuMkDQpaSld-VweX-fTgDLCAsa7CZ7EREEllQIg6k7khdn2N0xcFMlXq3oZ3FSOXifQ",
       });
-      console.log("FCM Token:", token);
+      // console.log("FCM Token:", token);
       return token;
     } else {
       console.log("Notification permission denied");

@@ -1,10 +1,22 @@
-import axios from "axios";
 import FwaAxios from "../FwaAxios";
 
 export const registerUser = async (body: any) => {
   try {
     const data = await FwaAxios({
       url: "/app/auth/register",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const registerUserFromCoverage = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/register-coverage",
       method: "POST",
       data: body,
     });
