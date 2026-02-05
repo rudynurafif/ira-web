@@ -322,9 +322,7 @@ const Page = () => {
         )}
 
         <h1 className="mb-8 text-center text-old-primary font-extrabold text-2xl sm:text-[32px]">
-          {step === "SET_PASSWORD"
-            ? "Buat Password Baru"
-            : "Login Internet Rakyat (IRA)"}
+          {step === "SET_PASSWORD" ? "Buat Password Baru" : "Login IRA"}
         </h1>
 
         {step === "SET_PASSWORD" && (
@@ -403,7 +401,7 @@ const Page = () => {
           <button
             type="submit"
             disabled={isLoading || !isFormValid}
-            className={`py-4 flex items-center justify-center gap-2 font-bold text-white text-xl rounded-xl
+            className={`py-3 flex items-center justify-center gap-2 font-bold text-white text-xl rounded-xl
             ${
               isLoading || !isFormValid
                 ? "bg-slate-400 cursor-not-allowed!"

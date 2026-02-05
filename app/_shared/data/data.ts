@@ -228,26 +228,26 @@ export const content_terms = [
 export const listConnectedDevices = [
   {
     id: 1,
-    name: "Iphone 16",
-    ip: "192.168.1.23",
-    mac: "80:ab:2c:19:aa:12",
-    lastSeen: "1:30:25 PM",
+    name: "-",
+    ip: "-",
+    mac: "-",
+    lastSeen: "-",
     isBlocked: false,
   },
   {
     id: 2,
-    name: "Samsung S25 Ultra",
-    ip: "192.168.1.44",
-    mac: "90:ab:2c:19:aa:12",
-    lastSeen: "1:23:34 PM",
+    name: "-",
+    ip: "-",
+    mac: "-",
+    lastSeen: "-",
     isBlocked: true,
   },
   {
     id: 3,
-    name: "Macbook Pro",
-    ip: "192.168.1.51",
-    mac: "32:ab:2c:19:aa:12",
-    lastSeen: "2:34:09 PM",
+    name: "-",
+    ip: "-",
+    mac: "-",
+    lastSeen: "-",
     isBlocked: false,
   },
 ];
@@ -331,5 +331,208 @@ const faqsBackUp: FAQItem[] = [
     title: "Apakah tersedia berbagai pilihan paket?",
     description:
       "Ya. Internet Rakyat menyediakan beberapa paket internet dengan durasi masa aktif berbeda sesuai kebutuhan rumah atau bisnis Anda.",
+  },
+];
+
+export const allItems = [
+  {
+    id: 1,
+    type: "baru",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Selamat! Paket Internet Kamu Berhasil Dipasang",
+    date: "Senin, 2 Jan 2026 | 14:09",
+    content:
+      "Paket internet Anda telah berhasil diaktifkan. Nikmati koneksi cepat dan stabil dari IRA. Jika ada kendala, hubungi tim support kami.",
+  },
+  {
+    id: 2,
+    type: "baru",
+    category: "informasi",
+    icon: "document",
+    title: "Update Aplikasi IRA Terbaru Versi 02.01",
+    date: "Senin, 2 Jan 2026 | 10:30",
+    content:
+      "Kami telah merilis pembaruan aplikasi IRA versi 02.01 dengan fitur baru: cek sinyal real-time, riwayat pembayaran, dan manajemen perangkat. Segera update di Play Store atau App Store!",
+  },
+  {
+    id: 3,
+    type: "normal",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Paket Internet Kamu Berhasil Diperpanjang",
+    date: "Minggu, 1 Jan 2026 | 09:15",
+    content:
+      "Langganan Anda telah diperpanjang hingga 1 Februari 2026. Terima kasih atas kepercayaan Anda!",
+  },
+  {
+    id: 4,
+    type: "normal",
+    category: "informasi",
+    icon: "document",
+    title: "Perubahan Jadwal Maintenance Jaringan",
+    date: "Sabtu, 31 Des 2025 | 16:45",
+    content:
+      "Maintenance jaringan yang semula dijadwalkan 1 Januari 2026 pukul 02.00–04.00 WIB dimajukan menjadi 31 Desember 2025 pukul 23.00–01.00 WIB.",
+  },
+  {
+    id: 5,
+    type: "baru",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Pembayaran Berhasil – Langganan Aktif",
+    date: "Jumat, 30 Des 2025 | 18:22",
+    content:
+      "Terima kasih! Pembayaran Anda sebesar Rp299.000 telah kami terima. Paket internet Anda aktif hingga 30 Januari 2026.",
+  },
+  {
+    id: 6,
+    type: "normal",
+    category: "informasi",
+    icon: "document",
+    title: "Promo Akhir Tahun: Gratis 1 Bulan!",
+    date: "Kamis, 29 Des 2025 | 11:00",
+    content:
+      "Rayakan akhir tahun bersama IRA! Berlangganan paket 3 bulan, dapatkan gratis 1 bulan tambahan. Promo berlaku hingga 31 Desember 2025.",
+  },
+  {
+    id: 7,
+    type: "normal",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Modem Anda Telah Di-reset Jarak Jauh",
+    date: "Rabu, 28 Des 2025 | 14:30",
+    content:
+      "Tim teknis telah melakukan reset jarak jauh pada modem Anda untuk memperbaiki koneksi. Silakan restart perangkat Anda.",
+  },
+  {
+    id: 8,
+    type: "baru",
+    category: "informasi",
+    icon: "document",
+    title: "Fitur Baru: Cek Kualitas Sinyal Real-Time",
+    date: "Selasa, 27 Des 2025 | 09:45",
+    content:
+      "Kini Anda bisa memantau kekuatan sinyal secara real-time langsung dari aplikasi IRA. Buka menu 'Informasi Perangkat' untuk mencoba.",
+  },
+  {
+    id: 9,
+    type: "normal",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Tagihan Bulan Ini Telah Dikirim",
+    date: "Senin, 26 Des 2025 | 08:00",
+    content:
+      "Tagihan langganan bulan Januari 2026 telah dikirim ke email Anda. Jumlah: Rp299.000. Batas pembayaran: 5 Januari 2026.",
+  },
+  {
+    id: 10,
+    type: "normal",
+    category: "informasi",
+    icon: "document",
+    title: "Lokasi Kantor Pelayanan Terdekat",
+    date: "Minggu, 25 Des 2025 | 13:20",
+    content:
+      "Kunjungi kantor pelayanan IRA terdekat di Mall Central Park Lantai 2, buka setiap hari pukul 09.00–20.00 WIB.",
+  },
+  {
+    id: 11,
+    type: "baru",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Akun Anda Telah Diverifikasi",
+    date: "Sabtu, 24 Des 2025 | 16:10",
+    content:
+      "Verifikasi akun Anda berhasil. Sekarang Anda bisa mengakses semua fitur premium di aplikasi IRA.",
+  },
+  {
+    id: 12,
+    type: "normal",
+    category: "informasi",
+    icon: "document",
+    title: "Tips: Optimalkan Sinyal WiFi di Rumah",
+    date: "Jumat, 23 Des 2025 | 10:05",
+    content:
+      "Letakkan modem di tempat terbuka, hindari dekat microwave atau dinding tebal. Gunakan fitur 'Scan Sinyal' di aplikasi untuk posisi terbaik.",
+  },
+  {
+    id: 13,
+    type: "normal",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Perangkat Baru Terhubung ke Jaringan",
+    date: "Kamis, 22 Des 2025 | 19:33",
+    content:
+      "Perangkat 'Samsung Galaxy S24' telah terhubung ke jaringan WiFi Anda. Jika ini bukan Anda, segera ganti password WiFi.",
+  },
+  {
+    id: 14,
+    type: "baru",
+    category: "informasi",
+    icon: "document",
+    title: "Laporan Penggunaan Data Bulanan",
+    date: "Rabu, 21 Des 2025 | 08:15",
+    content:
+      "Anda telah menggunakan 85% kuota data bulanan. Estimasi habis: 28 Desember 2025. Upgrade paket untuk kuota tak terbatas!",
+  },
+  {
+    id: 15,
+    type: "normal",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Pengingat: Jadwal Teknisi Besok",
+    date: "Selasa, 20 Des 2025 | 14:00",
+    content:
+      "Teknisi akan datang ke rumah Anda pada Rabu, 21 Desember 2025 pukul 10.00–12.00 WIB untuk instalasi ulang modem.",
+  },
+  {
+    id: 16,
+    type: "normal",
+    category: "informasi",
+    icon: "document",
+    title: "Kebijakan Privasi Diperbarui",
+    date: "Senin, 19 Des 2025 | 11:30",
+    content:
+      "Kami telah memperbarui Kebijakan Privasi untuk meningkatkan transparansi. Baca selengkapnya di halaman Profil > Pengaturan.",
+  },
+  {
+    id: 17,
+    type: "baru",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Bonus Kuota 5 GB – Terima Kasih!",
+    date: "Minggu, 18 Des 2025 | 20:45",
+    content:
+      "Sebagai apresiasi atas loyalitas Anda, kami memberikan bonus kuota 5 GB yang berlaku hingga 31 Desember 2025.",
+  },
+  {
+    id: 18,
+    type: "normal",
+    category: "informasi",
+    icon: "document",
+    title: "Jadwal Libur Nasional & Dampak Layanan",
+    date: "Sabtu, 17 Des 2025 | 09:00",
+    content:
+      "Selama libur Natal & Tahun Baru (24 Des–2 Jan), layanan pelanggan tetap aktif 24/7 via chat aplikasi. Kunjungan teknisi hanya darurat.",
+  },
+  {
+    id: 19,
+    type: "normal",
+    category: "notifikasi",
+    icon: "bell",
+    title: "Email Verifikasi Telah Dikirim",
+    date: "Jumat, 16 Des 2025 | 15:22",
+    content:
+      "Kami telah mengirim email verifikasi ke rudy4@mail.com. Klik tautan dalam email untuk menyelesaikan verifikasi.",
+  },
+  {
+    id: 20,
+    type: "baru",
+    category: "informasi",
+    icon: "document",
+    title: "IRA Hadir di Komunitas RT 01/RW 01!",
+    date: "Kamis, 15 Des 2025 | 12:10",
+    content:
+      "Kini warga RT 01/RW 01 Cilandak bisa menikmati promo khusus: gratis pasang + diskon 20% selama 6 bulan pertama!",
   },
 ];
