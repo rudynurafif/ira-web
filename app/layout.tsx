@@ -7,6 +7,8 @@ import Header from "./_components/layout/Header";
 import Footer from "./_components/layout/Footer";
 import { Suspense } from "react";
 import ClientProvider from "./_components/ClientProvider";
+import { AppProvider } from "./_shared/context/AppContext";
+import { Notification } from "./_components/Notification";
 
 export const metadata: Metadata = {
   title: "Internet Rakyat",
@@ -33,23 +35,26 @@ export default function RootLayout({
         ].join(" ")}
       >
         <Suspense>
-          <ClientProvider>
-            {/* {!maintenanceMode && <Header />} */}
-            <Header />
-            <main className="flex-1">
-              {/* Non-aktif perubahan consume SSE behaviour */}
-              {/* <SSEProvider> */}
-              {children}
-              {/* </SSEProvider> */}
-            </main>
-            <Footer />
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 5000,
-              }}
-            />
-          </ClientProvider>
+          <AppProvider>
+            <ClientProvider>
+              {/* {!maintenanceMode && <Header />} */}
+              <Header />
+              <main className="flex-1">
+                {/* Non-aktif perubahan consume SSE behaviour */}
+                {/* <SSEProvider> */}
+                {children}
+                {/* <Notification /> */}
+                {/* </SSEProvider> */}
+              </main>
+              <Footer />
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 5000,
+                }}
+              />
+            </ClientProvider>
+          </AppProvider>
         </Suspense>
       </body>
     </html>

@@ -73,7 +73,6 @@ const HistorySection = () => {
 
   const hasHistory = subscriptionHistory && subscriptionHistory[0]?.start_date;
   const isFilterActive = !!startDateFilter && !!endDateFilter;
-  const isEmpty = subscriptionHistory.length === 0;
 
   return (
     <div>
@@ -81,7 +80,7 @@ const HistorySection = () => {
         <p className="text-xl font-bold text-black">Riwayat Pembelian Paket</p>
 
         {/* Komponen Filter berdasarkan Tanggal */}
-        {(hasHistory || isEmpty) && (
+        {(hasHistory || isFilterActive) && (
           <div className="max-sm:self-end">
             <DatePickerFilter
               label="Filter berdasarkan tanggal"

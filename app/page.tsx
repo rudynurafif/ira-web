@@ -8,6 +8,7 @@ import { verifyOtp } from "@/app/_api/Auth/Auth";
 import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import CookieHandler from "./_components/CookieHandler";
+import DownloadApp from "./Homepage/DownloadApp";
 
 export default function Home() {
   const router = useRouter();
@@ -73,6 +74,7 @@ export default function Home() {
 
       <MainPage />
       <WhyFWAPage />
+      <DownloadApp />
       {/* <PackagePage /> */}
       <FAQPage />
     </div>
