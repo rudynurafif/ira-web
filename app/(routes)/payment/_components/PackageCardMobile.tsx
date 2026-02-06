@@ -37,7 +37,7 @@ function PackageCardMobile({
       <div className="mt-2 ">
         {/* speed block */}
         <div className="w-full rounded-md overflow-hidden">
-          <div className="flex items-start justify-between w-full relative text-dark-primary-2 whitespace-nowrap">
+          <div className="flex max-sm:flex-col max-sm:gap-2 items-start justify-between w-full relative text-dark-primary-2 whitespace-nowrap">
             <div className="flex gap-2">
               <div className="text-xs sm:text-sm">Up to</div>
               <div className="flex pt-2 gap-1">
@@ -52,7 +52,7 @@ function PackageCardMobile({
             </div>
 
             {/* badge harga */}
-            <div className="shrink-0 ml-2">
+            <div className="shrink-0 ml-2 max-sm:ml-0 max-sm:w-full max-sm:flex max-sm:justify-end">
               <span className="inline-flex flex-col sm:flex-row max-w-100 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm text-black whitespace-nowrap">
                 <p className="max-sm:font-bold font-semibold">
                   {convertToCurrency(pkg?.price ?? 0)}

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import PhoneNumberForm from "@/app/_components/form/PhoneForm";
 import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
@@ -36,6 +36,7 @@ type AuthStep = "CHECK_PHONE" | "SET_PASSWORD" | "LOGIN";
 const Page = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
 
   const [step, setStep] = useState<AuthStep>("CHECK_PHONE");
 
@@ -60,6 +61,25 @@ const Page = () => {
   } | null>(null);
 
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const regPhone = localStorage.getItem("registration_phone");
+
+    if (regPhone) {
+      setPhone(regPhone);
+
+      const phoneError = validatePhone(regPhone);
+      if (!phoneError) {
+        setStep("SET_PASSWORD");
+        toast.success("Silakan buat password untuk akun baru Anda");
+
+        localStorage.removeItem("registration_phone");
+      } else {
+        console.error("Invalid phone format:", phoneError);
+        localStorage.removeItem("registration_phone");
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (status === "denied") setIsOpenModalReqLoc(true);

@@ -10,7 +10,7 @@ const ClientProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <Provider store={store}>
-      <Notification />
+      {/* <Notification /> */}
 
       {children}
     </Provider>

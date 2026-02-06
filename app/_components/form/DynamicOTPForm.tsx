@@ -64,28 +64,32 @@ export default function GroupedOTP({
           containerClassName="group flex items-center mt-2"
           render={({ slots }) => (
             <>
-              <div className={`flex gap-1 `}>
-                {slots.slice(0, length / 2).map((slot, idx) => (
-                  <Slot
-                    key={idx}
-                    {...slot}
-                    isInvalid={isInvalid}
-                    isDisabled={isDisabled}
-                  />
-                ))}
-              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-0">
+                <div className="flex gap-1">
+                  {slots.slice(0, length / 2).map((slot, idx) => (
+                    <Slot
+                      key={idx}
+                      {...slot}
+                      isInvalid={isInvalid}
+                      isDisabled={isDisabled}
+                    />
+                  ))}
+                </div>
 
-              <FakeDash />
+                <div className="hidden sm:block">
+                  <FakeDash />
+                </div>
 
-              <div className="flex gap-1">
-                {slots.slice(length / 2).map((slot, idx) => (
-                  <Slot
-                    key={idx + length / 2}
-                    {...slot}
-                    isInvalid={isInvalid}
-                    isDisabled={isDisabled}
-                  />
-                ))}
+                <div className="flex gap-1 mt-2 sm:mt-0">
+                  {slots.slice(length / 2).map((slot, idx) => (
+                    <Slot
+                      key={idx + length / 2}
+                      {...slot}
+                      isInvalid={isInvalid}
+                      isDisabled={isDisabled}
+                    />
+                  ))}
+                </div>
               </div>
             </>
           )}

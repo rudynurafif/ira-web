@@ -22,7 +22,7 @@ import {
   getUserLocation,
 } from "@/app/_api/Location/Location";
 import toast from "react-hot-toast";
-import { setCookie } from "cookies-next";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import {
   convertToCurrency,
   EMAIL_REGEX,
@@ -141,6 +141,8 @@ function RegistrationForm({
 
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>();
+
+  const token = getCookie("token-ira");
 
   useEffect(() => {
     if (status === "denied") setIsOpenModalReqLoc(true);
@@ -693,12 +695,18 @@ function RegistrationForm({
               });
         }
 
+        // Keperluan set password setelah register
+        const phoneValue = formData.phone?.trim();
+        if (phoneValue && mode === "register") {
+          localStorage.setItem("registration_phone", phoneValue);
+        }
+
         setIsModalRegisterSuccess(true);
         setOtpStatus("idle");
         resetForm();
 
-        const token = res?.data?.data ?? res?.data?.token;
-        if (token) setCookie("token-ira", token);
+        // const token = res?.data?.data ?? res?.data?.token;
+        // if (token) setCookie("token-ira", token);
       } catch (error: any) {
         // error konflik 409
         if (error?.response?.data?.statusCode === 409) {
@@ -1577,9 +1585,13 @@ function RegistrationForm({
         <ModalTemplate
           closeModal={() => {
             setIsModalRegisterSuccess(false);
-            resetForm();
+
+            if (token) {
+              window.location.href = "/customer-area";
+            } else {
+              window.location.href = "/auth/login";
+            }
             setCoveredAtSubmit(null);
-            window.location.href = "/customer-area";
           }}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >
