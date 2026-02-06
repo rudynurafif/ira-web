@@ -332,6 +332,12 @@ function MapGeoapify({
     // Belum ada map, init baru
     const map = L.map(mapContainerRef.current, {
       zoomControl: false,
+      dragging: isInteractive,
+      touchZoom: isInteractive,
+      scrollWheelZoom: isInteractive,
+      doubleClickZoom: isInteractive,
+      boxZoom: isInteractive,
+      keyboard: isInteractive,
     }).setView([location.lat, location.lng], 18);
 
     L.tileLayer(

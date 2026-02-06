@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { useFCM } from "../hooks/useFCM";
+import { PushFCMToken } from "../_api/Notification/Notification";
+
+const FCM_TOKEN_STORAGE_KEY = "fcm_token_stored";
 
 export const Notification = () => {
   const { token, notification, isSupported, refreshToken } = useFCM();
@@ -15,14 +18,31 @@ export const Notification = () => {
     }
   }, [notification]);
 
+  useEffect(() => {
+    if (!isSupported || !token) return;
+
+    const storedToken = localStorage.getItem(FCM_TOKEN_STORAGE_KEY);
+
+    // Hanya kirim jika token berbeda atau belum pernah disimpan
+    if (storedToken !== token) {
+      const body = {
+        fcm_token: token,
+        platform: "web",
+      };
+
+      PushFCMToken(body)
+        .then(() => {
+          localStorage.setItem(FCM_TOKEN_STORAGE_KEY, token);
+        })
+        .catch((error) => {
+          console.error("❌ Gagal mengirim FCM token:", error);
+        });
+    }
+  }, [token, isSupported]);
+
   if (!isSupported) {
     return null;
   }
-
-  //   useEffect(() => {
-  //     refreshToken();
-  //     console.log("aaa");
-  //   }, []);
 
   return (
     <div className="z-9999 w-full overflow-hidden">
@@ -35,7 +55,7 @@ export const Notification = () => {
       {showNotification && notification && (
         <div className="fixed top-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 animate-fade-in">
           <div className="flex items-start">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
                 <span className="text-white font-bold text-lg">🔔</span>
               </div>
@@ -44,10 +64,10 @@ export const Notification = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-gray-900">
-                    {notification.notification?.title}
+                    {notification.notification?.title ?? "-"}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    {notification.notification?.body}
+                    {notification.notification?.body ?? "-"}
                   </p>
                 </div>
                 <button

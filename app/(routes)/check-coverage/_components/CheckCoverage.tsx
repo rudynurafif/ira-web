@@ -8,6 +8,7 @@ import { getCheckCoverage } from "@/app/_api/Location/Location";
 import { IoCloseSharp } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
 import RegistrationForm from "../../auth/register/_components/RegistrationForm";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
 
 const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
 
@@ -161,8 +162,7 @@ function CheckCoverage() {
       setMitraPaket(res.data?.result.mitra_id || null);
       setModalResult(true);
     } catch (err: any) {
-      console.error("Check coverage error:", err);
-      toast.error("Gagal mengecek ketersediaan");
+      toastErrorFromAPI(err);
     } finally {
       setIsLoading(false);
     }

@@ -97,7 +97,6 @@ const PackageAndHistory = () => {
       }
     } catch (err: any) {
       toastErrorFromAPI(err);
-      toast.error("Gagal mengecek ketersediaan");
       setModalResult(false);
     }
   };
@@ -533,9 +532,9 @@ const PackageAndHistory = () => {
       {modalResult && (
         <ModalTemplate
           closeModal={() => setModalResult(false)}
-          classNameModal={isCoverage && showRegistrationModal ? "" : ""}
+          classNameModal={isCoverage && showRegistrationModal ? "p-8" : ""}
           width={
-            isCoverage && showRegistrationModal ? "max-w-[736px]" : "max-w-2xl"
+            isCoverage && showRegistrationModal ? "max-w-[1200px]" : "max-w-2xl"
           }
         >
           {isCoverage && showRegistrationModal ? (
