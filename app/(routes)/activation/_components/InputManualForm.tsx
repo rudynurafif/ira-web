@@ -40,7 +40,7 @@ function InputManualForm() {
       localStorage.setItem("ira-cpe-serial-number", serialNumber!);
 
       // trigger SSE
-      const res = await Activation({ serial_number: serialNumber });
+      const res = await Activation({ sn: serialNumber });
 
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
         toast.loading(
@@ -90,10 +90,7 @@ function InputManualForm() {
           error.response?.data?.message ||
           "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.",
       });
-      // toastErrorFromAPI(
-      //   error,
-      //   "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.",
-      // );
+      toastErrorFromAPI(error);
     } finally {
       setIsSubmitting(false);
       const saved = JSON.parse(

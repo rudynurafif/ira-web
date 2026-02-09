@@ -229,8 +229,8 @@ export default function NotifikasiDrawerContent() {
   // --- LIST VIEW ---
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-border">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+      <div className="px-4 pt-4 border-b border-gray-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between">
           <h2 className="text-xl font-bold">Notifikasi dan Informasi</h2>
           <button
             onClick={handleReadAll}
@@ -240,7 +240,7 @@ export default function NotifikasiDrawerContent() {
           </button>
         </div>
 
-        <div className="flex pt-3 space-x-6 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex pt-3 space-x-6 overflow-x-auto scrollbar-hide">
           {[
             { key: "semua", label: "Semua", count: semuaCount },
             { key: "notifikasi", label: "Notifikasi", count: notifCount },
@@ -249,7 +249,7 @@ export default function NotifikasiDrawerContent() {
             <button
               key={key}
               onClick={() => setActiveTab(key as any)}
-              className={`pb-2 flex gap-1 whitespace-nowrap text-sm font-medium relative ${
+              className={`pb-1 flex gap-2 whitespace-nowrap text-sm font-medium relative ${
                 activeTab === key
                   ? "text-black border-b-2 border-primary"
                   : "text-gray-500 hover:text-gray-700"

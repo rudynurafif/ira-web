@@ -1,9 +1,35 @@
 import FwaAxios from "../FwaAxios";
 
+export const StoreFCMToken = async (payload: object) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/store-fcm-token",
+      method: "POST",
+      data: payload,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const PushFCMToken = async (payload: object) => {
   try {
     const data = await FwaAxios({
-      url: "/app/auth/update-fcm",
+      url: "/app/auth/update-fcm-token",
+      method: "POST",
+      data: payload,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const DeleteFCMToken = async (payload: object) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/logout",
       method: "POST",
       data: payload,
     });

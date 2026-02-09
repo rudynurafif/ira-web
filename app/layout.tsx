@@ -8,7 +8,6 @@ import Footer from "./_components/layout/Footer";
 import { Suspense } from "react";
 import ClientProvider from "./_components/ClientProvider";
 import { AppProvider } from "./_shared/context/AppContext";
-import { Notification } from "./_components/Notification";
 
 export const metadata: Metadata = {
   title: "Internet Rakyat",

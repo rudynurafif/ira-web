@@ -26,6 +26,9 @@ import {
 } from "@/app/store/slice/authSlice";
 import { DecodedToken } from "@/app/_context/sse.type";
 import SkeletonBase from "../skeletons/SkeletonBase";
+import { DeleteFCMToken } from "@/app/_api/Notification/Notification";
+import { useFCM } from "@/app/hooks/useFCM";
+import { useAppContext } from "@/app/_shared/context/AppContext";
 
 function Header() {
   const pathname = usePathname();
@@ -41,6 +44,8 @@ function Header() {
   );
   // const token = getCookie("token-ira") ?? tokenfromState;
   const [token, setToken] = useState<string | null>(null);
+  const { fcmToken } = useAppContext();
+
   const headerRef = useRef<HTMLDivElement>(null);
 
   // ===============
@@ -143,13 +148,18 @@ function Header() {
     fetchData();
   }, [dispatch, pathname, router, tokenfromState]);
 
-  const handleLogout = () => {
-    dispatch(logout());
-
-    setIsLoggedIn(false);
-
-    window.location.href = "/auth/login";
-    toast.success("Logout Berhasil!");
+  const handleLogout = async () => {
+    try {
+      if (fcmToken) await DeleteFCMToken({ fcm_token: fcmToken });
+    } catch (e) {
+      console.error("Gagal delete fcm token, lanjut logout:", e);
+    } finally {
+      dispatch(logout());
+      setIsLoggedIn(false);
+      router.push("/auth/login");
+      // window.location.href = "/auth/login";
+      toast.success("Logout Berhasil!");
+    }
   };
 
   const [showDropdown, setShowDropdown] = useState(false);
