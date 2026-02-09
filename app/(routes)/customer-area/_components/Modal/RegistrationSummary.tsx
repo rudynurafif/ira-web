@@ -400,7 +400,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
         <button
           type="button"
           onClick={onBack}
-          className="w-full sm:w-1/2 py-3 text-lg font-bold border-2 border-primary text-primary rounded-xl hover:bg-red-50"
+          className="w-full sm:w-1/2 py-2 sm:py-3 sm:text-lg text-sm font-bold border-2 border-primary text-primary rounded-xl hover:bg-red-50 order-2 sm:order-1"
         >
           Tutup
         </button>
@@ -408,7 +408,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting || !agreement || !selectedPackage}
-          className={`w-full sm:w-1/2 py-3 text-lg font-bold text-white rounded-xl flex items-center justify-center ${
+          className={`w-full sm:w-1/2 py-2 sm:py-3 sm:text-lg text-sm border-2 border-primary disabled:border-gray-400 font-bold text-white rounded-xl flex items-center justify-center order-1 sm:order-2 ${
             isSubmitting || !agreement || !selectedPackage
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-primary hover:bg-[#b31b1a]"

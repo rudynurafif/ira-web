@@ -8,7 +8,7 @@ import {
 import toast from "react-hot-toast";
 
 export const useFCM = () => {
-  const [token, setToken] = useState<string | null>(null);
+  const [tokenFCM, setTokenFCM] = useState<string | null>(null);
   const [notification, setNotification] = useState<any>(null);
   const [isSupported, setIsSupported] = useState<boolean>(false);
 
@@ -30,7 +30,7 @@ export const useFCM = () => {
     const initFCM = async () => {
       const fcmToken = await requestNotificationPermission();
       if (fcmToken) {
-        setToken(fcmToken);
+        setTokenFCM(fcmToken);
       }
     };
 
@@ -49,14 +49,15 @@ export const useFCM = () => {
 
   const refreshToken = async () => {
     const newToken = await requestNotificationPermission();
+    console.log(newToken, "<<< new token");
     if (newToken) {
-      setToken(newToken);
+      setTokenFCM(newToken);
     }
     return newToken;
   };
 
   return {
-    token,
+    tokenFCM,
     notification,
     isSupported,
     refreshToken,

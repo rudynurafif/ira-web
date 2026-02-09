@@ -213,7 +213,9 @@ export default function NotifikasiDrawerContent() {
               <span className="font-bold text-base sm:text-lg block">
                 {selectedItem.title}
               </span>
-              <span className="text-[10px] sm:text-xs text-gray-500">{selectedItem.date}</span>
+              <span className="text-[10px] sm:text-xs text-gray-500">
+                {selectedItem.date}
+              </span>
             </div>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-border">
@@ -229,8 +231,8 @@ export default function NotifikasiDrawerContent() {
   // --- LIST VIEW ---
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-border">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+      <div className="px-4 pt-4 border-b border-gray-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between">
           <h2 className="text-xl font-bold">Notifikasi dan Informasi</h2>
           <button
             onClick={handleReadAll}
@@ -240,7 +242,7 @@ export default function NotifikasiDrawerContent() {
           </button>
         </div>
 
-        <div className="flex pt-3 space-x-6 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex mt-3 justify-between items-center pt-3 space-x-6 overflow-x-auto scrollbar-hide">
           {[
             { key: "semua", label: "Semua", count: semuaCount },
             { key: "notifikasi", label: "Notifikasi", count: notifCount },
@@ -249,15 +251,15 @@ export default function NotifikasiDrawerContent() {
             <button
               key={key}
               onClick={() => setActiveTab(key as any)}
-              className={`pb-2 flex gap-1 whitespace-nowrap text-sm font-medium relative ${
+              className={`pb-1 sm:min-w-30 flex items-center justify-center gap-2 whitespace-nowrap relative ${
                 activeTab === key
-                  ? "text-black border-b-2 border-primary"
+                  ? "text-black font-bold border-b-2 border-primary"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
               {label}
               {count > 0 && (
-                <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {count}
                 </span>
               )}

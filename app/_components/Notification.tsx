@@ -1,46 +1,49 @@
 import { useEffect, useState } from "react";
 import { useFCM } from "../hooks/useFCM";
-import { PushFCMToken } from "../_api/Notification/Notification";
+import { PushFCMToken, StoreFCMToken } from "../_api/Notification/Notification";
+import { getCookie } from "cookies-next";
+import logoIra from "@/public/assets/Icons/Logo-Ira-Red.svg";
+import Image from "next/image";
+import { useAppContext } from "../_shared/context/AppContext";
+import { HiOutlineX } from "react-icons/hi";
 
+type FcmMode = "store" | "update";
 const FCM_TOKEN_STORAGE_KEY = "fcm_token_stored";
 
-export const Notification = () => {
-  const { token, notification, isSupported, refreshToken } = useFCM();
+export const Notification = ({ body, mode }: { body: any; mode: FcmMode }) => {
   const [showNotification, setShowNotification] = useState(false);
+  const { fcmToken, fcmNotification, fcmIsSupported, fcmRefreshToken } =
+    useAppContext();
 
   useEffect(() => {
-    if (notification) {
+    if (fcmNotification) {
       setShowNotification(true);
       const timer = setTimeout(() => {
         setShowNotification(false);
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [notification]);
+  }, [fcmNotification]);
 
   useEffect(() => {
-    if (!isSupported || !token) return;
+    if (!fcmIsSupported) return;
 
     const storedToken = localStorage.getItem(FCM_TOKEN_STORAGE_KEY);
 
-    // Hanya kirim jika token berbeda atau belum pernah disimpan
-    if (storedToken !== token) {
-      const body = {
-        fcm_token: token,
-        platform: "web",
-      };
+    // token belum ada, stop
+    if (!fcmToken) return;
 
-      PushFCMToken(body)
-        .then(() => {
-          localStorage.setItem(FCM_TOKEN_STORAGE_KEY, token);
-        })
-        .catch((error) => {
-          console.error("❌ Gagal mengirim FCM token:", error);
-        });
-    }
-  }, [token, isSupported]);
+    // hanya kirim kalau beda
+    if (storedToken === fcmToken) return;
 
-  if (!isSupported) {
+    const req = mode === "store" ? StoreFCMToken(body) : PushFCMToken(body);
+
+    req
+      .then(() => localStorage.setItem(FCM_TOKEN_STORAGE_KEY, fcmToken))
+      .catch((error) => console.error("❌ Gagal kirim FCM token:", error));
+  }, [fcmToken, fcmIsSupported, mode, body]);
+
+  if (!fcmIsSupported) {
     return null;
   }
 
@@ -52,41 +55,35 @@ export const Notification = () => {
         </div>
       )} */}
 
-      {showNotification && notification && (
+      {showNotification && fcmNotification && (
         <div className="fixed top-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 animate-fade-in">
           <div className="flex items-start">
             <div className="shrink-0">
-              <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🔔</span>
+              <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center border border-gray-200">
+                <Image
+                  src={logoIra}
+                  alt="IRA Logo"
+                  width={24}
+                  height={24}
+                  className="object-contain"
+                />
               </div>
             </div>
             <div className="ml-3 flex-1">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-gray-900">
-                    {notification.notification?.title ?? "-"}
+                    {fcmNotification?.notification?.title ?? "-"}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    {notification.notification?.body ?? "-"}
+                    {fcmNotification?.notification?.body ?? "-"}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowNotification(false)}
                   className="text-gray-400 hover:text-gray-500"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <HiOutlineX className="w-5 h-5" />
                 </button>
               </div>
             </div>

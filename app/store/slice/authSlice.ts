@@ -28,7 +28,7 @@ const authSlice = createSlice({
       state,
       action: PayloadAction<{
         token: string;
-      }>
+      }>,
     ) {
       state.isLoggedIn = true;
       state.token = action.payload.token;
@@ -47,6 +47,7 @@ const authSlice = createSlice({
       state.token = null;
       state.userInfo = null;
       deleteCookie("token-ira");
+      localStorage.removeItem("fcm_token_stored");
       sessionStorage.clear();
     },
   },
