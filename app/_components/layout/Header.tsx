@@ -35,6 +35,7 @@ function Header() {
   const router = useRouter();
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [loadingLogout, setLoadingLogout] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isActive, setIsActive] = useState(true);
   const [customerData, setCustomerData] = useState<ProfileInfo>();
@@ -150,14 +151,16 @@ function Header() {
 
   const handleLogout = async () => {
     try {
+      setLoadingLogout(true);
       if (fcmToken) await DeleteFCMToken({ fcm_token: fcmToken });
     } catch (e) {
       console.error("Gagal delete fcm token, lanjut logout:", e);
     } finally {
       dispatch(logout());
       setIsLoggedIn(false);
-      router.push("/auth/login");
-      // window.location.href = "/auth/login";
+      setLoadingLogout(false);
+      // router.push("/auth/login");
+      window.location.href = "/auth/login";
       toast.success("Logout Berhasil!");
     }
   };
@@ -256,7 +259,8 @@ function Header() {
 
               <button
                 onClick={handleLogout}
-                className="flex cursor-pointer w-full items-center gap-3 px-4 py-3 text-primary hover:bg-red-50 transition"
+                disabled={loadingLogout}
+                className="flex disabled:cursor-not-allowed cursor-pointer w-full items-center gap-3 px-4 py-3 text-primary hover:bg-red-50 transition"
               >
                 <FaSignOutAlt />
                 <span>Logout</span>
@@ -410,11 +414,12 @@ function Header() {
                       handleLogout();
                       setIsOpenMenu(false);
                     }}
+                    disabled={loadingLogout}
                     className={`flex ${
                       pathname === "/"
                         ? "bg-white text-primary"
                         : "bg-primary text-white"
-                    } font-bold items-center gap-2 text-center justify-center rounded-full px-5 py-2.5`}
+                    } font-bold items-center gap-2 disabled:cursor-not-allowed text-center justify-center rounded-full px-5 py-2.5`}
                   >
                     <FaSignOutAlt /> Logout
                   </button>
