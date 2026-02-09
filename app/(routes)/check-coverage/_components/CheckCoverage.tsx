@@ -183,9 +183,9 @@ function CheckCoverage() {
 
   return (
     <div className="sm:bg-[url(/assets/check-coverage/background-check-coverage.png)] bg-[url(/assets/check-coverage/background-coverage-mobile.png)] bg-cover bg-no-repeat py-52 px-[5%] min-[1261px]:px-[10%]">
-      <div className="bg-white/20 backdrop-blur-[2px] border border-white rounded-3xl py-20  p-6 max-w-6xl mx-auto">
+      <div className="bg-white/20 backdrop-blur-[2px] border border-white rounded-3xl py-20 p-6 max-w-6xl mx-auto">
         <div className="w-full flex justify-center">
-          <h1 className="text-center text-white text-3xl/[120%] sm:text-4xl/[120%] md:text-5xl/[120%] xl:text-[52px]/[120%] font-bold w-full lg:w-3/5">
+          <h1 className="text-center text-white text-3xl/[120%] sm:text-4xl/[120%] md:text-5xl/[120%] xl:text-[52px]/[120%] font-bold w-full lg:w-4/5">
             Apakah area Anda berada dalam jangkauan Internet Rakyat (IRA)?
           </h1>
         </div>
@@ -193,7 +193,7 @@ function CheckCoverage() {
           Yuk, cek alamat Anda di sini!
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-5 items-center mt-7 xl:w-3/5 lg:w-4/5 w-full mx-auto">
+        <div className="flex flex-col md:flex-row gap-5 items-center mt-7 lg:w-4/5 w-full mx-auto">
           {/* Input + Search + Clear */}
           <div className="w-full sm:w-4/5 md:w-3/5 relative">
             <div className="relative flex items-center gap-2">

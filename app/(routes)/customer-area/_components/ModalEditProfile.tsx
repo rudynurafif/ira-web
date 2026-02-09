@@ -561,7 +561,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer border-2 border-primary w-full rounded-lg bg-white hover:bg-red-50 p-2 text-lg font-semibold text-primary disabled:cursor-not-allowed! disabled:opacity-60"
+              className="cursor-pointer border-2 border-primary w-full rounded-lg bg-white hover:bg-red-50 p-2 sm:text-lg font-semibold text-primary disabled:cursor-not-allowed! disabled:opacity-60"
             >
               Batal
             </button>
@@ -572,7 +572,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 (needsOtp && otpStatus !== "valid") ||
                 Object.values(errors).some((v) => v && v.trim() !== "")
               }
-              className="cursor-pointer w-full rounded-lg bg-primary p-2 text-lg font-semibold text-white hover:bg-dark-primary-2 disabled:cursor-not-allowed! disabled:bg-slate-400"
+              className="cursor-pointer w-full rounded-lg bg-primary p-2 sm:text-lg font-semibold text-white hover:bg-dark-primary-2 disabled:cursor-not-allowed! disabled:bg-slate-400"
             >
               {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
