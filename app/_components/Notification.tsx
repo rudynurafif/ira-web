@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useFCM } from "../hooks/useFCM";
-import { PushFCMToken, StoreFCMToken } from "../_api/Notification/Notification";
-import { getCookie } from "cookies-next";
+import {
+  UpdateFCMToken,
+  StoreFCMToken,
+} from "../_api/Notification/Notification";
 import logoIra from "@/public/assets/Icons/Logo-Ira-Red.svg";
 import Image from "next/image";
 import { useAppContext } from "../_shared/context/AppContext";
@@ -27,20 +28,23 @@ export const Notification = ({ body, mode }: { body: any; mode: FcmMode }) => {
 
   useEffect(() => {
     if (!fcmIsSupported) return;
+    if (!fcmToken) return;
 
     const storedToken = localStorage.getItem(FCM_TOKEN_STORAGE_KEY);
 
-    // token belum ada, stop
-    if (!fcmToken) return;
+    let req: Promise<any> | null = null;
 
-    // hanya kirim kalau beda
-    if (storedToken === fcmToken) return;
+    if (mode === "update") {
+      req = UpdateFCMToken(body);
+    } else if (mode === "store" && storedToken !== fcmToken) {
+      req = StoreFCMToken(body);
+    }
 
-    const req = mode === "store" ? StoreFCMToken(body) : PushFCMToken(body);
-
-    req
-      .then(() => localStorage.setItem(FCM_TOKEN_STORAGE_KEY, fcmToken))
-      .catch((error) => console.error("❌ Gagal kirim FCM token:", error));
+    if (req) {
+      req
+        .then(() => localStorage.setItem(FCM_TOKEN_STORAGE_KEY, fcmToken))
+        .catch((error) => console.error("❌ Gagal kirim FCM token:", error));
+    }
   }, [fcmToken, fcmIsSupported, mode, body]);
 
   if (!fcmIsSupported) {

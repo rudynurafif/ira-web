@@ -13,7 +13,7 @@ export const StoreFCMToken = async (payload: object) => {
   }
 };
 
-export const PushFCMToken = async (payload: object) => {
+export const UpdateFCMToken = async (payload: object) => {
   try {
     const data = await FwaAxios({
       url: "/app/auth/update-fcm-token",

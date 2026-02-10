@@ -32,7 +32,6 @@ import DrawerComponent from "@/app/_components/DrawerComponent";
 import NotifikasiDrawerContent from "@/app/_components/NotifikasiDrawerContent";
 import { countAllNotif } from "@/app/_api/Notification/Notification";
 import { Notification } from "@/app/_components/Notification";
-import { useFCM } from "@/app/hooks/useFCM";
 import { useAppContext } from "@/app/_shared/context/AppContext";
 
 export default function AreaPelanggan() {
@@ -62,7 +61,13 @@ export default function AreaPelanggan() {
   const dispatch = useAppDispatch();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
-  const { fcmToken } = useAppContext();
+  const {
+    fcmToken,
+    fcmIsSupported,
+    fcmCheckNotificationPermission,
+    fcmRequestPermissionIfNeeded,
+    fcmShowPermissionGuide,
+  } = useAppContext();
 
   const bodyToken = useMemo(
     () => ({
@@ -287,7 +292,19 @@ export default function AreaPelanggan() {
               <div className="relative">
                 {/* Tombol buka drawer */}
                 <button
-                  onClick={() => setDrawerOpen(true)}
+                  onClick={async () => {
+                    if (fcmIsSupported) {
+                      const permission = await fcmCheckNotificationPermission();
+
+                      if (permission === "default") {
+                        await fcmRequestPermissionIfNeeded();
+                      } else if (permission === "denied") {
+                        fcmShowPermissionGuide();
+                      }
+                    }
+                    // Selalu buka drawer
+                    setDrawerOpen(true);
+                  }}
                   className="text-primary font-medium hover:underline"
                   aria-label="Buka menu notifikasi"
                 >
@@ -332,7 +349,7 @@ export default function AreaPelanggan() {
                   zIndex: 1301,
                 }}
               >
-                <NotifikasiDrawerContent />
+                <NotifikasiDrawerContent onClose={() => setDrawerOpen(false)} />
               </DrawerComponent>
             </div>
           </div>
