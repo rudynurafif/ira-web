@@ -2,24 +2,74 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactPaginate from "react-paginate";
 
 import bellIcon from "@/public/assets/Icons/bell.png";
 import docsIcon from "@/public/assets/Icons/docs.png";
+import emptyNotif from "@/public/assets/Images/emptyNotif.png";
 import { IoIosArrowBack } from "react-icons/io";
 
 import {
+  countAllNotif,
   getAllNotif,
   readAllNotif,
   readNotifById,
   safeParseNotifPayload,
 } from "../_api/Notification/Notification";
 import type { NotificationItem } from "../_shared/types/Notification";
-import Loader from "./Loader";
-import { toastErrorFromAPI } from "../_shared/utils";
+import { debounce, toastErrorFromAPI } from "../_shared/utils";
+import toast from "react-hot-toast";
 
-export default function NotifikasiDrawerContent() {
+// Tambahkan di bagian atas file (setelah import)
+const ShimmerNotification = () => (
+  <div className="rounded-xl p-4 mb-4 border border-gray-200 animate-pulse">
+    <div className="flex items-center gap-3">
+      {/* Icon placeholder */}
+      <div className="w-8 h-8 rounded-full bg-gray-200" />
+
+      {/* Content placeholder */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-2">
+          {/* Badge "Baru" placeholder (opsional) */}
+          <div className="w-12 h-5 bg-gray-200 rounded-full" />
+
+          {/* Title placeholder */}
+          <div className="h-4 bg-gray-200 rounded w-3/4 flex-1" />
+        </div>
+
+        {/* Date placeholder */}
+        <div className="h-3 bg-gray-200 rounded w-1/3 mb-3" />
+
+        {/* Body placeholder */}
+        <div className="space-y-2">
+          <div className="h-3 bg-gray-200 rounded w-full" />
+          <div className="h-3 bg-gray-200 rounded w-5/6" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const ShimmerTab = () => (
+  <div className="flex mt-3 justify-between items-center pt-3 space-x-6 overflow-x-auto scrollbar-hide">
+    {[1, 2, 3].map((i) => (
+      <div
+        key={i}
+        className="sm:min-w-30 flex items-center justify-center gap-2 whitespace-nowrap relative"
+      >
+        <div className="h-4 bg-gray-200 rounded w-16" />
+        <div className="bg-gray-200 text-white text-xs rounded-full h-5 w-5" />
+      </div>
+    ))}
+  </div>
+);
+
+export default function NotifikasiDrawerContent({
+  onClose,
+}: {
+  onClose?: () => void;
+}) {
   const [activeTab, setActiveTab] = useState<
     "semua" | "notifikasi" | "informasi"
   >("semua");
@@ -34,6 +84,13 @@ export default function NotifikasiDrawerContent() {
   } | null>(null);
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [counts, setCounts] = useState({
+    semua: 0,
+    notifikasi: 0,
+    informasi: 0,
+  });
+  const [countsLoading, setCountsLoading] = useState(true);
+  const hasFetchedCounts = useRef(false);
 
   // Pagination state
   const [page, setPage] = useState<number>(1); // 1-based for API
@@ -62,12 +119,16 @@ export default function NotifikasiDrawerContent() {
     );
   };
 
-  const getCategory = (type: string): "notifikasi" | "informasi" => {
-    return type === "REMINDER" ? "notifikasi" : "informasi";
+  const getCategoryFromItem = (
+    item: NotificationItem,
+  ): "notifikasi" | "informasi" => {
+    // Gunakan category dari API, bukan dari type
+    return item.category === "notification" ? "notifikasi" : "informasi";
   };
 
-  const getIconType = (type: string): "bell" | "document" => {
-    return type === "REMINDER" ? "bell" : "document";
+  const getIconTypeFromItem = (item: NotificationItem): "bell" | "document" => {
+    // Gunakan category dari API
+    return item.category === "notification" ? "bell" : "document";
   };
 
   const getIcon = (iconType: string) => {
@@ -88,14 +149,62 @@ export default function NotifikasiDrawerContent() {
     return null;
   };
 
-  const fetchNotifications = async (nextPage = 1, isInitial = false) => {
+  const fetchAllCounts = async (force = false) => {
+    // Jangan fetch jika sudah ada data dan tidak dipaksa
+    if (
+      counts.semua !== 0 ||
+      counts.notifikasi !== 0 ||
+      counts.informasi !== 0
+    ) {
+      if (!force) return;
+    }
+
     try {
-      if (isInitial) setLoading(true);
-      else setLoadingPage(true);
+      setCountsLoading(true);
+      const [semuaRes, notifRes, infoRes] = await Promise.all([
+        countAllNotif(),
+        countAllNotif("notification"),
+        countAllNotif("information"),
+      ]);
 
-      const res = await getAllNotif({ page: nextPage, pageSize });
+      setCounts({
+        semua: semuaRes.data?.count || 0,
+        notifikasi: notifRes.data?.count || 0,
+        informasi: infoRes.data?.count || 0,
+      });
+    } catch (error) {
+      console.error("Gagal memuat counts notifikasi:", error);
+    } finally {
+      setCountsLoading(false);
+    }
+  };
 
-      // ✅ total untuk pagination sumbernya dari GET list
+  const fetchNotifications = async (
+    nextPage = 1,
+    category?: string,
+    isRead?: boolean,
+  ) => {
+    try {
+      const params: any = {
+        page: nextPage,
+        pageSize,
+      };
+
+      // Tambahkan query params sesuai kebutuhan
+      if (category === "notifikasi") {
+        params.category = "notification";
+      } else if (category === "informasi") {
+        params.category = "information";
+      }
+
+      if (isRead !== undefined) {
+        params.is_read = isRead;
+      }
+
+      setLoading(true);
+
+      const res = await getAllNotif(params);
+
       const total = Number(res?.data?.total ?? 0);
       setTotalItems(Number.isFinite(total) ? total : 0);
 
@@ -113,49 +222,64 @@ export default function NotifikasiDrawerContent() {
     } catch (error) {
       console.error("Gagal memuat notifikasi:", error);
     } finally {
-      if (isInitial) setLoading(false);
-      else setLoadingPage(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchNotifications(1, true);
+    const fetchData = async () => {
+      // Fetch notifikasi sesuai tab aktif
+      await fetchNotifications(1, activeTab, undefined);
+
+      // Fetch counts hanya sekali saat mount (bukan setiap ganti tab)
+      if (!hasFetchedCounts.current) {
+        await fetchAllCounts();
+        hasFetchedCounts.current = true;
+      }
+    };
+
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeTab]);
 
-  // Filter list sesuai tab (filter hanya data page aktif)
-  const filteredItems =
-    activeTab === "semua"
-      ? notifications
-      : notifications.filter((item) => getCategory(item.type) === activeTab);
+  const handleTabChange = (tab: "semua" | "notifikasi" | "informasi") => {
+    setActiveTab(tab);
+    fetchNotifications(1, tab, undefined);
+  };
 
-  // Badge counts (hitung dari data yang ke-load di page aktif)
-  const notifCount = notifications.filter(
-    (i) => getCategory(i.type) === "notifikasi" && !i.is_read,
-  ).length;
-  const infoCount = notifications.filter(
-    (i) => getCategory(i.type) === "informasi" && !i.is_read,
-  ).length;
-  const semuaCount = notifications.filter((i) => !i.is_read).length;
+  const displayItems = notifications;
 
   const handleReadAll = async () => {
-    try {
-      await readAllNotif();
+    const confirmed = window.confirm(
+      "Apakah Anda yakin ingin menandai semua notifikasi sebagai sudah dibaca?",
+    );
 
-      // optional optimistic
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const resReadAll = await readAllNotif();
+      toast.success(
+        resReadAll.data?.messages ||
+          "Berhasil menandai semua notifikasi sebagai sudah dibaca.",
+      );
+
+      // Optimistic update
+      setCounts({ semua: 0, notifikasi: 0, informasi: 0 });
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
 
-      // ✅ refetch halaman aktif biar sinkron (pagination tetap ada karena total dari list)
-      await fetchNotifications(page);
+      await fetchNotifications(page, activeTab, undefined);
     } catch (error) {
       console.error("Gagal baca semua notifikasi:", error);
+      fetchAllCounts(true);
     }
   };
 
   const handleOpenDetail = async (item: NotificationItem) => {
     const safeItem = safeParseNotifPayload(item as any) as any;
     const payload = safeItem.payload?.[0] ?? {};
-    const iconType = getIconType(item.type);
+    const iconType = getIconTypeFromItem(safeItem);
     const isBaru = !item.is_read;
 
     setSelectedItem({
@@ -179,19 +303,23 @@ export default function NotifikasiDrawerContent() {
     }
   };
 
-  // react-paginate uses 0-based selected index
-  const handlePageChange = async (selectedItem: { selected: number }) => {
-    const nextPage = selectedItem.selected + 1; // convert to 1-based
-    if (nextPage === page) return;
-    try {
-      setLoading(true);
-      await fetchNotifications(nextPage);
-    } catch (err: any) {
-      toastErrorFromAPI(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handlePageChange = useCallback(
+    debounce(async (selectedItem: { selected: number }) => {
+      const nextPage = selectedItem.selected + 1;
+      if (nextPage === page) return;
+
+      try {
+        setLoading(true);
+        await fetchNotifications(nextPage, activeTab, undefined);
+      } catch (err: any) {
+        toastErrorFromAPI(err);
+      } finally {
+        setLoading(false);
+      }
+    }, 300),
+    [page, activeTab],
+  );
 
   // --- DETAIL VIEW ---
   if (selectedItem) {
@@ -199,7 +327,13 @@ export default function NotifikasiDrawerContent() {
       <div className="h-full flex flex-col">
         <div className="p-4 border-b border-gray-border">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSelectedItem(null)} className="">
+            <button
+              onClick={() => {
+                setSelectedItem(null);
+                fetchAllCounts(true);
+              }}
+              className=""
+            >
               <IoIosArrowBack size={20} />
             </button>
             <h2 className="text-xl font-bold ">Detail Notifikasi</h2>
@@ -210,10 +344,12 @@ export default function NotifikasiDrawerContent() {
           <div className="flex gap-3 mb-4">
             <div className="shrink-0 mt-1">{getIcon(selectedItem.icon)}</div>
             <div>
-              <span className="font-bold text-base sm:text-lg block">
+              <span className="flex gap-2 items-center font-bold text-base sm:text-lg">
                 {selectedItem.title}
               </span>
-              <span className="text-[10px] sm:text-xs text-gray-500">{selectedItem.date}</span>
+              <span className="text-[10px] sm:text-xs text-gray-500">
+                {selectedItem.date}
+              </span>
             </div>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-border">
@@ -229,59 +365,88 @@ export default function NotifikasiDrawerContent() {
   // --- LIST VIEW ---
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-border">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Notifikasi dan Informasi</h2>
+      <div className="px-4 sm:px-6 pt-4 sm:pt-6 border-b border-gray-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <div onClick={onClose} className="cursor-pointer">
+              <IoIosArrowBack size={20} />
+            </div>
+            <h2 className="text-xl font-bold">Notifikasi dan Informasi</h2>
+          </div>
           <button
             onClick={handleReadAll}
-            className="text-primary underline text-sm font-medium ml-auto mt-2 sm:mt-0 sm:ml-0"
+            className="text-primary hover:underline font-bold  ml-auto mt-2 sm:mt-0 sm:ml-0"
           >
             Baca Semua
           </button>
         </div>
 
-        <div className="flex pt-3 space-x-6 overflow-x-auto pb-2 scrollbar-hide">
-          {[
-            { key: "semua", label: "Semua", count: semuaCount },
-            { key: "notifikasi", label: "Notifikasi", count: notifCount },
-            { key: "informasi", label: "Informasi", count: infoCount },
-          ].map(({ key, label, count }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key as any)}
-              className={`pb-2 flex gap-1 whitespace-nowrap text-sm font-medium relative ${
-                activeTab === key
-                  ? "text-black border-b-2 border-primary"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {label}
-              {count > 0 && (
-                <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {count}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        {countsLoading ? (
+          <div className="my-1">
+            <ShimmerTab />
+          </div>
+        ) : (
+          <div className="flex mt-3 justify-between items-center pt-3 space-x-6 overflow-x-auto scrollbar-hide">
+            {[
+              { key: "semua", label: "Semua", count: counts.semua },
+              {
+                key: "notifikasi",
+                label: "Notifikasi",
+                count: counts.notifikasi,
+              },
+              { key: "informasi", label: "Informasi", count: counts.informasi },
+            ].map(({ key, label, count }) => (
+              <button
+                key={key}
+                onClick={() =>
+                  handleTabChange(key as "semua" | "notifikasi" | "informasi")
+                }
+                className={`pb-1 sm:min-w-30 flex items-center justify-center gap-2 whitespace-nowrap relative ${
+                  activeTab === key
+                    ? "text-black font-bold border-b-3 border-primary"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {label}
+                {count > 0 && (
+                  <span className="bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {count > 99 ? "99+" : count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 notif-scroll">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 notif-scroll">
         {loading ? (
-          <div className="text-center text-gray-500 py-8">
-            <Loader />
+          <div className="text-center text-gray-500">
+            <>
+              <ShimmerNotification />
+              <ShimmerNotification />
+              <ShimmerNotification />
+              <ShimmerNotification />
+              <ShimmerNotification />
+            </>
           </div>
-        ) : filteredItems.length === 0 ? (
+        ) : displayItems.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
-            Tidak ada notifikasi
+            <Image
+              src={emptyNotif}
+              alt="Empty Notification"
+              className="mx-auto max-w-50 sm:max-w-75 mb-6"
+            />
+            <p className="text-xl">Tidak ada notifikasi</p>
           </div>
         ) : (
           <>
-            {filteredItems.map((item) => {
-              const safeItem = safeParseNotifPayload(item as any) as any;
+            {displayItems.map((item) => {
+              const safeItem = safeParseNotifPayload(item);
               const payload = safeItem.payload?.[0] ?? {};
-              const iconType = getIconType(item.type);
+              const iconType = getIconTypeFromItem(safeItem); // <-- gunakan safeItem
               const isBaru = !item.is_read;
+              const category = getCategoryFromItem(safeItem);
 
               return (
                 <div
@@ -342,12 +507,12 @@ export default function NotifikasiDrawerContent() {
                     renderOnZeroPageCount={null}
                     containerClassName="flex items-center gap-2"
                     pageClassName=""
-                    pageLinkClassName="px-2 py-1 text-sm font-medium rounded text-gray-700 hover:bg-gray-100"
+                    pageLinkClassName="px-2 py-1 cursor-pointer text-sm font-medium rounded text-gray-700 hover:bg-gray-100"
                     activeLinkClassName="bg-primary text-white hover:bg-primary"
-                    previousLinkClassName="px-2 py-1 text-sm font-medium disabled:opacity-50"
-                    nextLinkClassName="px-2 py-1 text-sm font-medium disabled:opacity-50"
+                    previousLinkClassName="px-2 py-1 cursor-pointer text-sm font-medium disabled:opacity-50"
+                    nextLinkClassName="px-2 py-1 cursor-pointer text-sm font-medium disabled:opacity-50"
                     breakLinkClassName="px-2 py-1 text-sm text-gray-400"
-                    disabledLinkClassName="opacity-50 pointer-events-none"
+                    disabledLinkClassName="opacity-50 cursor-not-allowed!"
                   />
                 </div>
               </div>

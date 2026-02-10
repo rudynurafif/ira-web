@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
@@ -24,6 +24,9 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import GeoPermissionGate from "../register/_components/GeoPermissionGate";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
+import Loader from "@/app/_components/Loader";
+import { Notification } from "@/app/_components/Notification";
+import { useAppContext } from "@/app/_shared/context/AppContext";
 
 /**
  * STEP FLOW
@@ -45,6 +48,7 @@ const Page = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmError, setConfirmError] = useState<string>("");
   const { status, requestLocation, refresh } = useGeoPermission();
+  const { fcmToken } = useAppContext();
 
   const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
 
@@ -61,6 +65,14 @@ const Page = () => {
   } | null>(null);
 
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  const bodyToken = useMemo(
+    () => ({
+      fcm_token: fcmToken,
+      platform: "web",
+    }),
+    [fcmToken],
+  );
 
   useEffect(() => {
     const regPhone = localStorage.getItem("registration_phone");
@@ -326,138 +338,148 @@ const Page = () => {
   return (
     <div className="flex w-full justify-center px-6 my-10">
       <div className="w-full max-w-xl">
-        {step !== "CHECK_PHONE" && (
-          <div className="">
-            <button
-              onClick={() => {
-                setStep("CHECK_PHONE");
-                setPasswordValue("");
-                setConfirmPassword("");
-              }}
-              className=" py-2 mb-5 flex items-center gap-2 rounded-lg text-xl cursor-pointer hover:underline"
-            >
-              <IoMdArrowRoundBack /> Kembali
-            </button>
-          </div>
-        )}
+        <Notification mode="store" body={bodyToken} />
 
-        <h1 className="mb-8 text-center text-old-primary font-extrabold text-2xl sm:text-[32px]">
-          {step === "SET_PASSWORD" ? "Buat Password Baru" : "Login IRA"}
-        </h1>
+        {location === null ? (
+          <Loader />
+        ) : (
+          <>
+            {step !== "CHECK_PHONE" && (
+              <div className="">
+                <button
+                  onClick={() => {
+                    setStep("CHECK_PHONE");
+                    setPasswordValue("");
+                    setConfirmPassword("");
+                  }}
+                  className=" py-2 mb-5 flex items-center gap-2 rounded-lg text-xl cursor-pointer hover:underline"
+                >
+                  <IoMdArrowRoundBack /> Kembali
+                </button>
+              </div>
+            )}
 
-        {step === "SET_PASSWORD" && (
-          <div className="my-6 text-center">
-            Demi keamanan akun Anda, silakan buat password baru sebelum
-            melanjutkan menggunakan layanan Internet Rakyat.
-          </div>
-        )}
+            <h1 className="mb-8 text-center text-old-primary font-extrabold text-2xl sm:text-[32px]">
+              {step === "SET_PASSWORD" ? "Buat Password Baru" : "Login IRA"}
+            </h1>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <PhoneNumberForm
-            label="Nomor Handphone"
-            name="phone"
-            isImportant
-            value={phone}
-            disabled={step !== "CHECK_PHONE" || !location}
-            onChange={(val) => {
-              setPhone(val);
-              setErrors({});
-            }}
-            error={errors.phone}
-          />
+            {step === "SET_PASSWORD" && (
+              <div className="my-6 text-center">
+                Demi keamanan akun Anda, silakan buat password baru sebelum
+                melanjutkan menggunakan layanan Internet Rakyat.
+              </div>
+            )}
 
-          {step !== "CHECK_PHONE" && (
-            <div>
-              <DynamicPasswordForm
-                label={step === "SET_PASSWORD" ? "Password Baru" : "Password"}
-                name="password"
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+              <PhoneNumberForm
+                label="Nomor Handphone"
+                name="phone"
                 isImportant
-                value={password}
+                value={phone}
+                disabled={step !== "CHECK_PHONE"}
                 onChange={(val) => {
-                  setPasswordValue(val);
+                  setPhone(val);
                   setErrors({});
                 }}
+                error={errors.phone}
               />
-              {step === "SET_PASSWORD" && (
-                <p className="text-xs text-gray-spectrum py-1 px-2 mt-2 bg-[#FEFAEE] rounded-lg">
-                  Password minimal{" "}
-                  <span className="font-bold text-primary">6 karakter</span> dan
-                  mudah Anda ingat.
-                </p>
+
+              {step !== "CHECK_PHONE" && (
+                <div>
+                  <DynamicPasswordForm
+                    label={
+                      step === "SET_PASSWORD" ? "Password Baru" : "Password"
+                    }
+                    name="password"
+                    isImportant
+                    value={password}
+                    onChange={(val) => {
+                      setPasswordValue(val);
+                      setErrors({});
+                    }}
+                  />
+                  {step === "SET_PASSWORD" && (
+                    <p className="text-xs text-gray-spectrum py-1 px-2 mt-2 bg-[#FEFAEE] rounded-lg">
+                      Password minimal{" "}
+                      <span className="font-bold text-primary">6 karakter</span>{" "}
+                      dan mudah Anda ingat.
+                    </p>
+                  )}
+                </div>
               )}
-            </div>
-          )}
 
-          {step === "SET_PASSWORD" && (
-            <DynamicPasswordForm
-              label="Konfirmasi Password Baru"
-              name="confirm_password"
-              isImportant
-              value={confirmPassword}
-              onChange={(val) => {
-                setConfirmPassword(val);
-                setErrors((prev) => ({ ...prev, password: "" }));
-              }}
-              error={confirmError}
-            />
-          )}
+              {step === "SET_PASSWORD" && (
+                <DynamicPasswordForm
+                  label="Konfirmasi Password Baru"
+                  name="confirm_password"
+                  isImportant
+                  value={confirmPassword}
+                  onChange={(val) => {
+                    setConfirmPassword(val);
+                    setErrors((prev) => ({ ...prev, password: "" }));
+                  }}
+                  error={confirmError}
+                />
+              )}
 
-          {locationError && (
-            <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-600">
-              <b>Akses lokasi diperlukan untuk login.</b>
-              <div>
-                {locationError}, refresh halaman jika sudah mengizinkan akses
-                lokasi browser
-              </div>
+              {locationError && (
+                <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  <b>Akses lokasi diperlukan untuk login.</b>
+                  <div>
+                    {locationError}, refresh halaman jika sudah mengizinkan
+                    akses lokasi browser
+                  </div>
+                  <button
+                    className="bg-primary hover:bg-dark-primary-2 py-2 px-4 rounded-xl text-white mt-2"
+                    onClick={() => window.location.reload()}
+                  >
+                    Refresh
+                  </button>
+                </div>
+              )}
+
               <button
-                className="bg-primary hover:bg-dark-primary-2 py-2 px-4 rounded-xl text-white mt-2"
-                onClick={() => window.location.reload()}
-              >
-                Refresh
-              </button>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading || !isFormValid}
-            className={`py-3 flex items-center justify-center gap-2 font-bold text-white text-xl rounded-xl
+                type="submit"
+                disabled={isLoading || !isFormValid}
+                className={`py-3 flex items-center justify-center gap-2 font-bold text-white text-xl rounded-xl
             ${
               isLoading || !isFormValid
                 ? "bg-slate-400 cursor-not-allowed!"
                 : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             }`}
-          >
-            {isLoading && <div className="loading w-5 h-5"></div>}
-            {isLoading
-              ? "Loading..."
-              : step === "SET_PASSWORD"
-                ? "Submit"
-                : step === "LOGIN"
-                  ? "LOGIN"
-                  : "Lanjutkan"}
-          </button>
-        </form>
+              >
+                {isLoading && <div className="loading w-5 h-5"></div>}
+                {isLoading
+                  ? "Loading..."
+                  : step === "SET_PASSWORD"
+                    ? "Submit"
+                    : step === "LOGIN"
+                      ? "LOGIN"
+                      : "Lanjutkan"}
+              </button>
+            </form>
 
-        {step === "LOGIN" && (
-          <button
-            type="button"
-            onClick={handleForgotPassword}
-            className="text-sm text-primary mt-3 cursor-pointer underline-animation-register text-right"
-          >
-            Lupa password?
-          </button>
+            {step === "LOGIN" && (
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-sm text-primary mt-3 cursor-pointer underline-animation-register text-right"
+              >
+                Lupa password?
+              </button>
+            )}
+
+            <div className="mt-6 text-center text-sm text-primary-text">
+              Belum punya akun?{" "}
+              <Link
+                href="/auth/register"
+                className="font-bold text-primary underline-animation-register"
+              >
+                Daftar disini
+              </Link>
+            </div>
+          </>
         )}
-
-        <div className="mt-6 text-center text-sm text-primary-text">
-          Belum punya akun?{" "}
-          <Link
-            href="/auth/register"
-            className="font-bold text-primary underline-animation-register"
-          >
-            Daftar disini
-          </Link>
-        </div>
       </div>
 
       {isOpenModalReqLoc && status === "denied" && (

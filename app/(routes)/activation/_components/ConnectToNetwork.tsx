@@ -524,7 +524,7 @@ export default function ConnectToNetwork() {
       toast.loading("Mengirim permintaan aktivasi...", { id: "activate" });
 
       // 🔥 Panggil API aktivasi seperti di InputManualForm
-      const res = await Activation({ serial_number: serialNumber });
+      const res = await Activation({ sn: serialNumber });
 
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
         toast.loading(
@@ -756,9 +756,13 @@ export default function ConnectToNetwork() {
           <div className="text-old-primary font-bold">
             Proses Aktivasi <Badge color="green">Berhasil</Badge>
           </div>
-          <p className="max-w-170 mx-auto mt-2">
+          {/* <p className="max-w-170 mx-auto mt-2">
             Perangkat sudah terhubung ke jaringan inti dan konektivitas internet
             sudah terverifikasi. Kamu bisa lanjut ke pengaturan WiFi.
+          </p> */}
+          <p className="max-w-170 mx-auto mt-2">
+            Perangkat Anda telah berhasil diaktifkan dan terhubung ke jaringan
+            inti. Internet sekarang sudah siap digunakan.
           </p>
         </div>
 

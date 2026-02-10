@@ -16,8 +16,9 @@ import { downloadInvoice } from "@/app/_api/Customer/CustomerArea";
 const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   const [isToastCooldown, setIsToastCooldown] = useState<boolean>(false);
 
-  const handleDownloadInvoice = async () => {
+const handleDownloadInvoice = async () => {
     if (isToastCooldown) return;
+    if (data?.billing_id[0]?.status !== "PAID") return;
 
     try {
       setIsToastCooldown(true);

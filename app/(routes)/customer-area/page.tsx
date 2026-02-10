@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CustomerHeader from "./_components/CustomerHeader";
 import PackageAndHistory from "./_components/PackageAndHistory";
 import PersonalData from "./_components/PersonalData";
@@ -32,6 +32,7 @@ import DrawerComponent from "@/app/_components/DrawerComponent";
 import NotifikasiDrawerContent from "@/app/_components/NotifikasiDrawerContent";
 import { countAllNotif } from "@/app/_api/Notification/Notification";
 import { Notification } from "@/app/_components/Notification";
+import { useAppContext } from "@/app/_shared/context/AppContext";
 
 export default function AreaPelanggan() {
   const [isLoading, setIsLoading] = useState(true);
@@ -60,6 +61,21 @@ export default function AreaPelanggan() {
   const dispatch = useAppDispatch();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const {
+    fcmToken,
+    fcmIsSupported,
+    fcmCheckNotificationPermission,
+    fcmRequestPermissionIfNeeded,
+    fcmShowPermissionGuide,
+  } = useAppContext();
+
+  const bodyToken = useMemo(
+    () => ({
+      fcm_token: fcmToken,
+      // platform: "web",
+    }),
+    [fcmToken],
+  );
 
   const isCancelled = userInfo?.status === "canceled-instalation";
   // TODO: Untuk case ganti CPE dll (Reaktivasi)
@@ -227,13 +243,12 @@ export default function AreaPelanggan() {
 
   return (
     <div className="min-h-screen bg-background-customer pb-10">
-      <Notification />
+      <Notification mode="update" body={bodyToken} />
 
       {/* Banner Background */}
       <CustomerHeader />
 
       <div className="max-w-332.25 mx-auto">
-        {/* Customer Info */}
         {/* Customer Info + Drawer Container */}
         <div className="relative z-10 px-8 -mt-28">
           <div className="flex flex-col md:flex-row gap-6 md:items-end justify-between">
@@ -277,7 +292,19 @@ export default function AreaPelanggan() {
               <div className="relative">
                 {/* Tombol buka drawer */}
                 <button
-                  onClick={() => setDrawerOpen(true)}
+                  onClick={async () => {
+                    if (fcmIsSupported) {
+                      const permission = await fcmCheckNotificationPermission();
+
+                      if (permission === "default") {
+                        await fcmRequestPermissionIfNeeded();
+                      } else if (permission === "denied") {
+                        fcmShowPermissionGuide();
+                      }
+                    }
+                    // Selalu buka drawer
+                    setDrawerOpen(true);
+                  }}
                   className="text-primary font-medium hover:underline"
                   aria-label="Buka menu notifikasi"
                 >
@@ -289,7 +316,21 @@ export default function AreaPelanggan() {
                     />
 
                     {unreadCount > 0 && (
-                      <span className="absolute sm:top-2 top-0 sm:right-2 right-0 translate-x-1/2 -translate-y-1/2 sm:w-5.5 w-3.5 sm:h-5.5 h-3.5 bg-primary text-white text-[10px] sm:text-lg font-bold rounded-full flex items-center justify-center pointer-events-none">
+                      <span
+                        className="absolute sm:top-2 top-0 sm:right-2 right-0
+                                    translate-x-1/2 -translate-y-1/2
+                                    min-w-4.5 sm:min-w-6.5
+                                    aspect-square
+                                    bg-primary text-white
+                                    text-sm sm:text-lg
+                                    font-bold
+                                    rounded-full
+                                    flex items-center justify-center
+                                    leading-none
+                                    p-0.5 sm:p-0.75
+                                    box-border
+                                    pointer-events-none"
+                      >
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
@@ -308,7 +349,7 @@ export default function AreaPelanggan() {
                   zIndex: 1301,
                 }}
               >
-                <NotifikasiDrawerContent />
+                <NotifikasiDrawerContent onClose={() => setDrawerOpen(false)} />
               </DrawerComponent>
             </div>
           </div>

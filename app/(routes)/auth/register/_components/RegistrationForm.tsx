@@ -813,7 +813,7 @@ function RegistrationForm({
             {isLoadingPackage ? (
               <PackageCardMobileSkeletonList count={2} />
             ) : packages?.length ? (
-              <div className="md:grid grid-cols-1 lg:grid-cols-2 gap-4 max-sm:space-y-6">
+              <div className="md:grid max-sm:p-1 grid-cols-1 lg:grid-cols-2 gap-4 max-sm:space-y-6">
                 {packages.map((pkg) => (
                   <PackageCardMobile
                     key={pkg.id}
@@ -1528,7 +1528,7 @@ function RegistrationForm({
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="border-2 w-full font-bold p-4 border-primary text-primary hover:bg-red-50 rounded-xl"
+                className="border-2 w-full font-bold sm:p-4 p-2 border-primary text-primary hover:bg-red-50 rounded-xl"
               >
                 Batal
               </button>
@@ -1536,7 +1536,7 @@ function RegistrationForm({
             <button
               type="submit"
               disabled={isValid}
-              className={`py-4  ${
+              className={`sm:py-4 p-2  ${
                 mode === "register" ? "w-1/2" : "px-8"
               } font-bold text-white ${
                 isValid

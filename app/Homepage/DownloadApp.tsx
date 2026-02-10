@@ -3,21 +3,31 @@ import React, { useState } from "react";
 
 import googlePlay from "@/public/assets/Images/GooglePlayBlack.png";
 import appStore from "@/public/assets/Images/AppStoreBlack.png";
-import faqImage from "@/public/assets/Images/faq-image.png";
+import faqImage from "@/public/assets/Images/app-image.svg";
 import toast from "react-hot-toast";
 
 const DownloadApp = () => {
   const [isToastCooldown, setIsToastCooldown] = useState<boolean>(false);
 
-  const handleDownloadInvoice = () => {
+  const handleDownloadInvoice = (type: string): void => {
     if (isToastCooldown) return;
 
     try {
       setIsToastCooldown(true);
-      toast("Cooming Soon!");
+
+      if (type === "google") {
+        window.open(
+          "https://play.google.com/store/apps/details?id=com.weave.ira",
+          "_blank",
+        );
+      } else if (type === "apple") {
+        toast("Coming Soon!");
+      }
     } catch (error) {
+      console.error("Error handling download:", error);
+      toast("Terjadi kesalahan. Silakan coba lagi.");
     } finally {
-      setTimeout(() => setIsToastCooldown(false), 3000);
+      setTimeout(() => setIsToastCooldown(false), 1000);
     }
   };
 
@@ -59,7 +69,7 @@ const DownloadApp = () => {
               width={180}
               height={60}
               className="max-sm:w-48 max-sm:h-auto cursor-pointer hover:scale-105"
-              onClick={handleDownloadInvoice}
+              onClick={() => handleDownloadInvoice("google")}
             />
             <Image
               alt="AppStore"
@@ -67,7 +77,7 @@ const DownloadApp = () => {
               width={180}
               height={60}
               className="max-sm:w-48 max-sm:h-auto cursor-pointer hover:scale-105"
-              onClick={handleDownloadInvoice}
+              onClick={() => handleDownloadInvoice("apple")}
             />
           </div>
         </div>

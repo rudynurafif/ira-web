@@ -32,7 +32,39 @@ messaging.onBackgroundMessage((payload) => {
     body: payload.notification.body,
     icon: payload.notification.icon || "/favicon.ico",
     data: payload.data,
+    click_action: payload.data?.click_action || "/customer-area",
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+self.addEventListener("notificationclick", (event) => {
+  console.log("[firebase-messaging-sw.js] Notification click received");
+
+  // Close notification
+  event.notification.close();
+
+  // Get URL from notification data or use default
+  const urlToOpen = event.notification.data?.click_action || "/customer-area";
+
+  // Open URL in browser
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((windowClients) => {
+        // Check if app is already open in a tab
+        for (let i = 0; i < windowClients.length; i++) {
+          const client = windowClients[i];
+          // If URL matches, focus the tab
+          if (client.url.includes(urlToOpen) && "focus" in client) {
+            return client.focus();
+          }
+        }
+
+        // If app not open, open new tab
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      }),
+  );
 });

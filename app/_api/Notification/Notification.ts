@@ -1,9 +1,35 @@
 import FwaAxios from "../FwaAxios";
 
-export const PushFCMToken = async (payload: object) => {
+export const StoreFCMToken = async (payload: object) => {
   try {
     const data = await FwaAxios({
-      url: "/app/auth/update-fcm",
+      url: "/app/auth/store-fcm-token",
+      method: "POST",
+      data: payload,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const UpdateFCMToken = async (payload: object) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/update-fcm-token",
+      method: "POST",
+      data: payload,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const DeleteFCMToken = async (payload: object) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/auth/logout",
       method: "POST",
       data: payload,
     });
@@ -26,11 +52,21 @@ export const getAllNotif = async (param: any) => {
   }
 };
 
-export const countAllNotif = async () => {
+export const countAllNotif = async (category?: string) => {
   try {
+    const params: any = {};
+
+    if (category === "notification") {
+      params.category = "notification";
+    } else if (category === "information") {
+      params.category = "information";
+    }
+    // category undefined/empty = semua
+
     const data = await FwaAxios({
       url: "/app/notification/count",
       method: "GET",
+      params,
     });
     return data;
   } catch (error) {
@@ -67,11 +103,14 @@ export const safeParseNotifPayload = (item: any) => {
     return item;
   }
 
-  if (typeof item.payload?.[0] === "string") {
+  let parsedPayload = item.payload[0];
+
+  // Parse jika string
+  if (typeof parsedPayload === "string") {
     try {
-      item.payload[0] = JSON.parse(item.payload[0]);
+      parsedPayload = JSON.parse(parsedPayload);
     } catch {
-      item.payload[0] = {
+      parsedPayload = {
         notification: { title: "[Error]", body: "Invalid payload" },
         data: { title: "[Error]", body: "Invalid payload", type: "ERROR" },
         token: "",
@@ -79,5 +118,29 @@ export const safeParseNotifPayload = (item: any) => {
     }
   }
 
-  return item;
+  // Tangani kedua format struktur
+  let finalNotification, finalData;
+
+  // Format 1: nested dalam data.destination.firebase
+  if (parsedPayload?.destination === "firebase" && parsedPayload?.data) {
+    finalNotification = parsedPayload.data.notification || {};
+    finalData = parsedPayload.data.data || {};
+  }
+  // Format 2: langsung di root
+  else {
+    finalNotification = parsedPayload?.notification || {};
+    finalData = parsedPayload?.data || {};
+  }
+
+  // Return struktur yang konsisten
+  return {
+    ...item,
+    payload: [
+      {
+        notification: finalNotification,
+        data: finalData,
+        token: parsedPayload?.token || "",
+      },
+    ],
+  };
 };

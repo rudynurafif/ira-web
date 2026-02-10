@@ -8,6 +8,7 @@ import {
   useContext,
   useState,
 } from "react";
+import { useFCM } from "@/app/hooks/useFCM";
 
 interface IContext {
   isAvail: string;
@@ -30,6 +31,14 @@ interface IContext {
   // Masukkan semua properti yang diperlukan di sini bentuknya seperti di bawah
   //   showModalSidebar: boolean;
   //   setShowModalSidebar: Dispatch<SetStateAction<boolean>>;
+
+  fcmToken: string;
+  fcmIsSupported: boolean;
+  fcmNotification: any;
+  fcmRefreshToken: () => Promise<string | null>;
+  fcmCheckNotificationPermission: () => Promise<NotificationPermission>;
+  fcmRequestPermissionIfNeeded: () => Promise<boolean>;
+  fcmShowPermissionGuide: () => void;
 }
 
 const AppContext = createContext<IContext | null>(null);
@@ -60,6 +69,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isAvail, setIsAvail] = useState("");
   const [countNotification, setCountNotification] = useState(0);
 
+  const {
+    tokenFCM,
+    notification,
+    isSupported,
+    refreshToken,
+    checkNotificationPermission,
+    requestPermissionIfNeeded,
+    showPermissionGuide,
+  } = useFCM();
+
   const [isModalAbsen, setIsModalAbsen] = useState(false);
   return (
     <AppContext.Provider
@@ -78,7 +97,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setIsModalAbsen,
         countNotification,
         setCountNotification,
-        // Masukkan properti yang diperlukan di sini bentuknya seperti di bawah
+        fcmToken: tokenFCM || "",
+        fcmIsSupported: Boolean(isSupported),
+        fcmNotification: notification,
+        fcmRefreshToken: refreshToken,
+        fcmCheckNotificationPermission: checkNotificationPermission,
+        fcmRequestPermissionIfNeeded: requestPermissionIfNeeded,
+        fcmShowPermissionGuide: showPermissionGuide,
       }}
     >
       {children}

@@ -64,11 +64,13 @@ function Page() {
   }
 
   return (
-    <RegistrationForm
-      title="Registrasi Ulang Internet Rakyat (IRA)"
-      mode="reregister"
-      initialData={initialData!}
-    />
+    <div className="container mx-auto px-6 lg:px-22 xl:px-42 my-6 sm:my-22">
+      <RegistrationForm
+        title="Registrasi Ulang Internet Rakyat (IRA)"
+        mode="reregister"
+        initialData={initialData!}
+      />
+    </div>
   );
 }
 
