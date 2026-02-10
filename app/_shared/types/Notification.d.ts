@@ -20,6 +20,7 @@ export interface NotificationItem {
   status: null | string;
   read_at: null | string;
   type: string;
+  category: string;
   payload: NotificationPayload[]; // pastikan ini array of object, bukan string
   for_source_table: string;
   for_source_id: string;

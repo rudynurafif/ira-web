@@ -1,4 +1,3 @@
-// app/add-on/[id]/page.tsx
 "use client";
 
 import { getAddOn } from "@/app/_api/AddOn/AddOn";
@@ -53,7 +52,7 @@ export default function AddOnPage({
     return <div className="p-6">Add-on tidak ditemukan.</div>;
   }
 
-  if (selectedAddon.name === "Cubmu") {
+  if (selectedAddon.name === "Cubmu" || selectedAddon.name === "cubmu") {
     return (
       <div className="">
         <Cubmu items={selectedAddon.add_on_item_id} />
