@@ -7,6 +7,7 @@ import ReactPaginate from "react-paginate";
 
 import bellIcon from "@/public/assets/Icons/bell.png";
 import docsIcon from "@/public/assets/Icons/docs.png";
+import emptyNotif from "@/public/assets/Images/emptyNotif.png";
 import { IoIosArrowBack } from "react-icons/io";
 
 import {
@@ -18,6 +19,7 @@ import {
 } from "../_api/Notification/Notification";
 import type { NotificationItem } from "../_shared/types/Notification";
 import { debounce, toastErrorFromAPI } from "../_shared/utils";
+import toast from "react-hot-toast";
 
 // Tambahkan di bagian atas file (setelah import)
 const ShimmerNotification = () => (
@@ -63,7 +65,11 @@ const ShimmerTab = () => (
   </div>
 );
 
-export default function NotifikasiDrawerContent() {
+export default function NotifikasiDrawerContent({
+  onClose,
+}: {
+  onClose?: () => void;
+}) {
   const [activeTab, setActiveTab] = useState<
     "semua" | "notifikasi" | "informasi"
   >("semua");
@@ -244,21 +250,28 @@ export default function NotifikasiDrawerContent() {
   const displayItems = notifications;
 
   const handleReadAll = async () => {
+    const confirmed = window.confirm(
+      "Apakah Anda yakin ingin menandai semua notifikasi sebagai sudah dibaca?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     try {
-      await readAllNotif();
+      const resReadAll = await readAllNotif();
+      toast.success(
+        resReadAll.data?.messages ||
+          "Berhasil menandai semua notifikasi sebagai sudah dibaca.",
+      );
 
       // Optimistic update
       setCounts({ semua: 0, notifikasi: 0, informasi: 0 });
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
 
-      // Refresh notifikasi saja, counts sudah di-set ke 0
       await fetchNotifications(page, activeTab, undefined);
-
-      // Hanya refresh counts jika diperlukan (opsional, bisa dihapus)
-      // setTimeout(() => fetchAllCounts(true), 1000);
     } catch (error) {
       console.error("Gagal baca semua notifikasi:", error);
-      // Hanya refresh counts jika error
       fetchAllCounts(true);
     }
   };
@@ -354,7 +367,12 @@ export default function NotifikasiDrawerContent() {
     <div className="h-full flex flex-col">
       <div className="px-4 sm:px-6 pt-4 sm:pt-6 border-b border-gray-border">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-          <h2 className="text-xl font-bold">Notifikasi dan Informasi</h2>
+          <div className="flex items-center gap-1.5">
+            <div onClick={onClose} className="cursor-pointer">
+              <IoIosArrowBack size={20} />
+            </div>
+            <h2 className="text-xl font-bold">Notifikasi dan Informasi</h2>
+          </div>
           <button
             onClick={handleReadAll}
             className="text-primary hover:underline font-bold  ml-auto mt-2 sm:mt-0 sm:ml-0"
@@ -414,7 +432,12 @@ export default function NotifikasiDrawerContent() {
           </div>
         ) : displayItems.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
-            Tidak ada notifikasi
+            <Image
+              src={emptyNotif}
+              alt="Empty Notification"
+              className="mx-auto max-w-50 sm:max-w-75 mb-6"
+            />
+            <p className="text-xl">Tidak ada notifikasi</p>
           </div>
         ) : (
           <>
