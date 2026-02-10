@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
@@ -25,6 +25,8 @@ import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import GeoPermissionGate from "../register/_components/GeoPermissionGate";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import Loader from "@/app/_components/Loader";
+import { Notification } from "@/app/_components/Notification";
+import { useAppContext } from "@/app/_shared/context/AppContext";
 
 /**
  * STEP FLOW
@@ -46,6 +48,7 @@ const Page = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmError, setConfirmError] = useState<string>("");
   const { status, requestLocation, refresh } = useGeoPermission();
+  const { fcmToken } = useAppContext();
 
   const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
 
@@ -62,6 +65,14 @@ const Page = () => {
   } | null>(null);
 
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  const bodyToken = useMemo(
+    () => ({
+      fcm_token: fcmToken,
+      platform: "web",
+    }),
+    [fcmToken],
+  );
 
   useEffect(() => {
     const regPhone = localStorage.getItem("registration_phone");
@@ -327,6 +338,8 @@ const Page = () => {
   return (
     <div className="flex w-full justify-center px-6 my-10">
       <div className="w-full max-w-xl">
+        <Notification mode="store" body={bodyToken} />
+
         {location === null ? (
           <Loader />
         ) : (
