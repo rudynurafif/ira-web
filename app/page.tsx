@@ -74,7 +74,7 @@ export default function Home() {
 
   return (
     <div>
-      {/* <Notification mode="store" body={bodyToken} /> */}
+      <Notification mode="store" body={bodyToken} />
 
       <CookieHandler />
 
