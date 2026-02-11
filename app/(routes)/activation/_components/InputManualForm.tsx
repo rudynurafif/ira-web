@@ -93,13 +93,6 @@ function InputManualForm() {
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (hasReachedMaxAttempts()) {
-      toast.error(
-        "Terlalu banyak percobaan gagal. Silakan hubungi Customer Service.",
-      );
-      return;
-    }
-
     const errors: { [key: string]: string } = {};
 
     try {

@@ -13,7 +13,7 @@ import {
   formatTime,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { FaWifi } from "react-icons/fa";
@@ -137,6 +137,7 @@ export default function ConnectToNetwork() {
   const [phoneCSIRA, setPhoneCSIRA] = useState<string | null>("");
 
   const activateSuccessRef = useRef(false);
+  const router = useRouter();
 
   // key unik
   const cooldownKey = useMemo(() => {
@@ -880,13 +881,13 @@ export default function ConnectToNetwork() {
             Hubungi Customer Service <MdHeadsetMic size={20} />
           </button>
 
-          {/* <button
-            onClick={handleRestart}
+          <button
+            onClick={() => router.push("/activation?section=input")}
             className="w-full bg-white border-2 border-primary text-primary hover:bg-red-50 cursor-pointer font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
             Coba Ulang dari Awal
-          </button> */}
+          </button>
         </div>
       </div>
     );
