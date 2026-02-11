@@ -97,7 +97,6 @@ function InputManualForm() {
       toast.error(
         "Terlalu banyak percobaan gagal. Silakan hubungi Customer Service.",
       );
-      return;
     }
 
     const errors: { [key: string]: string } = {};
