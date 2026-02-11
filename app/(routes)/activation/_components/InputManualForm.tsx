@@ -8,6 +8,7 @@ import React, { FormEvent, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import noSN from "@/public/assets/Images/no-sn.svg";
 import SNUsed from "@/public/assets/Images/sn-used.svg";
+import successImage from "@/public/assets/Images/activate-success.png";
 import iconScan from "@/public/assets/Icons/icon-scan.svg";
 import Image from "next/image";
 import {
@@ -29,6 +30,7 @@ function InputManualForm() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
+  const [openModalSuccess, setOpenModalSuccess] = useState(false);
   const [isSNUsed, setIsSNUsed] = useState(false);
   const savedSN = JSON.parse(
     localStorage.getItem("savedSerialNumbers") || "[]",
@@ -107,7 +109,17 @@ function InputManualForm() {
       // trigger SSE
       const res = await Activation({ sn: serialNumber });
 
-      if (res.data.statusCode === 200 || res.data.statusCode === 201) {
+      if (
+        (res.data?.statusCode === 200 || res.data?.statusCode === 201) &&
+        res.data.data?.status === "Success"
+      ) {
+        setOpenModalSuccess(true);
+        return;
+      } else if (
+        res.data.statusCode === 200 ||
+        res.data.statusCode === 201 ||
+        res.data.data?.status === "pending"
+      ) {
         resetFailedAttempt();
 
         toast.loading(
@@ -253,6 +265,44 @@ function InputManualForm() {
       </div>
 
       <LoadingModal isOpen={isSubmitting} />
+
+      {openModalSuccess && (
+        <ModalTemplate
+          closeModal={() => {
+            setOpenModalSuccess(false);
+            window.location.href = "/customer-area";
+          }}
+          classNameModal="p-6 max-w-lg w-full mx-4 text-center"
+        >
+          <div className="flex justify-center items-center mb-6">
+            <Image
+              src={successImage}
+              width={200}
+              height={200}
+              alt="Aktivasi Berhasil"
+            />
+          </div>
+
+          <h3 className="text-dark-primary font-bold text-2xl mb-2">
+            Aktivasi Berhasil! 🎉
+          </h3>
+
+          <p className="text-gray-600 font-medium mb-4">
+            Layanan internet Anda sudah aktif dan siap digunakan
+          </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              setOpenModalSuccess(false);
+              window.location.href = "/customer-area";
+            }}
+            className="w-full bg-primary hover:bg-dark-primary-2 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+          >
+            Kembali ke Customer Area
+          </button>
+        </ModalTemplate>
+      )}
 
       {openModalFailed && (
         <ModalTemplate
