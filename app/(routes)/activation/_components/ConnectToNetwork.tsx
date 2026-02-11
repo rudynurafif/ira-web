@@ -548,13 +548,18 @@ export default function ConnectToNetwork() {
       }
     } catch (err: any) {
       toast.dismiss("activate");
-      toastErrorFromAPI(
-        err,
-        "Gagal mengirim permintaan aktivasi. Silakan coba lagi.",
-      );
-
-      // Simpan percobaan gagal
-      saveFailedAttemptStorage(nextAttempt - 1);
+      if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        toast.error(
+          "Koneksi internet tidak stabil. Coba ganti koneksi internet, dan pastikan Anda memiliki koneksi yang baik, lalu coba lagi.",
+          { duration: 15000 },
+        );
+      } else {
+        toastErrorFromAPI(
+          err,
+          "Gagal mengirim permintaan aktivasi. Silakan coba lagi.",
+        );
+        incrementFailedAttempt(serialNumber);
+      }
 
       if (nextAttempt >= MAX_ATTEMPT || hasReachedMaxAttempts()) {
         setScreen("failedFinal");
