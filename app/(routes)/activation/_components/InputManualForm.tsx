@@ -10,6 +10,16 @@ import noSN from "@/public/assets/Images/no-sn.svg";
 import SNUsed from "@/public/assets/Images/sn-used.svg";
 import iconScan from "@/public/assets/Icons/icon-scan.svg";
 import Image from "next/image";
+import {
+  incrementFailedAttempt,
+  resetFailedAttempt,
+  hasReachedMaxAttempts,
+  getCurrentAttemptCount,
+  FAILED_ATTEMPT_CONFIG,
+} from "@/app/_shared/utils/failedAttemptCounter";
+import { getDealerSuppPhone } from "@/app/_api/Customer/CustomerArea";
+import { getSetting } from "@/app/_api/Settings/Settings";
+import { useAppSelector } from "@/app/store/store";
 
 function InputManualForm() {
   const params = useSearchParams();
@@ -24,15 +34,70 @@ function InputManualForm() {
     localStorage.getItem("savedSerialNumbers") || "[]",
   );
   const [isSNNotFound, setIsSNNotFound] = useState(false);
+  const [phoneCSIRA, setPhoneCSIRA] = useState<string>("");
+  const { userInfo } = useAppSelector((state) => state.auth);
 
   const router = useRouter();
 
+  useEffect(() => {
+    const loadCSPhone = async () => {
+      try {
+        const resSetting = await getSetting("cs_phone");
+        setPhoneCSIRA(
+          resSetting.data?.data?.value ||
+            process.env.NEXT_PUBLIC_PHONE_CS ||
+            "6281110689111",
+        );
+      } catch (error) {
+        console.error("Failed to load CS phone:", error);
+      }
+    };
+
+    loadCSPhone();
+  }, []);
+
+  async function contactCS() {
+    if (!serialNumber) {
+      toast.error("Serial Number tidak ditemukan");
+      return;
+    }
+
+    const msg = encodeURIComponent(
+      `Halo Customer Service IRA 👋
+      \n\nSaya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *3 kali*, dan memerlukan bantuan lebih lanjut.
+      \nBerikut detail data pelanggan saya:
+      \n* *ID Pelanggan*: ${userInfo?.customer_code || "-"}
+      \n* *Nama Pelanggan*: ${userInfo?.name || "-"}
+      \n* *Nomor Telepon*: ${userInfo?.phone_number || "-"}
+      \n* *SN CPE*: ${serialNumber}
+
+      \n\nMohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
+    );
+    try {
+      const resPhone = await getDealerSuppPhone();
+
+      if (resPhone.data.statusCode === 200) {
+        const phone = resPhone.data?.data?.cs_phone_number ?? phoneCSIRA;
+        window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+      } else {
+        window.open(`https://wa.me/${phoneCSIRA}?text=${msg}`, "_blank");
+      }
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message ||
+          "Gagal membuka WhatsApp Customer Service",
+      );
+    }
+  }
+
   async function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     const errors: { [key: string]: string } = {};
 
     try {
       setIsSubmitting(true);
+
       if (!serialNumber) {
         errors.serial_number = "Serial Number harus diisi";
       }
@@ -40,14 +105,18 @@ function InputManualForm() {
       localStorage.setItem("ira-cpe-serial-number", serialNumber!);
 
       // trigger SSE
-      const res = await Activation({ serial_number: serialNumber });
+      const res = await Activation({ sn: serialNumber });
 
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
+        resetFailedAttempt();
+
         toast.loading(
           res.data.message ||
             "Sedang proses aktivasi, silakan cek status secara berkala",
         );
       } else {
+        incrementFailedAttempt(serialNumber!);
+
         errors.serial_number =
           res.data.message || "Serial Number tidak valid. Silakan coba lagi.";
         throw new Error(
@@ -58,16 +127,16 @@ function InputManualForm() {
       // jika ada error
       if (Object.keys(errors).length > 0) {
         setErrors(errors);
-
         return;
       } else {
         // jika berhasil
         setErrors({});
-
+        resetFailedAttempt();
         addUrlParam("section", "connect");
         addUrlParam("serial_number", serialNumber);
       }
     } catch (error: any) {
+      incrementFailedAttempt(serialNumber!);
       setOpenModalFailed(true);
 
       const statusCode = error?.response?.data?.statusCode;
@@ -90,10 +159,7 @@ function InputManualForm() {
           error.response?.data?.message ||
           "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.",
       });
-      // toastErrorFromAPI(
-      //   error,
-      //   "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.",
-      // );
+      toastErrorFromAPI(error);
     } finally {
       setIsSubmitting(false);
       const saved = JSON.parse(
@@ -160,6 +226,29 @@ function InputManualForm() {
               </button>
             </div>
           </div>
+
+          <div className="mt-4 text-sm text-gray-600 text-center">
+            {hasReachedMaxAttempts() && (
+              <p>
+                Percobaan gagal: {getCurrentAttemptCount()}/
+                {FAILED_ATTEMPT_CONFIG.MAX_ATTEMPTS}
+              </p>
+            )}
+            {hasReachedMaxAttempts() && (
+              <div className="mt-4">
+                <p className="text-red-600 font-semibold mb-2">
+                  Batas percobaan gagal tercapai (
+                  {FAILED_ATTEMPT_CONFIG.MAX_ATTEMPTS}x)
+                </p>
+                <button
+                  onClick={contactCS}
+                  className="w-full bg-primary text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                >
+                  Hubungi Customer Service
+                </button>
+              </div>
+            )}
+          </div>
         </form>
       </div>
 
@@ -210,6 +299,21 @@ function InputManualForm() {
               Input Ulang
             </button>
           </div>
+
+          {hasReachedMaxAttempts() && (
+            <div className="mt-5 flex justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpenModalFailed(false);
+                  contactCS();
+                }}
+                className="inline-flex w-full items-center justify-center rounded-xl bg-red-600 hover:bg-red-700 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
+              >
+                Hubungi Customer Service
+              </button>
+            </div>
+          )}
         </ModalTemplate>
       )}
     </div>

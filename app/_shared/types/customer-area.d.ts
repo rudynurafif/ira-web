@@ -93,6 +93,7 @@ export type ProfileInfo = {
   reset_count_cell: number | null;
   no_kk: string | null;
   cpe_sim_binding_id: string | null;
+  is_coverage: boolean | null;
   province_id: {
     id: string;
     name: string;

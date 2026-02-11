@@ -93,6 +93,19 @@ export const getCheckCoverage = async (body: any) => {
   }
 };
 
+export const getCheckCoverageLogin = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "app/coverage/account-check-coverage",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const GetListGeocode = async (body: any) => {
   try {
     const data = await FwaAxios({

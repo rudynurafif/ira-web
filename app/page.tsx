@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FAQPage from "./Homepage/FAQPage";
 import MainPage from "./Homepage/MainPage";
 import PackagePage from "./Homepage/PackagePage";
@@ -8,11 +8,25 @@ import { verifyOtp } from "@/app/_api/Auth/Auth";
 import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import CookieHandler from "./_components/CookieHandler";
+import DownloadApp from "./Homepage/DownloadApp";
+import { Notification } from "./_components/Notification";
+import { useFCM } from "./hooks/useFCM";
+import { useAppContext } from "./_shared/context/AppContext";
+import { platform } from "os";
 
 export default function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(false);
+  const { fcmToken } = useAppContext();
+
+  const bodyToken = useMemo(
+    () => ({
+      fcm_token: fcmToken,
+      platform: "web",
+    }),
+    [fcmToken],
+  );
 
   const otpCode = searchParams.get("code");
   const phone = searchParams.get("phone_number");
@@ -60,6 +74,8 @@ export default function Home() {
 
   return (
     <div>
+      <Notification mode="store" body={bodyToken} />
+
       <CookieHandler />
 
       {isVerifying && (
@@ -73,6 +89,7 @@ export default function Home() {
 
       <MainPage />
       <WhyFWAPage />
+      <DownloadApp />
       {/* <PackagePage /> */}
       <FAQPage />
     </div>

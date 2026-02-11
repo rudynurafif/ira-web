@@ -450,12 +450,11 @@ const DeviceInformation = () => {
           </div>
         </div>
 
-        <div className="col-span-2 p-4 sm:p-6 bg-white rounded-lg shadow-lg border border-gray-200">
+        {/* <div className="col-span-2 p-4 sm:p-6 bg-white rounded-lg shadow-lg border border-gray-200">
           <div className="font-bold text-xl mb-4">
             Perangkat Tersambung ({connectedDevices.length})
           </div>
 
-          {/* Desktop/Tablet View: Tabel Scrollable */}
           <div className="hidden md:block overflow-x-auto text-sm">
             <table className="w-full border-collapse">
               <thead>
@@ -497,7 +496,6 @@ const DeviceInformation = () => {
             </table>
           </div>
 
-          {/* Mobile View: Card List */}
           <div className="md:hidden space-y-4">
             {connectedDevices.map((device, index) => (
               <div
@@ -529,7 +527,7 @@ const DeviceInformation = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
 
       <EditSSIDModal

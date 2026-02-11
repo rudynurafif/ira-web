@@ -14,6 +14,7 @@ function MapGeoapify({
   initialLatitude,
   initialLongitude,
   mode,
+  isInteractive = true,
 }: {
   mode: "register" | "reregister";
   getAddress: (address: string, meta?: { source: "init" | "user" }) => void;
@@ -26,6 +27,7 @@ function MapGeoapify({
   }) => void;
   initialLatitude?: number;
   initialLongitude?: number;
+  isInteractive?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -75,14 +77,18 @@ function MapGeoapify({
           if (feature) {
             const addr = feature.properties.formatted;
             setAddress(addr);
-            inputRef.current!.value = addr;
-            onPlaceChange?.({
-              address: addr,
-              raw_result: feature,
-              latitude: initialLatitude,
-              longitude: initialLongitude,
-              source: "init",
-            });
+            if (inputRef.current) inputRef.current.value = addr;
+
+            // Hanya trigger onPlaceChange jika mode interaktif
+            if (isInteractive) {
+              onPlaceChange?.({
+                address: addr,
+                raw_result: feature,
+                latitude: initialLatitude,
+                longitude: initialLongitude,
+                source: "init",
+              });
+            }
             getAddress(addr, { source: "init" });
           }
         })
@@ -90,7 +96,8 @@ function MapGeoapify({
           console.error("Reverse geocoding failed:", err);
           toast.error("Gagal memuat alamat dari koordinat");
         });
-    } else {
+    } else if (isInteractive) {
+      // Hanya ambil lokasi otomatis jika mode interaktif
       if ("geolocation" in navigator) {
         setIsLoading(true);
 
@@ -158,7 +165,7 @@ function MapGeoapify({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialLatitude, initialLongitude]);
+  }, [initialLatitude, initialLongitude, isInteractive]);
 
   // === Fungsi start cooldown (dengan onFinish) ===
   const startCooldown = (duration: number = 10, onFinish?: () => void) => {
@@ -181,6 +188,8 @@ function MapGeoapify({
 
   // Fungsi terpusat: handle autocomplete dengan cooldown & deduplikasi
   const performAutocompleteSearch = (query: string) => {
+    if (!isInteractive) return;
+
     if (!query || query.length < 3) {
       setPredictions([]);
       return;
@@ -218,6 +227,8 @@ function MapGeoapify({
 
   // Autocomplete Alamat: countdown setelah user berhenti ngetik
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isInteractive) return;
+
     const value = e.target.value;
     setAddress(value);
 
@@ -238,6 +249,8 @@ function MapGeoapify({
 
   // === Pilih dari Dropdown ===
   const handleSuggestionClick = (feature: any) => {
+    if (!isInteractive) return;
+
     const { properties, geometry } = feature;
     const addr = properties.formatted;
 
@@ -275,7 +288,7 @@ function MapGeoapify({
       renderMap();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location]);
+  }, [location, isInteractive]);
 
   useEffect(() => {
     if ((window as any).mapInstance && location) {
@@ -319,6 +332,12 @@ function MapGeoapify({
     // Belum ada map, init baru
     const map = L.map(mapContainerRef.current, {
       zoomControl: false,
+      dragging: isInteractive,
+      touchZoom: isInteractive,
+      scrollWheelZoom: isInteractive,
+      doubleClickZoom: isInteractive,
+      boxZoom: isInteractive,
+      keyboard: isInteractive,
     }).setView([location.lat, location.lng], 18);
 
     L.tileLayer(
@@ -330,55 +349,57 @@ function MapGeoapify({
     ).addTo(map);
 
     const marker = L.marker([location.lat, location.lng], {
-      draggable: true,
+      draggable: isInteractive,
     }).addTo(map);
 
-    marker.off("dragend");
+    if (isInteractive) {
+      marker.off("dragend");
 
-    marker.on("dragend", (e: any) => {
-      const { lat, lng } = e.target.getLatLng();
-      setLocation({ lat, lng });
+      marker.on("dragend", (e: any) => {
+        const { lat, lng } = e.target.getLatLng();
+        setLocation({ lat, lng });
 
-      setIsLoading(true);
+        setIsLoading(true);
 
-      startCooldown(10, async () => {
-        const last = lastReverseCoordsRef.current;
-        if (last && last.lat === lat && last.lng === lng) {
-          setIsLoading(false);
-          return;
-        }
-        lastReverseCoordsRef.current = { lat, lng };
-
-        try {
-          const res = await fetch(
-            `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_API_KEY}`,
-          );
-          const data = await res.json();
-          const feature = data.features[0];
-
-          if (feature && inputRef.current) {
-            const addr = feature.properties.formatted;
-            inputRef.current.value = addr;
-            setAddress(addr);
-
-            feature.query = data?.query || null;
-
-            onPlaceChange?.({
-              address: addr,
-              raw_result: feature,
-              latitude: lat,
-              longitude: lng,
-              source: "user",
-            });
-            getAddress(addr, { source: "user" });
+        startCooldown(10, async () => {
+          const last = lastReverseCoordsRef.current;
+          if (last && last.lat === lat && last.lng === lng) {
+            setIsLoading(false);
+            return;
           }
-        } catch (err) {
-          console.error("Reverse geocoding gagal:", err);
-        } finally {
-          setIsLoading(false);
-        }
+          lastReverseCoordsRef.current = { lat, lng };
+
+          try {
+            const res = await fetch(
+              `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_API_KEY}`,
+            );
+            const data = await res.json();
+            const feature = data.features[0];
+
+            if (feature && inputRef.current) {
+              const addr = feature.properties.formatted;
+              inputRef.current.value = addr;
+              setAddress(addr);
+
+              feature.query = data?.query || null;
+
+              onPlaceChange?.({
+                address: addr,
+                raw_result: feature,
+                latitude: lat,
+                longitude: lng,
+                source: "user",
+              });
+              getAddress(addr, { source: "user" });
+            }
+          } catch (err) {
+            console.error("Reverse geocoding gagal:", err);
+          } finally {
+            setIsLoading(false);
+          }
+        });
       });
-    });
+    }
 
     (window as any).mapInitialized = true;
     (window as any).mapInstance = map;
@@ -407,6 +428,8 @@ function MapGeoapify({
 
   // === Clear Input ===
   const clearInput = () => {
+    if (!isInteractive) return;
+
     if (inputRef.current) inputRef.current.value = "";
     setAddress("");
     setPredictions([]);
@@ -425,92 +448,94 @@ function MapGeoapify({
   return (
     <div className="relative">
       {/* Input Alamat */}
-      <div className="absolute top-4 z-1000 w-full px-2 sm:px-5">
-        <div className="relative w-full flex items-center justify-center gap-2 sm:gap-4">
-          <button
-            type="button"
-            onClick={() => {
-              if (inputRef.current) {
-                const query = inputRef.current.value || "";
-
-                // Batalkan debounce yang sedang menunggu
-                // if (typingTimeoutRef.current) {
-                //   clearTimeout(typingTimeoutRef.current);
-                //   typingTimeoutRef.current = null;
-                // }
-
-                // Jalankan pencarian langsung
-                performAutocompleteSearch(query);
-              }
-            }}
-            className="flex items-center justify-center gap-2 bg-white p-2 shadow-md rounded-lg cursor-pointer text-gray-500 hover:text-gray-700"
-          >
-            <p className="text-black font-semibold">Cari</p>
-            <FaSearch size={16} color="black" />
-          </button>
-
-          <input
-            ref={inputRef}
-            type="text"
-            disabled={isLoading}
-            placeholder="Masukkan alamat Anda, tekan Enter atau Tombol Cari untuk mencari.."
-            value={address}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-
-                // Batalkan debounce yang sedang menunggu
-                if (typingTimeoutRef.current) {
-                  clearTimeout(typingTimeoutRef.current);
-                  typingTimeoutRef.current = null;
-                }
-
-                // Jalankan pencarian langsung
-                performAutocompleteSearch(e.currentTarget.value);
-              }
-            }}
-            className="w-full disabled:cursor-not-allowed! bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {address && (
+      {isInteractive && (
+        <div className="absolute top-4 z-1000 w-full px-2 sm:px-5">
+          <div className="relative w-full flex items-center justify-center gap-2 sm:gap-4">
             <button
               type="button"
-              onClick={clearInput}
-              className=" bg-white p-2 shadow-md rounded-full cursor-pointer text-gray-500 hover:text-gray-700"
+              onClick={() => {
+                if (inputRef.current) {
+                  const query = inputRef.current.value || "";
+
+                  // Batalkan debounce yang sedang menunggu
+                  // if (typingTimeoutRef.current) {
+                  //   clearTimeout(typingTimeoutRef.current);
+                  //   typingTimeoutRef.current = null;
+                  // }
+
+                  // Jalankan pencarian langsung
+                  performAutocompleteSearch(query);
+                }
+              }}
+              className="flex items-center justify-center gap-2 bg-white p-2 shadow-md rounded-lg cursor-pointer text-gray-500 hover:text-gray-700"
             >
-              <IoClose size={24} color="black" />
+              <p className="text-black font-semibold">Cari</p>
+              <FaSearch size={16} color="black" />
             </button>
+
+            <input
+              ref={inputRef}
+              type="text"
+              disabled={isLoading}
+              placeholder="Masukkan alamat Anda, tekan Enter atau Tombol Cari untuk mencari.."
+              value={address}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+
+                  // Batalkan debounce yang sedang menunggu
+                  if (typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current);
+                    typingTimeoutRef.current = null;
+                  }
+
+                  // Jalankan pencarian langsung
+                  performAutocompleteSearch(e.currentTarget.value);
+                }
+              }}
+              className="w-full disabled:cursor-not-allowed! bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {address && (
+              <button
+                type="button"
+                onClick={clearInput}
+                className=" bg-white p-2 shadow-md rounded-full cursor-pointer text-gray-500 hover:text-gray-700"
+              >
+                <IoClose size={24} color="black" />
+              </button>
+            )}
+          </div>
+
+          {/* Loading & Predictions */}
+          {isLoading && (
+            <div className="bg-white mt-3 border rounded-lg px-4 py-2 w-full">
+              Mencari lokasi... {cooldownCount > 0 && cooldownCount}
+            </div>
+          )}
+
+          {!isLoading && predictions.length > 0 && (
+            <div className="bg-white border rounded-lg shadow-lg w-full mt-3 max-h-70 overflow-y-auto">
+              {predictions.map((feature, i) => (
+                <div
+                  key={i}
+                  onClick={() => handleSuggestionClick(feature)}
+                  className="cursor-pointer p-3 border-b last:border-b-0 hover:bg-gray-50"
+                >
+                  <p className="font-medium">{feature.properties.formatted}</p>
+                  <p className="text-sm text-gray-600">
+                    {feature?.properties?.city ??
+                      feature?.properties?.county ??
+                      "Kota"}
+                    , {feature?.properties?.state ?? "Provinsi"},{" "}
+                    {feature?.properties?.country ?? "Negara"}
+                  </p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-
-        {/* Loading & Predictions */}
-        {isLoading && (
-          <div className="bg-white mt-3 border rounded-lg px-4 py-2 w-full">
-            Mencari lokasi... {cooldownCount > 0 && cooldownCount}
-          </div>
-        )}
-
-        {!isLoading && predictions.length > 0 && (
-          <div className="bg-white border rounded-lg shadow-lg w-full mt-3 max-h-70 overflow-y-auto">
-            {predictions.map((feature, i) => (
-              <div
-                key={i}
-                onClick={() => handleSuggestionClick(feature)}
-                className="cursor-pointer p-3 border-b last:border-b-0 hover:bg-gray-50"
-              >
-                <p className="font-medium">{feature.properties.formatted}</p>
-                <p className="text-sm text-gray-600">
-                  {feature?.properties?.city ??
-                    feature?.properties?.county ??
-                    "Kota"}
-                  , {feature?.properties?.state ?? "Provinsi"},{" "}
-                  {feature?.properties?.country ?? "Negara"}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Peta */}
       <div

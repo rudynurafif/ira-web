@@ -26,12 +26,16 @@ import {
 } from "@/app/store/slice/authSlice";
 import { DecodedToken } from "@/app/_context/sse.type";
 import SkeletonBase from "../skeletons/SkeletonBase";
+import { DeleteFCMToken } from "@/app/_api/Notification/Notification";
+import { useFCM } from "@/app/hooks/useFCM";
+import { useAppContext } from "@/app/_shared/context/AppContext";
 
 function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [loadingLogout, setLoadingLogout] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isActive, setIsActive] = useState(true);
   const [customerData, setCustomerData] = useState<ProfileInfo>();
@@ -41,6 +45,8 @@ function Header() {
   );
   // const token = getCookie("token-ira") ?? tokenfromState;
   const [token, setToken] = useState<string | null>(null);
+  const { fcmToken } = useAppContext();
+
   const headerRef = useRef<HTMLDivElement>(null);
 
   // ===============
@@ -118,14 +124,6 @@ function Header() {
         const statusCode =
           error?.response?.data?.statusCode || error?.response?.status;
 
-        if (statusCode === 500 && pathname !== "/500") {
-          toast.error(
-            "Terjadi gangguan pada server. Mengalihkan ke halaman error...",
-          );
-          router.push(`/error?from=${encodeURIComponent(pathname)}`);
-          return;
-        }
-
         if (statusCode === 401) {
           toastErrorFromAPI(
             error,
@@ -143,13 +141,20 @@ function Header() {
     fetchData();
   }, [dispatch, pathname, router, tokenfromState]);
 
-  const handleLogout = () => {
-    dispatch(logout());
-
-    setIsLoggedIn(false);
-
-    window.location.href = "/auth/login";
-    toast.success("Logout Berhasil!");
+  const handleLogout = async () => {
+    try {
+      setLoadingLogout(true);
+      if (fcmToken) await DeleteFCMToken({ fcm_token: fcmToken });
+    } catch (e) {
+      console.error("Gagal delete fcm token, lanjut logout:", e);
+    } finally {
+      dispatch(logout());
+      setIsLoggedIn(false);
+      setLoadingLogout(false);
+      // router.push("/auth/login");
+      window.location.href = "/auth/login";
+      toast.success("Logout Berhasil!");
+    }
   };
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -246,7 +251,8 @@ function Header() {
 
               <button
                 onClick={handleLogout}
-                className="flex cursor-pointer w-full items-center gap-3 px-4 py-3 text-primary hover:bg-red-50 transition"
+                disabled={loadingLogout}
+                className="flex disabled:cursor-not-allowed cursor-pointer w-full items-center gap-3 px-4 py-3 text-primary hover:bg-red-50 transition"
               >
                 <FaSignOutAlt />
                 <span>Logout</span>
@@ -400,11 +406,12 @@ function Header() {
                       handleLogout();
                       setIsOpenMenu(false);
                     }}
+                    disabled={loadingLogout}
                     className={`flex ${
                       pathname === "/"
                         ? "bg-white text-primary"
                         : "bg-primary text-white"
-                    } font-bold items-center gap-2 text-center justify-center rounded-full px-5 py-2.5`}
+                    } font-bold items-center gap-2 disabled:cursor-not-allowed text-center justify-center rounded-full px-5 py-2.5`}
                   >
                     <FaSignOutAlt /> Logout
                   </button>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
 import FAQAccordion, { FAQItem } from "../_components/homepage/FAQAccordion";
-import faqImage from "@/public/assets/Images/faq-image.png";
+import faqImage from "@/public/assets/Images/FAQ.svg";
 import { getFAQs } from "../_api/Settings/Settings";
 import { toastErrorFromAPI } from "../_shared/utils";
 import FAQLoading from "../_components/homepage/_components/FAQLoading";
@@ -14,10 +14,11 @@ function FAQPage() {
   const fetchData = async () => {
     try {
       const params = {
-        category: "TESTING",
+        category: "Informasi Umum",
       };
 
-      const resData = await getFAQs(params);
+      // const resData = await getFAQs(params);
+      const resData = await getFAQs({});
       const result = resData?.data?.result;
 
       if (Array.isArray(result) && result.length > 0) {

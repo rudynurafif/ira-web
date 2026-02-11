@@ -64,28 +64,32 @@ export default function GroupedOTP({
           containerClassName="group flex items-center mt-2"
           render={({ slots }) => (
             <>
-              <div className={`flex gap-1 `}>
-                {slots.slice(0, length / 2).map((slot, idx) => (
-                  <Slot
-                    key={idx}
-                    {...slot}
-                    isInvalid={isInvalid}
-                    isDisabled={isDisabled}
-                  />
-                ))}
-              </div>
+              <div className="flex flex-row items-center">
+                <div className="flex gap-1">
+                  {slots.slice(0, length / 2).map((slot, idx) => (
+                    <Slot
+                      key={idx}
+                      {...slot}
+                      isInvalid={isInvalid}
+                      isDisabled={isDisabled}
+                    />
+                  ))}
+                </div>
 
-              <FakeDash />
+                <div className="">
+                  <FakeDash />
+                </div>
 
-              <div className="flex gap-1">
-                {slots.slice(length / 2).map((slot, idx) => (
-                  <Slot
-                    key={idx + length / 2}
-                    {...slot}
-                    isInvalid={isInvalid}
-                    isDisabled={isDisabled}
-                  />
-                ))}
+                <div className="flex gap-1">
+                  {slots.slice(length / 2).map((slot, idx) => (
+                    <Slot
+                      key={idx + length / 2}
+                      {...slot}
+                      isInvalid={isInvalid}
+                      isDisabled={isDisabled}
+                    />
+                  ))}
+                </div>
               </div>
             </>
           )}
@@ -100,7 +104,7 @@ function Slot(
 ) {
   return (
     <div
-      className={`relative w-12.5 h-12.5 text-base flex items-center justify-center 
+      className={`relative w-9 sm:w-12.5 h-9 sm:h-12.5 text-base flex items-center justify-center 
         transition-all duration-300 
         border rounded-xl
         ${props.isInvalid ? "border-red-500" : "border-gray-300"}

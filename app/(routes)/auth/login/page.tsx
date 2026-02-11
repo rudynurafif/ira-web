@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import PhoneNumberForm from "@/app/_components/form/PhoneForm";
 import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
@@ -24,6 +24,8 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import GeoPermissionGate from "../register/_components/GeoPermissionGate";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
+import { Notification } from "@/app/_components/Notification";
+import { useAppContext } from "@/app/_shared/context/AppContext";
 
 /**
  * STEP FLOW
@@ -36,6 +38,7 @@ type AuthStep = "CHECK_PHONE" | "SET_PASSWORD" | "LOGIN";
 const Page = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
 
   const [step, setStep] = useState<AuthStep>("CHECK_PHONE");
 
@@ -44,6 +47,8 @@ const Page = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmError, setConfirmError] = useState<string>("");
   const { status, requestLocation, refresh } = useGeoPermission();
+  const { fcmToken } = useAppContext();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
 
@@ -52,14 +57,39 @@ const Page = () => {
     password?: string;
   }>({});
 
-  const [isLoading, setIsLoading] = useState(false);
-
   const [location, setLocation] = useState<{
     latitude: string;
     longitude: string;
   } | null>(null);
 
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  const bodyToken = useMemo(
+    () => ({
+      fcm_token: fcmToken,
+      platform: "web",
+    }),
+    [fcmToken],
+  );
+
+  useEffect(() => {
+    const regPhone = localStorage.getItem("registration_phone");
+
+    if (regPhone) {
+      setPhone(regPhone);
+
+      const phoneError = validatePhone(regPhone);
+      if (!phoneError) {
+        setStep("SET_PASSWORD");
+        toast.success("Silakan buat password untuk akun baru Anda");
+
+        localStorage.removeItem("registration_phone");
+      } else {
+        console.error("Invalid phone format:", phoneError);
+        localStorage.removeItem("registration_phone");
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (status === "denied") setIsOpenModalReqLoc(true);
@@ -69,10 +99,10 @@ const Page = () => {
   // LOCATION
   // ===============================
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocationError("Browser tidak mendukung lokasi");
-      return;
-    }
+    // if (!navigator.geolocation) {
+    //   setLocationError("Browser tidak mendukung lokasi");
+    //   return;
+    // }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -205,10 +235,10 @@ const Page = () => {
   // STEP 3 — LOGIN
   // ===============================
   const handleLogin = async () => {
-    if (!location) {
-      toast.error("Akses lokasi wajib diizinkan");
-      return;
-    }
+    // if (!location) {
+    //   toast.error("Akses lokasi wajib diizinkan");
+    //   return;
+    // }
 
     try {
       setIsLoading(true);
@@ -216,8 +246,8 @@ const Page = () => {
       const res = await loginUser({
         phone_number: phone,
         password,
-        latitude: location.latitude,
-        longitude: location.longitude,
+        ...(location?.latitude && { latitude: location.latitude }),
+        ...(location?.longitude && { longitude: location.longitude }),
         platform: "web",
       });
 
@@ -247,6 +277,12 @@ const Page = () => {
 
     try {
       setIsLoading(true);
+
+      const confirm = window.confirm(
+        `Apakah Anda yakin ingin mereset password untuk nomor ${phone}?`,
+      );
+
+      if (!confirm) return;
 
       const resForgotPassword = await forgotPassword({
         phone_number: phone,
@@ -281,7 +317,7 @@ const Page = () => {
     !!password &&
     !!confirmPassword;
 
-  const isLoginValid = !!password && !validatePassword(password) && !!location;
+  const isLoginValid = !!password && !validatePassword(password);
 
   const isFormValid = (() => {
     if (step === "CHECK_PHONE") return isPhoneValid;
@@ -289,6 +325,18 @@ const Page = () => {
     if (step === "LOGIN") return isLoginValid;
     return false;
   })();
+
+  const goToRegisterPage = () => {
+    if (step === "SET_PASSWORD" || step === "LOGIN") {
+      const confirm = window.confirm(
+        "Proses login akan dibatalkan jika pindah ke halaman pendaftaran. Lanjutkan?",
+      );
+
+      if (!confirm) return;
+    }
+
+    router.push("/auth/register");
+  };
 
   // ===============================
   // FORM SUBMIT
@@ -306,6 +354,8 @@ const Page = () => {
   return (
     <div className="flex w-full justify-center px-6 my-10">
       <div className="w-full max-w-xl">
+        <Notification mode="store" body={bodyToken} />
+
         {step !== "CHECK_PHONE" && (
           <div className="">
             <button
@@ -322,9 +372,7 @@ const Page = () => {
         )}
 
         <h1 className="mb-8 text-center text-old-primary font-extrabold text-2xl sm:text-[32px]">
-          {step === "SET_PASSWORD"
-            ? "Buat Password Baru"
-            : "Login Internet Rakyat (IRA)"}
+          {step === "SET_PASSWORD" ? "Buat Password Baru" : "Login IRA"}
         </h1>
 
         {step === "SET_PASSWORD" && (
@@ -340,7 +388,7 @@ const Page = () => {
             name="phone"
             isImportant
             value={phone}
-            disabled={step !== "CHECK_PHONE" || !location}
+            disabled={step !== "CHECK_PHONE"}
             onChange={(val) => {
               setPhone(val);
               setErrors({});
@@ -384,7 +432,7 @@ const Page = () => {
             />
           )}
 
-          {locationError && (
+          {/* {locationError && (
             <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-600">
               <b>Akses lokasi diperlukan untuk login.</b>
               <div>
@@ -398,12 +446,12 @@ const Page = () => {
                 Refresh
               </button>
             </div>
-          )}
+          )} */}
 
           <button
             type="submit"
             disabled={isLoading || !isFormValid}
-            className={`py-4 flex items-center justify-center gap-2 font-bold text-white text-xl rounded-xl
+            className={`py-3 flex items-center justify-center gap-2 font-bold text-white text-xl rounded-xl
             ${
               isLoading || !isFormValid
                 ? "bg-slate-400 cursor-not-allowed!"
@@ -431,18 +479,19 @@ const Page = () => {
           </button>
         )}
 
-        <div className="mt-6 text-center text-sm text-primary-text">
+        <div className="mt-12 text-center text-sm text-primary-text">
           Belum punya akun?{" "}
-          <Link
-            href="/auth/register"
+          <button
+            disabled={isLoading}
+            onClick={goToRegisterPage}
             className="font-bold text-primary underline-animation-register"
           >
             Daftar disini
-          </Link>
+          </button>
         </div>
       </div>
 
-      {isOpenModalReqLoc && status === "denied" && (
+      {/* {isOpenModalReqLoc && status === "denied" && (
         <ModalTemplate
           closeModal={() => {
             setIsOpenModalReqLoc(false);
@@ -454,7 +503,7 @@ const Page = () => {
             <GeoPermissionGate onGotLocation={(lat, lng) => {}} />
           </div>
         </ModalTemplate>
-      )}
+      )} */}
     </div>
   );
 };
