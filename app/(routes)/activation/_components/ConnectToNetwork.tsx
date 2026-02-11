@@ -639,7 +639,8 @@ export default function ConnectToNetwork() {
     }
   }
 
-  const handleRestart = () => {
+  const handleRestart = async () => {
+    // Reset semua state
     activationConfirmedRef.current = false;
     activateSuccessRef.current = false;
 
@@ -656,7 +657,41 @@ export default function ConnectToNetwork() {
     clearSse("5");
     clearTimeoutSafe();
 
+    // 🔥 Mulai cooldown untuk refresh task
     startCooldown(CHECK_COOLDOWN_SEC);
+
+    // 🔥 Kirim ulang permintaan aktivasi ke server
+    try {
+      toast.loading("Mengirim ulang permintaan aktivasi...", { id: "restart" });
+
+      const res = await Activation({ sn: serialNumber });
+
+      if (res.data.statusCode === 200 || res.data.statusCode === 201) {
+        toast.loading(
+          res.data.message ||
+            "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
+          { id: "restart" },
+        );
+
+        // Biarkan SSE menangani update status selanjutnya
+        // Status UI sudah di-set ke "loading" di atas
+      } else {
+        // Jika langsung gagal, tampilkan error
+        throw new Error(res.data.message || "Aktivasi gagal.");
+      }
+    } catch (err: any) {
+      toast.dismiss("restart");
+      toastErrorFromAPI(
+        err,
+        "Gagal mengirim ulang permintaan aktivasi. Silakan coba lagi.",
+      );
+
+      // Tetap izinkan user mencoba lagi (karena kita tidak memblokir >3x)
+      incrementFailedAttempt(serialNumber);
+      setScreen("failed");
+      setActivateStatus("failed");
+      setInternetStatus("failed");
+    }
   };
 
   const sseHint =
