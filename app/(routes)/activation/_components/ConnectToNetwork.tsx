@@ -429,6 +429,16 @@ export default function ConnectToNetwork() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customer_id, serialNumber, screen, clearTimeoutSafe, handleTimeout]);
 
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      toast.error(
+        "Tidak ada koneksi internet. Silakan periksa jaringan Anda dan silahkan input Serial Number CPE ulang.",
+      );
+      addUrlParam("section", "input");
+      return;
+    }
+  }, []);
+
   async function handleCheckStatus() {
     if (!serialNumber) return;
     if (activationConfirmedRef.current) return;
