@@ -32,6 +32,14 @@ import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import { getDealerSuppPhone } from "@/app/_api/Customer/CustomerArea";
 import { Activation } from "@/app/_api/Activation/Activation";
 import { getSetting } from "@/app/_api/Settings/Settings";
+import {
+  incrementFailedAttempt,
+  resetFailedAttempt,
+  hasReachedMaxAttempts,
+  getCurrentAttemptCount,
+  FAILED_ATTEMPT_CONFIG,
+} from "@/app/_shared/utils/failedAttemptCounter";
+import { useAppSelector } from "@/app/store/store";
 
 type Screen = "loading" | "failed" | "failedFinal" | "success" | "timedOut";
 type StepStatus = "idle" | "loading" | "success" | "failed";
@@ -124,6 +132,8 @@ export default function ConnectToNetwork() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activationConfirmedRef = useRef(false);
 
+  const { userInfo } = useAppSelector((state) => state.auth);
+
   const [phoneCSIRA, setPhoneCSIRA] = useState<string | null>("");
 
   const activateSuccessRef = useRef(false);
@@ -190,6 +200,8 @@ export default function ConnectToNetwork() {
     (source: "sse" | "api" | "timeout") => {
       if (activationConfirmedRef.current) return;
       activationConfirmedRef.current = true;
+
+      resetFailedAttempt();
 
       resetAttemptStorage();
       stopCooldown();
@@ -368,6 +380,8 @@ export default function ConnectToNetwork() {
             );
           } else {
             activateSuccessRef.current = false;
+            incrementFailedAttempt(serialNumber);
+
             stopCooldown();
             setActivateStatus("failed");
             setInternetStatus("failed");
@@ -388,6 +402,7 @@ export default function ConnectToNetwork() {
               }
             }, 2000);
           } else {
+            incrementFailedAttempt(serialNumber);
             setInternetStatus("success");
             setTimeout(() => {
               if (!activationConfirmedRef.current) {
@@ -416,6 +431,14 @@ export default function ConnectToNetwork() {
   async function handleCheckStatus() {
     if (!serialNumber) return;
     if (activationConfirmedRef.current) return;
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      toast.error(
+        "Tidak ada koneksi internet. Silakan periksa jaringan Anda dan silahkan input Serial Number CPE ulang.",
+      );
+      addUrlParam("section", "input");
+      return;
+    }
 
     startCooldown(CHECK_COOLDOWN_SEC);
 
@@ -460,37 +483,6 @@ export default function ConnectToNetwork() {
         return;
       }
 
-      // JANGAN DI HAPUS
-      // 🔹 3b. Jika aktivasi sukses → cek ping test dulu, akan sukses jika timeout 10 menit
-      // if (activateSuccess) {
-      //   setActivateStatus("success");
-      //   setInternetStatus("loading");
-      //   setScreen("loading");
-
-      //   try {
-      //     const resInternet = await refreshTask({ type: "ping-test-activate" });
-      //     if (resInternet?.data?.code === 0) {
-      //       setInternetStatus("success");
-      //       handleActivationSuccess("api");
-      //     } else if (resInternet?.data?.code === 2) {
-      //       setInternetStatus("loading");
-      //       toast.success("Verifikasi koneksi internet sedang berlangsung...", {
-      //         id: "refresh",
-      //       });
-      //     } else {
-      //       setInternetStatus("failed");
-      //       toast.error("Gagal memulai verifikasi koneksi internet", {
-      //         id: "refresh",
-      //       });
-      //     }
-      //   } catch (err: any) {
-      //     setInternetStatus("failed");
-      //     toastErrorFromAPI(err, "refresh");
-      //   }
-
-      //   return;
-      // }
-
       // 🔹 4. Jika activate pending → tetap di loading (tunggu SSE)
       setActivateStatus("loading");
       setInternetStatus("loading");
@@ -499,6 +491,7 @@ export default function ConnectToNetwork() {
         id: "refresh",
       });
     } catch (err: any) {
+      incrementFailedAttempt(serialNumber);
       toastErrorFromAPI(err, "refresh");
       setActivateStatus("failed");
       setInternetStatus("failed");
@@ -511,7 +504,7 @@ export default function ConnectToNetwork() {
     if (activationConfirmedRef.current) return;
 
     // Cek batas percobaan
-    if (attempt >= MAX_ATTEMPT) {
+    if (attempt >= MAX_ATTEMPT || hasReachedMaxAttempts()) {
       setScreen("failedFinal");
       return;
     }
@@ -552,7 +545,7 @@ export default function ConnectToNetwork() {
       // Simpan percobaan gagal
       saveFailedAttemptStorage(nextAttempt - 1);
 
-      if (nextAttempt >= MAX_ATTEMPT) {
+      if (nextAttempt >= MAX_ATTEMPT || hasReachedMaxAttempts()) {
         setScreen("failedFinal");
       } else {
         setScreen("failed");
@@ -582,9 +575,45 @@ export default function ConnectToNetwork() {
     if (screen === "failedFinal" || screen === "timedOut") getPhoneCS();
   }, [screen]);
 
+  useEffect(() => {
+    const handleOnline = () => {
+      toast.success("Koneksi internet telah pulih.", { id: "offline-toast" });
+    };
+
+    const handleOffline = () => {
+      toast.error(
+        "Koneksi internet terputus. Segera pastikan Anda memiliki koneksi internet yang baik.",
+        {
+          id: "offline-toast",
+          duration: 10000,
+        },
+      );
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      }
+    };
+  }, []);
+
   async function contactCS() {
     const msg = encodeURIComponent(
-      `Halo CS, saya butuh bantuan aktivasi modem IRA.\nSerial Number CPE: ${serialNumber}`,
+      `Halo Customer Service IRA 👋
+      \n\nSaya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *3 kali*, dan memerlukan bantuan lebih lanjut.
+      \nBerikut detail data pelanggan saya:
+      \n* *ID Pelanggan*: ${userInfo?.customer_code || "-"}
+      \n* *Nama Pelanggan*: ${userInfo?.name || "-"}
+      \n* *Nomor Telepon*: ${userInfo?.phone_number || "-"}
+      \n* *SN CPE*: ${serialNumber}
+
+      \n\nMohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
     );
     try {
       const resPhone = await getDealerSuppPhone();
@@ -834,6 +863,9 @@ export default function ConnectToNetwork() {
             Aktivasi perangkat tidak berhasil setelah beberapa saat. Hubungi
             Customer Service untuk bantuan lebih lanjut.
           </p>
+          <div className="text-old-primary font-bold mt-1">
+            ({getCurrentAttemptCount()}/{FAILED_ATTEMPT_CONFIG.MAX_ATTEMPTS})
+          </div>
           {/* <div className="text-old-primary font-bold mt-1">
             ({MAX_ATTEMPT}/{MAX_ATTEMPT})
           </div> */}

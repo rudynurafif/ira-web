@@ -124,14 +124,6 @@ function Header() {
         const statusCode =
           error?.response?.data?.statusCode || error?.response?.status;
 
-        // if (statusCode === 500 && pathname !== "/500") {
-        //   toast.error(
-        //     "Terjadi gangguan pada server. Mengalihkan ke halaman error...",
-        //   );
-        //   router.push(`/error?from=${encodeURIComponent(pathname)}`);
-        //   return;
-        // }
-
         if (statusCode === 401) {
           toastErrorFromAPI(
             error,
