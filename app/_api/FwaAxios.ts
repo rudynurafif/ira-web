@@ -14,7 +14,7 @@ const FwaAxios = axios.create({
     "x-api-key": "280999!FTTH",
     // "ngrok-skip-browser-warning": "6024",\
   },
-  timeout: 900000,
+  timeout: 300000,
 });
 
 FwaAxios.interceptors.request.use(async (req) => {
