@@ -30,7 +30,9 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: payload.notification.icon || "/favicon.ico",
+    icon: payload.notification.icon || "/icon.png",
+    badge: payload.notification.badge || "/icon.png", 
+    image: payload.notification.image || null,
     data: payload.data,
     click_action: payload.data?.click_action || "/customer-area",
   };
