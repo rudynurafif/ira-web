@@ -51,6 +51,10 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
     if (!value.trim()) {
       return `${ssidType} SSID tidak boleh kosong`;
     }
+
+    if (/\s/.test(value)) {
+      return `${ssidType} SSID tidak boleh mengandung spasi`;
+    }
     if (value.length < 3 || value.length > 32) {
       return "SSID harus 3–32 karakter";
     }
@@ -84,7 +88,8 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
   if (!isOpen) return null;
 
   const handleSSIDChange = (value: string) => {
-    setSSID(value);
+    const cleanedValue = value.replace(/\s+/g, "");
+    setSSID(cleanedValue);
     setErrors((prev) => ({
       ...prev,
       ssid: validateSSID(value),
@@ -138,6 +143,9 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
               onChange={handleSSIDChange}
               error={errors.ssid || ""}
             />
+            <p className="text-xs text-gray-500 mt-2">
+              SSID harus 3–32 karakter dan tidak boleh mengandung spasi.
+            </p>
           </div>
 
           <div className="mb-6 relative">
@@ -150,6 +158,9 @@ const EditSSIDModal: React.FC<EditSSIDModalProps> = ({
               onChange={handlePasswordChange}
               error={errors.password || ""}
             />
+            <p className="text-xs text-gray-500 mt-2">
+              Password harus 8–63 karakter dan tidak boleh mengandung spasi.
+            </p>
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
