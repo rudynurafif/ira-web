@@ -130,7 +130,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
 
   // ✅ Effect 2: Get packages - dipicu oleh mitraID
   useEffect(() => {
-    const getPackageList = async () => {
+    const getPackageListReg = async () => {
       const params = {
         mitra_id: mitraID[0]?.id,
         latitude: initialData?.latitude,
@@ -161,7 +161,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
       }
     };
 
-    getPackageList();
+    getPackageListReg();
   }, [mitraID, initialData?.latitude, initialData?.longitude]);
 
   // Fungsi untuk mengambil data dari initialData dengan validasi

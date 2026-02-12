@@ -48,6 +48,7 @@ function Header() {
   const { fcmToken } = useAppContext();
 
   const headerRef = useRef<HTMLDivElement>(null);
+  const { userInfo } = useAppSelector((state) => state.auth);
 
   // ===============
 
@@ -317,14 +318,16 @@ function Header() {
                 IRA
               </Link>
 
-              <Link
-                href="/check-coverage"
-                className={`${
-                  pathname === "/check-coverage" ? "font-bold" : ""
-                } underline-animation-register`}
-              >
-                Cek Jangkauan
-              </Link>
+              {!userInfo || userInfo.is_coverage === false ? (
+                <Link
+                  href="/check-coverage"
+                  className={`${
+                    pathname === "/check-coverage" ? "font-bold" : ""
+                  } underline-animation-register`}
+                >
+                  Cek Jangkauan
+                </Link>
+              ) : null}
 
               {isLoggedIn && isActive && is_coverage && (
                 <Link
@@ -372,13 +375,15 @@ function Header() {
               IRA
             </Link>
 
-            <Link
-              href="/check-coverage"
-              className={` ${pathname === "/check-coverage" && "font-bold"}`}
-              onClick={() => setIsOpenMenu(false)}
-            >
-              Cek Jangkauan
-            </Link>
+            {!userInfo || userInfo.is_coverage === false ? (
+              <Link
+                href="/check-coverage"
+                className={`${pathname === "/check-coverage" && "font-bold"}`}
+                onClick={() => setIsOpenMenu(false)}
+              >
+                Cek Jangkauan
+              </Link>
+            ) : null}
 
             {isLoggedIn && isActive && is_coverage && (
               <Link
