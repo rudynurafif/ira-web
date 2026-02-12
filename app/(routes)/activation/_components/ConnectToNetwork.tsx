@@ -530,6 +530,14 @@ export default function ConnectToNetwork() {
       // 🔥 Panggil API aktivasi seperti di InputManualForm
       const res = await Activation({ sn: serialNumber });
 
+      if (res.data.statusCode === 200 && res.data.data?.status === "Success") {
+        setScreen("success");
+        setActivateStatus("success");
+        setInternetStatus("success");
+        resetFailedAttempt();
+        return;
+      }
+
       if (res.data.statusCode === 200 || res.data.statusCode === 201) {
         toast.loading(
           res.data.message ||
