@@ -276,14 +276,17 @@ export const copyToClipboard = (text: string) => {
 };
 
 export const toastErrorFromAPI = (error: any, id?: string | undefined) => {
-  // const errorStatusCode = error?.response?.data?.statusCode ?? "(status code)";
+  const errorStatusCode = error?.response?.data?.statusCode;
   const errorMsg =
     error?.response?.data?.message ??
     error?.message ??
     "Terjadi kesalahan, silakan coba lagi.";
 
-  // toast.error(`Error ${errorStatusCode}: ${errorMsg}`);
-  toast.error(errorMsg, { id });
+  if (errorStatusCode >= 500 && errorStatusCode < 600) {
+    toast.error("Terjadi kesalahan pada server. Silahkan coba lagi nanti.");
+  } else {
+    toast.error(errorMsg, { id });
+  }
 };
 
 export const formattedDate = (dateString: string | null) => {
