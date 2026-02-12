@@ -531,14 +531,13 @@ export default function ConnectToNetwork() {
       const res = await Activation({ sn: serialNumber });
 
       if (res.data.statusCode === 200 && res.data.data?.status === "Success") {
-        setScreen("success");
-        setActivateStatus("success");
-        setInternetStatus("success");
-        resetFailedAttempt();
+        handleActivationSuccess("api");
         return;
-      }
-
-      if (res.data.statusCode === 200 || res.data.statusCode === 201) {
+      } else if (
+        res.data.data?.status === "pending" ||
+        res.data.statusCode === 200 ||
+        res.data.statusCode === 201
+      ) {
         toast.loading(
           res.data.message ||
             "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
