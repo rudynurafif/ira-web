@@ -530,7 +530,14 @@ export default function ConnectToNetwork() {
       // 🔥 Panggil API aktivasi seperti di InputManualForm
       const res = await Activation({ sn: serialNumber });
 
-      if (res.data.statusCode === 200 || res.data.statusCode === 201) {
+      if (res.data.statusCode === 200 && res.data.data?.status === "Success") {
+        handleActivationSuccess("api");
+        return;
+      } else if (
+        res.data.data?.status === "pending" ||
+        res.data.statusCode === 200 ||
+        res.data.statusCode === 201
+      ) {
         toast.loading(
           res.data.message ||
             "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
