@@ -1415,8 +1415,7 @@ function RegistrationForm({
               <>
                 {mode === "register" && (
                   <p className="text-sm text-muted mb-1">
-                    *Pastikan titik lokasi pada peta sudah sesuai dengan alamat
-                    lengkap Anda
+                    *Pastikan titik lokasi pada peta sudah sesuai dengan alamat Anda
                   </p>
                 )}
                 <MapGeoapify
