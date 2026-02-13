@@ -75,7 +75,10 @@ devel-job:       # This job runs in the build stage, which runs first.
         git pull origin development; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
         docker rmi $IMG_NAME:$DEV_VER; \
-        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
+        docker stop fwa_cron_service_app fwa_webhook_cron_app fwa_webhook_corenet_alarm_app fwa_webhook_corenet_others_app; \
+        docker compose -f $COMPOSE_FILE build --no-cache $COMPOSE_SRV; \
+        docker compose -f $COMPOSE_FILE up -d $COMPOSE_SRV; \
+        docker start fwa_cron_service_app fwa_webhook_cron_app fwa_webhook_corenet_alarm_app fwa_webhook_corenet_others_app; \
         docker builder prune -a -f; \
         docker image prune -a -f; \
         docker exec -it $CONT_NAME sh -c 'npm ls && npm outdate && npm audit'; \
@@ -129,10 +132,13 @@ staging-job:       # This job runs in the build stage, which runs first.
         git pull origin stage; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
         docker rmi $IMG_NAME $STAGE_VER; \
-        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
+        docker stop fwa_cron_service_app fwa_webhook_cron_app fwa_webhook_corenet_alarm_app fwa_webhook_corenet_others_app; \
+        docker compose -f $COMPOSE_FILE build --no-cache $COMPOSE_SRV; \
+        docker compose -f $COMPOSE_FILE up -d $COMPOSE_SRV; \
+        docker start fwa_cron_service_app fwa_webhook_cron_app fwa_webhook_corenet_alarm_app fwa_webhook_corenet_others_app; \
         docker builder prune -a -f; \
         docker image prune -a -f; \
-        npm outdate; \
+        docker exec -it $CONT_NAME sh -c 'npm ls && npm outdate && npm audit'; \
         echo 'Staging - Docker Deployment Completed.'; \
       "
   artifacts:
