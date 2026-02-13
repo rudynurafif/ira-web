@@ -499,7 +499,7 @@ function RegistrationForm({
   }
 
   useEffect(() => {
-    const getPackageList = async () => {
+    const getPackageListReg = async () => {
       const params = {
         mitra_id: mitraID[0]?.id,
         latitude: formData.latitude,
@@ -528,7 +528,7 @@ function RegistrationForm({
       }
     };
 
-    getPackageList();
+    getPackageListReg();
   }, [formData.latitude, formData.longitude, mitraID]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -1413,6 +1413,11 @@ function RegistrationForm({
             {/* Versi Geoapify */}
             {status !== "denied" && (
               <>
+                {mode === "register" && (
+                  <p className="text-sm text-muted mb-1">
+                    *Pastikan titik lokasi pada peta sudah sesuai dengan alamat Anda
+                  </p>
+                )}
                 <MapGeoapify
                   mode={mode}
                   initialLatitude={Number(initialData?.latitude)}
@@ -1586,9 +1591,10 @@ function RegistrationForm({
           closeModal={() => {
             setIsModalRegisterSuccess(false);
 
-            if (token) {
+            if (token && mode === "reregister") {
               window.location.href = "/customer-area";
             } else {
+              deleteCookie("token-ira");
               window.location.href = "/auth/login";
             }
             setCoveredAtSubmit(null);

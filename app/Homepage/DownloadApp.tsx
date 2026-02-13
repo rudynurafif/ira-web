@@ -32,7 +32,7 @@ const DownloadApp = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-16 max-sm:py-8">
+    <div className="container mx-auto px-5 py-16 max-sm:py-8">
       <div className="flex flex-col lg:flex-row justify-between items-center gap-8">
         {/* Image - Order 1 on mobile, Order 2 on desktop */}
         <div className="w-full lg:w-1/3 flex justify-center order-1 lg:order-2">

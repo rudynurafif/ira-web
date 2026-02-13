@@ -6,6 +6,8 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
+export const PASSWORD_ALLOWED_CHARS_REGEX = /^[a-zA-Z0-9#!_]+$/;
+export const PASSWORD_INPUT_FILTER_REGEX = /[a-zA-Z0-9#!_]/g;
 export const PHONE_LIVE_REGEX = /^(08|62)\d{5,13}$/;
 export const PHONE_REGEX2 = /^\d{8,15}$/;
 export const regexEmail =
@@ -276,14 +278,17 @@ export const copyToClipboard = (text: string) => {
 };
 
 export const toastErrorFromAPI = (error: any, id?: string | undefined) => {
-  // const errorStatusCode = error?.response?.data?.statusCode ?? "(status code)";
+  const errorStatusCode = error?.response?.data?.statusCode;
   const errorMsg =
     error?.response?.data?.message ??
     error?.message ??
     "Terjadi kesalahan, silakan coba lagi.";
 
-  // toast.error(`Error ${errorStatusCode}: ${errorMsg}`);
-  toast.error(errorMsg, { id });
+  if (errorStatusCode >= 500 && errorStatusCode < 600) {
+    toast.error("Terjadi kesalahan pada server. Silahkan coba lagi nanti.");
+  } else {
+    toast.error(errorMsg, { id });
+  }
 };
 
 export const formattedDate = (dateString: string | null) => {

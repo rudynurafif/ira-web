@@ -8,7 +8,12 @@ import PhoneNumberForm from "@/app/_components/form/PhoneForm";
 import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
 
 import { checkTemplate, setPassword } from "@/app/_api/Auth/Auth";
-import { PHONE_LIVE_REGEX, toastErrorFromAPI } from "@/app/_shared/utils";
+import {
+  PASSWORD_ALLOWED_CHARS_REGEX,
+  PASSWORD_INPUT_FILTER_REGEX,
+  PHONE_LIVE_REGEX,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import Loader from "@/app/_components/Loader";
 
 const Page = () => {
@@ -79,7 +84,24 @@ const Page = () => {
   const validatePassword = (val: string) => {
     if (!val) return "Password wajib diisi";
     if (val.length < 6) return "Password minimal 6 karakter";
+
+    if (!PASSWORD_ALLOWED_CHARS_REGEX.test(val)) {
+      return "Password hanya boleh berisi huruf, angka, #, !, atau _";
+    }
+
     return "";
+  };
+
+  const handlePasswordChange = (rawValue: string) => {
+    const filteredValue =
+      rawValue.match(PASSWORD_INPUT_FILTER_REGEX)?.join("") || "";
+    setPasswordValue(filteredValue);
+  };
+
+  const handleConfirmPasswordChange = (rawValue: string) => {
+    const filteredValue =
+      rawValue.match(PASSWORD_INPUT_FILTER_REGEX)?.join("") || "";
+    setConfirmPassword(filteredValue);
   };
 
   useEffect(() => {
@@ -184,6 +206,7 @@ const Page = () => {
                 onChange={(val) => {
                   setPasswordValue(val);
                   setErrors((e) => ({ ...e, password: "" }));
+                  handlePasswordChange(val);
                 }}
                 error={errors.password}
               />
@@ -204,6 +227,7 @@ const Page = () => {
               onChange={(val) => {
                 setConfirmPassword(val);
                 setErrors((e) => ({ ...e, confirmPassword: "" }));
+                handleConfirmPasswordChange(val);
               }}
               error={confirmError}
             />
