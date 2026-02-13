@@ -6,6 +6,8 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
+export const PASSWORD_ALLOWED_CHARS_REGEX = /^[a-zA-Z0-9#!_]+$/;
+export const PASSWORD_INPUT_FILTER_REGEX = /[a-zA-Z0-9#!_]/g;
 export const PHONE_LIVE_REGEX = /^(08|62)\d{5,13}$/;
 export const PHONE_REGEX2 = /^\d{8,15}$/;
 export const regexEmail =

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import toast from "react-hot-toast";
 import { setCookie } from "cookies-next";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,7 +8,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import PhoneNumberForm from "@/app/_components/form/PhoneForm";
 import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
 
-import { PHONE_LIVE_REGEX, toastErrorFromAPI } from "@/app/_shared/utils";
+import {
+  PASSWORD_ALLOWED_CHARS_REGEX,
+  PASSWORD_INPUT_FILTER_REGEX,
+  PHONE_LIVE_REGEX,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 
 import { useAppDispatch } from "@/app/store/store";
 import { login } from "@/app/store/slice/authSlice";
@@ -21,8 +25,6 @@ import {
   forgotPassword,
 } from "@/app/_api/Auth/Auth";
 import { IoMdArrowRoundBack } from "react-icons/io";
-import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import GeoPermissionGate from "../register/_components/GeoPermissionGate";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import { Notification } from "@/app/_components/Notification";
 import { useAppContext } from "@/app/_shared/context/AppContext";
@@ -134,9 +136,27 @@ const Page = () => {
   const validatePassword = (val: string) => {
     if (!val) return "Password wajib diisi";
     if (val.length < 6) return "Password minimal 6 karakter";
+
+    if (!PASSWORD_ALLOWED_CHARS_REGEX.test(val)) {
+      return "Password hanya boleh berisi huruf, angka, #, !, atau _";
+    }
+
     return "";
   };
 
+  const handlePasswordChange = (rawValue: string) => {
+    const filteredValue =
+      rawValue.match(PASSWORD_INPUT_FILTER_REGEX)?.join("") || "";
+    setPasswordValue(filteredValue);
+  };
+
+  const handleConfirmPasswordChange = (rawValue: string) => {
+    const filteredValue =
+      rawValue.match(PASSWORD_INPUT_FILTER_REGEX)?.join("") || "";
+    setConfirmPassword(filteredValue);
+  };
+
+  // validasi konfirmasi password
   useEffect(() => {
     if (step !== "SET_PASSWORD") return;
 
@@ -406,6 +426,7 @@ const Page = () => {
                 onChange={(val) => {
                   setPasswordValue(val);
                   setErrors({});
+                  handlePasswordChange(val);
                 }}
               />
               {step === "SET_PASSWORD" && (
@@ -427,6 +448,7 @@ const Page = () => {
               onChange={(val) => {
                 setConfirmPassword(val);
                 setErrors((prev) => ({ ...prev, password: "" }));
+                handleConfirmPasswordChange(val);
               }}
               error={confirmError}
             />
