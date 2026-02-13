@@ -189,10 +189,11 @@ deploy-production:
         git pull origin main; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
         docker rmi $IMG_NAME:$PROD_VER; \
-        docker compose -f $COMPOSE_FILE up -d --build $COMPOSE_SRV; \
+        docker compose -f $COMPOSE_FILE build --no-cache $COMPOSE_SRV; \
+        docker compose -f $COMPOSE_FILE up -d $COMPOSE_SRV; \
         docker builder prune -a -f; \
         docker image prune -a -f; \
-        npm outdate; \
+        docker exec -it $CONT_NAME sh -c 'npm ls && npm outdate && npm audit'; \
         echo 'Production - Docker Deployment Completed.'; \
       "
   artifacts:
