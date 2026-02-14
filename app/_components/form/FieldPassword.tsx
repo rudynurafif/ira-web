@@ -1,5 +1,6 @@
 "use client";
 
+import { PASSWORD_INPUT_FILTER_REGEX } from "@/app/_shared/utils";
 import React, { useState } from "react";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import { IoEye } from "react-icons/io5";
@@ -39,13 +40,13 @@ export default function DynamicPasswordForm({
   const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
     let val = e.currentTarget.value;
 
-    // 🔒 sanitasi
-    val = removeEmoji(val).replace(/\s+/g, "");
+    const filteredChars = val.match(PASSWORD_INPUT_FILTER_REGEX) || [];
+    let filteredVal = filteredChars.join("");
 
-    // 🔒 hard limit 100 karakter
-    val = val.slice(0, MAX_LENGTH);
+    // ✅ Batasi panjang maksimal
+    filteredVal = filteredVal.slice(0, MAX_LENGTH);
 
-    onChange(val);
+    onChange(filteredVal);
   };
 
   return (
