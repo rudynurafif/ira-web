@@ -58,7 +58,7 @@ export default function GeoPermissionGate({ onGotLocation, className }: Props) {
         <div className="space-y-2">
           <p className="font-semibold text-red-700">
             Anda belum mengizinkan akses lokasi untuk IRA. Untuk melakukan
-            proses pendaftaran/login, silahkan izinkah akses lokasi di browser
+            proses pendaftaran/login, silahkan izinkan akses lokasi di browser
             Anda.
           </p>
           <ol className="text-sm text-red-800 list-decimal pl-4 space-y-1">
