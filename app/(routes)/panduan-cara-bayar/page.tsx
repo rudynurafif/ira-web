@@ -6,10 +6,10 @@ const PanduanCaraBayar = () => {
       <picture>
         <source
           media="(min-width: 1024px)"
-          srcSet="/assets/Images/panduanVA.webp"
+          srcSet="/assets/Images/panduanVA.png"
         />
         <img
-          src="/assets/Images/panduanVAmobile.webp"
+          src="/assets/Images/panduanVAmobile.png"
           alt="Panduan Cara Bayar"
           className="w-full h-auto"
         />

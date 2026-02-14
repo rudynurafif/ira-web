@@ -54,7 +54,7 @@ const DownloadApp = () => {
             Dapatkan kontrol penuh atas layanan internet Anda hanya dengan
             beberapa klik. Dengan aplikasi IRA, Anda dapat dengan mudah membeli
             paket, memonitor status modem, cek signal, dan melakukan banyak hal
-            lainnya. Unduh aplikasi IRA di Google Play atau App Store dan
+            lainnya. Unduh aplikasi IRA di Google Play dan
             nikmati kemudahan mengelola layanan internet Anda di mana saja dan
             kapan saja.
           </p>
