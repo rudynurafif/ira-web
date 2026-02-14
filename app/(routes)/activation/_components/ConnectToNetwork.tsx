@@ -530,8 +530,10 @@ export default function ConnectToNetwork() {
       // 🔥 Panggil API aktivasi seperti di InputManualForm
       const res = await Activation({ sn: serialNumber });
 
-      if (res.data.statusCode === 200 && res.data.data?.status === "Success") {
-        handleActivationSuccess("api");
+      if (res.data?.statusCode === 200 && res.data?.data?.status === "Success") {
+        if (!activationConfirmedRef.current) {
+          handleActivationSuccess("api");
+        }
         return;
       } else if (
         res.data.data?.status === "pending" ||

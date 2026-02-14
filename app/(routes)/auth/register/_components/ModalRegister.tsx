@@ -6,16 +6,23 @@ import gifConstruction from "@/public/assets/Icons/construction.json";
 
 import registerIcon from "@/public/assets/Icons/success-register.svg";
 import { useRouter } from "next/navigation";
-import { getCookie } from "cookies-next";
+import { deleteCookie, getCookie } from "cookies-next";
 
-function ModalRegister({ isCovered }: { isCovered?: boolean }) {
+function ModalRegister({
+  isCovered,
+  mode,
+}: {
+  isCovered?: boolean;
+  mode?: "register" | "reregister";
+}) {
   const router = useRouter();
   const token = getCookie("token-ira");
 
   const handleNext = () => {
-    if (token) {
+    if (token && mode === "reregister") {
       window.location.href = "/customer-area";
     } else {
+      deleteCookie("token-ira");
       window.location.href = "/auth/login";
     }
   };
