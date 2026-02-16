@@ -4,6 +4,7 @@ import moment from "moment";
 import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { deleteCookie } from "cookies-next";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
 export const PASSWORD_ALLOWED_CHARS_REGEX = /^[a-zA-Z0-9#!_]+$/;
@@ -277,18 +278,43 @@ export const copyToClipboard = (text: string) => {
     });
 };
 
-export const toastErrorFromAPI = (error: any, id?: string | undefined) => {
-  const errorStatusCode = error?.response?.data?.statusCode;
+export const toastErrorFromAPI = (error: any, id?: string) => {
+  const httpStatus = error?.response?.status;
+  const fallbackStatusCode = error?.response?.data?.statusCode;
+  const errorStatusCode =
+    typeof httpStatus === "number"
+      ? httpStatus
+      : typeof fallbackStatusCode === "number"
+        ? fallbackStatusCode
+        : null;
+
   const errorMsg =
-    error?.response?.data?.message ??
-    error?.message ??
+    (typeof error?.response?.data?.message === "string" &&
+      error.response.data.message) ||
+    (typeof error?.message === "string" && error.message) ||
     "Terjadi kesalahan, silakan coba lagi.";
 
-  if (errorStatusCode >= 500 && errorStatusCode < 600) {
-    toast.error("Terjadi kesalahan pada server. Silahkan coba lagi nanti.");
-  } else {
-    toast.error(errorMsg, { id });
+  if (errorStatusCode === 403) {
+    toast.error("Hak akses tidak tersedia. Silakan login kembali.", { id });
+    deleteCookie("token-ira");
+    setTimeout(() => {
+      window.location.href = "/auth/login";
+    }, 2000);
+    return;
   }
+
+  if (
+    errorStatusCode !== null &&
+    errorStatusCode >= 500 &&
+    errorStatusCode < 600
+  ) {
+    toast.error("Terjadi kesalahan pada server. Silakan coba lagi nanti.", {
+      id,
+    });
+    return;
+  }
+
+  toast.error(errorMsg, { id });
 };
 
 export const formattedDate = (dateString: string | null) => {
