@@ -308,7 +308,7 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     errorStatusCode >= 500 &&
     errorStatusCode < 600
   ) {
-    toast.error("Terjadi kesalahan pada server. Silakan coba lagi nanti.", {
+    toast.error("Terjadi kesalahan. Silakan coba lagi.", {
       id,
     });
     return;
