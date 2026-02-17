@@ -8,15 +8,16 @@ import React, { FormEvent, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import noSN from "@/public/assets/Images/no-sn.svg";
 import SNUsed from "@/public/assets/Images/sn-used.svg";
+import maxAttemptImage from "@/public/assets/Images/maxAttempFailed.png";
 import successImage from "@/public/assets/Images/activate-success.png";
+
 import iconScan from "@/public/assets/Icons/icon-scan.svg";
 import Image from "next/image";
 import {
   incrementFailedAttempt,
   resetFailedAttempt,
   hasReachedMaxAttempts,
-  getCurrentAttemptCount,
-  FAILED_ATTEMPT_CONFIG,
+  getFailedAttemptData,
 } from "@/app/_shared/utils/failedAttemptCounter";
 import { getDealerSuppPhone } from "@/app/_api/Customer/CustomerArea";
 import { getSetting } from "@/app/_api/Settings/Settings";
@@ -64,17 +65,51 @@ function InputManualForm() {
       return;
     }
 
+    const failedData = getFailedAttemptData();
+    const count =
+      failedData.attempts.length > 0
+        ? failedData.attempts.length
+        : failedData.count;
+
+    // Format detail kendala
+    const attemptLogs = failedData.attempts
+      .map((msg, idx) => `* *Percobaan ${idx + 1}*: ${msg}`)
+      .join("\n");
+
+    // Format Waktu Percobaan Terakhir
+    let lastTimeLog = "";
+    if (failedData.lastFailedAt) {
+      const date = new Date(failedData.lastFailedAt);
+      const formattedDate = date.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Jakarta",
+      });
+      lastTimeLog = `\n* *Waktu Percobaan Terakhir*: ${formattedDate} WIB`;
+    }
+
     const msg = encodeURIComponent(
       `Halo Customer Service IRA 👋
-      \n\nSaya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *3 kali*, dan memerlukan bantuan lebih lanjut.
-      \nBerikut detail data pelanggan saya:
-      \n* *ID Pelanggan*: ${userInfo?.customer_code || "-"}
-      \n* *Nama Pelanggan*: ${userInfo?.name || "-"}
-      \n* *Nomor Telepon*: ${userInfo?.phone_number || "-"}
-      \n* *SN CPE*: ${serialNumber}
 
-      \n\nMohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
+Saya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *${count} kali*.
+
+Berikut detail data pelanggan saya:
+
+* *ID Pelanggan*: ${userInfo?.customer_code || "-"}
+* *Nama Pelanggan*: ${userInfo?.name || "-"}
+* *Nomor HP*: ${userInfo?.phone_number || "-"}
+* *SN CPE*: ${serialNumber}
+
+*Detail Kendala Percobaan Aktivasi:*
+
+${attemptLogs || "* *Tidak ada riwayat error tercatat*"}${lastTimeLog}
+
+Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
     );
+
     try {
       const resPhone = await getDealerSuppPhone();
 
@@ -109,17 +144,10 @@ function InputManualForm() {
       // trigger SSE
       const res = await Activation({ sn: serialNumber });
 
-      if (
-        (res.data?.statusCode === 200 || res.data?.statusCode === 201) &&
-        res.data.data?.status === "Success"
-      ) {
+      if (res.data.data?.status === "Success") {
         setOpenModalSuccess(true);
         return;
-      } else if (
-        res.data.statusCode === 200 ||
-        res.data.statusCode === 201 ||
-        res.data.data?.status === "pending"
-      ) {
+      } else if (res.data.data?.status === "pending") {
         resetFailedAttempt();
 
         toast.loading(
@@ -127,13 +155,10 @@ function InputManualForm() {
             "Sedang proses aktivasi, silakan cek status secara berkala",
         );
       } else {
-        incrementFailedAttempt(serialNumber!);
-
-        errors.serial_number =
+        const errorMessage =
           res.data.message || "Serial Number tidak valid. Silakan coba lagi.";
-        throw new Error(
-          res?.data?.message || "Serial Number tidak valid. Silakan coba lagi.",
-        );
+        errors.serial_number = errorMessage;
+        throw new Error(errorMessage);
       }
 
       // jika ada error
@@ -148,7 +173,12 @@ function InputManualForm() {
         addUrlParam("serial_number", serialNumber);
       }
     } catch (error: any) {
-      incrementFailedAttempt(serialNumber!);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.";
+
+      incrementFailedAttempt(serialNumber!, errorMessage);
       setOpenModalFailed(true);
 
       const statusCode = error?.response?.data?.statusCode;
@@ -167,9 +197,7 @@ function InputManualForm() {
       }
 
       setErrors({
-        serial_number:
-          error.response?.data?.message ||
-          "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.",
+        serial_number: errorMessage,
       });
       toastErrorFromAPI(error);
     } finally {
@@ -239,28 +267,19 @@ function InputManualForm() {
             </div>
           </div>
 
-          <div className="mt-4 text-sm text-gray-600 text-center">
-            {hasReachedMaxAttempts() && (
-              <p>
-                Percobaan gagal: {getCurrentAttemptCount()}/
-                {FAILED_ATTEMPT_CONFIG.MAX_ATTEMPTS}
-              </p>
-            )}
-            {hasReachedMaxAttempts() && (
-              <div className="mt-4">
-                <p className="text-red-600 font-semibold mb-2">
-                  Batas percobaan gagal tercapai (
-                  {FAILED_ATTEMPT_CONFIG.MAX_ATTEMPTS}x)
-                </p>
+          {hasReachedMaxAttempts() && (
+            <div className="mt-10 flex flex-col items-center w-full">
+              <div className="text-sm">Mengalami Kendala?</div>
+              <div className="mt-3">
                 <button
                   onClick={contactCS}
-                  className="w-full bg-primary text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                  className="w-full bg-primary text-white font-bold py-3 px-4 rounded-xl transition-colors"
                 >
                   Hubungi Customer Service
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </form>
       </div>
 
@@ -313,56 +332,83 @@ function InputManualForm() {
           }}
           classNameModal="p-6 max-w-lg w-full mx-4 text-center"
         >
-          {/* Modal Content */}
-          <div className="flex justify-center items-center">
-            {isSNNotFound && (
-              <Image
-                src={noSN}
-                width={200}
-                height={200}
-                alt="Nomor SN Invalid w-full"
-              />
-            )}
-            {isSNUsed && (
-              <Image
-                src={SNUsed}
-                width={200}
-                height={200}
-                alt="Nomor SN Invalid w-full"
-              />
-            )}
-          </div>
+          {hasReachedMaxAttempts() ? (
+            <>
+              <div className="flex justify-center items-center mb-4">
+                <Image
+                  src={maxAttemptImage}
+                  width={200}
+                  height={200}
+                  alt="Percobaan Mencapai 3 kali"
+                />
+              </div>
+              <h3 className="text-dark-primary font-bold text-xl mt-4">
+                {errors.serial_number ??
+                  "Serial Number salah atau tidak ditemukan"}
+              </h3>
+              <p className="mt-5 font-medium text-sm text-black">
+                Proses Aktivasi masih membutuhkan waktu. Silakan hubungi
+                Customer Service untuk bantuan lebih lanjut.
+              </p>
+              <div className="mt-5 flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpenModalFailed(false);
+                    contactCS();
+                  }}
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-primary border-2 border-primary hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
+                >
+                  Hubungi Customer Service
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpenModalFailed(false)}
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-white border-2 border-primary hover:bg-red-50 px-6 py-3 text-primary text-sm font-semibold cursor-pointer"
+                >
+                  Coba Lagi
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-center items-center">
+                {isSNNotFound && (
+                  <Image
+                    src={noSN}
+                    width={200}
+                    height={200}
+                    alt="Nomor SN Invalid w-full"
+                  />
+                )}
+                {isSNUsed && (
+                  <Image
+                    src={SNUsed}
+                    width={200}
+                    height={200}
+                    alt="Nomor SN Invalid w-full"
+                  />
+                )}
+              </div>
 
-          <h3 className="text-dark-primary font-bold text-xl mt-6">
-            {errors.serial_number ?? "Serial Number salah atau tidak ditemukan"}
-          </h3>
-          <p className="mt-5 font-medium text-sm text-black">
-            Silakan input ulang Serial Number Anda
-          </p>
+              <h3 className="text-dark-primary font-bold text-xl mt-6">
+                {errors.serial_number ??
+                  "Serial Number salah atau tidak ditemukan"}
+              </h3>
+              <p className="mt-5 font-medium text-sm text-black">
+                Silakan input ulang Serial Number Anda
+              </p>
 
-          <div className="mt-5 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setOpenModalFailed(false)}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-button hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
-            >
-              Input Ulang
-            </button>
-          </div>
-
-          {hasReachedMaxAttempts() && (
-            <div className="mt-5 flex justify-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setOpenModalFailed(false);
-                  contactCS();
-                }}
-                className="inline-flex w-full items-center justify-center rounded-xl bg-red-600 hover:bg-red-700 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
-              >
-                Hubungi Customer Service
-              </button>
-            </div>
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setOpenModalFailed(false)}
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-button hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
+                >
+                  Input Ulang
+                </button>
+              </div>
+            </>
           )}
         </ModalTemplate>
       )}
