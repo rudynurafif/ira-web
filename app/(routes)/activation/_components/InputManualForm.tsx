@@ -61,7 +61,7 @@ function InputManualForm() {
 
   async function contactCS() {
     if (!serialNumber) {
-      toast.error("Serial Number tidak ditemukan");
+      toast.error("Pastikan SN sudah diinput");
       return;
     }
 
@@ -73,7 +73,9 @@ function InputManualForm() {
 
     // Format detail kendala
     const attemptLogs = failedData.attempts
-      .map((msg, idx) => `* *Percobaan ${idx + 1}*: ${msg}`)
+      .map(
+        (log, idx) => `* *Percobaan ${idx + 1}*: ${log.message} (SN: ${log.sn})`,
+      )
       .join("\n");
 
     // Format Waktu Percobaan Terakhir
@@ -101,7 +103,7 @@ Berikut detail data pelanggan saya:
 * *ID Pelanggan*: ${userInfo?.customer_code || "-"}
 * *Nama Pelanggan*: ${userInfo?.name || "-"}
 * *Nomor HP*: ${userInfo?.phone_number || "-"}
-* *SN CPE*: ${serialNumber}
+* *SN CPE Saat Ini*: ${serialNumber}
 
 *Detail Kendala Percobaan Aktivasi:*
 
@@ -148,7 +150,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
         setOpenModalSuccess(true);
         return;
       } else if (res.data.data?.status === "pending") {
-        resetFailedAttempt();
+        // resetFailedAttempt();
 
         toast.loading(
           res.data.message ||
@@ -168,7 +170,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
       } else {
         // jika berhasil
         setErrors({});
-        resetFailedAttempt();
+        // resetFailedAttempt();
         addUrlParam("section", "connect");
         addUrlParam("serial_number", serialNumber);
       }

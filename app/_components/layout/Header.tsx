@@ -49,6 +49,8 @@ function Header() {
   const headerRef = useRef<HTMLDivElement>(null);
   const { userInfo } = useAppSelector((state) => state.auth);
 
+  const buttonLabel = pathname === "/auth/login" ? "Daftar" : "Masuk";
+
   // =============== Token Sync Logic (Tetap sama) ===============
   const syncTokenFromCookie = useCallback(() => {
     const cookieToken = getCookie("token-ira") as string | null;
@@ -254,7 +256,7 @@ function Header() {
         } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white shadow-sm transition`}
       >
         <FaRegUser />
-        Masuk/Daftar
+        {buttonLabel}
       </button>
     );
   };
@@ -274,7 +276,7 @@ function Header() {
         } text-white rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap shadow-sm`}
       >
         <FaRegUser />
-        <span>Masuk/Daftar</span>
+        <span>{buttonLabel}</span>
       </button>
     );
   };
@@ -336,7 +338,7 @@ function Header() {
             </div>
 
             {/* Mobile Controls: Hamburger + Login Button (if not logged in) */}
-            <div className="lg:hidden flex items-center gap-2">
+            <div className="lg:hidden flex items-center gap-3">
               {/* Tombol Auth (Hanya muncul jika belum login) */}
               <MobileAuthButton />
 
