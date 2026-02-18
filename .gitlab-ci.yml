@@ -78,6 +78,7 @@ devel-job:       # This job runs in the build stage, which runs first.
         docker stop fwa_trx_service_app fwa_cron_service_app fwa_mailer_service_app; \
         docker compose -f $COMPOSE_FILE build --no-cache $COMPOSE_SRV; \
         docker compose -f $COMPOSE_FILE up -d $COMPOSE_SRV; \
+        docker ps -a | grep $CONT_NAME; \
         docker start fwa_trx_service_app fwa_cron_service_app fwa_mailer_service_app; \
         docker builder prune -a -f; \
         docker image prune -a -f; \
@@ -131,10 +132,11 @@ staging-job:       # This job runs in the build stage, which runs first.
         cd $PATH_DIR; \
         git pull origin stage; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
-        docker rmi $IMG_NAME:$STAGE_VER; \
+        docker rmi $IMG_NAME:$DEV_VER; \
         docker stop fwa_trx_service_app fwa_cron_service_app fwa_mailer_service_app; \
         docker compose -f $COMPOSE_FILE build --no-cache $COMPOSE_SRV; \
         docker compose -f $COMPOSE_FILE up -d $COMPOSE_SRV; \
+        docker ps -a | grep $CONT_NAME; \
         docker start fwa_trx_service_app fwa_cron_service_app fwa_mailer_service_app; \
         docker builder prune -a -f; \
         docker image prune -a -f; \
@@ -188,9 +190,10 @@ deploy-production:
         cd $PATH_DIR; \
         git pull origin main; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
-        docker rmi $IMG_NAME:$PROD_VER; \
+        docker rmi $IMG_NAME:$DEV_VER; \
         docker compose -f $COMPOSE_FILE build --no-cache $COMPOSE_SRV; \
         docker compose -f $COMPOSE_FILE up -d $COMPOSE_SRV; \
+        docker ps -a | grep $CONT_NAME; \
         docker builder prune -a -f; \
         docker image prune -a -f; \
         docker exec -it $CONT_NAME sh -c 'npm ls && npm outdate && npm audit'; \
