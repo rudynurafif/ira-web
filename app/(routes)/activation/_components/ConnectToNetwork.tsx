@@ -760,13 +760,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
     }
   };
 
-  const sseHint =
-    sseStatus === "open"
-      ? "Terhubung ke server aktivasi"
-      : sseStatus === "error"
-        ? "Koneksi server tidak stabil — kamu masih bisa cek status manual"
-        : "Menyambungkan ke server aktivasi...";
-
   // ---- UI 10 menit ----
   if (screen === "timedOut") {
     return (
