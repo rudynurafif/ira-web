@@ -38,6 +38,7 @@ import {
   hasReachedMaxAttempts,
   getCurrentAttemptCount,
   FAILED_ATTEMPT_CONFIG,
+  getFailedAttemptData,
 } from "@/app/_shared/utils/failedAttemptCounter";
 import { useAppSelector } from "@/app/store/store";
 
@@ -502,7 +503,13 @@ export default function ConnectToNetwork() {
         id: "refresh",
       });
     } catch (err: any) {
-      incrementFailedAttempt(serialNumber);
+      const errorMessage =
+        err?.response?.data?.data?.error_message ||
+        err?.message ||
+        "Gagal mengecek status aktivasi";
+
+      incrementFailedAttempt(serialNumber, errorMessage);
+
       toastErrorFromAPI(err, "refresh");
       setActivateStatus("failed");
       setInternetStatus("failed");
@@ -514,7 +521,6 @@ export default function ConnectToNetwork() {
     if (!serialNumber) return;
     if (activationConfirmedRef.current) return;
 
-    // Cek batas percobaan
     if (attempt >= MAX_ATTEMPT || hasReachedMaxAttempts()) {
       setScreen("failedFinal");
       return;
@@ -527,47 +533,48 @@ export default function ConnectToNetwork() {
     try {
       toast.loading("Mengirim permintaan aktivasi...", { id: "activate" });
 
-      // 🔥 Panggil API aktivasi seperti di InputManualForm
       const res = await Activation({ sn: serialNumber });
 
-      if (res.data?.statusCode === 200 && res.data?.data?.status === "Success") {
+      if (res.data?.data?.status === "Success") {
         if (!activationConfirmedRef.current) {
           handleActivationSuccess("api");
         }
         return;
-      } else if (
-        res.data.data?.status === "pending" ||
-        res.data.statusCode === 200 ||
-        res.data.statusCode === 201
-      ) {
+      } else if (res.data.data?.status === "pending") {
         toast.loading(
           res.data.message ||
             "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
           { id: "activate" },
         );
 
-        // Set status ke loading karena SSE akan menangani update selanjutnya
         setActivateStatus("loading");
-        setInternetStatus("loading"); // atau "loading" jika langsung cek ping
+        setInternetStatus("loading");
         setScreen("loading");
-
-        // Tidak perlu panggil refreshTask — biarkan SSE handle update
       } else {
         throw new Error(res.data.message || "Aktivasi gagal.");
       }
     } catch (err: any) {
       toast.dismiss("activate");
+
+      let errorMessage = "Aktivasi gagal.";
+
       if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
         toast.error(
           "Koneksi internet tidak stabil. Coba ganti koneksi internet, dan pastikan Anda memiliki koneksi yang baik, lalu coba lagi.",
           { duration: 15000 },
         );
       } else {
+        const apiMessage = err?.response?.data?.message || err?.message;
+        errorMessage =
+          apiMessage ||
+          "Gagal mengirim permintaan aktivasi. Silakan coba lagi.";
+
         toastErrorFromAPI(
           err,
           "Gagal mengirim permintaan aktivasi. Silakan coba lagi.",
         );
-        incrementFailedAttempt(serialNumber);
+
+        incrementFailedAttempt(serialNumber, errorMessage);
       }
 
       if (nextAttempt >= MAX_ATTEMPT || hasReachedMaxAttempts()) {
@@ -629,24 +636,64 @@ export default function ConnectToNetwork() {
   }, []);
 
   async function contactCS() {
+    if (!serialNumber) {
+      toast.error("Serial Number tidak ditemukan");
+      return;
+    }
+
+    const failedData = getFailedAttemptData();
+    const count =
+      failedData.attempts.length > 0
+        ? failedData.attempts.length
+        : failedData.count;
+
+    // Format detail kendala
+    const attemptLogs = failedData.attempts
+      .map((msg, idx) => `* *Percobaan ${idx + 1}*: ${msg}`)
+      .join("\n");
+
+    // Format Waktu Percobaan Terakhir
+    let lastTimeLog = "";
+    if (failedData.lastFailedAt) {
+      const date = new Date(failedData.lastFailedAt);
+      const formattedDate = date.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Jakarta",
+      });
+      lastTimeLog = `\n* *Waktu Percobaan Terakhir*: ${formattedDate} WIB`;
+    }
+
     const msg = encodeURIComponent(
       `Halo Customer Service IRA 👋
-      \n\nSaya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *3 kali*, dan memerlukan bantuan lebih lanjut.
-      \nBerikut detail data pelanggan saya:
-      \n* *ID Pelanggan*: ${userInfo?.customer_code || "-"}
-      \n* *Nama Pelanggan*: ${userInfo?.name || "-"}
-      \n* *Nomor Telepon*: ${userInfo?.phone_number || "-"}
-      \n* *SN CPE*: ${serialNumber}
 
-      \n\nMohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
+Saya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *${count} kali*.
+
+Berikut detail data pelanggan saya:
+
+* *ID Pelanggan*: ${userInfo?.customer_code || "-"}
+* *Nama Pelanggan*: ${userInfo?.name || "-"}
+* *Nomor HP*: ${userInfo?.phone_number || "-"}
+* *SN CPE*: ${serialNumber}
+
+*Detail Kendala Percobaan Aktivasi:*
+
+${attemptLogs || "* *Tidak ada riwayat error tercatat*"}${lastTimeLog}
+
+Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
     );
+
     try {
       const resPhone = await getDealerSuppPhone();
 
       if (resPhone.data.statusCode === 200) {
         const phone = resPhone.data?.data?.cs_phone_number ?? phoneCSIRA;
-
         window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+      } else {
+        window.open(`https://wa.me/${phoneCSIRA}?text=${msg}`, "_blank");
       }
     } catch (err: any) {
       toastErrorFromAPI(err ?? "Gagal mendapatkan nomor Customer Service");
@@ -671,49 +718,47 @@ export default function ConnectToNetwork() {
     clearSse("5");
     clearTimeoutSafe();
 
-    // 🔥 Mulai cooldown untuk refresh task
     startCooldown(CHECK_COOLDOWN_SEC);
 
-    // 🔥 Kirim ulang permintaan aktivasi ke server
     try {
       toast.loading("Mengirim ulang permintaan aktivasi...", { id: "restart" });
 
       const res = await Activation({ sn: serialNumber });
 
-      if (res.data.statusCode === 200 || res.data.statusCode === 201) {
+      if (res.data.data?.status === "Success") {
+        if (!activationConfirmedRef.current) {
+          handleActivationSuccess("api");
+        }
+        return;
+      } else if (res.data?.data?.status === "pending") {
         toast.loading(
           res.data.message ||
             "Permintaan aktivasi dikirim. Menunggu respons dari sistem...",
           { id: "restart" },
         );
-
-        // Biarkan SSE menangani update status selanjutnya
-        // Status UI sudah di-set ke "loading" di atas
       } else {
-        // Jika langsung gagal, tampilkan error
         throw new Error(res.data.message || "Aktivasi gagal.");
       }
     } catch (err: any) {
       toast.dismiss("restart");
+
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Gagal mengirim ulang permintaan aktivasi.";
+
       toastErrorFromAPI(
         err,
         "Gagal mengirim ulang permintaan aktivasi. Silakan coba lagi.",
       );
 
-      // Tetap izinkan user mencoba lagi (karena kita tidak memblokir >3x)
-      incrementFailedAttempt(serialNumber);
+      incrementFailedAttempt(serialNumber, errorMessage);
+
       setScreen("failed");
       setActivateStatus("failed");
       setInternetStatus("failed");
     }
   };
-
-  const sseHint =
-    sseStatus === "open"
-      ? "Terhubung ke server aktivasi"
-      : sseStatus === "error"
-        ? "Koneksi server tidak stabil — kamu masih bisa cek status manual"
-        : "Menyambungkan ke server aktivasi...";
 
   // ---- UI 10 menit ----
   if (screen === "timedOut") {
@@ -778,8 +823,6 @@ export default function ConnectToNetwork() {
               <SignalArc isLeft={false} />
             </div>
           </div>
-
-          {/* <div className="text-[12px] text-[#666]">{sseHint}</div> */}
         </div>
 
         {/* ✅ Dua step terpisah tampil bersamaan */}
@@ -820,11 +863,6 @@ export default function ConnectToNetwork() {
               ? `Cek Status Aktivasi (${formatTime(cooldown)})`
               : "Cek Status Aktivasi"}
           </button>
-
-          {/* <div className="text-[12px] text-[#666]">
-            Percobaan: <span className="font-semibold">{attempt}</span>/
-            {MAX_ATTEMPT}
-          </div> */}
         </div>
       </div>
     );
@@ -845,10 +883,6 @@ export default function ConnectToNetwork() {
           <div className="text-old-primary font-bold">
             Proses Aktivasi <Badge color="green">Berhasil</Badge>
           </div>
-          {/* <p className="max-w-170 mx-auto mt-2">
-            Perangkat sudah terhubung ke jaringan inti dan konektivitas internet
-            sudah terverifikasi. Kamu bisa lanjut ke pengaturan WiFi.
-          </p> */}
           <p className="max-w-170 mx-auto mt-2">
             Perangkat Anda telah berhasil diaktifkan dan terhubung ke jaringan
             inti. Internet sekarang sudah siap digunakan.
@@ -882,9 +916,6 @@ export default function ConnectToNetwork() {
           <p className="text-[#666] max-w-170 mx-auto mt-2">
             Proses aktivasi masih membutuhkan waktu silahkan coba kembali
           </p>
-          {/* <div className="text-old-primary font-bold mt-1">
-            ({attempt}/{MAX_ATTEMPT})
-          </div> */}
         </div>
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
@@ -895,14 +926,6 @@ export default function ConnectToNetwork() {
           >
             Ulangi Proses Aktivasi
           </button>
-
-          {/* <button
-            onClick={contactCS}
-            className="w-full flex items-center justify-center gap-2 bg-white border-2 border-primary text-primary hover:bg-red-50 cursor-pointer font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
-            type="button"
-          >
-            Hubungi Customer Service <MdHeadsetMic size={20} />
-          </button> */}
         </div>
       </div>
     );
@@ -923,12 +946,6 @@ export default function ConnectToNetwork() {
             Aktivasi perangkat tidak berhasil setelah beberapa saat. Hubungi
             Customer Service untuk bantuan lebih lanjut.
           </p>
-          <div className="text-old-primary font-bold mt-1">
-            ({getCurrentAttemptCount()}/{FAILED_ATTEMPT_CONFIG.MAX_ATTEMPTS})
-          </div>
-          {/* <div className="text-old-primary font-bold mt-1">
-            ({MAX_ATTEMPT}/{MAX_ATTEMPT})
-          </div> */}
         </div>
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
