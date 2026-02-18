@@ -382,7 +382,13 @@ export default function ConnectToNetwork() {
             );
           } else {
             activateSuccessRef.current = false;
-            incrementFailedAttempt(serialNumber);
+
+            const sseErrorMessage =
+              data?.message ||
+              data?.wewins_result?.message ||
+              "Gagal aktivasi melalui jaringan";
+
+            incrementFailedAttempt(serialNumber, sseErrorMessage);
 
             stopCooldown();
             setActivateStatus("failed");
@@ -404,7 +410,7 @@ export default function ConnectToNetwork() {
               }
             }, 2000);
           } else {
-            incrementFailedAttempt(serialNumber);
+            // incrementFailedAttempt(serialNumber);
             setInternetStatus("success");
             setTimeout(() => {
               if (!activationConfirmedRef.current) {
@@ -649,7 +655,9 @@ export default function ConnectToNetwork() {
 
     // Format detail kendala
     const attemptLogs = failedData.attempts
-      .map((msg, idx) => `* *Percobaan ${idx + 1}*: ${msg}`)
+      .map(
+        (log, idx) => `* *Percobaan ${idx + 1}*: ${log.message} (SN: ${log.sn})`,
+      )
       .join("\n");
 
     // Format Waktu Percobaan Terakhir
@@ -677,7 +685,7 @@ Berikut detail data pelanggan saya:
 * *ID Pelanggan*: ${userInfo?.customer_code || "-"}
 * *Nama Pelanggan*: ${userInfo?.name || "-"}
 * *Nomor HP*: ${userInfo?.phone_number || "-"}
-* *SN CPE*: ${serialNumber}
+* *SN CPE Saat Ini*: ${serialNumber}
 
 *Detail Kendala Percobaan Aktivasi:*
 
@@ -958,7 +966,11 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           </button>
 
           <button
-            onClick={() => router.push("/activation?section=input")}
+            onClick={() =>
+              router.push(
+                `/activation?section=input&serial_number=${serialNumber}`,
+              )
+            }
             className="w-full bg-white border-2 border-primary text-primary hover:bg-red-50 cursor-pointer font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >

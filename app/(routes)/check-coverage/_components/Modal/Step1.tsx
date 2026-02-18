@@ -93,7 +93,7 @@ function Step1({
           <p className="mt-3 w-full mx-auto text-center">
             {status
               ? "Klik tombol di bawah ini untuk mulai berlangganan paket internet Internet Rakyat."
-              : "Jangan khwatir! Kami akan segera memberi tahu kamu melalui Aplikasi IRA jika layanan kami tersedia di daerahmu."}
+              : "Jangan khawatir! Kami akan segera memberi tahu kamu melalui Aplikasi IRA jika layanan kami tersedia di daerahmu."}
           </p>
           <button
             onClick={handleNext}

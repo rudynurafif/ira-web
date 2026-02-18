@@ -6,11 +6,16 @@
 const FAILED_ATTEMPT_KEY = "activation_failed_attempts";
 const MAX_ATTEMPTS = 3;
 
+interface AttemptLog {
+  sn: string;
+  message: string;
+}
+
 interface FailedAttemptData {
   count: number;
   lastFailedAt: number | null;
   serialNumbers: string[];
-  attempts: string[]; // Baru: Menyimpan pesan error per percobaan
+  attempts: AttemptLog[];
 }
 
 // Initialize default data
@@ -72,8 +77,16 @@ export const incrementFailedAttempt = (
   }
 
   // Track error message if provided
-  if (errorMessage) {
-    data.attempts.push(errorMessage);
+  if (serialNumber && errorMessage) {
+    data.attempts.push({
+      sn: serialNumber,
+      message: errorMessage,
+    });
+
+    // Batasi riwayat hanya 5 percobaan terakhir agar tidak terlalu panjang
+    if (data.attempts.length > 5) {
+      data.attempts.shift();
+    }
   }
 
   saveFailedAttemptData(data);
