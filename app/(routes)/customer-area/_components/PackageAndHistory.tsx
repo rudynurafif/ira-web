@@ -558,7 +558,7 @@ const PackageAndHistory = () => {
                   Layanan di Areamu Segera Hadir
                 </h1>
                 <p className="mt-3 w-full mx-auto text-center">
-                  Jangan khwatir! Kami akan segera memberi tahu kamu melalui
+                  Jangan khawatir! Kami akan segera memberi tahu kamu melalui
                   Aplikasi IRA jika layanan kami tersedia di daerahmu.
                 </p>
                 <button

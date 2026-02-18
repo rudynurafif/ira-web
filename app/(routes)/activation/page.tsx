@@ -57,7 +57,7 @@ function Page() {
     if (shipmentStatus !== "done") {
       router.replace("/customer-area");
       toast.error(
-        "Pastikan anda sudah melakukan proses penerimaan perangkat CPE sebelum melakukan aktivasi."
+        "Pastikan anda sudah melakukan proses penerimaan perangkat CPE sebelum melakukan aktivasi.",
       );
       return;
     }
