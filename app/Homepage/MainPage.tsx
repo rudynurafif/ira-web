@@ -241,10 +241,10 @@ function MainPage() {
           </div>
           <div className="text-center">
             <div
-              className="bg-opacity-red-10 sm:hidden inline-block rounded-full px-5 py-2.5 2xl:text-xl sm:text-lg text-sm text-white font-semibold  mt-2.5 shadow-sm shadow-white"
+              className="bg-white/25 sm:hidden inline-block rounded-full px-5 py-2.5 2xl:text-xl sm:text-lg text-sm text-white font-semibold  mt-2.5 shadow-sm shadow-white"
               style={{
                 textShadow:
-                  "0 4px 4px rgba(0, 0, 0, 0.25), 1px 20px 14px rgba(214, 33, 30, 0.50)",
+                  "0 4px 4px rgba(0, 0, 0, 0.50), 1px 20px 14px rgba(214, 33, 30, 0.90)",
               }}
             >
               Internet ngebut tanpa ribet pakai kabel.
