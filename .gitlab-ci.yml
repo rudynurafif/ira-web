@@ -190,7 +190,7 @@ deploy-production:
         cd $PATH_DIR; \
         git pull origin main; \
         docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
-        docker rmi $IMG_NAME:$STAGE_VER; \
+        docker rmi $IMG_NAME:$PROD_VER; \
         docker compose -f $COMPOSE_FILE build --no-cache $COMPOSE_SRV; \
         docker compose -f $COMPOSE_FILE up -d $COMPOSE_SRV; \
         docker ps -a | grep $CONT_NAME; \
