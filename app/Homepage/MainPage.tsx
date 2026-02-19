@@ -204,6 +204,16 @@ function MainPage() {
                 RESMI GO COMMERCIAL
               </div>
             </div>
+
+            <h1
+              className="text-center block sm:hidden font-bold text-white leading-[1.18] text-[26px]"
+              style={{
+                textShadow:
+                  "0 4px 4px rgba(0, 0, 0, 0.25), 1px 20px 14px rgba(214, 33, 30, 0.50)",
+              }}
+            >
+              Mulai Hari Ini, 19 Feb 2026
+            </h1>
           </div>
 
           <div className="text-center">
@@ -214,7 +224,13 @@ function MainPage() {
               alt="wifi-icon"
               className="mx-auto"
             />
-            <div className="bg-opacity-black-10 rounded-full px-5 py-2.5 2xl:text-xl sm:text-lg text-sm text-white font-semibold inline-block mt-2.5 shadow-sm shadow-white">
+            <div
+              className="bg-opacity-black-10 sm:inline-block hidden rounded-full px-5 py-2.5 2xl:text-xl sm:text-lg text-sm text-white font-semibold  mt-2.5 shadow-sm shadow-white"
+              style={{
+                textShadow:
+                  "0 4px 4px rgba(0, 0, 0, 0.25), 1px 20px 14px rgba(214, 33, 30, 0.50)",
+              }}
+            >
               Internet ngebut tanpa ribet pakai kabel.
             </div>
           </div>
@@ -224,8 +240,20 @@ function MainPage() {
             </div>
           </div>
           <div className="text-center">
+            <div
+              className="bg-opacity-red-10 sm:hidden inline-block rounded-full px-5 py-2.5 2xl:text-xl sm:text-lg text-sm text-white font-semibold  mt-2.5 shadow-sm shadow-white"
+              style={{
+                textShadow:
+                  "0 4px 4px rgba(0, 0, 0, 0.25), 1px 20px 14px rgba(214, 33, 30, 0.50)",
+              }}
+            >
+              Internet ngebut tanpa ribet pakai kabel.
+            </div>
+          </div>
+
+          <div className="text-center">
             <h1
-              className="text-center font-bold text-white leading-[1.18] text-3xl sm:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl"
+              className="text-center hidden sm:block font-bold text-white leading-[1.18] text-3xl sm:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl"
               style={{
                 textShadow:
                   "0 4px 4px rgba(0, 0, 0, 0.25), 1px 20px 14px rgba(214, 33, 30, 0.50)",
@@ -265,11 +293,7 @@ function MainPage() {
 
           {/* Wrapper Utama untuk Tombol Download */}
           <div className="z-9999">
-            {/* --- VERSI MOBILE (Tampilan sesuai gambar Figma) --- */}
-            {/* Muncul hanya di layar kecil (default), hilang di md ke atas */}
-
             {/* --- VERSI DESKTOP (Pojok Kiri Bawah) --- */}
-            {/* Muncul hanya di layar md ke atas, posisi absolute */}
             <div className="hidden md:absolute bottom-5 left-10 md:flex flex-col gap-3">
               {/* Google Button */}
               <Image
