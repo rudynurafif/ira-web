@@ -275,8 +275,8 @@ function MainPage() {
               <Image
                 src={googleButton}
                 alt="google"
-                width={100}
-                height={60}
+                width={500}
+                height={500}
                 onClick={() => handleClick("google")}
                 className="w-[150px] lg:w-[180px] h-auto hover:scale-105 transition-transform"
               />
@@ -286,18 +286,18 @@ function MainPage() {
                 <Image
                   src={webButton}
                   alt="web"
-                  width={100}
-                  height={60}
+                  width={500}
+                  height={500}
                   onClick={() => handleClick("web")}
-                  className="w-[140px] lg:w-[160px] h-auto hover:scale-105 transition-transform"
+                  className="w-[110px] lg:w-[150px] h-fit hover:scale-105 transition-transform"
                 />
                 {/* Dealer Button */}
                 <Image
                   src={dealerButton}
                   alt="dealer"
-                  width={100}
-                  height={60}
-                  className="w-[140px] lg:w-[160px] h-auto hover:scale-105 transition-transform"
+                  width={500}
+                  height={500}
+                  className="w-[140px] lg:w-[180px] h-fit hover:scale-105 transition-transform"
                 />
               </div>
             </div>
