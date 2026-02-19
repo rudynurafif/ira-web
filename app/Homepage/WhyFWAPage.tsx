@@ -7,6 +7,10 @@ import Image, { StaticImageData } from "next/image";
 import RegisterNowCard from "../_components/homepage/RegisterNowCard";
 import { useAppSelector } from "../store/store";
 
+import googleButton from "@/public/assets/Images/googlePlayButton.png";
+import webButton from "@/public/assets/Images/web-ira-button.png";
+import dealerButton from "@/public/assets/Images/dealer-ira-button.png";
+
 interface descriptionListType {
   id: number;
   image: StaticImageData;
@@ -36,8 +40,67 @@ function WhyFWAPage() {
     (state) => state.auth,
   );
 
+  const handleClick = (type: string): void => {
+    try {
+      if (type === "google") {
+        window.open(
+          "https://play.google.com/store/apps/details?id=com.weave.ira",
+          "_blank",
+        );
+      } else {
+        window.open("https://internetrakyat.id/", "_blank");
+      }
+    } catch (error) {
+      console.error("Error handling download:", error);
+    }
+  };
+
   return (
     <div className="container mx-auto px-5 text-black py-18 max-sm:py-9">
+      <div className="md:hidden flex flex-col items-center gap-4 w-full px-4 pb-20 -mt-20">
+        {/* Teks Atas */}
+        <p className="text-gray-800 font-bold text-2xl text-center z-9999">
+          Temukan Aplikasi IRA di
+        </p>
+
+        {/* Tombol Google Play (Lebar menyesuaikan konten/tengah) */}
+        <div className="w-full flex justify-center z-9999">
+          <Image
+            src={googleButton}
+            alt="google-play"
+            width={200}
+            height={60}
+            className="w-[180px] h-auto object-contain"
+            onClick={() => handleClick("google")}
+          />
+        </div>
+
+        {/* Teks Tengah */}
+        <p className="text-gray-800 font-bold text-sm sm:text-base text-center z-9999">
+          atau Kunjungi Kami di
+        </p>
+
+        {/* Tombol Bawah (Website & Dealer) - Lebar Penuh/Stack Vertikal atau Side-by-Side */}
+        {/* Sesuai gambar, mereka berdampingan tapi cukup besar. Kita buat responsif: */}
+        <div className="flex flex-row gap-3 w-full justify-center z-9999">
+          <Image
+            src={webButton}
+            alt="website-ira"
+            width={134}
+            height={60}
+            className="w-[135px] h-fit object-contain"
+            onClick={() => handleClick("web")}
+          />
+          <Image
+            src={dealerButton}
+            alt="dealer-resmi"
+            width={134}
+            height={60}
+            className="w-[169px] h-fit object-contain"
+          />
+        </div>
+      </div>
+
       <h1 className="text-[32px] max-sm:text-[24px] font-bold text-center">
         Mengapa pilih Internet Rakyat <span className="inline">(IRA) ?</span>
       </h1>
