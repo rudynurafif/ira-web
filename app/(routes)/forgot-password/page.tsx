@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react"; // 👈 Tambah Suspense
+import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -13,9 +13,10 @@ import {
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import Loader from "@/app/_components/Loader";
+import { PiDotsThreeCircle } from "react-icons/pi";
+import { FaApple } from "react-icons/fa6";
 
-// 👇 Rename jadi ResetPasswordContent (isi tetap sama persis)
-function ResetPasswordContent() {
+const Page = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -30,51 +31,33 @@ function ResetPasswordContent() {
   const [confirmError, setConfirmError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isTemplateValid, setIsTemplateValid] = useState<boolean | null>(null);
+
   const [errors, setErrors] = useState<{
     password?: string;
     confirmPassword?: string;
   }>({});
 
-  // Deteksi Device di useEffect agar aman di WKWebView
+  // 1. Deteksi Device di useEffect agar aman di WKWebView
   useEffect(() => {
     setIsReady(true);
 
+    // Safe access to navigator
     if (typeof navigator !== "undefined") {
       const ua = navigator.userAgent;
-
       const isAppleDevice =
         /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
-
       const isWA =
         ua.toLowerCase().includes("whatsapp") ||
-        ua.toLowerCase().includes("wkwk") ||
-        ua.includes("WhatsApp") ||
-        ua.includes("wv") ||
-        ua.includes("FBAN") ||
-        ua.includes("FBAV");
+        ua.toLowerCase().includes("wkwk"); // wkwk kadang typo di beberapa UA, tapi whatsapp pasti ada
 
       setIsIOS(isAppleDevice);
       setIsWhatsApp(isWA);
-
-      if (isAppleDevice && isWA) {
-        const currentPath = window.location.pathname;
-        const queryString = window.location.search;
-
-        const target = encodeURIComponent(`${currentPath}${queryString}`);
-        const redirectUrl = `/open-external?to=${target}`;
-
-        setTimeout(() => {
-          window.location.href = redirectUrl;
-        }, 100);
-
-        return;
-      }
     }
   }, []);
 
-  // Logic Validasi Link (Hanya dipanggil SEKALI)
+  // 2. Logic Validasi Link (Hanya dipanggil SEKALI)
   useEffect(() => {
-    if (!isReady || (isIOS && isWhatsApp)) return;
+    if (!isReady) return; // Tunggu sampai ready
 
     if (!code) {
       const timer = setTimeout(() => {
@@ -82,7 +65,7 @@ function ResetPasswordContent() {
           toast.error("Link reset password tidak ditemukan (Code missing).");
           router.replace("/");
         } catch (e) {
-          window.location.href = "/";
+          window.location.href = "/"; // Fallback jika router gagal
         }
       }, 3000);
       return () => clearTimeout(timer);
@@ -95,6 +78,7 @@ function ResetPasswordContent() {
 
         if (sc === 200 || sc === 201) {
           setIsTemplateValid(true);
+          // Delay toast sedikit agar tidak bentrok dengan render awal
           setTimeout(
             () => toast.success(res.data?.message || "Link valid."),
             100,
@@ -124,7 +108,7 @@ function ResetPasswordContent() {
     };
 
     checkTemp();
-  }, [code, router, isReady, isIOS, isWhatsApp]);
+  }, [code, router, isReady]);
 
   // ===============================
   // VALIDATION LOGIC
@@ -302,13 +286,6 @@ function ResetPasswordContent() {
       </div>
     </div>
   );
-}
+};
 
-// 👇 Export Page dengan Suspense wrapper (ini fix utamanya)
-export default function Page() {
-  return (
-    <Suspense fallback={<Loader />}>
-      <ResetPasswordContent />
-    </Suspense>
-  );
-}
+export default Page;

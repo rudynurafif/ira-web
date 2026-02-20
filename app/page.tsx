@@ -10,7 +10,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import CookieHandler from "./_components/CookieHandler";
 import DownloadApp from "./Homepage/DownloadApp";
 import { Notification } from "./_components/Notification";
-import { useFCM } from "./hooks/useFCM";
 import { useAppContext } from "./_shared/context/AppContext";
 import { platform } from "os";
 
