@@ -16,12 +16,12 @@ export function middleware(req: NextRequest) {
   );
 
   const token = req.cookies.get("token-ira")?.value;
-  const userAgent = req.headers.get("user-agent") || "";
+  // const userAgent = req.headers.get("user-agent") || "";
 
   // Detect iOS WhatsApp in-app browser
-  const isIOS = /iPhone/i.test(userAgent);
-  const isWhatsApp = /wv|WhatsApp/i.test(userAgent);
-  const isIOSWhatsAppInApp = isIOS && isWhatsApp;
+  // const isIOS = /iPhone/i.test(userAgent);
+  // const isWhatsApp = /wv|WhatsApp/i.test(userAgent);
+  // const isIOSWhatsAppInApp = isIOS && isWhatsApp;
 
   // jika sudah login tapi ingin akses login atau register, arahkan ke customer area
   if (token && pathname.startsWith("/auth/")) {
@@ -40,17 +40,17 @@ export function middleware(req: NextRequest) {
   }
 
   // KHUSUS FORGOT PASSWORD - Redirect iOS WhatsApp ke Safari
-  if (isIOSWhatsAppInApp && pathname === "/forgot-password") {
-    const code = req.nextUrl.searchParams.get("code");
+  // if (isIOSWhatsAppInApp && pathname === "/forgot-password") {
+  //   const code = req.nextUrl.searchParams.get("code");
 
-    const safariUrl = new URL("/open-external", req.url);
-    safariUrl.searchParams.set(
-      "to",
-      `/forgot-password${code ? `?code=${code}` : ""}`,
-    );
+  //   const safariUrl = new URL("/open-external", req.url);
+  //   safariUrl.searchParams.set(
+  //     "to",
+  //     `/forgot-password${code ? `?code=${code}` : ""}`,
+  //   );
 
-    return NextResponse.redirect(safariUrl);
-  }
+  //   return NextResponse.redirect(safariUrl);
+  // }
 
   return NextResponse.next();
 }

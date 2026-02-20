@@ -1,54 +1,74 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { FaExternalLinkAlt, FaApple, FaShieldAlt } from "react-icons/fa";
 
-export default function OpenExternal() {
+export default function OpenExternalPage() {
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("to") || "/";
-  const [attempted, setAttempted] = useState(false);
+  const [targetUrl, setTargetUrl] = useState<string>("/");
+  const [countdown, setCountdown] = useState(5);
+  const [manualClick, setManualClick] = useState(false);
 
   useEffect(() => {
-    if (attempted) return;
-    setAttempted(true);
+    const to = searchParams.get("to");
+    // Pastikan URL absolut
+    const finalUrl = to
+      ? to.startsWith("http")
+        ? to
+        : `${window.location.origin}${to}`
+      : window.location.origin;
 
-    // Full URL untuk redirect
-    const targetUrl = `${window.location.origin}${redirectPath}`;
+    setTargetUrl(finalUrl);
 
-    // Coba buka di Safari menggunakan window.open dengan _system
-    // Ini akan force open di system browser [[54]]
-    try {
-      const newWindow = window.open(targetUrl, "_system");
-
-      // Fallback jika window.open diblokir
-      setTimeout(() => {
-        if (!newWindow || newWindow.closed) {
-          window.location.href = targetUrl;
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          // PAKSA REDIRECT menggunakan location.href (Paling kompatibel di WKWebView)
+          if (!manualClick) {
+            window.location.href = finalUrl;
+          }
+          return 0;
         }
-      }, 500);
-    } catch (e) {
-      // Fallback ultimate
-      window.location.href = targetUrl;
-    }
-  }, [redirectPath, attempted]);
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [searchParams, manualClick]);
+
+  const handleOpenNow = () => {
+    setManualClick(true);
+    // Langsung arahkan browser sistem
+    window.location.href = targetUrl;
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <h2 className="text-xl font-bold mb-2">Membuka di Safari...</h2>
-        <p className="text-gray-600 mb-4">
-          Halaman reset password akan dibuka di browser Safari untuk keamanan
-          yang lebih baik.
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 font-sans">
+      <div className="max-w-sm w-full bg-white p-8 rounded-2xl shadow-xl text-center border border-gray-100">
+        <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <FaApple className="text-4xl text-blue-600" />
+        </div>
+
+        <h1 className="text-xl font-bold text-gray-900 mb-3">Buka di Safari</h1>
+        <p className="text-gray-600 text-sm mb-8 leading-relaxed">
+          Demi keamanan akun Anda, halaman reset password harus dibuka di
+          browser Safari, bukan di dalam WhatsApp.
         </p>
-        <p className="text-sm text-gray-500">
-          Jika tidak terbuka otomatis,{" "}
-          <a
-            href={`${window.location.origin}${redirectPath}`}
-            className="text-blue-600 underline"
-          >
-            klik di sini
-          </a>
-        </p>
+
+        <button
+          onClick={handleOpenNow}
+          className="w-full py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-blue-200"
+        >
+          <FaExternalLinkAlt className="text-lg" />
+          Buka di Safari Sekarang
+        </button>
+
+        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-gray-400">
+          <FaShieldAlt />
+          <span>Redirect otomatis dalam {countdown}s</span>
+        </div>
       </div>
     </div>
   );

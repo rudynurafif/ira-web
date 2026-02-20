@@ -13,8 +13,6 @@ import {
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import Loader from "@/app/_components/Loader";
-import { PiDotsThreeCircle } from "react-icons/pi";
-import { FaApple } from "react-icons/fa6";
 
 // 👇 Rename jadi ResetPasswordContent (isi tetap sama persis)
 function ResetPasswordContent() {
@@ -32,33 +30,51 @@ function ResetPasswordContent() {
   const [confirmError, setConfirmError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isTemplateValid, setIsTemplateValid] = useState<boolean | null>(null);
-
   const [errors, setErrors] = useState<{
     password?: string;
     confirmPassword?: string;
   }>({});
 
-  // 1. Deteksi Device di useEffect agar aman di WKWebView
+  // Deteksi Device di useEffect agar aman di WKWebView
   useEffect(() => {
     setIsReady(true);
 
-    // Safe access to navigator
     if (typeof navigator !== "undefined") {
       const ua = navigator.userAgent;
+
       const isAppleDevice =
         /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+
       const isWA =
         ua.toLowerCase().includes("whatsapp") ||
-        ua.toLowerCase().includes("wkwk");
+        ua.toLowerCase().includes("wkwk") ||
+        ua.includes("WhatsApp") ||
+        ua.includes("wv") ||
+        ua.includes("FBAN") ||
+        ua.includes("FBAV");
 
       setIsIOS(isAppleDevice);
       setIsWhatsApp(isWA);
+
+      if (isAppleDevice && isWA) {
+        const currentPath = window.location.pathname;
+        const queryString = window.location.search;
+
+        const target = encodeURIComponent(`${currentPath}${queryString}`);
+        const redirectUrl = `/open-external?to=${target}`;
+
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 100);
+
+        return;
+      }
     }
   }, []);
 
-  // 2. Logic Validasi Link (Hanya dipanggil SEKALI)
+  // Logic Validasi Link (Hanya dipanggil SEKALI)
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || (isIOS && isWhatsApp)) return;
 
     if (!code) {
       const timer = setTimeout(() => {
@@ -108,7 +124,7 @@ function ResetPasswordContent() {
     };
 
     checkTemp();
-  }, [code, router, isReady]);
+  }, [code, router, isReady, isIOS, isWhatsApp]);
 
   // ===============================
   // VALIDATION LOGIC
@@ -230,22 +246,6 @@ function ResetPasswordContent() {
 
   return (
     <div className="mx-auto max-w-xl my-10 px-6">
-      {/* Tampilkan alert hanya jika terdeteksi iOS, tanpa mengakses navigator langsung di JSX */}
-      {isIOS && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-          <p className="font-bold flex items-center gap-1">
-            <FaApple className="inline-block align-middle" />
-            <span className="align-middle">Pengguna iPhone</span>
-          </p>
-          <p className="mt-1">
-            Jika mengalami error, silakan klik tombol{" "}
-            <PiDotsThreeCircle className="inline-block align-middle" /> di pojok
-            kanan atas atau kanan bawah, lalu pilih{" "}
-            <strong>Buka di Browser Chrome/Safari</strong>.
-          </p>
-        </div>
-      )}
-
       <div>
         <h1 className="text-old-primary text-2xl font-bold text-center mb-6">
           Reset Password
