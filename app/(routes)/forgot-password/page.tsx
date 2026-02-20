@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react"; // 👈 Tambah Suspense
 import { useSearchParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -16,7 +16,8 @@ import Loader from "@/app/_components/Loader";
 import { PiDotsThreeCircle } from "react-icons/pi";
 import { FaApple } from "react-icons/fa6";
 
-const Page = () => {
+// 👇 Rename jadi ResetPasswordContent (isi tetap sama persis)
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -48,7 +49,7 @@ const Page = () => {
         /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
       const isWA =
         ua.toLowerCase().includes("whatsapp") ||
-        ua.toLowerCase().includes("wkwk"); // wkwk kadang typo di beberapa UA, tapi whatsapp pasti ada
+        ua.toLowerCase().includes("wkwk");
 
       setIsIOS(isAppleDevice);
       setIsWhatsApp(isWA);
@@ -57,7 +58,7 @@ const Page = () => {
 
   // 2. Logic Validasi Link (Hanya dipanggil SEKALI)
   useEffect(() => {
-    if (!isReady) return; // Tunggu sampai ready
+    if (!isReady) return;
 
     if (!code) {
       const timer = setTimeout(() => {
@@ -65,7 +66,7 @@ const Page = () => {
           toast.error("Link reset password tidak ditemukan (Code missing).");
           router.replace("/");
         } catch (e) {
-          window.location.href = "/"; // Fallback jika router gagal
+          window.location.href = "/";
         }
       }, 3000);
       return () => clearTimeout(timer);
@@ -78,7 +79,6 @@ const Page = () => {
 
         if (sc === 200 || sc === 201) {
           setIsTemplateValid(true);
-          // Delay toast sedikit agar tidak bentrok dengan render awal
           setTimeout(
             () => toast.success(res.data?.message || "Link valid."),
             100,
@@ -302,6 +302,13 @@ const Page = () => {
       </div>
     </div>
   );
-};
+}
 
-export default Page;
+// 👇 Export Page dengan Suspense wrapper (ini fix utamanya)
+export default function Page() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}
