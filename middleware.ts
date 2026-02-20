@@ -4,7 +4,13 @@ import { NextResponse, NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const publicPaths = ["/", "/auth/login", "/auth/register"];
+  // Tambahkan /forgot-password ke public paths
+  const publicPaths = [
+    "/",
+    "/auth/login",
+    "/auth/register",
+    "/forgot-password",
+  ];
   const isPublic = publicPaths.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
@@ -17,7 +23,7 @@ export function middleware(req: NextRequest) {
   const isWhatsApp = /wv|WhatsApp/i.test(userAgent);
   const isIOSWhatsAppInApp = isIOS && isWhatsApp;
 
-  // jika sudah login tapi ingin akses login atau reg arahkan ke customer area
+  // jika sudah login tapi ingin akses login atau register, arahkan ke customer area
   if (token && pathname.startsWith("/auth/")) {
     const url = req.nextUrl.clone();
     url.pathname = "/customer-area";
@@ -25,7 +31,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // jika belum login dan ingin mengakses url non public, arahkan ke login
+  // jika belum login dan ingin mengakses url non-public, arahkan ke login
   if (!isPublic && !token) {
     const url = req.nextUrl.clone();
     url.pathname = "/auth/login";
@@ -33,11 +39,10 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // **KHUSUS FORGOT PASSWORD - Redirect iOS WhatsApp ke Safari**
+  // KHUSUS FORGOT PASSWORD - Redirect iOS WhatsApp ke Safari
   if (isIOSWhatsAppInApp && pathname === "/forgot-password") {
     const code = req.nextUrl.searchParams.get("code");
 
-    // Buat URL redirect ke Safari dengan preserve code parameter
     const safariUrl = new URL("/open-external", req.url);
     safariUrl.searchParams.set(
       "to",
