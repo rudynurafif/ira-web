@@ -230,22 +230,6 @@ const Page = () => {
 
   return (
     <div className="mx-auto max-w-xl my-10 px-6">
-      {/* Tampilkan alert hanya jika terdeteksi iOS, tanpa mengakses navigator langsung di JSX */}
-      {isIOS && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-          <p className="font-bold flex items-center gap-1">
-            <FaApple className="inline-block align-middle" />
-            <span className="align-middle">Pengguna iPhone</span>
-          </p>
-          <p className="mt-1">
-            Jika mengalami error, silakan klik tombol{" "}
-            <PiDotsThreeCircle className="inline-block align-middle" /> di pojok
-            kanan atas atau kanan bawah, lalu pilih{" "}
-            <strong>Buka di Browser Chrome/Safari</strong>.
-          </p>
-        </div>
-      )}
-
       <div>
         <h1 className="text-old-primary text-2xl font-bold text-center mb-6">
           Reset Password
