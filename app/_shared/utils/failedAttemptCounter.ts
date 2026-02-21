@@ -9,6 +9,7 @@ const MAX_ATTEMPTS = 3;
 interface AttemptLog {
   sn: string;
   message: string;
+  statusCode?: number | string;
 }
 
 interface FailedAttemptData {
@@ -59,7 +60,8 @@ export const saveFailedAttemptData = (data: FailedAttemptData): void => {
 // Increment failed attempt counter
 export const incrementFailedAttempt = (
   serialNumber?: string,
-  errorMessage?: string, // Baru: Menerima pesan error
+  errorMessage?: string,
+  statusCode?: number | string,
 ): FailedAttemptData => {
   const data = getFailedAttemptData();
 
@@ -78,12 +80,18 @@ export const incrementFailedAttempt = (
 
   // Track error message if provided
   if (serialNumber && errorMessage) {
-    data.attempts.push({
+    const newAttempt: AttemptLog = {
       sn: serialNumber,
       message: errorMessage,
-    });
+    };
 
-    // Batasi riwayat hanya 5 percobaan terakhir agar tidak terlalu panjang
+    if (statusCode) {
+      newAttempt.statusCode = statusCode;
+    }
+
+    data.attempts.push(newAttempt);
+
+    // Batasi riwayat hanya 5 percobaan terakhir
     if (data.attempts.length > 5) {
       data.attempts.shift();
     }
