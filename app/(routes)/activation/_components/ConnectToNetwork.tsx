@@ -656,7 +656,8 @@ export default function ConnectToNetwork() {
     // Format detail kendala
     const attemptLogs = failedData.attempts
       .map(
-        (log, idx) => `* *Percobaan ${idx + 1}*: ${log.message} (SN: ${log.sn})`,
+        (log, idx) =>
+          `* *Percobaan ${idx + 1}*: ${log.message} (SN: ${log.sn})`,
       )
       .join("\n");
 
@@ -849,9 +850,10 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
         <div className="pt-4">
           <p className="text-black max-w-4xl mx-auto mt-2">
-            Aktivasi biasanya selesai dalam ±5 menit. Mohon jangan menutup
-            halaman ini. Jika koneksi internet belum terverifikasi, kamu bisa
-            cek status aktivasi secara manual.
+            Aktivasi biasanya selesai dalam ±5 menit. Mohon jangan
+            menutup/merefresh halaman ini. Pastikan Anda memiliki koneksi
+            internet yang stabil. Jika proses aktivasi belum terverifikasi, kamu
+            bisa cek status aktivasi secara manual.
           </p>
         </div>
 
