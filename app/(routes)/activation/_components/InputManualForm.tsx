@@ -39,6 +39,9 @@ function InputManualForm() {
   const [isSNNotFound, setIsSNNotFound] = useState(false);
   const [phoneCSIRA, setPhoneCSIRA] = useState<string>("");
   const { userInfo } = useAppSelector((state) => state.auth);
+  const [failedStatusCode, setFailedStatusCode] = useState<
+    number | string | null
+  >(null);
 
   const router = useRouter();
 
@@ -73,9 +76,12 @@ function InputManualForm() {
 
     // Format detail kendala
     const attemptLogs = failedData.attempts
-      .map(
-        (log, idx) => `* *Percobaan ${idx + 1}*: ${log.message} (SN: ${log.sn})`,
-      )
+      .map((log, idx) => {
+        const statusPart = log.statusCode
+          ? ` [Kode Status: ${log.statusCode}]`
+          : "";
+        return `* *Percobaan ${idx + 1}*: ${log.message}${statusPart} (SN: ${log.sn})`;
+      })
       .join("\n");
 
     // Format Waktu Percobaan Terakhir
@@ -133,9 +139,11 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
     e.preventDefault();
 
     const errors: { [key: string]: string } = {};
+    let currentStatusCode: number | string | null = null;
 
     try {
       setIsSubmitting(true);
+      setFailedStatusCode(null);
 
       if (!serialNumber) {
         errors.serial_number = "Serial Number harus diisi";
@@ -180,7 +188,16 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
         error.message ||
         "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.";
 
-      incrementFailedAttempt(serialNumber!, errorMessage);
+      currentStatusCode =
+        error?.response?.data?.statusCode || error?.response?.status || null;
+
+      setFailedStatusCode(currentStatusCode);
+
+      incrementFailedAttempt(
+        serialNumber!,
+        errorMessage,
+        currentStatusCode || undefined,
+      );
       setOpenModalFailed(true);
 
       const statusCode = error?.response?.data?.statusCode;
@@ -331,6 +348,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setOpenModalFailed(false);
             setIsSNNotFound(false);
             setIsSNUsed(false);
+            setFailedStatusCode(null);
           }}
           classNameModal="p-6 max-w-lg w-full mx-4 text-center"
         >
@@ -352,6 +370,11 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
                 Proses Aktivasi masih membutuhkan waktu. Silakan hubungi
                 Customer Service untuk bantuan lebih lanjut.
               </p>
+              {failedStatusCode && (
+                <p className="mt-2 text-xs font-mono bg-gray-100 inline-block px-2 py-1 rounded">
+                  Kode Status: {failedStatusCode}
+                </p>
+              )}
               <div className="mt-5 flex flex-col gap-3">
                 <button
                   type="button"
@@ -400,6 +423,12 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
               <p className="mt-5 font-medium text-sm text-black">
                 Silakan input ulang Serial Number Anda
               </p>
+
+              {failedStatusCode && (
+                <p className="mt-2 text-xs font-mono bg-gray-100 inline-block px-2 py-1 rounded">
+                  Kode Status: {failedStatusCode}
+                </p>
+              )}
 
               <div className="mt-5 flex justify-center">
                 <button

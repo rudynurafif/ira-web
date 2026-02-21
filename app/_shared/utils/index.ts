@@ -311,9 +311,14 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     toast.error("Terjadi kesalahan. Silakan coba lagi.", {
       id,
     });
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 3000);
+
+    const isActivationPage = window.location.href.includes("activation");
+
+    if (!isActivationPage) {
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 5000);
+    }
     return;
   }
 

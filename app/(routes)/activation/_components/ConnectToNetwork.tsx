@@ -111,9 +111,11 @@ export default function ConnectToNetwork() {
   const customer_id = decodedToken?.customer_id || "";
 
   const [screen, setScreen] = useState<Screen>("loading");
-
-  // attempt = attempt ke berapa (1..MAX_ATTEMPT)
   const [attempt, setAttempt] = useState(0);
+
+  const [lastFailedStatusCode, setLastFailedStatusCode] = useState<
+    number | string | null
+  >(null);
 
   // cooldown
   const [cooldown, setCooldown] = useState(0);
@@ -388,7 +390,15 @@ export default function ConnectToNetwork() {
               data?.wewins_result?.message ||
               "Gagal aktivasi melalui jaringan";
 
-            incrementFailedAttempt(serialNumber, sseErrorMessage);
+            const sseStatusCode = data?.wewins_result?.result || null;
+
+            setLastFailedStatusCode(sseStatusCode);
+
+            incrementFailedAttempt(
+              serialNumber,
+              sseErrorMessage,
+              sseStatusCode || undefined,
+            );
 
             stopCooldown();
             setActivateStatus("failed");
@@ -472,6 +482,8 @@ export default function ConnectToNetwork() {
       if (!activateSuccess && !activatePending) {
         setActivateStatus("failed");
         setInternetStatus("failed");
+        const statusCode = resActivate?.data?.code || null;
+        setLastFailedStatusCode(statusCode);
         setScreen("failed");
 
         toast.error(
@@ -513,8 +525,15 @@ export default function ConnectToNetwork() {
         err?.response?.data?.data?.error_message ||
         err?.message ||
         "Gagal mengecek status aktivasi";
+      const statusCode =
+        err?.response?.data?.statusCode || err?.response?.status || null;
+      setLastFailedStatusCode(statusCode);
 
-      incrementFailedAttempt(serialNumber, errorMessage);
+      incrementFailedAttempt(
+        serialNumber,
+        errorMessage,
+        statusCode || undefined,
+      );
 
       toastErrorFromAPI(err, "refresh");
       setActivateStatus("failed");
@@ -563,6 +582,7 @@ export default function ConnectToNetwork() {
       toast.dismiss("activate");
 
       let errorMessage = "Aktivasi gagal.";
+      let statusCode: number | string | null = null;
 
       if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
         toast.error(
@@ -574,13 +594,20 @@ export default function ConnectToNetwork() {
         errorMessage =
           apiMessage ||
           "Gagal mengirim permintaan aktivasi. Silakan coba lagi.";
+        statusCode =
+          err?.response?.data?.statusCode || err?.response?.status || null;
 
         toastErrorFromAPI(
           err,
           "Gagal mengirim permintaan aktivasi. Silakan coba lagi.",
         );
 
-        incrementFailedAttempt(serialNumber, errorMessage);
+        setLastFailedStatusCode(statusCode);
+        incrementFailedAttempt(
+          serialNumber,
+          errorMessage,
+          statusCode || undefined,
+        );
       }
 
       if (nextAttempt >= MAX_ATTEMPT || hasReachedMaxAttempts()) {
@@ -655,9 +682,12 @@ export default function ConnectToNetwork() {
 
     // Format detail kendala
     const attemptLogs = failedData.attempts
-      .map(
-        (log, idx) => `* *Percobaan ${idx + 1}*: ${log.message} (SN: ${log.sn})`,
-      )
+      .map((log, idx) => {
+        const statusPart = log.statusCode
+          ? ` [Kode Status: ${log.statusCode}]`
+          : "";
+        return `* *Percobaan ${idx + 1}*: ${log.message}${statusPart} (SN: ${log.sn})`;
+      })
       .join("\n");
 
     // Format Waktu Percobaan Terakhir
@@ -754,13 +784,20 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
         err?.response?.data?.message ||
         err?.message ||
         "Gagal mengirim ulang permintaan aktivasi.";
+      const statusCode =
+        err?.response?.data?.statusCode || err?.response?.status || null;
+
+      setLastFailedStatusCode(statusCode);
+      incrementFailedAttempt(
+        serialNumber,
+        errorMessage,
+        statusCode || undefined,
+      );
 
       toastErrorFromAPI(
         err,
         "Gagal mengirim ulang permintaan aktivasi. Silakan coba lagi.",
       );
-
-      incrementFailedAttempt(serialNumber, errorMessage);
 
       setScreen("failed");
       setActivateStatus("failed");
@@ -849,9 +886,10 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
         <div className="pt-4">
           <p className="text-black max-w-4xl mx-auto mt-2">
-            Aktivasi biasanya selesai dalam ±5 menit. Mohon jangan menutup
-            halaman ini. Jika koneksi internet belum terverifikasi, kamu bisa
-            cek status aktivasi secara manual.
+            Aktivasi biasanya selesai dalam ±5 menit. Mohon jangan
+            menutup/merefresh halaman ini. Pastikan Anda memiliki koneksi
+            internet yang stabil. Jika proses aktivasi belum terverifikasi, kamu
+            bisa cek status aktivasi secara manual.
           </p>
         </div>
 
@@ -924,6 +962,14 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           <p className="text-[#666] max-w-170 mx-auto mt-2">
             Proses aktivasi masih membutuhkan waktu silahkan coba kembali
           </p>
+
+          {lastFailedStatusCode && (
+            <div className="mt-4 flex justify-center">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-red-50 text-red-700 border border-red-100">
+                Kode Status: {lastFailedStatusCode}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
@@ -954,6 +1000,14 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             Aktivasi perangkat tidak berhasil setelah beberapa saat. Hubungi
             Customer Service untuk bantuan lebih lanjut.
           </p>
+
+          {lastFailedStatusCode && (
+            <div className="mt-4 flex justify-center">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-red-50 text-red-700 border border-red-100">
+                Kode Status: {lastFailedStatusCode}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
