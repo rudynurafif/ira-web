@@ -420,7 +420,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
               </h3>
               <p className="mt-5 font-medium text-sm text-black">
                 Pastikan Serial Number CPE yang Anda masukkan benar, dan silakan
-                input ulang SN CPE Anda.
+                coba lagi.
               </p>
 
               {failedStatusCode && (

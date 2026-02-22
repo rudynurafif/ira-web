@@ -965,7 +965,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
           {lastFailedStatusCode && (
             <div className="mt-4 flex justify-center">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-red-50 text-red-700 border border-red-100">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-red-50 text-primary border border-red-100">
                 Kode Status: {lastFailedStatusCode}
               </span>
             </div>
@@ -1003,7 +1003,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
           {lastFailedStatusCode && (
             <div className="mt-4 flex justify-center">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-red-50 text-red-700 border border-red-100">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-red-50 text-primary border border-red-100">
                 Kode Status: {lastFailedStatusCode}
               </span>
             </div>
