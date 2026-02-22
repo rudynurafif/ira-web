@@ -363,12 +363,11 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
                 />
               </div>
               <h3 className="text-dark-primary font-bold text-xl mt-4">
-                {errors.serial_number ??
-                  "Serial Number salah atau tidak ditemukan"}
+                Proses Aktivasi masih membutuhkan waktu
               </h3>
               <p className="mt-5 font-medium text-sm text-black">
-                Proses Aktivasi masih membutuhkan waktu. Silakan hubungi
-                Customer Service untuk bantuan lebih lanjut.
+                Silakan coba lagi atau hubungi Customer Service untuk bantuan
+                lebih lanjut.
               </p>
               {failedStatusCode && (
                 <p className="mt-2 text-xs font-mono bg-gray-100 inline-block px-2 py-1 rounded">
@@ -417,11 +416,11 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
               </div>
 
               <h3 className="text-dark-primary font-bold text-xl mt-6">
-                {errors.serial_number ??
-                  "Serial Number salah atau tidak ditemukan"}
+                Proses Aktivasi belum berhasil
               </h3>
               <p className="mt-5 font-medium text-sm text-black">
-                Silakan input ulang Serial Number Anda
+                Pastikan Serial Number CPE yang Anda masukkan benar, dan silakan
+                input ulang SN CPE Anda.
               </p>
 
               {failedStatusCode && (
