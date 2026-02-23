@@ -1,6 +1,8 @@
 "use client";
 
 import { getRefundPolicy } from "@/app/_api/Settings/Settings";
+import ErrorFallback from "@/app/_components/ErrorFallback";
+import Loader from "@/app/_components/Loader";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -13,21 +15,36 @@ function Page() {
   const [subTitle, setSubTitle] = useState("");
   const [content, setContent] = useState<string>("");
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     getRefundPolicyData();
   }, []);
 
   async function getRefundPolicyData() {
     try {
+      setIsLoading(true);
       const res_tnc = await getRefundPolicy();
 
       setTitle(res_tnc.data.result?.[0].title ?? "");
       setSubTitle(res_tnc.data.result?.[0].sub_title ?? "");
       setContent(res_tnc.data.result?.[0].content ?? "");
     } catch (err: any) {
+      setError(
+        err?.response?.data?.message ||
+          "Terjadi kesalahan. Silahkan coba lagi.",
+      );
       toastErrorFromAPI(err, "Gagal muat data Refund Policy");
+    } finally {
+      setIsLoading(false);
     }
   }
+
+  if (isLoading) return <Loader />;
+
+  if (error)
+    return <ErrorFallback message={error} onRetry={getRefundPolicyData} />;
 
   return (
     <div>

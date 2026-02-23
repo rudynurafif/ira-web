@@ -3,7 +3,7 @@ import React, { useState } from "react";
 
 import googlePlay from "@/public/assets/Images/GooglePlayBlack.png";
 import appStore from "@/public/assets/Images/AppStoreBlack.png";
-import faqImage from "@/public/assets/Images/app-image.svg";
+import appImage from "@/public/assets/Images/app-image.png";
 import toast from "react-hot-toast";
 
 const DownloadApp = () => {
@@ -37,7 +37,7 @@ const DownloadApp = () => {
         {/* Image - Order 1 on mobile, Order 2 on desktop */}
         <div className="w-full lg:w-1/3 flex justify-center order-1 lg:order-2">
           <Image
-            src={faqImage}
+            src={appImage}
             alt="faq"
             width={400}
             height={300}
@@ -54,9 +54,8 @@ const DownloadApp = () => {
             Dapatkan kontrol penuh atas layanan internet Anda hanya dengan
             beberapa klik. Dengan aplikasi IRA, Anda dapat dengan mudah membeli
             paket, memonitor status modem, cek signal, dan melakukan banyak hal
-            lainnya. Unduh aplikasi IRA di Google Play dan
-            nikmati kemudahan mengelola layanan internet Anda di mana saja dan
-            kapan saja.
+            lainnya. Unduh aplikasi IRA di Google Play dan nikmati kemudahan
+            mengelola layanan internet Anda di mana saja dan kapan saja.
           </p>
 
           <p className="text-2xl font-bold mt-12 max-sm:text-xl max-sm:text-center max-sm:mt-8">

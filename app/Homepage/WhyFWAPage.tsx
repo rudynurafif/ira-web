@@ -57,7 +57,8 @@ function WhyFWAPage() {
 
   return (
     <div className="container mx-auto px-5 text-black py-18 max-sm:py-9">
-      <div className="md:hidden flex flex-col items-center gap-4 w-full px-4 pb-20 -mt-20">
+      {/* Versi GO Commercial */}
+      <div className="md:hidden flex flex-col items-center gap-4 w-full pb-20 -mt-20">
         {/* Teks Atas */}
         <p className="text-gray-800 font-bold text-2xl text-center z-9999">
           Temukan Aplikasi IRA di
@@ -82,13 +83,13 @@ function WhyFWAPage() {
 
         {/* Tombol Bawah (Website & Dealer) - Lebar Penuh/Stack Vertikal atau Side-by-Side */}
         {/* Sesuai gambar, mereka berdampingan tapi cukup besar. Kita buat responsif: */}
-        <div className="flex flex-row gap-3 w-full justify-center z-9999">
+        <div className="flex flex-row gap-4 w-full justify-center z-9999">
           <Image
             src={webButton}
             alt="website-ira"
             width={134}
             height={60}
-            className="w-[135px] h-fit object-contain"
+            className="h-[30px] w-auto hover:scale-105 transition-transform"
             onClick={() => handleClick("web")}
           />
           <Image
@@ -96,7 +97,7 @@ function WhyFWAPage() {
             alt="dealer-resmi"
             width={134}
             height={60}
-            className="w-[169px] h-fit object-contain"
+            className="h-[30px] w-auto hover:scale-105 transition-transform"
           />
         </div>
       </div>
