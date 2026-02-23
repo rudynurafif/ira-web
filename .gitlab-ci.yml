@@ -403,14 +403,25 @@ deploy-production:
       "echo "Production - Update code and Deployment starting"; \
         cd $PATH_DIR; \
         git pull origin main; \
-        docker compose -f $COMPOSE_FILE down $COMPOSE_SRV; \
-        docker rmi $IMG_NAME:$PROD_VER; \
-        docker compose -f $COMPOSE_FILE build --no-cache $COMPOSE_SRV; \
-        docker compose -f $COMPOSE_FILE up -d $COMPOSE_SRV; \
-        docker ps -a | grep $CONT_NAME; \
+        docker compose -f $COMPOSE_FILE down fwa-website; \
+        docker rmi fwa_website:$PROD_VER; \
+        docker compose -f $COMPOSE_FILE build --no-cache fwa-website; \
+        docker compose -f $COMPOSE_FILE up -d fwa-website; \
+        docker ps -a | grep fwa_website_app; \
         docker builder prune -a -f; \
         docker image prune -a -f; \
-        docker exec -it $CONT_NAME sh -c 'npm ls && npm outdate && npm audit'; \
+        docker exec -it fwa_website_app sh -c 'npm ls && npm outdate && npm audit'; \
+        echo 'Production - Container fwa_website_app has been updated.'; \
+        echo 'Production - Updating Container fwa_website_app_2.'; \
+        docker compose -f $COMPOSE_FILE down fwa-website-2; \
+        docker rmi fwa_website_2:$PROD_VER; \
+        docker compose -f $COMPOSE_FILE build --no-cache fwa-website-2; \
+        docker compose -f $COMPOSE_FILE up -d fwa-website-2; \
+        docker ps -a | grep fwa_website_app_2; \
+        docker builder prune -a -f; \
+        docker image prune -a -f; \
+        docker exec -it fwa_website_app_2 sh -c 'npm ls && npm outdate && npm audit'; \
+        echo 'Production - Container fwa_website_app_2 has been updated.'; \
         echo 'Production - Docker Deployment Completed.'; \
       "
   artifacts:
