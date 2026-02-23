@@ -126,7 +126,7 @@ function MainPage() {
               className="mx-auto"
             />
             <div className="bg-opacity-black-10 rounded-full px-5 py-2.5 2xl:text-xl sm:text-lg text-sm text-white font-semibold inline-block mt-2.5 shadow-sm shadow-white">
-              Internet ngebut tanpa ribet pakai kabel.
+              Internet ngebut tanpa ribet pakai kabel
             </div>
           </div>
           <div className="flex justify-center items-center">
@@ -137,7 +137,7 @@ function MainPage() {
           <div className="text-center">
             <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
               <span className="font-bold">IRA Internet Rakyat -</span> Internet
-              ngebut tanpa ribet pakai kabel.
+              ngebut tanpa ribet pakai kabel
             </h1>
             <Link
               href="/auth/register"
@@ -231,7 +231,7 @@ function MainPage() {
                   "0 4px 4px rgba(0, 0, 0, 0.25), 1px 20px 14px rgba(214, 33, 30, 0.50)",
               }}
             >
-              Internet ngebut tanpa ribet pakai kabel.
+              Internet ngebut tanpa ribet pakai kabel
             </div>
           </div>
           <div className="flex justify-center items-center">
@@ -247,7 +247,7 @@ function MainPage() {
                   "0 4px 4px rgba(0, 0, 0, 0.50), 1px 20px 14px rgba(214, 33, 30, 0.90)",
               }}
             >
-              Internet ngebut tanpa ribet pakai kabel.
+              Internet ngebut tanpa ribet pakai kabel
             </div>
           </div>
 
@@ -313,7 +313,7 @@ function MainPage() {
                   width={500}
                   height={500}
                   onClick={() => handleClick("web")}
-                  className="w-[110px] lg:w-[150px] h-fit hover:scale-105 transition-transform"
+                  className="h-8 w-auto hover:scale-105 transition-transform"
                 />
                 {/* Dealer Button */}
                 <Image
@@ -321,7 +321,7 @@ function MainPage() {
                   alt="dealer"
                   width={500}
                   height={500}
-                  className="w-[140px] lg:w-[180px] h-fit hover:scale-105 transition-transform"
+                  className="h-8 w-auto  hover:scale-105 transition-transform"
                 />
               </div>
             </div>
