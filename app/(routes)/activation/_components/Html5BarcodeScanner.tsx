@@ -26,6 +26,7 @@ import {
   FaExclamationCircle,
   FaExclamationTriangle,
 } from "react-icons/fa";
+import { TbCameraExclamation } from "react-icons/tb";
 
 type Props = {
   onDetected?: (text: string) => void;
@@ -470,53 +471,54 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
           Scan Barcode
         </h1>
 
-        <div style={{ display: "inline-block", position: "relative" }}>
-          {/* html5-qrcode render video/canvas ke sini */}
-          <div
-            id={containerId}
-            className={`md:w-100  ${
-              isDesktop ? "h-125" : "h-[70vh] min-h-100"
-            } bg-black rounded-lg overflow-hidden relative`}
-            style={{
-              top: "-10%", // Adjust this value to move the box upwards
-            }}
-          />
+        {!error && (
+          <div style={{ display: "inline-block", position: "relative" }}>
+            {/* html5-qrcode render video/canvas ke sini */}
+            <div
+              id={containerId}
+              className={`md:w-100  ${
+                isDesktop ? "h-125" : "h-[70vh] min-h-100"
+              } bg-black rounded-lg overflow-hidden relative`}
+              style={{
+                top: "-10%", // Adjust this value to move the box upwards
+              }}
+            />
 
-          {!starting && (
-            <>
-              {!isDesktop && cameras.length > 1 && (
-                <div className="absolute flex items-center top-2 left-2 z-10">
-                  <button
-                    type="button"
-                    onClick={switchCamera}
-                    className="p-2 rounded-full bg-black/40 active:scale-95"
-                    aria-label="Switch camera"
-                  >
-                    <MdCameraswitch size={24} className="text-white" />
-                  </button>
-                </div>
-              )}
-              {/* tombol torch */}
-              {hasTorch && (
-                <div className="absolute flex items-center top-2 right-2 z-10">
-                  {torchOn ? (
-                    <IoFlashOff
-                      onClick={toggleTorch}
-                      size={25}
-                      className="text-white cursor-pointer"
-                    />
-                  ) : (
-                    <IoFlash
-                      onClick={toggleTorch}
-                      size={25}
-                      className="text-white cursor-pointer "
-                    />
-                  )}
-                </div>
-              )}
+            {!starting && (
+              <>
+                {!isDesktop && cameras.length > 1 && (
+                  <div className="absolute flex items-center top-2 left-2 z-10">
+                    <button
+                      type="button"
+                      onClick={switchCamera}
+                      className="p-2 rounded-full bg-black/40 active:scale-95"
+                      aria-label="Switch camera"
+                    >
+                      <MdCameraswitch size={24} className="text-white" />
+                    </button>
+                  </div>
+                )}
+                {/* tombol torch */}
+                {hasTorch && (
+                  <div className="absolute flex items-center top-2 right-2 z-10">
+                    {torchOn ? (
+                      <IoFlashOff
+                        onClick={toggleTorch}
+                        size={25}
+                        className="text-white cursor-pointer"
+                      />
+                    ) : (
+                      <IoFlash
+                        onClick={toggleTorch}
+                        size={25}
+                        className="text-white cursor-pointer "
+                      />
+                    )}
+                  </div>
+                )}
 
-              {/* slider zoom */}
-              {/* {hasZoom && (
+                {/* slider zoom */}
+                {/* {hasZoom && (
                 <div className="absolute bottom-2 left-0 px-2 w-full z-10">
                   <label
                     className="text-white"
@@ -540,8 +542,8 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
                 </div>
               )} */}
 
-              {/* Tombol Scan Barcode: DISSEMBUNYIKAN di desktop */}
-              {/* {!isDesktop && (
+                {/* Tombol Scan Barcode: DISSEMBUNYIKAN di desktop */}
+                {/* {!isDesktop && (
                 <div
                   className={`absolute w-full flex justify-center left-1/2 ${
                     qrBoxShape === "square" ? "bottom-[10%]" : "top-[70%]"
@@ -563,43 +565,72 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
                   </button>
                 </div>
               )} */}
-            </>
-          )}
+              </>
+            )}
 
-          {!starting && !error && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 w-full px-4 max-w-120">
-              <p className="flex items-start gap-2 text-white font-bold text-sm bg-[#1075FF] rounded-lg py-2 px-3">
-                <FaExclamationCircle
-                  className="text-yellow-300 mt-0.5 shrink-0"
-                  size={20}
-                />
-                <span>
-                  Pastikan Serial Number sistem sama dengan yang ada pada modem
-                  CPE
-                </span>
-              </p>
-            </div>
-          )}
+            {!starting && !error && (
+              <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 w-full px-4 max-w-120">
+                <p className="flex items-start gap-2 text-white font-bold text-sm bg-[#1075FF] rounded-lg py-2 px-3">
+                  <FaExclamationCircle
+                    className="text-yellow-300 mt-0.5 shrink-0"
+                    size={20}
+                  />
+                  <span>
+                    Pastikan Serial Number sistem sama dengan yang ada pada
+                    modem CPE
+                  </span>
+                </p>
+              </div>
+            )}
 
-          {!starting && !error && (
-            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 w-full px-4 max-w-120">
-              <button
-                onClick={() => {
-                  addUrlParam("section", "input");
-                }}
-                className="w-full bg-white border border-primary p-2 cursor-pointer text-primary font-bold rounded-xl"
-                type="button"
-              >
-                Input Manual Serial Number
-              </button>
-            </div>
-          )}
-        </div>
+            {!starting && !error && (
+              <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 w-full px-4 max-w-120">
+                <button
+                  onClick={() => {
+                    addUrlParam("section", "input");
+                  }}
+                  className="w-full bg-white border border-primary p-2 cursor-pointer text-primary font-bold rounded-xl"
+                  type="button"
+                >
+                  Input Manual Serial Number
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {error && (
+          <div className="mx-auto flex items-center justify-center">
+            <TbCameraExclamation size={160} color="#d7201d" />
+          </div>
+        )}
+
+        {error && (
+          <p
+            className="font-medium text-2xl"
+            style={{ color: "crimson", marginTop: 8 }}
+          >
+            {error}
+          </p>
+        )}
+
+        {error && (
+          <div className="flex items-center justify-center mt-10 w-full px-4 max-w-120">
+            <button
+              onClick={() => {
+                addUrlParam("section", "input");
+              }}
+              className="w-full bg-white border border-primary p-2 cursor-pointer text-primary font-bold rounded-xl"
+              type="button"
+            >
+              Input Manual Serial Number
+            </button>
+          </div>
+        )}
 
         {starting && (
           <p style={{ color: "#6b7280", marginTop: 12 }}>Membuka kamera…</p>
         )}
-        {error && <p style={{ color: "crimson", marginTop: 8 }}>{error}</p>}
 
         {/* Kontrol tambahan */}
         {/* <div
