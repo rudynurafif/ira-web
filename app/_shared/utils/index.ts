@@ -442,3 +442,26 @@ export const formatTime = (seconds: number): string => {
     .toString()
     .padStart(2, "0")}`;
 };
+
+export const handleDownloadClick = (type: "google" | "apple" | "web"): void => {
+  try {
+    if (type === "google") {
+      window.open(
+        "https://play.google.com/store/apps/details?id=com.weave.ira",
+        "_blank",
+      );
+    } else if (type === "apple") {
+      window.open(
+        "https://apps.apple.com/id/app/internet-rakyat/id6758337694",
+        "_blank",
+      );
+    } else if (type === "web") {
+      window.open("https://internetrakyat.id", "_blank");
+    } else {
+      return;
+    }
+  } catch (error) {
+    console.error("Error handling download:", error);
+    toast("Terjadi kesalahan. Silakan coba lagi.");
+  }
+};
