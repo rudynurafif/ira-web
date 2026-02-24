@@ -55,7 +55,7 @@ function WhyFWAPage() {
         <div className="w-full flex gap-4 justify-center z-9999">
           <Image
             src={googleButton}
-            alt="google-play"
+            alt="google-play-store"
             width={200}
             height={60}
             className="h-11 w-auto hover:scale-105 transition-transform"
@@ -63,11 +63,11 @@ function WhyFWAPage() {
           />
           <Image
             src={appStoreButton}
-            alt="google-play"
+            alt="apple-app-store"
             width={200}
             height={60}
             className="h-11 w-auto hover:scale-105 transition-transform"
-            onClick={() => handleDownloadClick("google")}
+            onClick={() => handleDownloadClick("apple")}
           />
         </div>
 
@@ -76,8 +76,7 @@ function WhyFWAPage() {
           atau Kunjungi Kami di
         </p>
 
-        {/* Tombol Bawah (Website & Dealer) - Lebar Penuh/Stack Vertikal atau Side-by-Side */}
-        {/* Sesuai gambar, mereka berdampingan tapi cukup besar. Kita buat responsif: */}
+        {/* Tombol Bawah (Website & Dealer) */}
         <div className="flex flex-row gap-4 w-full justify-center z-9999">
           <Image
             src={webButton}
