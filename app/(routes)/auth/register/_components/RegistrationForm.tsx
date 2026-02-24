@@ -117,7 +117,13 @@ function RegistrationForm({
   const [postalCodeOptions, setPostalCodeOptions] = useState<ReactSelectType[]>(
     [],
   );
-  const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
+  const hasInitialLocation =
+    initialData?.latitude &&
+    initialData?.longitude &&
+    String(initialData.latitude) !== "0" &&
+    String(initialData.longitude) !== "0";
+  const [isCheckCoverage, setIsCheckCoverage] =
+    useState<boolean>(!hasInitialLocation);
   const [mitraID, setMitraID] = useState<
     { id: string | number; [key: string]: any }[]
   >([]);
@@ -801,7 +807,16 @@ function RegistrationForm({
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-7">
-        {isCovered ? (
+        {isCheckCoverage ? (
+          <div className="my-8">
+            <div className="hidden md:block">
+              <PackageCardMobileSkeletonList count={2} />
+            </div>
+            <div className="block md:hidden">
+              <PackageCardMobileSkeletonList count={1} />
+            </div>
+          </div>
+        ) : isCovered ? (
           <div className="my-8">
             {showBannerCovered && (
               <Image
