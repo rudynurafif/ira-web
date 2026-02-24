@@ -302,7 +302,7 @@ function CheckCoverage() {
       {modalResult && (
         <ModalTemplate
           closeModal={() => setModalResult(false)}
-          classNameModal="p-8"
+          classNameModal="p-6"
           width="max-w-[1200px]"
         >
           <RegistrationForm
