@@ -52,7 +52,7 @@ function WhyFWAPage() {
         </p>
 
         {/* Tombol Google Play (Lebar menyesuaikan konten/tengah) */}
-        <div className="w-full flex gap-3 justify-center z-9999">
+        <div className="w-full flex gap-4 justify-center z-9999">
           <Image
             src={googleButton}
             alt="google-play"
