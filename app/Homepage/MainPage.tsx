@@ -10,10 +10,11 @@ import "slick-carousel/slick/slick-theme.css";
 import Link from "next/link";
 import wifiIcon from "@/public/assets/Icons/wifi.svg";
 import { getImageBanner } from "../_api/Banner/Banner";
-import { toastErrorFromAPI } from "../_shared/utils";
+import { handleDownloadClick, toastErrorFromAPI } from "../_shared/utils";
 import { useAppSelector } from "../store/store";
 import { useRouter } from "next/navigation";
 import googleButton from "@/public/assets/Images/googlePlayButton.png";
+import appStoreButton from "@/public/assets/Images/appStoreButton.png";
 import webButton from "@/public/assets/Images/web-ira-button.png";
 import dealerButton from "@/public/assets/Images/dealer-ira-button.png";
 
@@ -64,21 +65,6 @@ function MainPage() {
       console.error(err.response.data.message);
     }
   }
-
-  const handleClick = (type: string): void => {
-    try {
-      if (type === "google") {
-        window.open(
-          "https://play.google.com/store/apps/details?id=com.weave.ira",
-          "_blank",
-        );
-      } else {
-        window.open("https://internetrakyat.id/", "_blank");
-      }
-    } catch (error) {
-      console.error("Error handling download:", error);
-    }
-  };
 
   // useEffect(() => {
   //   getBannerImage();
@@ -295,15 +281,25 @@ function MainPage() {
           <div className="z-9999">
             {/* --- VERSI DESKTOP (Pojok Kiri Bawah) --- */}
             <div className="hidden md:absolute bottom-5 left-10 md:flex flex-col gap-3">
-              {/* Google Button */}
-              <Image
-                src={googleButton}
-                alt="google"
-                width={500}
-                height={500}
-                onClick={() => handleClick("google")}
-                className="w-[150px] lg:w-[180px] h-auto hover:scale-105 transition-transform"
-              />
+              <div className="flex justify-start items-center gap-3">
+                {/* Google Button */}
+                <Image
+                  src={googleButton}
+                  alt="google-play-store"
+                  width={500}
+                  height={500}
+                  onClick={() => handleDownloadClick("google")}
+                  className="h-[40px] w-auto hover:scale-105 transition-transform"
+                />
+                <Image
+                  src={appStoreButton}
+                  alt="app-store-button"
+                  width={500}
+                  height={500}
+                  onClick={() => handleDownloadClick("apple")}
+                  className="h-[40px] w-auto hover:scale-105 transition-transform"
+                />
+              </div>
 
               <div className="flex gap-3">
                 {/* Web Button */}
@@ -312,7 +308,7 @@ function MainPage() {
                   alt="web"
                   width={500}
                   height={500}
-                  onClick={() => handleClick("web")}
+                  onClick={() => handleDownloadClick("web")}
                   className="h-8 w-auto hover:scale-105 transition-transform"
                 />
                 {/* Dealer Button */}
