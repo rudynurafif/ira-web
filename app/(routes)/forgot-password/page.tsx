@@ -41,17 +41,44 @@ const Page = () => {
   useEffect(() => {
     setIsReady(true);
 
-    // Safe access to navigator
     if (typeof navigator !== "undefined") {
       const ua = navigator.userAgent;
+      // Deteksi iOS
       const isAppleDevice =
         /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
-      const isWA =
-        ua.toLowerCase().includes("whatsapp") ||
-        ua.toLowerCase().includes("wkwk"); // wkwk kadang typo di beberapa UA, tapi whatsapp pasti ada
+
+      const shouldShowToast = isAppleDevice;
 
       setIsIOS(isAppleDevice);
-      setIsWhatsApp(isWA);
+      setIsWhatsApp(shouldShowToast); // Anggap true untuk tujuan tampilan toast
+
+      if (shouldShowToast) {
+        const message = (
+          <div className="flex flex-col gap-2">
+            <span className="font-bold text-sm">Pengguna iPhone</span>
+            <span className="text-xs">
+              Untuk hasil terbaik, silakan buka link ini di{" "}
+              <strong>Safari</strong> atau <strong>Chrome</strong>. Klik titik
+              tiga (•••) di kanan atas &gt; <strong>Open in Browser</strong>.
+            </span>
+          </div>
+        );
+
+        // Toast durasi 15 detik
+        toast(message, {
+          duration: 15_000,
+          position: "bottom-center",
+          icon: "ℹ️",
+          style: {
+            borderRadius: "10px",
+            background: "#FEFAEE",
+            color: "#333",
+            border: "1px solid #F59E0B",
+            maxWidth: "90%",
+            zIndex: 9999,
+          },
+        });
+      }
     }
   }, []);
 
@@ -67,7 +94,7 @@ const Page = () => {
         } catch (e) {
           window.location.href = "/"; // Fallback jika router gagal
         }
-      }, 3000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
 
