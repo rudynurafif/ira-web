@@ -1,27 +1,57 @@
-import { getCookie } from "cookies-next";
 import { NextResponse, NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const userAgent = req.headers.get("user-agent") || "";
 
-  const publicPaths = ["/", "/auth/login", "/auth/register"];
+  const isAndroid = /Android/i.test(userAgent);
+
+  // Deteksi WhatsApp Eksplisit untuk Android
+  const hasWAIndicator = /WA4A|wv|WhatsApp/i.test(userAgent);
+  const isWhatsAppAndroid = isAndroid && hasWAIndicator;
+
+  // --- HANYA HANDLE ANDROID ---
+  if (isWhatsAppAndroid) {
+    const protocol = req.headers.get("x-forwarded-proto") || "https";
+    let host = req.headers.get("host") || "";
+
+    if (protocol === "https" && host.includes(":3000")) {
+      host = host.replace(":3000", "");
+    }
+    if (!host) host = req.nextUrl.host.replace(":3000", "");
+
+    const targetUrl = `${protocol}://${host}${pathname}${req.nextUrl.search}`;
+
+    const urlObj = new URL(targetUrl);
+    const hostPathSearch = urlObj.host + urlObj.pathname + urlObj.search;
+    const intentUrl = `intent://${hostPathSearch}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(targetUrl)};end`;
+
+    return NextResponse.redirect(intentUrl);
+  }
+
+  // --- iOS DIBIARKAN LANGSUNG MASUK (No Redirect) ---
+  // Lanjut ke logika autentikasi biasa
+
+  const publicPaths = [
+    "/",
+    "/auth/login",
+    "/auth/register",
+    "/forgot-password",
+  ];
+
   const isPublic = publicPaths.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`)
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
 
-  // const token = getCookie("token-ira");
   const token = req.cookies.get("token-ira")?.value;
-  // console.log("token-ira", token);
 
-  // jika sudah login tapi ingin akses login atau reg arahkan ke customer area
   if (token && pathname.startsWith("/auth/")) {
     const url = req.nextUrl.clone();
-    url.pathname = "/customer-area"; // atau "/" tergantung kebijakan
+    url.pathname = "/customer-area";
     url.searchParams.delete("callbackUrl");
     return NextResponse.redirect(url);
   }
 
-  // jika belum login dan ingin mengakses url non public, arahkan ke login
   if (!isPublic && !token) {
     const url = req.nextUrl.clone();
     url.pathname = "/auth/login";
