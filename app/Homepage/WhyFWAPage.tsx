@@ -7,6 +7,12 @@ import Image, { StaticImageData } from "next/image";
 import RegisterNowCard from "../_components/homepage/RegisterNowCard";
 import { useAppSelector } from "../store/store";
 
+import googleButton from "@/public/assets/Images/googlePlayButton.png";
+import appStoreButton from "@/public/assets/Images/appStoreButton.png";
+import webButton from "@/public/assets/Images/web-ira-button.png";
+import dealerButton from "@/public/assets/Images/dealer-ira-button.png";
+import { handleDownloadClick } from "../_shared/utils";
+
 interface descriptionListType {
   id: number;
   image: StaticImageData;
@@ -38,6 +44,58 @@ function WhyFWAPage() {
 
   return (
     <div className="container mx-auto px-5 text-black py-18 max-sm:py-9">
+      {/* Versi GO Commercial */}
+      <div className="md:hidden flex flex-col items-center gap-4 w-full pb-20 -mt-20">
+        {/* Teks Atas */}
+        <p className=" font-bold text-2xl text-center z-9999">
+          Temukan Aplikasi IRA di
+        </p>
+
+        {/* Tombol Google Play (Lebar menyesuaikan konten/tengah) */}
+        <div className="w-full flex gap-4 justify-center z-9999">
+          <Image
+            src={googleButton}
+            alt="google-play-store"
+            width={200}
+            height={60}
+            className="h-11 w-auto hover:scale-105 transition-transform"
+            onClick={() => handleDownloadClick("google")}
+          />
+          <Image
+            src={appStoreButton}
+            alt="apple-app-store"
+            width={200}
+            height={60}
+            className="h-11 w-auto hover:scale-105 transition-transform"
+            onClick={() => handleDownloadClick("apple")}
+          />
+        </div>
+
+        {/* Teks Tengah */}
+        <p className=" font-bold text-sm sm:text-base text-center z-9999">
+          atau Kunjungi Kami di
+        </p>
+
+        {/* Tombol Bawah (Website & Dealer) */}
+        <div className="flex flex-row gap-4 w-full justify-center z-9999">
+          <Image
+            src={webButton}
+            alt="website-ira"
+            width={134}
+            height={60}
+            className="h-7.5 w-auto hover:scale-105 transition-transform"
+            onClick={() => handleDownloadClick("web")}
+          />
+          <Image
+            src={dealerButton}
+            alt="dealer-resmi"
+            width={134}
+            height={60}
+            className="h-7.5 w-auto hover:scale-105 transition-transform"
+          />
+        </div>
+      </div>
+
       <h1 className="text-[32px] max-sm:text-[24px] font-bold text-center">
         Mengapa pilih Internet Rakyat <span className="inline">(IRA) ?</span>
       </h1>

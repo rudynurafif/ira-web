@@ -144,18 +144,6 @@ const Page = () => {
     return "";
   };
 
-  const handlePasswordChange = (rawValue: string) => {
-    const filteredValue =
-      rawValue.match(PASSWORD_INPUT_FILTER_REGEX)?.join("") || "";
-    setPasswordValue(filteredValue);
-  };
-
-  const handleConfirmPasswordChange = (rawValue: string) => {
-    const filteredValue =
-      rawValue.match(PASSWORD_INPUT_FILTER_REGEX)?.join("") || "";
-    setConfirmPassword(filteredValue);
-  };
-
   // validasi konfirmasi password
   useEffect(() => {
     if (step !== "SET_PASSWORD") return;
@@ -237,7 +225,6 @@ const Page = () => {
       const resSetPW = await setPassword({
         phone_number: phone,
         password,
-        // confirm_password: confirmPassword,
       });
 
       toast.success(resSetPW.data?.message || "Password berhasil dibuat");
@@ -255,6 +242,7 @@ const Page = () => {
   // STEP 3 — LOGIN
   // ===============================
   const handleLogin = async () => {
+    // SO FAR JADI NYA OPSIONAL
     // if (!location) {
     //   toast.error("Akses lokasi wajib diizinkan");
     //   return;
@@ -327,6 +315,7 @@ const Page = () => {
   useEffect(() => {
     setPasswordValue("");
     setConfirmPassword("");
+    setConfirmError("");
   }, [step]);
 
   const isPhoneValid = !validatePhone(phone);
@@ -426,7 +415,6 @@ const Page = () => {
                 onChange={(val) => {
                   setPasswordValue(val);
                   setErrors({});
-                  handlePasswordChange(val);
                 }}
               />
               {step === "SET_PASSWORD" && (
@@ -448,7 +436,6 @@ const Page = () => {
               onChange={(val) => {
                 setConfirmPassword(val);
                 setErrors((prev) => ({ ...prev, password: "" }));
-                handleConfirmPasswordChange(val);
               }}
               error={confirmError}
             />

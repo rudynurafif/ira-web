@@ -47,6 +47,7 @@ const authSlice = createSlice({
       state.token = null;
       state.userInfo = null;
       deleteCookie("token-ira");
+      localStorage.removeItem("activation_failed_attempts");
       localStorage.removeItem("fcm_token_stored");
       sessionStorage.clear();
     },

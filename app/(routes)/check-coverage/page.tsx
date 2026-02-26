@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import CheckCoverage from "./_components/CheckCoverage";
 import ListCoverageArea from "./_components/ListCoverageArea";
 import ListComingSoon from "./_components/ListComingSoon";
@@ -10,7 +10,7 @@ function Page() {
 
   return (
     <div>
-      {!userInfo || userInfo.is_coverage === false ? <CheckCoverage /> : null}
+      <CheckCoverage />
       <ListCoverageArea />
       {/* <ListComingSoon /> */}
     </div>

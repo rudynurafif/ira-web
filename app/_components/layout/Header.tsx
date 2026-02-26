@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaRegUser, FaSignOutAlt, FaUser } from "react-icons/fa";
+import { FaRegUser, FaSignOutAlt } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
 import IraIcon from "@/public/assets/Icons/IraIcon.svg";
@@ -27,7 +27,6 @@ import {
 import { DecodedToken } from "@/app/_context/sse.type";
 import SkeletonBase from "../skeletons/SkeletonBase";
 import { DeleteFCMToken } from "@/app/_api/Notification/Notification";
-import { useFCM } from "@/app/hooks/useFCM";
 import { useAppContext } from "@/app/_shared/context/AppContext";
 
 function Header() {
@@ -43,53 +42,43 @@ function Header() {
   const { token: tokenfromState, is_coverage } = useAppSelector(
     (state) => state.auth,
   );
-  // const token = getCookie("token-ira") ?? tokenfromState;
+
   const [token, setToken] = useState<string | null>(null);
   const { fcmToken } = useAppContext();
 
   const headerRef = useRef<HTMLDivElement>(null);
   const { userInfo } = useAppSelector((state) => state.auth);
 
-  // ===============
+  const buttonLabel = pathname === "/auth/login" ? "Daftar" : "Masuk";
 
-  // Fungsi untuk sinkronisasi token dari cookie
+  // =============== Token Sync Logic (Tetap sama) ===============
   const syncTokenFromCookie = useCallback(() => {
     const cookieToken = getCookie("token-ira") as string | null;
     setToken(cookieToken);
   }, []);
 
-  // Bagian dalam Header component
   useEffect(() => {
-    // Sinkronisasi token pertama kali
     syncTokenFromCookie();
   }, [syncTokenFromCookie]);
 
-  // Dengarkan perubahan dari localStorage (untuk tab lain)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "token-ira-sync") {
         syncTokenFromCookie();
       }
     };
-
     window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [syncTokenFromCookie]);
 
-  // Dengarkan custom event (untuk tab yang sama)
   useEffect(() => {
     const handleTokenUpdate = (e: CustomEvent) => {
-      syncTokenFromCookie(); // Atau Anda bisa menggunakan e.detail jika ingin memperbarui state token langsung
+      syncTokenFromCookie();
     };
-
     window.addEventListener(
       "token-ira-updated",
       handleTokenUpdate as EventListener,
     );
-
     return () => {
       window.removeEventListener(
         "token-ira-updated",
@@ -97,8 +86,7 @@ function Header() {
       );
     };
   }, [syncTokenFromCookie]);
-
-  // ===============
+  // =============================================================
 
   useEffect(() => {
     const cookieToken = getCookie("token-ira") as string | null;
@@ -152,7 +140,6 @@ function Header() {
       dispatch(logout());
       setIsLoggedIn(false);
       setLoadingLogout(false);
-      // router.push("/auth/login");
       window.location.href = "/auth/login";
       toast.success("Logout Berhasil!");
     }
@@ -170,14 +157,10 @@ function Header() {
         setShowDropdown(false);
       }
     }
-
     if (showDropdown) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showDropdown]);
 
   useEffect(() => {
@@ -190,16 +173,11 @@ function Header() {
         setIsOpenMenu(false);
       }
     };
-
-    // Hanya pasang listener jika di mobile (opsional)
-    const isMobile = window.innerWidth < 1024; // sesuaikan dengan breakpoint 'lg' Tailwind (1024px)
+    const isMobile = window.innerWidth < 1024;
     if (isMobile && isOpenMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpenMenu]);
 
   const handleAuthButton = () => {
@@ -212,17 +190,17 @@ function Header() {
     }
   };
 
-  const AuthButton = () => {
+  // Komponen Tombol Auth untuk Desktop
+  const AuthButtonDesktop = () => {
     if (isLoggedIn) {
       return (
         <div className="relative flex items-center" ref={dropdownRef}>
-          {/* Trigger Dropdown */}
           <button
             type="button"
             onClick={() => setShowDropdown(!showDropdown)}
             className={`flex gap-1 items-center ${
               pathname === "/" ? "bg-button-login" : "bg-primary"
-            } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white  shadow-sm shadow-white`}
+            } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white shadow-sm shadow-white`}
           >
             <FaRegUser />
             Area Pelanggan
@@ -231,7 +209,6 @@ function Header() {
             </span>
           </button>
 
-          {/* Dropdown */}
           {showDropdown && (
             <div className="absolute top-full right-0 mt-2 w-56 bg-white shadow-lg border rounded-lg overflow-hidden z-50">
               <Link
@@ -279,7 +256,27 @@ function Header() {
         } rounded-full px-5 py-2.5 font-medium cursor-pointer text-white shadow-sm transition`}
       >
         <FaRegUser />
-        Masuk/Daftar
+        {buttonLabel}
+      </button>
+    );
+  };
+
+  // Komponen Tombol Auth Kecil untuk Mobile (Hanya jika belum login)
+  const MobileAuthButton = () => {
+    if (isLoggedIn || isLoading) return null;
+
+    return (
+      <button
+        onClick={() => {
+          handleAuthButton();
+          setIsOpenMenu(false);
+        }}
+        className={`flex-shrink-0 flex items-center justify-center gap-1 ${
+          pathname === "/" ? "bg-button-login" : "bg-primary"
+        } text-white rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap shadow-sm`}
+      >
+        <FaRegUser />
+        <span>{buttonLabel}</span>
       </button>
     );
   };
@@ -311,19 +308,17 @@ function Header() {
             <div className="hidden lg:flex gap-10 items-center">
               <Link
                 href="/"
-                className={`${
-                  pathname === "/" ? "font-bold" : ""
-                } underline-animation-register`}
+                className={`${pathname === "/" ? "font-bold" : ""} underline-animation-register`}
               >
                 IRA
               </Link>
 
-              {!userInfo || userInfo.is_coverage === false ? (
+              {!userInfo ||
+              userInfo.is_coverage === false ||
+              userInfo.status === "canceled-instalation" ? (
                 <Link
                   href="/check-coverage"
-                  className={`${
-                    pathname === "/check-coverage" ? "font-bold" : ""
-                  } underline-animation-register`}
+                  className={`${pathname === "/check-coverage" ? "font-bold" : ""} underline-animation-register`}
                 >
                   Cek Jangkauan
                 </Link>
@@ -332,25 +327,28 @@ function Header() {
               {isLoggedIn && isActive && is_coverage && (
                 <Link
                   href="/payment"
-                  className={`${
-                    pathname === "/payment" ? "font-bold" : ""
-                  } underline-animation-register`}
+                  className={`${pathname === "/payment" ? "font-bold" : ""} underline-animation-register`}
                 >
                   Perpanjang Paket
                 </Link>
               )}
 
-              {/* Dynamic Auth Button */}
-              <AuthButton />
+              {/* Dynamic Auth Button Desktop */}
+              <AuthButtonDesktop />
             </div>
 
-            {/* Mobile Menu Toggle */}
-            <div className="block lg:hidden">
+            {/* Mobile Controls: Hamburger + Login Button (if not logged in) */}
+            <div className="lg:hidden flex items-center gap-3">
+              {/* Tombol Auth (Hanya muncul jika belum login) */}
+              <MobileAuthButton />
+
+              {/* Hamburger Icon */}
               <button
                 className={`p-1 cursor-pointer text-4xl ${
                   pathname === "/" ? "text-white" : "text-primary"
                 }`}
                 onClick={() => setIsOpenMenu(!isOpenMenu)}
+                aria-label="Toggle Menu"
               >
                 <IoMenu />
               </button>
@@ -358,7 +356,7 @@ function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Dropdown */}
         <div
           className={`${
             isOpenMenu ? "block" : "hidden"
@@ -369,13 +367,15 @@ function Header() {
           <div className="flex flex-col gap-5 text-center">
             <Link
               href="/"
-              className={` ${pathname === "/" && "font-bold"}`}
+              className={`${pathname === "/" && "font-bold"}`}
               onClick={() => setIsOpenMenu(false)}
             >
               IRA
             </Link>
 
-            {!userInfo || userInfo.is_coverage === false ? (
+            {!userInfo ||
+            userInfo.is_coverage === false ||
+            userInfo.status === "canceled-instalation" ? (
               <Link
                 href="/check-coverage"
                 className={`${pathname === "/check-coverage" && "font-bold"}`}
@@ -388,21 +388,21 @@ function Header() {
             {isLoggedIn && isActive && is_coverage && (
               <Link
                 href="/payment"
-                className={` ${pathname === "/payment" && "font-bold"}`}
+                className={`${pathname === "/payment" && "font-bold"}`}
                 onClick={() => setIsOpenMenu(false)}
               >
                 Perpanjang Paket
               </Link>
             )}
 
-            <div>
+            {/* Bagian Auth di Dalam Dropdown */}
+            <div className="">
               {isLoggedIn ? (
                 <div className="flex flex-col gap-6">
                   <Link
                     href="/customer-area"
-                    className={`${
-                      pathname === "/customer-area" ? "font-bold" : ""
-                    }`}
+                    className={`${pathname === "/customer-area" ? "font-bold" : ""}`}
+                    onClick={() => setIsOpenMenu(false)}
                   >
                     Area Pelanggan
                   </Link>
@@ -416,23 +416,19 @@ function Header() {
                       pathname === "/"
                         ? "bg-white text-primary"
                         : "bg-primary text-white"
-                    } font-bold items-center gap-2 disabled:cursor-not-allowed text-center justify-center rounded-full px-5 py-2.5`}
+                    } font-bold items-center gap-2 disabled:cursor-not-allowed text-center justify-center rounded-full px-5 py-2.5 w-full`}
                   >
                     <FaSignOutAlt /> Logout
                   </button>
                 </div>
               ) : (
-                <button
-                  className={`flex w-full gap-1 justify-center items-center ${
-                    pathname === "/" ? "bg-button-login" : "bg-primary"
-                  } text-white rounded-full px-5 py-2.5 font-medium`}
-                  onClick={() => {
-                    handleAuthButton();
-                    setIsOpenMenu(false);
-                  }}
-                >
-                  <FaRegUser /> Masuk/Daftar
-                </button>
+                // Pesan opsional jika user belum login tapi tombol sudah ada di header
+                // Atau bisa dikosongkan jika tidak butuh duplikasi
+                <div className="pt-2 border-t border-gray-200/20 mt-2">
+                  <div className="text-sm opacity-80">
+                    Silakan login untuk mengakses fitur pelanggan.
+                  </div>
+                </div>
               )}
             </div>
           </div>

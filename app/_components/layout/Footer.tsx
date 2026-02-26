@@ -47,10 +47,10 @@ function Footer() {
         );
       };
 
-      const getCSTel = async () => {
-        const resSetting = await getSetting("cs_phone_tel");
-        setPhoneCSTel(resSetting.data?.data?.value || null);
-      };
+      // const getCSTel = async () => {
+      //   const resSetting = await getSetting("cs_phone_tel");
+      //   setPhoneCSTel(resSetting.data?.data?.value || null);
+      // };
 
       const getCSMail = async () => {
         const resSetting = await getSetting("cs_email");
@@ -63,7 +63,7 @@ function Footer() {
 
       getOfficeAddress();
       getPhoneCS();
-      getCSTel();
+      // getCSTel();
       getCSMail();
     } catch (err: any) {
       console.error(err?.response?.data?.message);
@@ -109,7 +109,7 @@ function Footer() {
                       {phoneCS}
                     </Link>
                   </div>
-                  {phoneCSTel && (
+                  {/* {phoneCSTel && (
                     <div className="flex gap-1 items-center">
                       <BsTelephone size={14} />
                       <Link
@@ -120,7 +120,7 @@ function Footer() {
                         {phoneCSTel}
                       </Link>
                     </div>
-                  )}
+                  )} */}
                   <div className="flex gap-1 items-center">
                     <MdOutlineMail size={14} />
                     <Link
@@ -197,7 +197,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.1402.132</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.2502.150</div>
       </div>
     </div>
   );

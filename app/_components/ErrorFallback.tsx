@@ -13,11 +13,13 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   onRetry,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
       <div className="mb-4 text-red-500">
         <BiError size={48} />
       </div>
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">Terjadi Kesalahan!</h3>
+      <h3 className="text-xl font-semibold text-gray-800 mb-2">
+        Terjadi Kesalahan!
+      </h3>
       <p className="text-gray-600 mb-6 max-w-md">{message}</p>
       {onRetry && (
         <button

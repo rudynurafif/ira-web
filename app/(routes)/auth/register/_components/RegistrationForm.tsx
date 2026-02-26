@@ -117,7 +117,13 @@ function RegistrationForm({
   const [postalCodeOptions, setPostalCodeOptions] = useState<ReactSelectType[]>(
     [],
   );
-  const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
+  const hasInitialLocation =
+    initialData?.latitude &&
+    initialData?.longitude &&
+    String(initialData.latitude) !== "0" &&
+    String(initialData.longitude) !== "0";
+  const [isCheckCoverage, setIsCheckCoverage] =
+    useState<boolean>(!hasInitialLocation);
   const [mitraID, setMitraID] = useState<
     { id: string | number; [key: string]: any }[]
   >([]);
@@ -607,7 +613,7 @@ function RegistrationForm({
       errors.rw = "RW harus diisi";
     }
 
-    if (!formData.rt || formData.rw === "0") {
+    if (!formData.rt || formData.rt === "0") {
       errors.rt = "RT harus diisi";
     }
 
@@ -733,6 +739,7 @@ function RegistrationForm({
     setAgreement(false);
     setIsLoading(false);
     setOtpStatus("idle");
+    localStorage.removeItem(STORAGE_KEY);
 
     if (typeof window !== "undefined")
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -785,7 +792,11 @@ function RegistrationForm({
   //   formData.password !== formData.confirm_password;
 
   const isValid =
-    isLoading || !agreement || status === "denied" || isCheckCoverage;
+    isLoading ||
+    !agreement ||
+    status === "denied" ||
+    isCheckCoverage ||
+    isLoadingPackage;
   // !formData.package_id;
   // || isPasswordMismatch;
 
@@ -796,7 +807,16 @@ function RegistrationForm({
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-7">
-        {isCovered ? (
+        {isCheckCoverage ? (
+          <div className="my-8">
+            <div className="hidden md:block">
+              <PackageCardMobileSkeletonList count={2} />
+            </div>
+            <div className="block md:hidden">
+              <PackageCardMobileSkeletonList count={1} />
+            </div>
+          </div>
+        ) : isCovered ? (
           <div className="my-8">
             {showBannerCovered && (
               <Image
@@ -992,123 +1012,6 @@ function RegistrationForm({
             </div>
           )}
 
-          {/* Nomor Handphone (NGGA JADI) */}
-          {/* <div className="max-md:col-span-2 col-span-1">
-            <PhoneNumberForm
-              label="Nomor Handphone"
-              name="phone"
-              isImportant
-              value={formData.phone}
-              disabled={mode === "reregister"}
-              onChange={(val) => {
-                setFormData((prev) => ({ ...prev, phone: val }));
-
-                // kosong → jangan error
-                if (!val) {
-                  setErrors((e) => ({ ...e, phone: "" }));
-                  return;
-                }
-
-                // ❌ awalan salah
-                if (!val.startsWith("08") && !val.startsWith("62")) {
-                  setErrors((e) => ({
-                    ...e,
-                    phone: "Nomor harus diawali 08 atau 62",
-                  }));
-                  return;
-                }
-
-                // ❌ kependekan / kepanjangan
-                if (val.length < 7 || val.length > 15) {
-                  setErrors((e) => ({
-                    ...e,
-                    phone: "Nomor harus 7–15 digit",
-                  }));
-                  return;
-                }
-
-                // ❌ format tidak valid
-                if (!PHONE_LIVE_REGEX.test(val)) {
-                  setErrors((e) => ({
-                    ...e,
-                    phone: "Format nomor handphone tidak valid",
-                  }));
-                  return;
-                }
-
-                // ✅ valid
-                setErrors((e) => ({ ...e, phone: "" }));
-              }}
-              error={errors.phone}
-            />
-            {mode === "register" ? (
-              <p className="text-xs text-muted mt-1">
-                *Pastikan nomor yang Anda masukkan benar dan aktif
-              </p>
-            ) : (
-              <p className="text-xs text-muted mt-1">
-                *Nomor yang sama akan digunakan untuk berlangganan kembali
-              </p>
-            )}
-          </div> */}
-
-          {/* Password */}
-          {/* <div className="max-md:col-span-2 col-span-1">
-            <DynamicPasswordForm
-              label="Password"
-              name="password"
-              isImportant
-              value={formData.password}
-              placeholder="Minimal 6 karakter"
-              onChange={(val) => {
-                setFormData((prev) => ({ ...prev, password: val }));
-
-                // kosong → jangan error dulu
-                if (!val) {
-                  setErrors((e) => ({ ...e, password: "" }));
-                  return;
-                }
-
-                // ❌ terlalu pendek
-                if (val.length < 6) {
-                  setErrors((e) => ({
-                    ...e,
-                    password: "Password minimal 6 karakter",
-                  }));
-                  return;
-                }
-
-                // ✅ valid
-                setErrors((e) => ({ ...e, password: "" }));
-              }}
-              error={errors.password}
-            />
-          </div> */}
-
-          {/* Konfirmasi Password */}
-          {/* <div className="max-md:col-span-2 col-span-1">
-            <DynamicPasswordForm
-              label="Konfirmasi Password"
-              name="confirm_password"
-              isImportant
-              value={formData.confirm_password}
-              placeholder="Ulangi password"
-              onChange={(val) => {
-                setFormData((prev) => ({ ...prev, confirm_password: val }));
-
-                if (val && val !== formData.password) {
-                  setErrors((e) => ({
-                    ...e,
-                    confirm_password: "Password belum sama",
-                  }));
-                } else {
-                  setErrors((e) => ({ ...e, confirm_password: "" }));
-                }
-              }}
-              error={errors.confirm_password}
-            />
-          </div> */}
-
           {/* NIK */}
           {/* <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
@@ -1126,7 +1029,7 @@ function RegistrationForm({
             />
           </div> */}
 
-          {/* NOKK */}
+          {/* NO KK */}
           {/* <div className="max-md:col-span-2 col-span-1">
             <DynamicForm
               label="No KK"
@@ -1415,7 +1318,8 @@ function RegistrationForm({
               <>
                 {mode === "register" && (
                   <p className="text-sm text-muted mb-1">
-                    *Pastikan titik lokasi pada peta sudah sesuai dengan alamat Anda
+                    *Pastikan titik lokasi pada peta sudah sesuai dengan alamat
+                    Anda
                   </p>
                 )}
                 <MapGeoapify

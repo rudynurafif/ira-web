@@ -6,10 +6,17 @@
 const FAILED_ATTEMPT_KEY = "activation_failed_attempts";
 const MAX_ATTEMPTS = 3;
 
+interface AttemptLog {
+  sn: string;
+  message: string;
+  statusCode?: number | string;
+}
+
 interface FailedAttemptData {
   count: number;
   lastFailedAt: number | null;
   serialNumbers: string[];
+  attempts: AttemptLog[];
 }
 
 // Initialize default data
@@ -17,6 +24,7 @@ const getDefaultData = (): FailedAttemptData => ({
   count: 0,
   lastFailedAt: null,
   serialNumbers: [],
+  attempts: [],
 });
 
 // Get current failed attempt data
@@ -31,6 +39,7 @@ export const getFailedAttemptData = (): FailedAttemptData => {
         serialNumbers: Array.isArray(parsed.serialNumbers)
           ? parsed.serialNumbers
           : [],
+        attempts: Array.isArray(parsed.attempts) ? parsed.attempts : [],
       };
     }
   } catch (error) {
@@ -51,6 +60,8 @@ export const saveFailedAttemptData = (data: FailedAttemptData): void => {
 // Increment failed attempt counter
 export const incrementFailedAttempt = (
   serialNumber?: string,
+  errorMessage?: string,
+  statusCode?: number | string,
 ): FailedAttemptData => {
   const data = getFailedAttemptData();
 
@@ -64,6 +75,25 @@ export const incrementFailedAttempt = (
     // Keep only last 5 serial numbers
     if (data.serialNumbers.length > 5) {
       data.serialNumbers.shift();
+    }
+  }
+
+  // Track error message if provided
+  if (serialNumber && errorMessage) {
+    const newAttempt: AttemptLog = {
+      sn: serialNumber,
+      message: errorMessage,
+    };
+
+    if (statusCode) {
+      newAttempt.statusCode = statusCode;
+    }
+
+    data.attempts.push(newAttempt);
+
+    // Batasi riwayat hanya 5 percobaan terakhir
+    if (data.attempts.length > 5) {
+      data.attempts.shift();
     }
   }
 

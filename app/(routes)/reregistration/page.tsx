@@ -15,47 +15,48 @@ function Page() {
   const [initialData, setInitialData] = useState<Partial<any> | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const loadUserData = async () => {
+    let user = userInfo;
+
+    // Jika belum ada di state, fetch dari API
+    if (!user) {
+      try {
+        const res = await getProfileInfo({});
+        const customerData = res.data?.data?.customer ?? {};
+        dispatch(getUser(customerData));
+        user = customerData;
+      } catch (err) {
+        toastErrorFromAPI(err);
+      }
+    }
+
+    // Petakan ke initialData
+    if (user) {
+      setInitialData({
+        fullname: user.name || "",
+        email: user.email || "",
+        phone: user.phone_number || "",
+        postal_code: user.postal_code || "",
+        actual_address: user.address || "",
+        notes: user.notes || "",
+        rw: user.rw || "",
+        rt: user.rt || "",
+        latitude: user.latitude || undefined,
+        longitude: user.longitude || undefined,
+        province: user.province_id?.id || "",
+        city: user.city_id?.id || "",
+        district: user.district_id?.id || "",
+        sub_district: user.sub_district_id?.id || "",
+      });
+    } else {
+      setInitialData({}); // atau redirect ke login
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const loadUserData = async () => {
-      let user = userInfo;
-
-      // Jika belum ada di state, fetch dari API
-      if (!user) {
-        try {
-          const res = await getProfileInfo({});
-          const customerData = res.data?.data?.customer ?? {};
-          dispatch(getUser(customerData));
-          user = customerData;
-        } catch (err) {
-          toastErrorFromAPI(err);
-        }
-      }
-
-      // Petakan ke initialData
-      if (user) {
-        setInitialData({
-          fullname: user.name || "",
-          email: user.email || "",
-          phone: user.phone_number || "",
-          postal_code: user.postal_code || "",
-          actual_address: user.address || "",
-          notes: user.notes || "",
-          rw: user.rw || "",
-          rt: user.rt || "",
-          latitude: user.latitude || undefined,
-          longitude: user.longitude || undefined,
-          province: user.province_id?.id || "",
-          city: user.city_id?.id || "",
-          district: user.district_id?.id || "",
-          sub_district: user.sub_district_id?.id || "",
-        });
-      } else {
-        setInitialData({}); // atau redirect ke login
-      }
-      setLoading(false);
-    };
-
     loadUserData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, userInfo]);
 
   // Tampilkan loading sementara atau fallback
