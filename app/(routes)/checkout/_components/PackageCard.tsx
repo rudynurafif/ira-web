@@ -23,7 +23,7 @@ function PackageCard({ paket, isActive }: { paket: any; isActive?: boolean }) {
               key={"benefit-" + index}
               className="flex gap-2 items-start mb-1"
             >
-              <FaCircleCheck size={20} color="#308FFF" className="mt-[2px]" />
+              <FaCircleCheck size={20} color="#308FFF" className="mt-0.5" />
               <p>{benefit}</p>
             </li>
           );

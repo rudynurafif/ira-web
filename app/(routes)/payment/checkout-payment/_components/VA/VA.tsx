@@ -138,7 +138,7 @@ function VA({ data }: { data: VAPaymentData }) {
                     alt=""
                     width={500}
                     height={500}
-                    className="w-[124px] h-fit my-3"
+                    className="w-31 h-fit my-3"
                   />
                 </div>
               )}
@@ -182,7 +182,7 @@ function VA({ data }: { data: VAPaymentData }) {
               <div
                 className={`overflow-hidden transition-all duration-500 ease-in-out ${
                   activeInstructions[item.title]
-                    ? "max-h-[500px] opacity-100"
+                    ? "max-h-125 opacity-100"
                     : "max-h-0 opacity-0"
                 } pt-2`}
               >

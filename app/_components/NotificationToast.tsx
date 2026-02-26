@@ -33,7 +33,7 @@ export default function NotificationToast({
   };
 
   return (
-    <div className="relative max-w-[480px]">
+    <div className="relative max-w-120">
       <div
         onClick={handleClick}
         className="w-[95%] fixed top-6 right-2 z-50 cursor-pointer bg-white border border-gray-200 shadow-lg rounded-xl p-4 hover:shadow-xl transition"

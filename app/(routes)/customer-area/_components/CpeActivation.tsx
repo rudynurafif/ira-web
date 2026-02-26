@@ -7,7 +7,7 @@ import { MdHeadsetMic } from "react-icons/md";
 const CpeActivationStatus = () => {
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-      <div className="flex items-center gap-6 max-w-[1100px] mx-auto">
+      <div className="flex items-center gap-6 max-w-275 mx-auto">
         <div className="flex items-center justify-center">
           <Image
             src={CPEActivation}
