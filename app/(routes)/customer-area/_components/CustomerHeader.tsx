@@ -7,7 +7,7 @@ const CustomerHeader = () => {
   return (
     <div className="relative isolate">
       {/* Banner */}
-      <div className="relative h-[200px] w-full overflow-hidden ">
+      <div className="relative h-50 w-full overflow-hidden ">
         {/* Banner Mobile */}
         <Image
           src={bannerMobile}

@@ -5,7 +5,7 @@ function PackageCardMobileSkeleton() {
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden px-4 pt-3 pb-4">
       {/* shimmer overlay */}
       <div className="relative">
-        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.2s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.2s_infinite] bg-linear-to-r from-transparent via-white/60 to-transparent" />
         {/* header */}
         <div className="flex items-center gap-2">
           <div className="h-5 w-5 rounded bg-gray-200" />

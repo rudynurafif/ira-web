@@ -36,7 +36,12 @@ export function middleware(req: NextRequest) {
     "/",
     "/auth/login",
     "/auth/register",
+    "/check-coverage",
     "/forgot-password",
+    "/panduan-cara-bayar",
+    "/privacy-and-policy",
+    "/refund-policy",
+    "/terms-and-condition",
   ];
 
   const isPublic = publicPaths.some(
@@ -63,5 +68,7 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/activation", "/customer-area", "/auth/:path*"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ttf|woff|woff2|eot|otf)$).*)",
+  ],
 };
