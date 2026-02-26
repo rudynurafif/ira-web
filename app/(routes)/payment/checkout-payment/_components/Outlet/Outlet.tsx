@@ -83,7 +83,7 @@ function Outlet({ data }: { data: OtcPaymentData }) {
 
   return (
     <div>
-      <div className="mt-4 bg-[#F7F9FD]  border border-[#949AA3] w-full rounded-[12px] p-5">
+      <div className="mt-4 bg-[#F7F9FD]  border border-[#949AA3] w-full rounded-xl p-5">
         <span className="block text-center text-blue ">
           Tunjukkan Kode Pembayaran ke Kasir
         </span>
@@ -130,7 +130,7 @@ function Outlet({ data }: { data: OtcPaymentData }) {
               <div
                 className={`overflow-hidden transition-all duration-500 ease-in-out ${
                   activeInstructions[item.title]
-                    ? "max-h-[500px] opacity-100"
+                    ? "max-h-125 opacity-100"
                     : "max-h-0 opacity-0"
                 } pt-2`}
               >

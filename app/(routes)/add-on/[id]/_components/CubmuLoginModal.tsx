@@ -130,7 +130,7 @@ export default function CubmuLoginModal({
         {/* Button bottom */}
         <button
           onClick={onClose}
-          className="mt-8 h-[56px] w-full rounded-full bg-[#d10f0f] text-base font-extrabold text-white shadow-[0_18px_50px_rgba(0,0,0,0.25)] transition hover:brightness-110 active:brightness-95"
+          className="mt-8 h-14 w-full rounded-full bg-[#d10f0f] text-base font-extrabold text-white shadow-[0_18px_50px_rgba(0,0,0,0.25)] transition hover:brightness-110 active:brightness-95"
         >
           Tutup
         </button>

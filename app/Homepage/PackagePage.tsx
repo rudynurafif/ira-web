@@ -19,7 +19,7 @@ function PackagePage() {
           return (
             <div
               key={index}
-              className="p-2.5 sm:min-w-[410px] sm:min-h-[200px] h-full max-[350px]:min-h-[175px] bg-[#a4b6e8]/20 rounded-xl flex flex-col"
+              className="p-2.5 sm:min-w-102.5 sm:min-h-50 h-full max-[350px]:min-h-43.75 bg-[#a4b6e8]/20 rounded-xl flex flex-col"
             >
               <div
                 style={{

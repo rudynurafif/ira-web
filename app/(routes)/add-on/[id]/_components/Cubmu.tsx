@@ -55,7 +55,7 @@ const Cubmu = ({ items }: CubmuProps) => {
       {/* HERO */}
       <section className="relative w-full">
         {/* Mobile: tinggi lebih pendek + adaptif */}
-        <div className="relative h-[620px] w-full sm:h-[680px] md:h-130 md:h-140">
+        <div className="relative h-155 w-full sm:h-170 md:h-130">
           {/* bg image */}
           <Image
             src="/assets/Images/cubmu-hero-bg.png"
@@ -307,7 +307,7 @@ const Cubmu = ({ items }: CubmuProps) => {
                     alt={item.title}
                     width={210}
                     height={310}
-                    className="h-[250px] w-[170px] sm:h-77.5 sm:w-52.5 object-cover object-center"
+                    className="h-62.5 w-42.5 sm:h-77.5 sm:w-52.5 object-cover object-center"
                     onClick={() => {
                       if (!item.call_to_action) return;
                       const url = item.call_to_action.startsWith("http")
