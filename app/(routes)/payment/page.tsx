@@ -68,6 +68,7 @@ const Payment = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorStatus, setErrorStatus] = useState<number | null>(null);
 
   const fetchPackages = async () => {
     try {
@@ -78,6 +79,7 @@ const Payment = () => {
     } catch (err: any) {
       const errorStatusCode =
         err?.response?.data?.statusCode || "(status code)";
+      setErrorStatus(errorStatusCode);
 
       toastErrorFromAPI(err);
 
@@ -211,69 +213,75 @@ const Payment = () => {
 
   if (isLoading) return <Loader />;
 
-  if (error) return <ErrorFallback message={error} onRetry={fetchPackages} />;
+  if (error && errorStatus !== 404)
+    return <ErrorFallback message={error} onRetry={fetchPackages} />;
 
   return (
-    <div className="container mx-auto my-8 max-md:p-4">
-      <div className="flex gap-2 items-center justify-center mb-7">
-        <div className="font-bold text-primary-text text-3xl">
-          Perpanjang Paket
+    <div className="container flex flex-col justify-between max-sm:min-h-[80vh] mx-auto sm:my-8 max-sm:px-4 max-sm:py-6">
+      <div>
+        <div className="flex gap-2 items-center justify-center mb-7">
+          <div className="font-bold text-primary-text text-3xl">
+            Perpanjang Paket
+          </div>
         </div>
-      </div>
 
-      {/* <BannerLatest /> */}
-      <Image
-        src={bannerPerpanjang}
-        alt="banner-perpanjang-paket"
-        className="lg:block hidden w-full drop-shadow-xl mb-8"
-      />
-      <Image
-        src={bannerPerpanjangMobile}
-        alt="banner-perpanjang-paket"
-        className="lg:hidden block w-full drop-shadow-xl mb-8"
-      />
+        {/* <BannerLatest /> */}
+        <Image
+          src={bannerPerpanjang}
+          alt="banner-perpanjang-paket"
+          className="lg:block hidden w-full drop-shadow-xl mb-8"
+        />
+        <Image
+          src={bannerPerpanjangMobile}
+          alt="banner-perpanjang-paket"
+          className="lg:hidden block w-full drop-shadow-xl mb-8"
+        />
 
-      <div className="sm:p-6 sm:shadow-lg my-8 rounded-lg">
-        {latestPackage && !isLatestPackageFree && (
-          <>
-            <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
-              Paket yang terakhir dibeli
-            </h2>
+        <div className="sm:p-6 sm:shadow-lg my-8 rounded-lg">
+          {latestPackage && !isLatestPackageFree && (
+            <>
+              <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
+                Paket yang terakhir dibeli
+              </h2>
 
-            <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
-              <PackageCardMobile
-                pkg={latestPackage.package_id}
-                selected={selectedPackage?.id === latestPackage?.package_id?.id}
-                onSelect={handleSelect}
-                convertToCurrency={convertToCurrency}
-              />
-            </div>
+              <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
+                <PackageCardMobile
+                  pkg={latestPackage.package_id}
+                  selected={
+                    selectedPackage?.id === latestPackage?.package_id?.id
+                  }
+                  onSelect={handleSelect}
+                  convertToCurrency={convertToCurrency}
+                />
+              </div>
 
-            <div className="border border-gray-border my-6"></div>
-          </>
-        )}
-
-        <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
-          {isLatestPackageFree ? "Daftar Paket" : "Paket Lainnya"}
-        </h2>
-
-        <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
-          {packages && packages?.length ? (
-            packages.map((pkg) => (
-              <PackageCardMobile
-                key={pkg.id}
-                pkg={pkg}
-                selected={selectedPackage?.id === pkg?.id}
-                onSelect={handleSelect}
-                convertToCurrency={convertToCurrency}
-              />
-            ))
-          ) : (
-            <div>Belum ada Daftar Paket yang tersedia untuk Anda</div>
+              <div className="border border-gray-border my-6"></div>
+            </>
           )}
-        </div>
 
-        {/* <div className="my-8">
+          <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
+            {isLatestPackageFree ? "Daftar Paket" : "Paket Lainnya"}
+          </h2>
+
+          <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
+            {packages && packages?.length ? (
+              packages.map((pkg) => (
+                <PackageCardMobile
+                  key={pkg.id}
+                  pkg={pkg}
+                  selected={selectedPackage?.id === pkg?.id}
+                  onSelect={handleSelect}
+                  convertToCurrency={convertToCurrency}
+                />
+              ))
+            ) : (
+              <div>
+                {error || "Belum ada Daftar Paket yang tersedia untuk Anda"}
+              </div>
+            )}
+          </div>
+
+          {/* <div className="my-8">
           <div
             className="flex cursor-pointer mt-6 justify-between border border-gray-border shadow-md gap-4 rounded-lg p-4 items-center"
             onClick={() => router.push("/payment/payment-methods")}
@@ -317,17 +325,18 @@ const Payment = () => {
             </button>
           </div>
         </div> */}
-
-        <div className="mt-6">
-          <button
-            className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
-            // onClick={handleCreatePayment}
-            onClick={handleCheckPackage}
-            disabled={!selectedPackage}
-          >
-            Pilih Metode Pembayaran
-          </button>
         </div>
+      </div>
+
+      <div className="mt-12">
+        <button
+          className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+          // onClick={handleCreatePayment}
+          onClick={handleCheckPackage}
+          disabled={!selectedPackage}
+        >
+          Pilih Metode Pembayaran
+        </button>
       </div>
 
       {openModalNotAllowed && (
