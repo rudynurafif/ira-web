@@ -115,7 +115,7 @@ export default function ConnectToNetwork() {
 
   const customer_id = decodedToken?.customer_id || "";
 
-  const [screen, setScreen] = useState<Screen>("failedFinal");
+  const [screen, setScreen] = useState<Screen>("loading");
   const [attempt, setAttempt] = useState(0);
 
   const [lastFailedStatusCode, setLastFailedStatusCode] = useState<
