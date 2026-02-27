@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { deleteCookie } from "cookies-next";
+import { ErrorData } from "../types/activation";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
 export const PASSWORD_ALLOWED_CHARS_REGEX = /^[a-zA-Z0-9#!_]+$/;
@@ -322,7 +323,7 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     return;
   }
 
-  toast.error(errorMsg, { id });
+  toast.error(errorMsg, { id, duration: 7500 });
 };
 
 export const formattedDate = (dateString: string | null) => {
@@ -464,4 +465,13 @@ export const handleDownloadClick = (type: "google" | "apple" | "web"): void => {
     console.error("Error handling download:", error);
     toast("Terjadi kesalahan. Silakan coba lagi.");
   }
+};
+
+export const assignColors: Record<ErrorData["assign"], string> = {
+  CS: "bg-blue-100 text-blue-800 border-blue-200",
+  ALI: "bg-purple-100 text-purple-800 border-purple-200",
+  TECH: "bg-indigo-100 text-indigo-800 border-indigo-200",
+  WEWINS: "bg-pink-100 text-pink-800 border-pink-200",
+  VENDOR: "bg-orange-100 text-orange-800 border-orange-200",
+  LOGISTIK: "bg-emerald-100 text-emerald-800 border-emerald-200",
 };

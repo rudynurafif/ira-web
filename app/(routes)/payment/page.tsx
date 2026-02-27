@@ -81,8 +81,6 @@ const Payment = () => {
         err?.response?.data?.statusCode || "(status code)";
       setErrorStatus(errorStatusCode);
 
-      toastErrorFromAPI(err);
-
       if (errorStatusCode === 404) {
         setError(err?.response?.data?.message || "Data paket tidak ditemukan.");
         return;

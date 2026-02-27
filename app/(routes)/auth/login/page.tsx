@@ -10,7 +10,6 @@ import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
 
 import {
   PASSWORD_ALLOWED_CHARS_REGEX,
-  PASSWORD_INPUT_FILTER_REGEX,
   PHONE_LIVE_REGEX,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
