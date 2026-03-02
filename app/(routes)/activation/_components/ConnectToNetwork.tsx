@@ -25,7 +25,7 @@ import { EventSourcePolyfill } from "event-source-polyfill";
 import Badge from "@/app/_components/Badge";
 import SignalArc from "./SignalWave";
 import CPEIRA from "@/public/assets/Images/cpe-ira.png";
-import noSN from "@/public/assets/Images/no-sn.svg";
+import failedActivation from "@/public/assets/Images/failedActivation.png";
 import maxAttemptImage from "@/public/assets/Images/maxAttempFailed.png";
 
 import { refreshTask } from "@/app/_api/CoreNetwork/CoreNetwork";
@@ -918,8 +918,11 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           <p className="text-black max-w-4xl mx-auto mt-2">
             Aktivasi biasanya selesai dalam ±5 menit. Mohon jangan
             menutup/merefresh halaman ini. Pastikan Anda memiliki koneksi
-            internet yang stabil. Jika proses aktivasi belum terverifikasi, kamu
-            bisa cek status aktivasi secara manual.
+            internet yang stabil.
+          </p>
+          <p className="text-black max-w-4xl mx-auto mt-4">
+            Jika proses aktivasi belum terverifikasi, kamu bisa cek status
+            aktivasi secara manual.
           </p>
         </div>
 
@@ -980,7 +983,12 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
         <div className="pt-8 flex flex-col items-center">
           {/* Gambar */}
           <div className="mb-4">
-            <Image src={noSN} width={180} height={180} alt="Aktivasi Gagal" />
+            <Image
+              src={failedActivation}
+              width={180}
+              height={180}
+              alt="Aktivasi Gagal"
+            />
           </div>
 
           {/* Title dari API atau Default */}
