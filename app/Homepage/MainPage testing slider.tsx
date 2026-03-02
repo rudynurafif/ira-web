@@ -1,10 +1,14 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+
+import { Autoplay, Pagination, Navigation } from "swiper/modules";
+
 import modemIra from "@/public/assets/Images/cpe-ira.png";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import Link from "next/link";
 import wifiIcon from "@/public/assets/Icons/wifi.svg";
 import { getImageBanner } from "../_api/Banner/Banner";
@@ -37,19 +41,6 @@ function MainPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const settingsSlider = {
-    infinite: true,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    speed: 500,
-    autoplay: true,
-    autoplaySpeed: 5000,
-    adaptiveHeight: true,
-    arrows: true,
-    dots: true,
-    cssEase: "linear",
-  };
-
   const { userInfo } = useAppSelector((state) => state.auth);
 
   async function getBannerImage() {
@@ -57,7 +48,6 @@ function MainPage() {
       const params = { flag: "desktop" };
       const res_banner = await getImageBanner(params);
 
-      // Slide pertama: Static Hero
       const staticHero: SlideData = {
         image: "/assets/Images/hero-ira-new.webp",
         imageMobile: "/assets/Images/hero-ira-new-mobile.webp",
@@ -65,7 +55,6 @@ function MainPage() {
         isStatic: true,
       };
 
-      // Slide dari API
       const apiSlides: SlideData[] = res_banner.data.data.map((item: any) => ({
         image: item.web_apps_image
           ? `${process.env.NEXT_PUBLIC_URL_OBS}${item.web_apps_image}`
@@ -95,9 +84,8 @@ function MainPage() {
     getBannerImage();
   }, []);
 
-  // --- KONTEN SLIDE 1 (STATIC) ---
   const FirstSlideContent = () => (
-    <div className="relative w-full md:bg-[url('/assets/Images/hero-ira-new.webp')] bg-[url('/assets/Images/hero-ira-new-mobile.webp')] bg-cover bg-right bg-no-repeat text-white min-h-[600px]">
+    <div className="relative md:bg-[url('/assets/Images/hero-ira-new.webp')] bg-[url('/assets/Images/hero-ira-new-mobile.webp')] bg-cover bg-right bg-no-repeat text-white">
       {/* Original (Hidden) */}
       <div className="hidden">
         <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
@@ -158,7 +146,7 @@ function MainPage() {
       {/* Versi Go Commercial */}
       <div className="relative">
         <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
-        <div className="container mx-auto px-5 py-25">
+        <div className="container mx-auto px-5 py-20">
           <div className="text-center flex flex-col gap-5 sm:my-6 my-4">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl 2xl:text-6xl font-bold">
               IRA Internet Rakyat
@@ -304,48 +292,56 @@ function MainPage() {
   );
 
   return (
-    <div className="relative w-full overflow-hidden text-white">
-      <Slider {...settingsSlider}>
+    <div className="">
+      <Swiper
+        modules={[Autoplay, Pagination, Navigation]}
+        spaceBetween={0}
+        slidesPerView={1}
+        loop={true}
+        autoplay={{
+          delay: 5000,
+          disableOnInteraction: false,
+        }}
+        speed={500}
+        className=""
+      >
         {/* Slide 1: Static Hero */}
-        <div className="relative w-full outline-none">
+        <SwiperSlide className="">
           <FirstSlideContent />
-        </div>
+        </SwiperSlide>
 
         {/* Slide 2+: API Banners */}
         {slides
           .filter((s) => !s.isStatic)
           .map((slide, index) => {
             const bgImage = isMobile ? slide.imageMobile : slide.image;
-
             if (!bgImage) return null;
 
             return (
-              <div
-                key={`api-${index}`}
-                className="relative w-full outline-none text-white min-h-screen"
-              >
-                <Image
-                  src={bgImage}
-                  alt={`Banner Slide ${index + 1}`}
-                  fill
-                  className="object-cover object-right"
-                  priority={index === 0}
-                  sizes="100vw"
-                  unoptimized={true}
-                />
-
-                {/* Link Area jika ada URL dari API */}
-                {slide.url && (
-                  <Link
-                    href={slide.url}
-                    className="absolute inset-0 z-10"
-                    aria-label="Banner link"
+              <SwiperSlide key={`api-${index}`} className="">
+                <div className="relative w-full h-screen outline-none text-white">
+                  <Image
+                    src={bgImage}
+                    alt={`Banner Slide ${index + 1}`}
+                    fill
+                    className="object-cover object-right"
+                    priority={false}
+                    sizes="100vw"
+                    unoptimized={true}
                   />
-                )}
-              </div>
+
+                  {slide.url && (
+                    <Link
+                      href={slide.url}
+                      className="absolute inset-0 z-20"
+                      aria-label="Banner link"
+                    />
+                  )}
+                </div>
+              </SwiperSlide>
             );
           })}
-      </Slider>
+      </Swiper>
     </div>
   );
 }

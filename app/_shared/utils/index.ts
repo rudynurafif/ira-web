@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { deleteCookie } from "cookies-next";
+import { ErrorData } from "../types/activation";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
 export const PASSWORD_ALLOWED_CHARS_REGEX = /^[a-zA-Z0-9#!_]+$/;
@@ -322,7 +323,7 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     return;
   }
 
-  toast.error(errorMsg, { id });
+  toast.error(errorMsg, { id, duration: 7500 });
 };
 
 export const formattedDate = (dateString: string | null) => {
@@ -464,4 +465,13 @@ export const handleDownloadClick = (type: "google" | "apple" | "web"): void => {
     console.error("Error handling download:", error);
     toast("Terjadi kesalahan. Silakan coba lagi.");
   }
+};
+
+export const assignColors: Record<ErrorData["assign"][0], string> = {
+  ALI: "bg-[#B34E0033] text-[#B34E00] border-[#B34E00]",
+  CS: "bg-[#FE5F5B33] text-[#FE5F5B] border-[#FE5F5B]",
+  LOGISTIK: "bg-[#62211D33] text-[#62211D] border-[#62211D]",
+  NOC: "bg-[#3B59E333] text-[#3B59E3] border-[#3B59E3]",
+  TECH: "bg-[#DF326033] text-[#DF3260] border-[#DF3260]",
+  VENDOR: "bg-[#8336AD33] text-[#8336AD] border-[#8336AD]",
 };
