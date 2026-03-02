@@ -468,10 +468,10 @@ export const handleDownloadClick = (type: "google" | "apple" | "web"): void => {
 };
 
 export const assignColors: Record<ErrorData["assign"][0], string> = {
-  ALI: "bg-[#B34E0033] text-[#B34E00] border-[#B34E00]",
-  CS: "bg-[#FE5F5B33] text-[#FE5F5B] border-[#FE5F5B]",
-  LOGISTIK: "bg-[#62211D33] text-[#62211D] border-[#62211D]",
-  NOC: "bg-[#3B59E333] text-[#3B59E3] border-[#3B59E3]",
-  TECH: "bg-[#DF326033] text-[#DF3260] border-[#DF3260]",
-  VENDOR: "bg-[#8336AD33] text-[#8336AD] border-[#8336AD]",
+  NOC: "bg-[#3B59E3]",
+  ALI: "bg-[#000000]",
+  VENDOR: "bg-[#8336AD]",
+  TECH: "bg-[#B50000]",
+  CS: "bg-[#FE5F5B]",
+  LOGISTIK: "bg-[#FF8C00]",
 };
