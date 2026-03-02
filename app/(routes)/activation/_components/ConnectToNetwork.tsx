@@ -126,11 +126,6 @@ export default function ConnectToNetwork() {
   const [cooldown, setCooldown] = useState(0);
   const [isCooldownActive, setIsCooldownActive] = useState(false);
 
-  // status SSE sederhana untuk UI
-  const [sseStatus, setSseStatus] = useState<"connecting" | "open" | "error">(
-    "connecting",
-  );
-
   const [errorData, setErrorData] = useState<ErrorData | null>(null);
 
   // step status terpisah
@@ -347,7 +342,6 @@ export default function ConnectToNetwork() {
 
     if (eventSourceRef.current) return;
 
-    setSseStatus("connecting");
     clearTimeoutSafe();
 
     const es = new EventSourcePolyfill(
@@ -366,11 +360,9 @@ export default function ConnectToNetwork() {
 
     es.onopen = () => {
       console.log("SSE Open");
-      setSseStatus("open");
     };
     es.onerror = () => {
       console.log("SSE Close");
-      setSseStatus("error");
     };
 
     es.onmessage = (event: any) => {
@@ -392,19 +384,25 @@ export default function ConnectToNetwork() {
           } else {
             activateSuccessRef.current = false;
 
+            const sseErrorData = data?.error_data || null;
+
             const sseErrorMessage =
+              sseErrorData?.detail ||
               data?.message ||
               data?.wewins_result?.message ||
               "Gagal aktivasi melalui jaringan";
 
-            const sseStatusCode = data?.wewins_result?.result || null;
+            const sseStatusCode =
+              sseErrorData?.code || data?.wewins_result?.result || null;
+
+            setErrorData(sseErrorData);
 
             setLastFailedStatusCode(sseStatusCode);
 
             incrementFailedAttempt(
               serialNumber,
-              sseErrorMessage,
-              sseStatusCode || undefined,
+              sseErrorMessage ?? "",
+              sseStatusCode ?? "",
             );
 
             stopCooldown();
@@ -427,7 +425,6 @@ export default function ConnectToNetwork() {
               }
             }, 2000);
           } else {
-            // incrementFailedAttempt(serialNumber);
             setInternetStatus("success");
             setTimeout(() => {
               if (!activationConfirmedRef.current) {
@@ -493,9 +490,16 @@ export default function ConnectToNetwork() {
         setLastFailedStatusCode(statusCode);
         setScreen("failed");
 
+        setErrorData(resActivate.data?.data?.error_data ?? null);
+
+        incrementFailedAttempt(
+          serialNumber,
+          resActivate?.data?.data?.error_data?.title ?? "",
+          resActivate?.data?.data?.error_data?.code ?? "",
+        );
+
         toast.error(
-          resActivate?.data?.data?.error_message ??
-            "Aktivasi gagal. Silakan coba lagi.",
+          `${resActivate.data?.data?.error_data?.title ?? "Terjadi kesalahan saat cek status aktivasi"}`,
           { id: "refresh" },
         );
         return;
@@ -531,7 +535,7 @@ export default function ConnectToNetwork() {
       const errorMessage =
         err?.response?.data?.data?.error_message ||
         err?.message ||
-        "Gagal mengecek status aktivasi";
+        "Terjadi kesalahan saat mengecek status aktivasi";
       const statusCode =
         err?.response?.data?.statusCode || err?.response?.status || null;
       setLastFailedStatusCode(statusCode);
@@ -723,7 +727,7 @@ export default function ConnectToNetwork() {
     const msg = encodeURIComponent(
       `Halo Customer Service IRA 👋
 
-Saya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *${count} kali*.
+Saya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *${count} kali*, dan memerlukan bantuan lebih lanjut. 
 
 Berikut detail data pelanggan saya:
 
@@ -743,6 +747,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
       const resPhone = await getDealerSuppPhone();
 
       if (resPhone.data.statusCode === 200) {
+        // const phone = "62895385984960"; // UNTUK TESTING
         const phone = resPhone.data?.data?.cs_phone_number ?? phoneCSIRA;
         window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
       } else {
@@ -759,7 +764,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
     activateSuccessRef.current = false;
     setErrorData(null);
 
-    setSseStatus("connecting");
     setScreen("loading");
     setAttempt(0);
 
@@ -830,10 +834,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
   if (screen === "timedOut") {
     return (
       <div className="container mx-auto px-6 text-center">
-        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-old-primary">
-          Menghubungkan Perangkat ke Jaringan
-        </h2>
-
         <div className="pt-8">
           <div className="text-old-primary font-bold">
             Proses Aktivasi <Badge color="red">Waktu Habis</Badge>
@@ -947,10 +947,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
   if (screen === "success") {
     return (
       <div className="container mx-auto px-6 text-center">
-        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-old-primary">
-          Menghubungkan Perangkat ke Jaringan
-        </h2>
-
         <div className="pt-8 flex justify-center items-center">
           <FaWifi size={40} />
         </div>
@@ -981,10 +977,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
   if (screen === "failed") {
     return (
       <div className="container mx-auto px-6 text-center">
-        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-old-primary">
-          Menghubungkan Perangkat ke Jaringan
-        </h2>
-
         <div className="pt-8 flex flex-col items-center">
           {/* Gambar */}
           <div className="mb-4">
@@ -997,7 +989,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           </div>
 
           {/* Detail dari API atau Default */}
-          <p className="text-[#666] max-w-md mx-auto mt-2 text-sm">
+          <p className="max-w-md mx-auto mt-2 text-sm">
             {errorData?.detail ||
               "Proses aktivasi masih membutuhkan waktu. Silakan coba kembali atau periksa koneksi internet Anda."}
           </p>
@@ -1016,22 +1008,15 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             </div>
           )}
 
-          {/* Code & Assign Badge */}
-          {(errorData?.code || errorData?.assign) && (
-            <div className="mt-4 flex flex-col justify-center gap-2">
+          {/* Code */}
+          {errorData?.code && (
+            <div className="w-full mt-4 flex flex-col justify-center gap-2">
               {errorData?.code && (
-                <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200">
-                  Kode: {errorData.code}
-                </span>
-              )}
-              {errorData?.assign && (
                 <span
-                  className={`text-xs font-bold px-3 py-1 rounded-full border ${
-                    assignColors[errorData.assign] ||
-                    "bg-gray-100 text-gray-800 border-gray-200"
-                  }`}
+                  className={`text-sm ${assignColors[errorData.assign[0]]} border px-2 py-1 rounded`}
                 >
-                  {errorData.assign}
+                  Kode Error:{" "}
+                  <span className="font-bold">{errorData.code}</span>
                 </span>
               )}
             </div>
@@ -1049,22 +1034,23 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
         <div className="pt-6 max-w-120 mx-auto flex flex-col gap-4">
           {/* Tombol Hubungi CS muncul jika assign nya CS */}
-          {errorData?.assign === "CS" && (
-            <button
-              onClick={contactCS}
-              className="w-full flex items-center justify-center gap-2 bg-white border-2 border-primary text-primary hover:bg-red-50 cursor-pointer font-bold rounded-xl py-3 transition-colors"
-              type="button"
-            >
-              <RiCustomerService2Fill size={20} /> Hubungi Customer Service
-            </button>
-          )}
+          {Array.isArray(errorData?.assign) &&
+            errorData.assign.includes("CS") && (
+              <button
+                onClick={contactCS}
+                className="w-full flex items-center justify-center gap-2 bg-white border-2 border-primary text-primary hover:bg-red-50 cursor-pointer font-bold rounded-xl py-3 transition-colors"
+                type="button"
+              >
+                <RiCustomerService2Fill size={20} /> Hubungi Customer Service
+              </button>
+            )}
 
           <button
             onClick={handleFailed}
             className="w-full bg-primary hover:bg-dark-primary-2 cursor-pointer text-white font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
-            Ulangi Proses Aktivasi
+            Coba Lagi
           </button>
         </div>
       </div>
@@ -1074,10 +1060,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
   if (screen === "failedFinal") {
     return (
       <div className="container mx-auto px-6 text-center">
-        <h2 className="font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-old-primary">
-          Menghubungkan Perangkat ke Jaringan
-        </h2>
-
         <div className="pt-8 flex flex-col items-center">
           {/* Gambar Max Attempt */}
           <div className="mb-4">
@@ -1095,7 +1077,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           </div>
 
           {/* Detail */}
-          <p className="text-[#666] max-w-md mx-auto mt-2 text-sm">
+          <p className="max-w-md mx-auto mt-2 text-sm">
             {errorData?.detail ||
               "Aktivasi perangkat tidak berhasil setelah beberapa kali percobaan. Hubungi Customer Service untuk bantuan lebih lanjut."}
           </p>
@@ -1114,22 +1096,15 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             </div>
           )}
 
-          {/* Code & Assign Badge */}
-          {(errorData?.code || errorData?.assign) && (
+          {/* Code Badge */}
+          {errorData?.code && (
             <div className="mt-4 flex flex-col justify-center gap-2">
               {errorData?.code && (
-                <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200">
-                  Kode: {errorData.code}
-                </span>
-              )}
-              {errorData?.assign && (
                 <span
-                  className={`text-xs font-bold px-3 py-1 rounded-full border ${
-                    assignColors[errorData.assign] ||
-                    "bg-gray-100 text-gray-800 border-gray-200"
-                  }`}
+                  className={`text-sm ${assignColors[errorData.assign[0]]} border px-2 py-1 rounded`}
                 >
-                  {errorData.assign}
+                  Kode Error:{" "}
+                  <span className="font-bold">{errorData.code}</span>
                 </span>
               )}
             </div>
@@ -1154,7 +1129,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             className="w-full bg-white border-2 border-primary text-primary hover:bg-red-50 cursor-pointer font-bold rounded-xl py-3 shadow-[0_6px_45px_0_rgba(0,48,120,0.10)]"
             type="button"
           >
-            Coba Ulang dari Awal
+            Ulangi Proses Aktivasi
           </button>
 
           <div className="mt-4">

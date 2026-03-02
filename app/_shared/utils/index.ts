@@ -467,11 +467,11 @@ export const handleDownloadClick = (type: "google" | "apple" | "web"): void => {
   }
 };
 
-export const assignColors: Record<ErrorData["assign"], string> = {
-  CS: "bg-blue-100 text-blue-800 border-blue-200",
-  ALI: "bg-purple-100 text-purple-800 border-purple-200",
-  TECH: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  WEWINS: "bg-pink-100 text-pink-800 border-pink-200",
-  VENDOR: "bg-orange-100 text-orange-800 border-orange-200",
-  LOGISTIK: "bg-emerald-100 text-emerald-800 border-emerald-200",
+export const assignColors: Record<ErrorData["assign"][0], string> = {
+  ALI: "bg-[#B34E0033] text-[#B34E00] border-[#B34E00]",
+  CS: "bg-[#FE5F5B33] text-[#FE5F5B] border-[#FE5F5B]",
+  LOGISTIK: "bg-[#62211D33] text-[#62211D] border-[#62211D]",
+  NOC: "bg-[#3B59E333] text-[#3B59E3] border-[#3B59E3]",
+  TECH: "bg-[#DF326033] text-[#DF3260] border-[#DF3260]",
+  VENDOR: "bg-[#8336AD33] text-[#8336AD] border-[#8336AD]",
 };

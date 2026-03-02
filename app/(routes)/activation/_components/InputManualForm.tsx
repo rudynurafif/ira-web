@@ -46,9 +46,6 @@ function InputManualForm() {
   const [isSNNotFound, setIsSNNotFound] = useState(false);
   const [phoneCSIRA, setPhoneCSIRA] = useState<string>("");
   const { userInfo } = useAppSelector((state) => state.auth);
-  const [failedStatusCode, setFailedStatusCode] = useState<
-    number | string | null
-  >(null);
 
   const router = useRouter();
 
@@ -109,7 +106,7 @@ function InputManualForm() {
     const msg = encodeURIComponent(
       `Halo Customer Service IRA 👋
 
-Saya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *${count} kali*.
+Saya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *${count} kali*, dan memerlukan bantuan lebih lanjut.
 
 Berikut detail data pelanggan saya:
 
@@ -129,6 +126,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
       const resPhone = await getDealerSuppPhone();
 
       if (resPhone.data.statusCode === 200) {
+        // const phone = "62895385984960"; // UNTUK TESTING
         const phone = resPhone.data?.data?.cs_phone_number ?? phoneCSIRA;
         window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
       } else {
@@ -150,7 +148,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
     try {
       setIsSubmitting(true);
-      setFailedStatusCode(null);
       setErrorData(null);
 
       if (!serialNumber) {
@@ -191,20 +188,22 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
         addUrlParam("serial_number", serialNumber);
       }
     } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.";
-
-      currentStatusCode =
-        error?.response?.data?.statusCode || error?.response?.status || null;
-
       const apiErrorData = error.response?.data?.error_data;
       if (apiErrorData) {
         setErrorData(apiErrorData);
       }
 
-      setFailedStatusCode(currentStatusCode);
+      const errorMessage =
+        apiErrorData?.title ||
+        error.response?.data?.message ||
+        error.message ||
+        "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.";
+
+      currentStatusCode =
+        apiErrorData?.code ||
+        error?.response?.data?.statusCode ||
+        error?.response?.status ||
+        null;
 
       incrementFailedAttempt(
         serialNumber!,
@@ -359,7 +358,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setOpenModalFailed(false);
             setIsSNNotFound(false);
             setIsSNUsed(false);
-            setFailedStatusCode(null);
           }}
           classNameModal="p-6 max-w-lg w-full text-center"
         >
@@ -397,10 +395,11 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           </div>
 
           {/* 2. Title */}
-          <h3 className="text-dark-primary font-bold text-xl mt-6">
-            {hasReachedMaxAttempts()
+          <h3 className="font-bold text-xl mt-6">
+            {/* {hasReachedMaxAttempts()
               ? "Proses Aktivasi Masih Membutuhkan Waktu"
-              : errorData?.title || "Proses Aktivasi belum berhasil"}
+              : errorData?.title || "Proses Aktivasi belum berhasil"} */}
+            {errorData?.title || "Proses Aktivasi belum berhasil"}
           </h3>
 
           {/* 3. Detail */}
@@ -424,29 +423,29 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           )}
 
           {/* 5. Code & 6. Assign Flagging */}
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <div className="w-full mt-4 flex flex-col justify-center gap-2">
             {errorData?.code && (
-              <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200">
-                Kode: {errorData.code}
-              </span>
-            )}
-
-            {errorData?.assign && (
               <span
-                className={`text-xs font-bold px-3 py-1 rounded-full border ${
-                  assignColors[errorData.assign] ||
-                  "bg-gray-100 text-gray-800 border-gray-200"
-                }`}
+                className={`text-sm ${assignColors[errorData.assign[0]]} px-2 py-1 rounded-lg border `}
               >
-                {errorData.assign}
+                Kode: <span className="font-bold"> {errorData.code}</span>
               </span>
             )}
           </div>
 
           {/* Footer Buttons */}
-          <div className="mt-6 flex justify-center gap-3">
-            {/* Tombol Hubungi CS hanya muncul jika assign terkait atau ada errorData */}
-            {(errorData?.assign === "CS" || hasReachedMaxAttempts()) && (
+          <div className="mt-6 flex flex-col justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => setOpenModalFailed(false)}
+              className="flex-1 inline-flex items-center justify-center rounded-xl border-2 border-primary bg-primary hover:bg-dark-primary-2 px-4 py-3 text-white text-sm font-semibold cursor-pointer transition-colors"
+            >
+              Input Ulang
+            </button>
+
+            {((Array.isArray(errorData?.assign) &&
+              errorData.assign.includes("CS")) ||
+              hasReachedMaxAttempts()) && (
               <button
                 type="button"
                 onClick={contactCS}
@@ -455,14 +454,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
                 <RiCustomerService2Fill size={20} /> Hubungi CS
               </button>
             )}
-
-            <button
-              type="button"
-              onClick={() => setOpenModalFailed(false)}
-              className="flex-1 inline-flex items-center justify-center rounded-xl bg-primary hover:bg-dark-primary-2 px-4 py-3 text-white text-sm font-semibold cursor-pointer transition-colors"
-            >
-              Input Ulang
-            </button>
           </div>
         </ModalTemplate>
       )}
