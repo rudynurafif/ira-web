@@ -395,6 +395,11 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
               )}
             </div>
 
+            <p className="wrap-break-word">
+              Serial Number:{" "}
+              <span className="font-bold break-all">{serialNumber}</span>
+            </p>
+
             {/* 2. Title */}
             <h3 className="font-bold text-xl mt-6">
               {/* {hasReachedMaxAttempts()
