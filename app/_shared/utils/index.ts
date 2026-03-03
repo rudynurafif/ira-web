@@ -280,6 +280,30 @@ export const copyToClipboard = (text: string) => {
 };
 
 export const toastErrorFromAPI = (error: any, id?: string) => {
+  const isNetworkError = !error.response && error.request;
+  const errorCode = error.code;
+
+  if (
+    isNetworkError ||
+    errorCode === "ERR_NETWORK" ||
+    errorCode === "ECONNABORTED"
+  ) {
+    let userMessage =
+      "Koneksi internet bermasalah. Silakan periksa koneksi Anda dan coba lagi.";
+
+    if (errorCode === "ECONNABORTED") {
+      userMessage = "Permintaan timeout. Silakan coba lagi.";
+    } else if (
+      error.message?.includes("cors") ||
+      error.message?.includes("CORS")
+    ) {
+      userMessage = "Terjadi kesalahan. Silakan coba beberapa saat lagi.";
+    }
+
+    toast.error(userMessage, { id, duration: 7500 });
+    return;
+  }
+
   const httpStatus = error?.response?.status;
   const fallbackStatusCode = error?.response?.data?.statusCode;
   const errorStatusCode =
