@@ -49,22 +49,18 @@ function InputManualForm() {
 
   const router = useRouter();
 
-  useEffect(() => {
-    const loadCSPhone = async () => {
-      try {
-        const resSetting = await getSetting("cs_phone");
-        setPhoneCSIRA(
-          resSetting.data?.data?.value ||
-            process.env.NEXT_PUBLIC_PHONE_CS ||
-            "6281110689111",
-        );
-      } catch (error) {
-        console.error("Failed to load CS phone:", error);
-      }
-    };
-
-    loadCSPhone();
-  }, []);
+  const loadCSPhone = async () => {
+    try {
+      const resSetting = await getSetting("cs_phone");
+      setPhoneCSIRA(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111",
+      );
+    } catch (error) {
+      console.error("Failed to load CS phone:", error);
+    }
+  };
 
   async function contactCS() {
     if (!serialNumber) {
@@ -123,6 +119,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
     );
 
     try {
+      await loadCSPhone();
       const resPhone = await getDealerSuppPhone();
 
       if (resPhone.data.statusCode === 200) {
@@ -191,6 +188,8 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
       const apiErrorData = error.response?.data?.error_data;
       if (apiErrorData) {
         setErrorData(apiErrorData);
+      } else {
+        setErrorData(null);
       }
 
       const errorMessage =
@@ -210,7 +209,6 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
         errorMessage,
         currentStatusCode || undefined,
       );
-      setOpenModalFailed(true);
 
       const statusCode = error?.response?.data?.statusCode;
 
@@ -226,6 +224,8 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           setIsSNNotFound(true);
           break;
       }
+
+      setOpenModalFailed(true);
 
       setErrors({
         serial_number: errorMessage,
@@ -245,7 +245,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
   }
 
   return (
-    <div className="container max-sm:min-h-[50vh] mx-auto max-w-120 max-sm:px-8">
+    <div className="container max-sm:min-h-[50vh] mx-auto max-w-160 max-sm:px-8">
       <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Input Manual Serial Number
       </h2>
@@ -320,7 +320,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setOpenModalSuccess(false);
             window.location.href = "/customer-area";
           }}
-          classNameModal="p-6 max-w-lg w-full mx-4 text-center"
+          classNameModal="p-6 max-w-160 w-full mx-4 text-center"
         >
           <div className="flex justify-center items-center mb-6">
             <Image
@@ -359,82 +359,88 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setIsSNNotFound(false);
             setIsSNUsed(false);
           }}
-          classNameModal="p-6 max-w-lg w-full text-center"
+          classNameModal="max-w-160 w-full text-center"
         >
-          {/* 1. Gambar */}
-          <div className="flex justify-center items-center">
-            {hasReachedMaxAttempts() ? (
-              <Image
-                src={maxAttemptImage}
-                width={200}
-                height={200}
-                alt="Percobaan Gagal Mencapai 3 Kali"
-              />
-            ) : isSNNotFound ? (
-              <Image
-                src={noSN}
-                width={200}
-                height={200}
-                alt="Nomor SN Tidak Ditemukan"
-              />
-            ) : isSNUsed ? (
-              <Image
-                src={SNUsed}
-                width={200}
-                height={200}
-                alt="Nomor SN Sudah Terpakai"
-              />
-            ) : (
-              <Image
-                src={noSN}
-                width={200}
-                height={200}
-                alt="Terjadi Kesalahan Saat Aktivasi"
-              />
+          <div className="p-6">
+            {/* 1. Gambar */}
+            <div className="flex justify-center items-center">
+              {hasReachedMaxAttempts() ? (
+                <Image
+                  src={maxAttemptImage}
+                  width={200}
+                  height={200}
+                  alt="Percobaan Gagal Mencapai 3 Kali"
+                />
+              ) : isSNNotFound ? (
+                <Image
+                  src={noSN}
+                  width={200}
+                  height={200}
+                  alt="Nomor SN Tidak Ditemukan"
+                />
+              ) : isSNUsed ? (
+                <Image
+                  src={SNUsed}
+                  width={200}
+                  height={200}
+                  alt="Nomor SN Sudah Terpakai"
+                />
+              ) : (
+                <Image
+                  src={noSN}
+                  width={200}
+                  height={200}
+                  alt="Terjadi Kesalahan Saat Aktivasi"
+                />
+              )}
+            </div>
+
+            {/* 2. Title */}
+            <h3 className="font-bold text-xl mt-6">
+              {/* {hasReachedMaxAttempts()
+              ? "Proses Aktivasi Masih Membutuhkan Waktu"
+              : errorData?.title || "Proses Aktivasi belum berhasil"} */}
+              {errorData?.title || "Proses Aktivasi belum berhasil"}
+            </h3>
+
+            {/* 3. Detail */}
+            <p className="mt-3 font-medium text-sm text-black">
+              {errorData?.detail ||
+                "Pastikan Serial Number Modem CPE yang Anda masukkan benar, lalu silakan coba lagi."}
+            </p>
+
+            {/* 4. Solution (Unordered List) */}
+            {errorData?.solution && Array.isArray(errorData.solution) && (
+              <div className="mt-4 text-left bg-gray-50 p-4 rounded-lg">
+                <p className="text-xs font-bold text-gray-500 uppercase mb-2">
+                  Solusi:
+                </p>
+                <ul className="list-disc pl-4 text-sm text-gray-700 space-y-1">
+                  {errorData.solution.map((sol: string, idx: number) => (
+                    <li key={idx}>{sol}</li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
 
-          {/* 2. Title */}
-          <h3 className="font-bold text-xl mt-6">
-            {/* {hasReachedMaxAttempts()
-              ? "Proses Aktivasi Masih Membutuhkan Waktu"
-              : errorData?.title || "Proses Aktivasi belum berhasil"} */}
-            {errorData?.title || "Proses Aktivasi belum berhasil"}
-          </h3>
-
-          {/* 3. Detail */}
-          <p className="mt-3 font-medium text-sm text-black">
-            {errorData?.detail ||
-              "Pastikan Serial Number Modem CPE yang Anda masukkan benar, lalu silakan coba lagi."}
-          </p>
-
-          {/* 4. Solution (Unordered List) */}
-          {errorData?.solution && Array.isArray(errorData.solution) && (
-            <div className="mt-4 text-left bg-gray-50 p-4 rounded-lg">
-              <p className="text-xs font-bold text-gray-500 uppercase mb-2">
-                Solusi:
-              </p>
-              <ul className="list-disc pl-4 text-sm text-gray-700 space-y-1">
-                {errorData.solution.map((sol: string, idx: number) => (
-                  <li key={idx}>{sol}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* 5. Code & 6. Assign Flagging */}
-          <div className="w-full mt-4 flex flex-col justify-center gap-2">
+          {/* 5. Code */}
+          <div className="w-full">
             {errorData?.code && (
               <span
-                className={`text-sm ${assignColors[errorData.assign[0]]} text-white p-2 rounded-lg`}
+                className={`block w-full text-center text-sm py-3 px-2 ${
+                  assignColors[errorData.assign?.[0] || "CS"] || "bg-gray-500"
+                }`}
               >
-                Kode: <span className="font-bold"> {errorData.code}</span>
+                <span className="font-bold text-white">
+                  Kode: {errorData.code || "Terjadi kesalahan (500)"}
+                </span>
               </span>
             )}
           </div>
 
           {/* Footer Buttons */}
-          <div className="mt-6 flex flex-col justify-center gap-3">
+          <div className="p-6 flex flex-col justify-center gap-3">
             <button
               type="button"
               onClick={() => setOpenModalFailed(false)}
