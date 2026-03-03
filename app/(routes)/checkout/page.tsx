@@ -19,7 +19,7 @@ function Page() {
 
   useEffect(() => {
     setDetailChoosePackage(
-      packageList.find((item: any) => item.id.toString() === choosePackage)
+      packageList.find((item: any) => item.id.toString() === choosePackage),
     );
   }, [choosePackage]);
 
@@ -27,8 +27,7 @@ function Page() {
     <div>
       <div className="container mx-auto px-5 mt-22">
         <h1 className="text-[32px] font-bold mb-8">Checkout</h1>
-        <div className="grid grid-cols-3 gap-10">
-          {/* List Package */}
+        {/* <div className="grid grid-cols-3 gap-10">
           <div className="col-span-1">
             <h2 className="text-xl font-bold">Pilih Paket</h2>
             <div className="mt-5">
@@ -49,7 +48,6 @@ function Page() {
             </div>
           </div>
 
-          {/* Detail Package */}
           <div className="col-span-2">
             <h2 className="text-xl font-bold">Detail Paket</h2>
 
@@ -59,7 +57,6 @@ function Page() {
               </p>
             ) : (
               <div>
-                {/* Detail Paket */}
                 <div className="grid grid-cols-3 gap-10 mt-5 items-center">
                   <div className="col-span-1">
                     <Image
@@ -87,7 +84,6 @@ function Page() {
 
                 <div className="bg-[#A7A7A7] w-full h-px my-10" />
 
-                {/* Metode Pembayaran */}
                 <h2 className="text-lg font-bold">Metode Pembayaran</h2>
 
                 <div className="flex justify-between items-center gap-10 mt-5">
@@ -117,7 +113,6 @@ function Page() {
 
                 <div className="bg-[#A7A7A7] w-full h-px my-10" />
 
-                {/* Rincian Pembayaran */}
                 <h2 className="text-xl font-bold">Rincian Pembayaran</h2>
 
                 <div className="flex justify-between items-center gap-10 mt-5">
@@ -137,18 +132,18 @@ function Page() {
                   <p className="text-lg font-bold ">Total Pembayaran</p>
                   <p className="text-lg font-bold ">
                     {convertToCurrency(
-                      detailChoosePackage?.price + 14000 + 7000
+                      detailChoosePackage?.price + 14000 + 7000,
                     )}
                   </p>
                 </div>
               </div>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* footer checkout */}
-      <div className=" py-5 box-shadow-checkout-payment mt-40">
+      {/* <div className=" py-5 box-shadow-checkout-payment mt-40">
         <div className="container mx-auto px-5">
           <div className="grid grid-cols-2 gap-10">
             <div className="col-span-1">
@@ -167,7 +162,7 @@ function Page() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* modal */}
       {modalPayment && (

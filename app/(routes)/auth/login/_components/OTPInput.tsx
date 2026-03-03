@@ -92,7 +92,7 @@ const OtpInput = ({ length = 6, onChange }: Props) => {
             onChange={handleChange(i)}
             onKeyDown={handleKeyDown(i)}
             onPaste={handlePaste}
-            className={`${figtree.className} h-[51px] w-[48px] rounded-xl bg-primary-spectrum border border-gray-border text-center text-lg font-medium outline-none transition focus:border-primary-600 focus:ring-2 focus:ring-primary-100`}
+            className={`${figtree.className} h-12.75 w-12 rounded-xl bg-primary-spectrum border border-gray-border text-center text-lg font-medium outline-none transition focus:border-primary-600 focus:ring-2 focus:ring-primary-100`}
           />
           {/* Tambahkan strip setelah digit ke-3 */}
           {i === Math.floor(length / 2) - 1 && (

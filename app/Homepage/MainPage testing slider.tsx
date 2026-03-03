@@ -311,7 +311,7 @@ function MainPage() {
         </SwiperSlide>
 
         {/* Slide 2+: API Banners */}
-        {/* {slides
+        {slides
           .filter((s) => !s.isStatic)
           .map((slide, index) => {
             const bgImage = isMobile ? slide.imageMobile : slide.image;
@@ -340,7 +340,7 @@ function MainPage() {
                 </div>
               </SwiperSlide>
             );
-          })} */}
+          })}
       </Swiper>
     </div>
   );

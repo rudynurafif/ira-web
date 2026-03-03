@@ -27,7 +27,7 @@ function Benefits() {
 
   return (
     <div className="bg-bluebold flex justify-center">
-      <div className="max-w-[1920px] w-full">
+      <div className="max-w-480 w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-10 px-[5%] min-[1261px]:px-[10%]">
           {section.map((data, index) => (
             <div key={index} className="lg:flex lg:justify-center">

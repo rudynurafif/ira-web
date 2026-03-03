@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { deleteCookie } from "cookies-next";
+import { ErrorData } from "../types/activation";
 
 export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
 export const PASSWORD_ALLOWED_CHARS_REGEX = /^[a-zA-Z0-9#!_]+$/;
@@ -279,6 +280,30 @@ export const copyToClipboard = (text: string) => {
 };
 
 export const toastErrorFromAPI = (error: any, id?: string) => {
+  const isNetworkError = !error.response && error.request;
+  const errorCode = error.code;
+
+  if (
+    isNetworkError ||
+    errorCode === "ERR_NETWORK" ||
+    errorCode === "ECONNABORTED"
+  ) {
+    let userMessage =
+      "Koneksi internet bermasalah. Silakan periksa koneksi Anda dan coba lagi.";
+
+    if (errorCode === "ECONNABORTED") {
+      userMessage = "Permintaan timeout. Silakan coba lagi.";
+    } else if (
+      error.message?.includes("cors") ||
+      error.message?.includes("CORS")
+    ) {
+      userMessage = "Terjadi kesalahan. Silakan coba beberapa saat lagi.";
+    }
+
+    toast.error(userMessage, { id, duration: 7500 });
+    return;
+  }
+
   const httpStatus = error?.response?.status;
   const fallbackStatusCode = error?.response?.data?.statusCode;
   const errorStatusCode =
@@ -322,7 +347,7 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     return;
   }
 
-  toast.error(errorMsg, { id });
+  toast.error(errorMsg, { id, duration: 7500 });
 };
 
 export const formattedDate = (dateString: string | null) => {
@@ -464,4 +489,13 @@ export const handleDownloadClick = (type: "google" | "apple" | "web"): void => {
     console.error("Error handling download:", error);
     toast("Terjadi kesalahan. Silakan coba lagi.");
   }
+};
+
+export const assignColors: Record<ErrorData["assign"][0], string> = {
+  NOC: "bg-[#3B59E3]",
+  ALI: "bg-[#000000]",
+  VENDOR: "bg-[#8336AD]",
+  TECH: "bg-[#B50000]",
+  CS: "bg-[#FE5BEB]",
+  LOGISTIK: "bg-[#FF8C00]",
 };

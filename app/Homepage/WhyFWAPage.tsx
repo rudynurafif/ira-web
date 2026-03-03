@@ -43,7 +43,7 @@ function WhyFWAPage() {
   );
 
   return (
-    <div className="container mx-auto px-5 text-black py-18 max-sm:py-9">
+    <div className="container mx-auto px-5 text-black py-12 sm:py-18">
       {/* Versi GO Commercial */}
       <div className="md:hidden flex flex-col items-center gap-4 w-full pb-20 -mt-20">
         {/* Teks Atas */}
@@ -100,7 +100,7 @@ function WhyFWAPage() {
         Mengapa pilih Internet Rakyat <span className="inline">(IRA) ?</span>
       </h1>
 
-      <div className="mt-[72px] max-sm:mt-12">
+      <div className="mt-18 max-sm:mt-12">
         <div className="grid grid-cols-3 max-sm:flex max-sm:flex-col max-sm:gap-6">
           {description.map((item, index: number) => {
             return (
@@ -113,7 +113,7 @@ function WhyFWAPage() {
                     <Image
                       src={item.image}
                       alt={item.description}
-                      className="flex justify-center items-center w-[150px] h-[150px] max-sm:w-[60px] max-sm:h-[60px]"
+                      className="flex justify-center items-center w-37.5 h-37.5 max-sm:w-15 max-sm:h-15"
                     />
                   </div>
                 </div>
@@ -129,7 +129,7 @@ function WhyFWAPage() {
       </div>
 
       {!userInfo && (
-        <div className="mt-[150px] max-sm:mt-[50px]">
+        <div className="mt-37.5 max-sm:mt-12.5">
           <RegisterNowCard />
         </div>
       )}

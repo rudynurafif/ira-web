@@ -26,7 +26,7 @@ function ModalPayment({
                 return (
                   <div
                     key={item.name + "-" + bank.name}
-                    className={`w-full h-[80px] rounded-lg flex items-center justify-center box-shadow-choose-payment cursor-pointer ${
+                    className={`w-full h-20 rounded-lg flex items-center justify-center box-shadow-choose-payment cursor-pointer ${
                       choosePayment?.name === bank.name &&
                       "border border-primary"
                     }`}
@@ -50,7 +50,7 @@ function ModalPayment({
       })}
       <button
         type="button"
-        className="w-full mt-8 bg-primary text-white py-[15px] rounded-lg font-bold cursor-pointer"
+        className="w-full mt-8 bg-primary text-white py-3.75 rounded-lg font-bold cursor-pointer"
         onClick={() => {
           setPayment(choosePayment);
           closeModal();

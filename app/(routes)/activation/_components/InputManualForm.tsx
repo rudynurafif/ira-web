@@ -2,7 +2,11 @@ import { Activation } from "@/app/_api/Activation/Activation";
 import DynamicForm from "@/app/_components/form/DynamicForm";
 import LoadingModal from "@/app/_components/modal/LoadingModal";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import { addUrlParam, toastErrorFromAPI } from "@/app/_shared/utils";
+import {
+  addUrlParam,
+  assignColors,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -10,6 +14,7 @@ import noSN from "@/public/assets/Images/no-sn.svg";
 import SNUsed from "@/public/assets/Images/sn-used.svg";
 import maxAttemptImage from "@/public/assets/Images/maxAttempFailed.png";
 import successImage from "@/public/assets/Images/activate-success.png";
+import { RiCustomerService2Fill } from "react-icons/ri";
 
 import iconScan from "@/public/assets/Icons/icon-scan.svg";
 import Image from "next/image";
@@ -22,6 +27,7 @@ import {
 import { getDealerSuppPhone } from "@/app/_api/Customer/CustomerArea";
 import { getSetting } from "@/app/_api/Settings/Settings";
 import { useAppSelector } from "@/app/store/store";
+import { ErrorData } from "@/app/_shared/types/activation";
 
 function InputManualForm() {
   const params = useSearchParams();
@@ -29,6 +35,7 @@ function InputManualForm() {
     params.get("serial_number") ? params.get("serial_number") : "",
   );
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errorData, setErrorData] = useState<ErrorData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [openModalFailed, setOpenModalFailed] = useState<boolean>(false);
   const [openModalSuccess, setOpenModalSuccess] = useState(false);
@@ -39,28 +46,21 @@ function InputManualForm() {
   const [isSNNotFound, setIsSNNotFound] = useState(false);
   const [phoneCSIRA, setPhoneCSIRA] = useState<string>("");
   const { userInfo } = useAppSelector((state) => state.auth);
-  const [failedStatusCode, setFailedStatusCode] = useState<
-    number | string | null
-  >(null);
 
   const router = useRouter();
 
-  useEffect(() => {
-    const loadCSPhone = async () => {
-      try {
-        const resSetting = await getSetting("cs_phone");
-        setPhoneCSIRA(
-          resSetting.data?.data?.value ||
-            process.env.NEXT_PUBLIC_PHONE_CS ||
-            "6281110689111",
-        );
-      } catch (error) {
-        console.error("Failed to load CS phone:", error);
-      }
-    };
-
-    loadCSPhone();
-  }, []);
+  const loadCSPhone = async () => {
+    try {
+      const resSetting = await getSetting("cs_phone");
+      setPhoneCSIRA(
+        resSetting.data?.data?.value ||
+          process.env.NEXT_PUBLIC_PHONE_CS ||
+          "6281110689111",
+      );
+    } catch (error) {
+      console.error("Failed to load CS phone:", error);
+    }
+  };
 
   async function contactCS() {
     if (!serialNumber) {
@@ -102,7 +102,7 @@ function InputManualForm() {
     const msg = encodeURIComponent(
       `Halo Customer Service IRA 👋
 
-Saya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *${count} kali*.
+Saya mengalami kendala *gagal aktivasi layanan* setelah mencoba sebanyak *${count} kali*, dan memerlukan bantuan lebih lanjut.
 
 Berikut detail data pelanggan saya:
 
@@ -119,9 +119,11 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
     );
 
     try {
+      await loadCSPhone();
       const resPhone = await getDealerSuppPhone();
 
       if (resPhone.data.statusCode === 200) {
+        // const phone = "62895385984960"; // UNTUK TESTING
         const phone = resPhone.data?.data?.cs_phone_number ?? phoneCSIRA;
         window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
       } else {
@@ -143,7 +145,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
     try {
       setIsSubmitting(true);
-      setFailedStatusCode(null);
+      setErrorData(null);
 
       if (!serialNumber) {
         errors.serial_number = "Serial Number harus diisi";
@@ -183,22 +185,30 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
         addUrlParam("serial_number", serialNumber);
       }
     } catch (error: any) {
+      const apiErrorData = error.response?.data?.error_data;
+      if (apiErrorData) {
+        setErrorData(apiErrorData);
+      } else {
+        setErrorData(null);
+      }
+
       const errorMessage =
+        apiErrorData?.title ||
         error.response?.data?.message ||
         error.message ||
         "Terjadi kesalahan saat aktivasi Serial Number. Silakan coba lagi.";
 
       currentStatusCode =
-        error?.response?.data?.statusCode || error?.response?.status || null;
-
-      setFailedStatusCode(currentStatusCode);
+        apiErrorData?.code ||
+        error?.response?.data?.statusCode ||
+        error?.response?.status ||
+        null;
 
       incrementFailedAttempt(
         serialNumber!,
         errorMessage,
         currentStatusCode || undefined,
       );
-      setOpenModalFailed(true);
 
       const statusCode = error?.response?.data?.statusCode;
 
@@ -215,10 +225,12 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           break;
       }
 
+      setOpenModalFailed(true);
+
       setErrors({
         serial_number: errorMessage,
       });
-      toastErrorFromAPI(error);
+      // toastErrorFromAPI(error);
     } finally {
       setIsSubmitting(false);
       const saved = JSON.parse(
@@ -233,7 +245,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
   }
 
   return (
-    <div className="container mx-auto max-w-120 max-sm:px-8">
+    <div className="container max-sm:min-h-[50vh] mx-auto max-w-160 max-sm:px-8">
       <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Input Manual Serial Number
       </h2>
@@ -284,21 +296,19 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
                 Scan Barcode
               </button>
             </div>
-          </div>
 
-          {hasReachedMaxAttempts() && (
-            <div className="mt-10 flex flex-col items-center w-full">
-              <div className="text-sm">Mengalami Kendala?</div>
-              <div className="mt-3">
-                <button
-                  onClick={contactCS}
-                  className="w-full bg-primary text-white font-bold py-3 px-4 rounded-xl transition-colors"
-                >
-                  Hubungi Customer Service
-                </button>
-              </div>
-            </div>
-          )}
+            {hasReachedMaxAttempts() && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = "/customer-area";
+                }}
+                className="w-full text-sm underline mt-12 text-primary font-bold py-3 px-6 rounded-xl transition-colors"
+              >
+                Kembali ke Customer Area
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -310,7 +320,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setOpenModalSuccess(false);
             window.location.href = "/customer-area";
           }}
-          classNameModal="p-6 max-w-lg w-full mx-4 text-center"
+          classNameModal="p-6 max-w-160 w-full mx-4 text-center"
         >
           <div className="flex justify-center items-center mb-6">
             <Image
@@ -348,98 +358,109 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setOpenModalFailed(false);
             setIsSNNotFound(false);
             setIsSNUsed(false);
-            setFailedStatusCode(null);
           }}
-          classNameModal="p-6 max-w-lg w-full mx-4 text-center"
+          classNameModal="max-w-160 w-full text-center"
         >
-          {hasReachedMaxAttempts() ? (
-            <>
-              <div className="flex justify-center items-center mb-4">
+          <div className="p-6">
+            {/* 1. Gambar */}
+            <div className="flex justify-center items-center">
+              {hasReachedMaxAttempts() ? (
                 <Image
                   src={maxAttemptImage}
                   width={200}
                   height={200}
-                  alt="Percobaan Mencapai 3 kali"
+                  alt="Percobaan Gagal Mencapai 3 Kali"
                 />
-              </div>
-              <h3 className="text-dark-primary font-bold text-xl mt-4">
-                Proses Aktivasi masih membutuhkan waktu
-              </h3>
-              <p className="mt-5 font-medium text-sm text-black">
-                Silakan coba lagi atau hubungi Customer Service untuk bantuan
-                lebih lanjut.
-              </p>
-              {failedStatusCode && (
-                <p className="mt-2 text-xs font-mono bg-gray-100 inline-block px-2 py-1 rounded">
-                  Kode Status: {failedStatusCode}
-                </p>
+              ) : isSNNotFound ? (
+                <Image
+                  src={noSN}
+                  width={200}
+                  height={200}
+                  alt="Nomor SN Tidak Ditemukan"
+                />
+              ) : isSNUsed ? (
+                <Image
+                  src={SNUsed}
+                  width={200}
+                  height={200}
+                  alt="Nomor SN Sudah Terpakai"
+                />
+              ) : (
+                <Image
+                  src={noSN}
+                  width={200}
+                  height={200}
+                  alt="Terjadi Kesalahan Saat Aktivasi"
+                />
               )}
-              <div className="mt-5 flex flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOpenModalFailed(false);
-                    contactCS();
-                  }}
-                  className="inline-flex w-full items-center justify-center rounded-xl bg-primary border-2 border-primary hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
-                >
-                  Hubungi Customer Service
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOpenModalFailed(false)}
-                  className="inline-flex w-full items-center justify-center rounded-xl bg-white border-2 border-primary hover:bg-red-50 px-6 py-3 text-primary text-sm font-semibold cursor-pointer"
-                >
-                  Coba Lagi
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex justify-center items-center">
-                {isSNNotFound && (
-                  <Image
-                    src={noSN}
-                    width={200}
-                    height={200}
-                    alt="Nomor SN Invalid w-full"
-                  />
-                )}
-                {isSNUsed && (
-                  <Image
-                    src={SNUsed}
-                    width={200}
-                    height={200}
-                    alt="Nomor SN Invalid w-full"
-                  />
-                )}
-              </div>
+            </div>
 
-              <h3 className="text-dark-primary font-bold text-xl mt-6">
-                Proses Aktivasi belum berhasil
-              </h3>
-              <p className="mt-5 font-medium text-sm text-black">
-                Pastikan Serial Number CPE yang Anda masukkan benar, dan silakan
-                coba lagi.
-              </p>
+            {/* 2. Title */}
+            <h3 className="font-bold text-xl mt-6">
+              {/* {hasReachedMaxAttempts()
+              ? "Proses Aktivasi Masih Membutuhkan Waktu"
+              : errorData?.title || "Proses Aktivasi belum berhasil"} */}
+              {errorData?.title || "Proses Aktivasi belum berhasil"}
+            </h3>
 
-              {failedStatusCode && (
-                <p className="mt-2 text-xs font-mono bg-gray-100 inline-block px-2 py-1 rounded">
-                  Kode Status: {failedStatusCode}
+            {/* 3. Detail */}
+            <p className="mt-3 font-medium text-sm text-black">
+              {errorData?.detail ||
+                "Pastikan Serial Number Modem CPE yang Anda masukkan benar, lalu silakan coba lagi."}
+            </p>
+
+            {/* 4. Solution (Unordered List) */}
+            {errorData?.solution && Array.isArray(errorData.solution) && (
+              <div className="mt-4 text-left bg-gray-50 p-4 rounded-lg">
+                <p className="text-xs font-bold text-gray-500 uppercase mb-2">
+                  Solusi:
                 </p>
-              )}
-
-              <div className="mt-5 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setOpenModalFailed(false)}
-                  className="inline-flex w-full items-center justify-center rounded-xl bg-button hover:bg-dark-primary-2 px-6 py-3 text-white text-sm font-semibold cursor-pointer"
-                >
-                  Input Ulang
-                </button>
+                <ul className="list-disc pl-4 text-sm text-gray-700 space-y-1">
+                  {errorData.solution.map((sol: string, idx: number) => (
+                    <li key={idx}>{sol}</li>
+                  ))}
+                </ul>
               </div>
-            </>
-          )}
+            )}
+          </div>
+
+          {/* 5. Code */}
+          <div className="w-full">
+            {errorData?.code && (
+              <span
+                className={`block w-full text-center text-sm py-3 px-2 ${
+                  assignColors[errorData.assign?.[0] || "CS"] || "bg-gray-500"
+                }`}
+              >
+                <span className="font-bold text-white">
+                  Kode: {errorData.code || "Terjadi kesalahan (500)"}
+                </span>
+              </span>
+            )}
+          </div>
+
+          {/* Footer Buttons */}
+          <div className="p-6 flex flex-col justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => setOpenModalFailed(false)}
+              className="flex-1 inline-flex items-center justify-center rounded-xl border-2 border-primary bg-primary hover:bg-dark-primary-2 px-4 py-3 text-white text-sm font-semibold cursor-pointer transition-colors"
+            >
+              Input Ulang
+            </button>
+
+            {((Array.isArray(errorData?.assign) &&
+              errorData.assign.includes("CS")) ||
+              hasReachedMaxAttempts()) && (
+              <button
+                type="button"
+                onClick={contactCS}
+                className="flex-1 gap-2 inline-flex items-center justify-center rounded-xl bg-white border-2 border-primary hover:bg-red-50 px-4 py-3 text-primary text-sm font-semibold cursor-pointer transition-colors"
+              >
+                <RiCustomerService2Fill size={20} /> Hubungi CS
+              </button>
+            )}
+          </div>
         </ModalTemplate>
       )}
     </div>

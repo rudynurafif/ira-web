@@ -250,7 +250,7 @@ export default function AreaPelanggan() {
 
       <div className="max-w-332.25 mx-auto">
         {/* Customer Info + Drawer Container */}
-        <div className="relative z-10 px-8 -mt-28">
+        <div className="relative z-10 sm:px-8 px-5 -mt-28">
           <div className="flex flex-col md:flex-row gap-6 md:items-end justify-between">
             {/* Avatar + Info (Right Side) */}
             <div className="flex flex-col md:flex-row items-center gap-6 md:items-end">
@@ -357,7 +357,7 @@ export default function AreaPelanggan() {
 
         {/* Delivery Tracking */}
         {userInfo?.status === "waiting-for-installation" && !isLoading && (
-          <div className="max-md:mt-6 px-8 mt-12">
+          <div className="max-md:mt-6 sm:px-8 px-5 mt-12">
             <DeliveryTracking refetch={fetchData} data={packages?.[0]} />
           </div>
         )}

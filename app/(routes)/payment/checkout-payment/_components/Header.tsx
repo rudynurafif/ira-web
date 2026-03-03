@@ -15,7 +15,7 @@ function Header() {
 
   return (
     <div className="flex justify-center">
-      <div className="max-w-[1920px] w-full px-[5%] min-[1261px]:px-[10%] py-5 bg-white">
+      <div className="max-w-480 w-full px-[5%] min-[1261px]:px-[10%] py-5 bg-white">
         <div className="flex justify-between items-center">
           <div
             className="flex items-center gap-3 sm:gap-5 md:gap-10 cursor-pointer"
@@ -24,12 +24,12 @@ function Header() {
             <Image
               alt="ira-logo"
               src={logoIra}
-              className="w-[35px] md:w-[70px]"
+              className="w-8.75 md:w-17.5"
             />
             <Image
               alt="weave-logo"
               src={logoWeave}
-              className="w-[75px] md:w-[150px]"
+              className="w-18.75 md:w-37.5"
             />
           </div>
         </div>
