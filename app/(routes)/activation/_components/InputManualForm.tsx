@@ -320,7 +320,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setOpenModalSuccess(false);
             window.location.href = "/customer-area";
           }}
-          classNameModal="p-6 max-w-120 w-full mx-4 text-center"
+          classNameModal="p-6 max-w-160 w-full mx-4 text-center"
         >
           <div className="flex justify-center items-center mb-6">
             <Image
@@ -359,7 +359,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setIsSNNotFound(false);
             setIsSNUsed(false);
           }}
-          classNameModal=" max-w-120 w-full text-center"
+          classNameModal="max-w-160 w-full text-center"
         >
           <div className="p-6">
             {/* 1. Gambar */}
