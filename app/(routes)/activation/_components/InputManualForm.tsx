@@ -245,7 +245,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
   }
 
   return (
-    <div className="container max-sm:min-h-[50vh] mx-auto max-w-120 max-sm:px-8">
+    <div className="container max-sm:min-h-[50vh] mx-auto max-w-160 max-sm:px-8">
       <h2 className="text-old-primary font-bold text-[20px] sm:text-[25px] md:text-[27px] lg:text-[32px] text-center">
         Input Manual Serial Number
       </h2>
@@ -320,7 +320,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setOpenModalSuccess(false);
             window.location.href = "/customer-area";
           }}
-          classNameModal="p-6 max-w-lg w-full mx-4 text-center"
+          classNameModal="p-6 max-w-120 w-full mx-4 text-center"
         >
           <div className="flex justify-center items-center mb-6">
             <Image
@@ -359,7 +359,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             setIsSNNotFound(false);
             setIsSNUsed(false);
           }}
-          classNameModal=" max-w-lg w-full text-center"
+          classNameModal=" max-w-120 w-full text-center"
         >
           <div className="p-6">
             {/* 1. Gambar */}

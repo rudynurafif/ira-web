@@ -838,7 +838,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           <div className="text-old-primary font-bold">
             Proses Aktivasi <Badge color="red">Waktu Habis</Badge>
           </div>
-          <p className="text-[#666] max-w-170 mx-auto mt-2">
+          <p className="text-[#666] max-w-160 mx-auto mt-2">
             Proses aktivasi memakan waktu terlalu lama. Coba ulangi aktivasi,
             atau hubungi Customer Service bila tetap tidak berhasil.
           </p>
@@ -998,14 +998,14 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             </div>
 
             {/* Detail dari API atau Default */}
-            <p className="max-w-md mx-auto mt-2 text-sm">
+            <p className="max-w-160 mx-auto mt-2 text-sm">
               {errorData?.detail ||
                 "Terjadi kesalahan. Proses aktivasi masih membutuhkan waktu. Silakan coba kembali atau periksa koneksi internet Anda."}
             </p>
 
             {/* Solution List (Jika ada) */}
             {errorData?.solution && Array.isArray(errorData.solution) && (
-              <div className="mt-4 text-left bg-gray-50 p-4 rounded-lg max-w-md mx-auto w-full">
+              <div className="mt-4 text-left bg-gray-50 p-4 rounded-lg max-w-160 mx-auto w-full">
                 <p className="text-xs font-bold text-gray-500 uppercase mb-2">
                   Solusi:
                 </p>
@@ -1090,14 +1090,14 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             </div>
 
             {/* Detail */}
-            <p className="max-w-md mx-auto mt-2 text-sm">
+            <p className="max-w-160 mx-auto mt-2 text-sm">
               {errorData?.detail ||
                 "Terjadi kesalahan. Aktivasi perangkat tidak berhasil setelah beberapa kali percobaan. Hubungi Customer Service untuk bantuan lebih lanjut."}
             </p>
 
             {/* Solution List */}
             {errorData?.solution && Array.isArray(errorData.solution) && (
-              <div className="mt-4 text-left bg-gray-50 p-4 rounded-lg max-w-md mx-auto w-full">
+              <div className="mt-4 text-left bg-gray-50 p-4 rounded-lg max-w-160 mx-auto w-full">
                 <p className="text-xs font-bold text-gray-500 uppercase mb-2">
                   Solusi:
                 </p>
