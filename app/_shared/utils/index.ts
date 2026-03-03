@@ -282,7 +282,9 @@ export const copyToClipboard = (text: string) => {
 export const toastErrorFromAPI = (error: any, id?: string) => {
   const isNetworkError = !error.response && error.request;
   const errorCode = error.code;
+  const errorMessage = error.message || "";
 
+  // Cek apakah ini Network Error (termasuk CORS & Timeout)
   if (
     isNetworkError ||
     errorCode === "ERR_NETWORK" ||
@@ -291,13 +293,22 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     let userMessage =
       "Koneksi internet bermasalah. Silakan periksa koneksi Anda dan coba lagi.";
 
+    // 1. Prioritas: Cek Timeout dulu (karena kodenya spesifik)
     if (errorCode === "ECONNABORTED") {
       userMessage = "Permintaan timeout. Silakan coba lagi.";
-    } else if (
-      error.message?.includes("cors") ||
-      error.message?.includes("CORS")
-    ) {
-      userMessage = "Terjadi kesalahan. Silakan coba beberapa saat lagi.";
+    }
+    // 2. Prioritas: Cek Pesan Error yang mengandung kata CORS
+    else if (errorMessage.toLowerCase().includes("cors")) {
+      userMessage =
+        "Terjadi kesalahan (CORS). Silakan coba beberapa saat lagi.";
+    }
+    // 3. Deteksi CORS "Silent" (Tanpa pesan 'cors' eksplisit)
+    // Ciri-ciri: Tidak ada response, request ada, code ERR_NETWORK, tapi bukan timeout
+    else if (errorCode === "ERR_NETWORK") {
+      // Kita asumsikan ERR_NETWORK yang bukan timeout kemungkinan besar adalah CORS atau Down total
+      // Untuk UX yang lebih baik, kita berikan pesan yang mencakup kedua kemungkinan tersebut
+      userMessage =
+        "Terjadi kesalahan (CORS). Silahkan coba beberapa saat lagi.";
     }
 
     toast.error(userMessage, { id, duration: 7500 });
