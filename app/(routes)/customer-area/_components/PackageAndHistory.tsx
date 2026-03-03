@@ -69,6 +69,9 @@ const PackageAndHistory = () => {
   const [modalResult, setModalResult] = useState<boolean>(false);
   const [isCoverage, setIsCoverage] = useState<boolean>(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+
+  const [latestIsFree, setLatestIsFree] = useState(false);
+
   const dispatch = useAppDispatch();
 
   const handleCheckCoverage = async () => {
@@ -125,7 +128,6 @@ const PackageAndHistory = () => {
     currentPage * PAGE_SIZE,
   );
 
-  const [latestIsFree, setLatestIsFree] = useState(false);
   useEffect(() => {
     if (activePacketData?.package_id.package_type === "free") {
       setLatestIsFree(true);
@@ -159,7 +161,11 @@ const PackageAndHistory = () => {
       const res = await checkPackage();
 
       if (res?.data?.data === true) {
-        router.push("/payment/payment-methods");
+        if (latestIsFree) {
+          router.push("/payment");
+        } else {
+          router.push("/payment/payment-methods");
+        }
       } else {
         setOpenModalNotAllowed(true);
       }
@@ -254,76 +260,65 @@ const PackageAndHistory = () => {
             </div>
           </div>
 
-          {!latestIsFree && (
-            <div className="relative min-w-25 cursor-pointer hidden sm:block hover:scale-110 transition-transform">
-              <Image
-                src="/assets/Images/button-beli-lagi-home.png"
-                alt="button-beli-lagi-home"
-                width={100}
-                height={152}
-                // onClick={() => {
-                //   sessionStorage.setItem(
-                //     "selectedPackage",
-                //     JSON.stringify(activePacketData?.package_id)
-                //   );
-                //   router.push("payment/payment-methods");
-                // }}
-                onClick={() => handleCheckPackage(activePacketData?.package_id)}
-                className="relative z-10"
-                style={{
-                  filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
-                }}
-              />
-              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
-                <div
-                  className="absolute top-0 h-full"
-                  style={{
-                    width: "100px",
-                    background:
-                      "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
-                    transform: "skew(-20deg)",
-                    animation: "sweep-narrow 2.5s infinite ease-out",
-                  }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {!latestIsFree && (
-          <div className="relative w-full h-15 my-3 sm:hidden">
-            <button
-              className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
+          <div className="relative min-w-25 cursor-pointer hidden sm:block hover:scale-110 transition-transform">
+            <Image
+              src="/assets/Images/button-beli-lagi-home.png"
+              alt="button-beli-lagi-home"
+              width={100}
+              height={152}
+              onClick={() => handleCheckPackage(activePacketData?.package_id)}
+              className="relative z-10"
               style={{
                 filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
               }}
-              onClick={() => handleCheckPackage(activePacketData?.package_id)}
-            >
-              Beli Lagi
-              <Image
-                src={thumbClick}
-                alt="button-beli-lagi-home-mobile"
-                width={24}
-                height={24}
-                // unoptimized
-              />
-            </button>
-
+            />
             <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
               <div
                 className="absolute top-0 h-full"
                 style={{
-                  width: "120px",
+                  width: "100px",
                   background:
                     "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
                   transform: "skew(-20deg)",
-                  animation: "sweep-mobile 3s infinite ease-out",
-                  left: "-120px",
+                  animation: "sweep-narrow 2.5s infinite ease-out",
                 }}
               />
             </div>
           </div>
-        )}
+        </div>
+
+        <div className="relative w-full h-15 my-3 sm:hidden">
+          <button
+            className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
+            style={{
+              filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
+            }}
+            onClick={() => handleCheckPackage(activePacketData?.package_id)}
+          >
+            Beli Lagi
+            <Image
+              src={thumbClick}
+              alt="button-beli-lagi-home-mobile"
+              width={24}
+              height={24}
+              // unoptimized
+            />
+          </button>
+
+          <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+            <div
+              className="absolute top-0 h-full"
+              style={{
+                width: "120px",
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                transform: "skew(-20deg)",
+                animation: "sweep-mobile 3s infinite ease-out",
+                left: "-120px",
+              }}
+            />
+          </div>
+        </div>
       </div>
     );
   };

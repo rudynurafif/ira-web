@@ -635,19 +635,3 @@ button.ghost {
   scrollbar-width: thin;
   scrollbar-color: #d7201d transparent;
 }
-
-.slick-slide {
-  height: auto !important; /* Biarkan adaptiveHeight bekerja tapi stabil */
-  outline: none !important;
-}
-
-/* Hilangkan background default browser/slick yang mungkin muncul saat loading */
-.slick-slide > div {
-  background-color: transparent !important;
-}
-
-/* Pastikan container slide tidak overflow aneh */
-.slick-list {
-  margin: 0 !important;
-  padding: 0 !important;
-}
