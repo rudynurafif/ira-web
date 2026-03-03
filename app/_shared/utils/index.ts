@@ -472,6 +472,6 @@ export const assignColors: Record<ErrorData["assign"][0], string> = {
   ALI: "bg-[#000000]",
   VENDOR: "bg-[#8336AD]",
   TECH: "bg-[#B50000]",
-  CS: "bg-[#FE5F5B]",
+  CS: "bg-[#FE5BEB]",
   LOGISTIK: "bg-[#FF8C00]",
 };
