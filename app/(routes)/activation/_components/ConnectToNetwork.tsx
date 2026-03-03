@@ -27,6 +27,7 @@ import SignalArc from "./SignalWave";
 import CPEIRA from "@/public/assets/Images/cpe-ira.png";
 import failedActivation from "@/public/assets/Images/failedActivation.png";
 import maxAttemptImage from "@/public/assets/Images/maxAttempFailed.png";
+import successImage from "@/public/assets/Images/activate-success.png";
 
 import { refreshTask } from "@/app/_api/CoreNetwork/CoreNetwork";
 import { DecodedToken } from "@/app/_context/sse.type";
@@ -833,11 +834,28 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
   // ---- UI 10 menit ----
   if (screen === "timedOut") {
     return (
-      <div className="container mx-auto max-w-160 px-6 text-center">
-        <div className="pt-8">
+      <div className="container mx-auto max-w-160 p-6 text-center">
+        <div className="flex flex-col items-center">
           <div className="text-old-primary font-bold">
             Proses Aktivasi <Badge color="red">Waktu Habis</Badge>
           </div>
+
+          <div className="mb-4">
+            <Image
+              src={maxAttemptImage}
+              width={180}
+              height={180}
+              alt="Mencapai Batas Percobaan"
+            />
+          </div>
+
+          <div className="my-3 wrap-break-word">
+            <p>
+              Serial Number:{" "}
+              <span className="font-bold break-all">{serialNumber}</span>
+            </p>
+          </div>
+
           <p className="text-[#666] max-w-160 mx-auto mt-2">
             Proses aktivasi memakan waktu terlalu lama. Coba ulangi aktivasi,
             atau hubungi Customer Service bila tetap tidak berhasil.
@@ -864,7 +882,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           <div className="mt-12">
             <button
               onClick={() => router.push("/customer-area")}
-              className="w-full text-sm text-primary font-bold py-3 px-4 rounded-xl transition-colors"
+              className="w-full underline text-sm text-primary font-bold py-3 px-4 rounded-xl transition-colors"
             >
               Kembali ke Area Pelanggan
             </button>
@@ -897,6 +915,13 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             <div className="absolute -right-22.5 top-1/2 transform -translate-y-1/2 z-0">
               <SignalArc isLeft={false} />
             </div>
+          </div>
+
+          <div className="wrap-break-word">
+            <p>
+              Serial Number:{" "}
+              <span className="font-bold break-all">{serialNumber}</span>
+            </p>
           </div>
         </div>
 
@@ -951,7 +976,12 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
     return (
       <div className="container mx-auto max-w-160 px-6 text-center">
         <div className="pt-8 flex justify-center items-center">
-          <FaWifi size={40} />
+          <Image
+            src={successImage}
+            width={200}
+            height={200}
+            alt="Aktivasi Berhasil"
+          />
         </div>
 
         <div className="my-6">
@@ -962,6 +992,13 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
             Perangkat Anda telah berhasil diaktifkan dan terhubung ke jaringan
             inti. Internet sekarang sudah siap digunakan.
           </p>
+
+          <div className="my-3 wrap-break-word">
+            <p>
+              Serial Number:{" "}
+              <span className="font-bold break-all">{serialNumber}</span>
+            </p>
+          </div>
         </div>
 
         <div className="pt-6 flex flex-col gap-4 max-w-160 mx-auto">
@@ -980,8 +1017,8 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
   if (screen === "failed") {
     return (
       <div className="container mx-auto max-w-160 text-center">
-        <div className="pt-8 flex flex-col items-center">
-          <div className="px-6 flex flex-col items-center">
+        <div className="p-6 flex flex-col items-center">
+          <div className="flex flex-col items-center">
             {/* Gambar */}
             <div className="mb-4">
               <Image
@@ -990,6 +1027,13 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
                 height={180}
                 alt="Aktivasi Gagal"
               />
+            </div>
+
+            <div className="my-3 wrap-break-word">
+              <p>
+                Serial Number:{" "}
+                <span className="font-bold break-all">{serialNumber}</span>
+              </p>
             </div>
 
             {/* Title dari API atau Default */}
@@ -1082,6 +1126,13 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
                 height={180}
                 alt="Mencapai Batas Percobaan"
               />
+            </div>
+
+            <div className="my-3 wrap-break-word">
+              <p>
+                Serial Number:{" "}
+                <span className="font-bold break-all">{serialNumber}</span>
+              </p>
             </div>
 
             {/* Title */}
