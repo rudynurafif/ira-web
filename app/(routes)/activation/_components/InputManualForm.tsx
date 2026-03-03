@@ -414,7 +414,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
               <p className="text-xs font-bold text-gray-500 uppercase mb-2">
                 Solusi:
               </p>
-              <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+              <ul className="list-disc pl-4 text-sm text-gray-700 space-y-1">
                 {errorData.solution.map((sol: string, idx: number) => (
                   <li key={idx}>{sol}</li>
                 ))}
@@ -426,7 +426,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
           <div className="w-full mt-4 flex flex-col justify-center gap-2">
             {errorData?.code && (
               <span
-                className={`text-sm ${assignColors[errorData.assign[0]]} px-2 py-1 rounded-lg border `}
+                className={`text-sm ${assignColors[errorData.assign[0]]} text-white p-2 rounded-lg`}
               >
                 Kode: <span className="font-bold"> {errorData.code}</span>
               </span>
