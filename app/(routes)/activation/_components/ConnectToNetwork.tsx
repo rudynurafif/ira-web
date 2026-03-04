@@ -851,8 +851,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
           <div className="my-3 wrap-break-word">
             <p>
-              Serial Number:{" "}
-              <span className="font-bold break-all">{serialNumber}</span>
+              SN: <span className="font-bold break-all">{serialNumber}</span>
             </p>
           </div>
 
@@ -919,8 +918,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
           <div className="wrap-break-word">
             <p>
-              Serial Number:{" "}
-              <span className="font-bold break-all">{serialNumber}</span>
+              SN: <span className="font-bold break-all">{serialNumber}</span>
             </p>
           </div>
         </div>
@@ -995,8 +993,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
           <div className="my-3 wrap-break-word">
             <p>
-              Serial Number:{" "}
-              <span className="font-bold break-all">{serialNumber}</span>
+              SN: <span className="font-bold break-all">{serialNumber}</span>
             </p>
           </div>
         </div>
@@ -1031,8 +1028,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
             <div className="my-3 wrap-break-word">
               <p>
-                Serial Number:{" "}
-                <span className="font-bold break-all">{serialNumber}</span>
+                SN: <span className="font-bold break-all">{serialNumber}</span>
               </p>
             </div>
 
@@ -1130,8 +1126,7 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
 
             <div className="my-3 wrap-break-word">
               <p>
-                Serial Number:{" "}
-                <span className="font-bold break-all">{serialNumber}</span>
+                SN: <span className="font-bold break-all">{serialNumber}</span>
               </p>
             </div>
 
