@@ -12,21 +12,28 @@ export function middleware(req: NextRequest) {
 
   // --- HANYA HANDLE ANDROID ---
   if (isWhatsAppAndroid) {
-    const protocol = req.headers.get("x-forwarded-proto") || "https";
-    let host = req.headers.get("host") || "";
+    try {
+      const protocol = req.headers.get("x-forwarded-proto") || "https";
+      let host = req.headers.get("host") || req.nextUrl.host;
 
-    if (protocol === "https" && host.includes(":3000")) {
-      host = host.replace(":3000", "");
+      host = host.replace(/:3000$/, "");
+
+      const targetUrl = `${protocol}://${host}${pathname}${req.nextUrl.search}`;
+      const urlObj = new URL(targetUrl);
+
+      const pathWithSlash = urlObj.pathname.startsWith("/")
+        ? urlObj.pathname
+        : `/${urlObj.pathname}`;
+      const hostPathSearch = urlObj.host + pathWithSlash + urlObj.search;
+
+      const fallbackUrl = encodeURIComponent(targetUrl);
+      const intentUrl = `intent://${hostPathSearch}#Intent;scheme=https;S.browser_fallback_url=${fallbackUrl};end`;
+
+      return NextResponse.redirect(intentUrl);
+    } catch (error) {
+      console.error("Middleware redirect error:", error);
+      return NextResponse.next();
     }
-    if (!host) host = req.nextUrl.host.replace(":3000", "");
-
-    const targetUrl = `${protocol}://${host}${pathname}${req.nextUrl.search}`;
-
-    const urlObj = new URL(targetUrl);
-    const hostPathSearch = urlObj.host + urlObj.pathname + urlObj.search;
-    const intentUrl = `intent://${hostPathSearch}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(targetUrl)};end`;
-
-    return NextResponse.redirect(intentUrl);
   }
 
   // --- iOS DIBIARKAN LANGSUNG MASUK (No Redirect) ---
