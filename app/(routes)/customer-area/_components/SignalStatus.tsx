@@ -133,11 +133,11 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
             </div>
           </div>
 
-          {cellId && (
+          {/* {cellId && (
             <div className="text-center text-sm flex items-center justify-center gap-1">
-              {/* <div className="text-secondary">
+              <div className="text-secondary">
                 Cell ID: <span className="">{cellId}</span>
-              </div> */}
+              </div>
               <button
                 onClick={handleCopyCellId}
                 disabled={isCooldown}
@@ -155,7 +155,7 @@ const SignalStatus: React.FC<SignalStatusProps> = ({
                 )}
               </button>
             </div>
-          )}
+          )} */}
         </>
       )}
 

@@ -395,9 +395,8 @@ Mohon bantuannya untuk dilakukan pengecekan dan proses aktivasi lanjutan.`,
               )}
             </div>
 
-            <p className="wrap-break-word">
-              Serial Number:{" "}
-              <span className="font-bold break-all">{serialNumber}</span>
+            <p className="wrap-break-word mt-3">
+              SN: <span className="font-bold break-all">{serialNumber}</span>
             </p>
 
             {/* 2. Title */}
