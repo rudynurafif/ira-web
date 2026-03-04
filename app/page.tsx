@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState } from "react";
 import FAQPage from "./Homepage/FAQPage";
 import MainPage from "./Homepage/MainPage";
-import PackagePage from "./Homepage/PackagePage";
 import WhyFWAPage from "./Homepage/WhyFWAPage";
 import { verifyOtp } from "@/app/_api/Auth/Auth";
 import toast from "react-hot-toast";
@@ -11,7 +10,6 @@ import CookieHandler from "./_components/CookieHandler";
 import DownloadApp from "./Homepage/DownloadApp";
 import { Notification } from "./_components/Notification";
 import { useAppContext } from "./_shared/context/AppContext";
-import { platform } from "os";
 
 export default function Home() {
   const router = useRouter();
@@ -55,7 +53,7 @@ export default function Home() {
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete("code");
       newUrl.searchParams.delete("phone_number");
-      router.replace(newUrl.toString(), { scroll: false });
+      router.replace(newUrl.toString());
     }
   };
 
