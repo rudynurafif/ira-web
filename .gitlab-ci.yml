@@ -198,16 +198,16 @@ deploy-production:
         docker image prune -a -f; \
         docker exec -it fwa_website_app sh -c 'npm ls && npm outdate && npm audit'; \
         echo 'Production - Container fwa_website_app has been updated.'; \
-        echo 'Production - Updating Container fwa_website_app_2.'; \
-        docker compose -f $COMPOSE_FILE down fwa-website-2; \
-        docker rmi fwa_website_2:$PROD_VER; \
-        docker compose -f $COMPOSE_FILE build --no-cache fwa-website-2; \
-        docker compose -f $COMPOSE_FILE up -d fwa-website-2; \
-        docker ps -a | grep fwa_website_app_2; \
-        docker builder prune -a -f; \
-        docker image prune -a -f; \
-        docker exec -it fwa_website_app_2 sh -c 'npm ls && npm outdate && npm audit'; \
-        echo 'Production - Container fwa_website_app_2 has been updated.'; \
+        # echo 'Production - Updating Container fwa_website_app_2.'; \
+        # docker compose -f $COMPOSE_FILE down fwa-website-2; \
+        # docker rmi fwa_website_2:$PROD_VER; \
+        # docker compose -f $COMPOSE_FILE build --no-cache fwa-website-2; \
+        # docker compose -f $COMPOSE_FILE up -d fwa-website-2; \
+        # docker ps -a | grep fwa_website_app_2; \
+        # docker builder prune -a -f; \
+        # docker image prune -a -f; \
+        # docker exec -it fwa_website_app_2 sh -c 'npm ls && npm outdate && npm audit'; \
+        # echo 'Production - Container fwa_website_app_2 has been updated.'; \
         echo 'Production - Docker Deployment Completed.'; \
       "
   artifacts:
