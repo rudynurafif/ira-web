@@ -16,7 +16,7 @@ import { downloadInvoice } from "@/app/_api/Customer/CustomerArea";
 const SubsHistoryCard = ({ data }: { data: SubscriptionHistoryAPI }) => {
   const [isToastCooldown, setIsToastCooldown] = useState<boolean>(false);
 
-const handleDownloadInvoice = async () => {
+  const handleDownloadInvoice = async () => {
     if (isToastCooldown) return;
     if (data?.billing_id[0]?.status !== "PAID") return;
 
@@ -115,9 +115,20 @@ const handleDownloadInvoice = async () => {
 
           {/* Harga in Mobile View */}
           <p className="max-sm:block hidden text-sm font-medium">
-            {convertToCurrency2(
-              Number(data.billing_id[0]?.invoice_id[0]?.paid_amount),
-            ) ?? "0"}
+            {data.billing_id[0]?.invoice_id[0]?.is_free ? (
+              <>
+                <span className="line-through text-gray-400 mr-2">
+                  {convertToCurrency2(
+                    Number(data.billing_id[0]?.invoice_id[0]?.amount),
+                  ) ?? "0"}
+                </span>
+                <span className="text-green-600">Gratis</span>
+              </>
+            ) : (
+              (convertToCurrency2(
+                Number(data.billing_id[0]?.invoice_id[0]?.amount),
+              ) ?? "0")
+            )}
           </p>
           <p className="sm:text-sm text-[10px]">
             {" "}
@@ -130,9 +141,20 @@ const handleDownloadInvoice = async () => {
       <div className="flex-col text-right">
         {/* Harga in Desktop View */}
         <p className="font-medium text-xl max-sm:hidden mb-2">
-          {convertToCurrency2(
-            Number(data.billing_id[0]?.invoice_id[0]?.paid_amount),
-          ) ?? "0"}
+          {data.billing_id[0]?.invoice_id[0]?.is_free ? (
+            <>
+              <span className="line-through text-gray-400 mr-2">
+                {convertToCurrency2(
+                  Number(data.billing_id[0]?.invoice_id[0]?.amount),
+                ) ?? "0"}
+              </span>
+              <span className="text-green-600">Gratis</span>
+            </>
+          ) : (
+            (convertToCurrency2(
+              Number(data.billing_id[0]?.invoice_id[0]?.amount),
+            ) ?? "0")
+          )}
         </p>
         {/* {!data.billing_id[0]?.is_free && ( */}
         <button
