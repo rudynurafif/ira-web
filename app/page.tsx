@@ -17,6 +17,21 @@ export default function Home() {
   const [isVerifying, setIsVerifying] = useState(false);
   const { fcmToken } = useAppContext();
 
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    if (/Opera Mini|UCBrowser/.test(ua)) {
+      toast.error(
+        "Deteksi Browser: Anda menggunakan Opera Mini/UC Browser. \n\n" +
+          "Beberapa fitur mungkin tidak berfungsi, silakan salin link ini dan buka menggunakan Google Chrome atau Safari.",
+        {
+          duration: 15_000,
+          position: "top-center",
+          style: { whiteSpace: "pre-line" },
+        },
+      );
+    }
+  }, []);
+
   const bodyToken = useMemo(
     () => ({
       fcm_token: fcmToken,
@@ -33,7 +48,7 @@ export default function Home() {
     try {
       const res = await verifyOtp(body);
 
-      if (res?.data?.statusCode === 200) {
+      if (res?.data?.statusCode === 200 || res?.data?.statusCode === 201) {
         toast.success(res?.data?.message ?? "Verifikasi OTP berhasil", {
           duration: 7500,
           position: "top-center",

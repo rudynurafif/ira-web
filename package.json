@@ -15,6 +15,7 @@
     "@mui/material": "^7.3.1",
     "@react-google-maps/api": "^2.20.7",
     "@reduxjs/toolkit": "^2.9.2",
+    "@sentry/nextjs": "^10.42.0",
     "@vis.gl/react-google-maps": "^1.5.5",
     "antd": "^5.27.0",
     "axios": "^1.11.0",
@@ -47,8 +48,8 @@
     "react-select": "^5.10.2",
     "react-slick": "^0.31.0",
     "slick-carousel": "^1.8.1",
-    "swiper": "^11.2.5",
     "sweetalert2": "^11.22.4",
+    "swiper": "^11.2.5",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

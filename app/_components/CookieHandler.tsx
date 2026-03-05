@@ -1,4 +1,6 @@
-// components/Homepage/CookieHandler.tsx
+// Untuk keperluan auto login dari in app browser IRA
+
+
 "use client";
 import { useEffect } from "react";
 import { getCookie, setCookie } from "cookies-next";
