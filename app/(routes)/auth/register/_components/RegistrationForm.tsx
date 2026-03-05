@@ -784,7 +784,7 @@ function RegistrationForm({
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData, isLoading]);
+  }, [isLoading]);
 
   // const isPasswordMismatch =
   //   Boolean(formData.password) &&

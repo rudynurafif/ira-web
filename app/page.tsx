@@ -17,6 +17,21 @@ export default function Home() {
   const [isVerifying, setIsVerifying] = useState(false);
   const { fcmToken } = useAppContext();
 
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    if (/Opera Mini|UCBrowser/.test(ua)) {
+      toast.error(
+        "Deteksi Browser: Anda menggunakan Opera Mini/UC Browser. \n\n" +
+          "Beberapa fitur mungkin tidak berfungsi, silakan salin link ini dan buka menggunakan Google Chrome atau Safari.",
+        {
+          duration: 15_000,
+          position: "top-center",
+          style: { whiteSpace: "pre-line" },
+        },
+      );
+    }
+  }, []);
+
   const bodyToken = useMemo(
     () => ({
       fcm_token: fcmToken,
