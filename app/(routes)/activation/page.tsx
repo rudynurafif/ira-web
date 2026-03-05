@@ -21,8 +21,9 @@ function Page() {
   const [activeSection, setActiveSection] = useState("scan");
   const { shipmentStatus, userInfo } = useAppSelector((state) => state.auth);
   const router = useRouter();
-  const [subscriptionHistory, setSubscriptionHistory] =
-    useState<SubscriptionHistoryAPI[]>();
+  const [subscriptionHistory, setSubscriptionHistory] = useState<
+    SubscriptionHistoryAPI[]
+  >([]);
   const dispatch = useAppDispatch();
   const [isDataReady, setIsDataReady] = useState(false);
 
@@ -65,11 +66,6 @@ function Page() {
     setIsDataReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo, shipmentStatus, router]);
-
-  useEffect(() => {
-    if (!shipmentStatus) fetchCustPackage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shipmentStatus]);
 
   useEffect(() => {
     const sSection = params.get("section");
