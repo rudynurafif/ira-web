@@ -53,7 +53,6 @@ function Page() {
   const getCurrentPaymentData = async () => {
     try {
       const res = await getCurrentPayment();
-      console.log(res.data);
 
       setPaymentInfo(res.data?.data);
     } catch (err: any) {
@@ -102,8 +101,6 @@ function Page() {
     (typeof paymentInfo?.package_id?.price === "string"
       ? parseFloat(paymentInfo.package_id?.price)
       : (paymentInfo?.package_id?.price ?? 0));
-
-  console.log(bankFeeBackup);
 
   if (isLoading) {
     return <Loader />;
