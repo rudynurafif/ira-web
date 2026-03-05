@@ -53,7 +53,7 @@ export default function Page() {
           <a
             target="_blank"
             rel="noopener"
-            href="https://ije.sentry.io/issues/?project=4510985696509952"
+            href="https://ije-ug.sentry.io/issues/?project=4510989958905856"
           >
             Issues Page
           </a>

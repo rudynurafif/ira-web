@@ -11,6 +11,7 @@ function handleAuthLogic(req: NextRequest, pathname: string) {
     "/privacy-and-policy",
     "/refund-policy",
     "/terms-and-condition",
+    "/sentry-example-page",
   ];
 
   const isPublic = publicPaths.some(
