@@ -33,7 +33,7 @@ export default function Home() {
     try {
       const res = await verifyOtp(body);
 
-      if (res?.data?.statusCode === 200) {
+      if (res?.data?.statusCode === 200 || res?.data?.statusCode === 201) {
         toast.success(res?.data?.message ?? "Verifikasi OTP berhasil", {
           duration: 7500,
           position: "top-center",
