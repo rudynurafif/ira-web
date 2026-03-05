@@ -297,7 +297,7 @@ const Page = () => {
 
       toast.success(
         resForgotPassword.data?.message ||
-          "Link reset password telah dikirim ke WhatsApp Anda. Silakan cek pesan WhatsApp Anda.",
+          "Link reset password telah dikirim ke Nomor WhatsApp Anda. Silakan cek pesan WhatsApp Anda.",
       );
       setStep("CHECK_PHONE");
       // router.push("forgot-password");

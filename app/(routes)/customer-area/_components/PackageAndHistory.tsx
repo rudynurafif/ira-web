@@ -13,7 +13,11 @@ import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import bannerCubmu from "@/public/assets/Images/banner-cubmu.png";
 import bannerCubmuMobile from "@/public/assets/Images/banner-cubmu-mobile.png";
 import ActivePackageCard from "./ActivePackageCard";
-import { packageCountdown, toastErrorFromAPI } from "@/app/_shared/utils";
+import {
+  convertToCurrency2,
+  packageCountdown,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import HistorySection from "./HistorySection";
 import thumbClick from "@/public/assets/Icons/thumb-click.png";
 import ExpiredCard from "../ExpiredCard";
@@ -217,18 +221,38 @@ const PackageAndHistory = () => {
 
               <div className="flex flex-col justify-between items-center py-3 px-2">
                 <div className="text-xs ">Harga</div>
-                <div className="sm:text-2xl font-extrabold text-gradient-red">
-                  <span className="sm:text-base text-xs font-semibold align-top">
-                    Rp{" "}
-                  </span>
-                  {activePacketData
-                    ? Number(
-                        activePacketData?.billing_id[0]?.invoice_id[0]
-                          ?.paid_amount,
-                      )
-                        .toLocaleString("id-ID")
-                        .replace(/,/g, ".")
-                    : "0"}
+                <div className="sm:text-2xl font-extrabold ">
+                  {activePacketData?.billing_id[0]?.invoice_id[0]?.is_free ? (
+                    <>
+                      <span className="line-through text-gray-400 sm:text-base text-xs font-semibold align-top">
+                        {convertToCurrency2(
+                          Number(
+                            activePacketData.billing_id[0]?.invoice_id[0]
+                              ?.amount,
+                          ),
+                        ) ?? "0"}
+                      </span>{" "}
+                      <span className="sm:text-base text-xs font-semibold align-top text-green-600!">
+                        Gratis
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sm:text-base text-gradient-red text-xs font-semibold align-top">
+                        Rp{" "}
+                      </span>
+                      <span className="text-gradient-red">
+                        {activePacketData
+                          ? Number(
+                              activePacketData?.billing_id[0]?.invoice_id[0]
+                                ?.amount,
+                            )
+                              .toLocaleString("id-ID")
+                              .replace(/,/g, ".")
+                          : "0"}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -260,65 +284,71 @@ const PackageAndHistory = () => {
             </div>
           </div>
 
-          <div className="relative min-w-25 cursor-pointer hidden sm:block hover:scale-110 transition-transform">
-            <Image
-              src="/assets/Images/button-beli-lagi-home.png"
-              alt="button-beli-lagi-home"
-              width={100}
-              height={152}
-              onClick={() => handleCheckPackage(activePacketData?.package_id)}
-              className="relative z-10"
+          {/* Desktop Beli Lagi */}
+          {!activePacketData?.billing_id[0]?.invoice_id[0]?.is_free && (
+            <div className="relative min-w-25 cursor-pointer hidden sm:block hover:scale-110 transition-transform">
+              <Image
+                src="/assets/Images/button-beli-lagi-home.png"
+                alt="button-beli-lagi-home"
+                width={100}
+                height={152}
+                onClick={() => handleCheckPackage(activePacketData?.package_id)}
+                className="relative z-10"
+                style={{
+                  filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
+                }}
+              />
+              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+                <div
+                  className="absolute top-0 h-full"
+                  style={{
+                    width: "100px",
+                    background:
+                      "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                    transform: "skew(-20deg)",
+                    animation: "sweep-narrow 2.5s infinite ease-out",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Beli Lagi Mobile */}
+        {!activePacketData?.billing_id[0]?.invoice_id[0]?.is_free && (
+          <div className="relative w-full h-15 my-3 sm:hidden">
+            <button
+              className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
               style={{
                 filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
               }}
-            />
+              onClick={() => handleCheckPackage(activePacketData?.package_id)}
+            >
+              Beli Lagi
+              <Image
+                src={thumbClick}
+                alt="button-beli-lagi-home-mobile"
+                width={24}
+                height={24}
+                // unoptimized
+              />
+            </button>
+
             <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
               <div
                 className="absolute top-0 h-full"
                 style={{
-                  width: "100px",
+                  width: "120px",
                   background:
                     "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
                   transform: "skew(-20deg)",
-                  animation: "sweep-narrow 2.5s infinite ease-out",
+                  animation: "sweep-mobile 3s infinite ease-out",
+                  left: "-120px",
                 }}
               />
             </div>
           </div>
-        </div>
-
-        <div className="relative w-full h-15 my-3 sm:hidden">
-          <button
-            className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
-            style={{
-              filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
-            }}
-            onClick={() => handleCheckPackage(activePacketData?.package_id)}
-          >
-            Beli Lagi
-            <Image
-              src={thumbClick}
-              alt="button-beli-lagi-home-mobile"
-              width={24}
-              height={24}
-              // unoptimized
-            />
-          </button>
-
-          <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
-            <div
-              className="absolute top-0 h-full"
-              style={{
-                width: "120px",
-                background:
-                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
-                transform: "skew(-20deg)",
-                animation: "sweep-mobile 3s infinite ease-out",
-                left: "-120px",
-              }}
-            />
-          </div>
-        </div>
+        )}
       </div>
     );
   };
