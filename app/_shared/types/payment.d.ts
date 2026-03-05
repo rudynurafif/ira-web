@@ -21,6 +21,27 @@ export interface PaymentRequestApiResponse {
   data: PaymentData;
 }
 
+export interface PaymentAttempt {
+  id: string;
+  gateway: string;
+  method_category: string;
+  channel_code: string;
+  amount: string;
+  currency: string;
+  payment_number: string;
+  desktop_web_checkout_url: string | null;
+  mobile_web_checkout_url: string | null;
+  mobile_deeplink_checkout_url: string | null;
+  qr_checkout_string: string | null;
+  status: string;
+  failure_code: string | null;
+  failure_message: string | null;
+  xendit_event_id: string;
+  reference_id: string | null;
+  expires_at: string;
+  raw_payload: string | null;
+}
+
 export interface VAPaymentData {
   id: string;
   customer_id: Customer;
@@ -30,6 +51,7 @@ export interface VAPaymentData {
   xendit_id: string;
   expire_at: string;
   amount: string;
+  payment_attempt: PaymentAttempt;
 }
 
 export interface QRISPaymentData {
@@ -41,6 +63,7 @@ export interface QRISPaymentData {
   xendit_id: string;
   expire_at: string;
   amount: string;
+  payment_attempt: PaymentAttempt;
 }
 
 export interface EWalletPaymentData {
@@ -63,6 +86,7 @@ export interface EWalletPaymentData {
   mobile_deeplink_checkout_url: string | null;
   qr_checkout_string: string | null;
   raw_payload: string;
+  payment_attempt: PaymentAttempt;
 }
 
 export interface OtcPaymentData {
