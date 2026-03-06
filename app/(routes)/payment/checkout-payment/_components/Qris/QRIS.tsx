@@ -23,9 +23,9 @@ function QRIS({ data }: { data: QRISPaymentData }) {
   const [checkOutUrl, setCheckOutUrl] = useState<string | null>(null);
 
   const generateQR = useCallback(async () => {
-    if (!data.qr_checkout_string) return;
+    if (!data?.payment_attempt?.qr_checkout_string) return;
     try {
-      const url = await QRCode.toDataURL(data.qr_checkout_string, {
+      const url = QRCode.toDataURL(data?.payment_attempt?.qr_checkout_string, {
         width: 256,
         margin: 2,
         color: {
@@ -33,11 +33,11 @@ function QRIS({ data }: { data: QRISPaymentData }) {
           light: "#ffffff",
         },
       });
-      setQrDataUrl(url);
+      setQrDataUrl(await url);
     } catch (err) {
       console.error("Gagal generate QR:", err);
     }
-  }, [data.qr_checkout_string]);
+  }, [data?.payment_attempt?.qr_checkout_string]);
 
   useEffect(() => {
     generateQR();

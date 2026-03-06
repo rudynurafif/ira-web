@@ -16,6 +16,8 @@ import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
 import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { OtcPaymentData } from "@/app/_shared/types/payment";
+import Indomaret from "@/public/assets/Icons/payment-method/outlet/indomaret-large.png";
+import Alfamart from "@/public/assets/Icons/payment-method/outlet/logo-alfamart.png";
 
 function Outlet({ data }: { data: OtcPaymentData }) {
   const [selectedImage, setSelectedImage] = useState<any>("");
@@ -54,10 +56,10 @@ function Outlet({ data }: { data: OtcPaymentData }) {
     }
   };
 
-  useEffect(() => {
-    const type = params.get("type");
-    const selected = params.get("selected_payment");
+  const type = params.get("type");
+  const selected = params.get("selected_payment");
 
+  useEffect(() => {
     if (type && selected) {
       const matchedType = dataOutlet.find(
         (item) => item.route.toLowerCase() === type,
@@ -72,7 +74,7 @@ function Outlet({ data }: { data: OtcPaymentData }) {
         }
       }
     }
-  }, [params]);
+  }, [params, selected, type]);
 
   const toggleInstruction = (title: any) => {
     setActiveInstructions((prev: any) => ({
@@ -88,21 +90,21 @@ function Outlet({ data }: { data: OtcPaymentData }) {
           Tunjukkan Kode Pembayaran ke Kasir
         </span>
 
-        {/* <div className="flex justify-center pt-2">
+        <div className="flex justify-center pt-2">
           <Image
-            src={checkoutOutlet}
+            src={selected === "INDOMARET" ? Indomaret : Alfamart}
             alt="outlet"
             width={500}
             height={500}
-            className=" w-[250px] sm:w-[268px] h-fit"
+            className=" w-62.5 sm:w-67 h-fit"
           />
-        </div> */}
-        <div className="flex justify-center font-bold text-xl">
-          Kode: {data.va}
+        </div>
+        <div className="flex justify-center font-bold text-xl my-3">
+          Kode: {data.payment_number ?? "-"}
         </div>
 
         <div className="mt-6">
-          Mohon Bayar Sebelum: {formatDate(data.expire_at)}
+          Mohon Bayar Sebelum: {formatDate(data.expires_at) ?? "N/A"}
         </div>
       </div>
 
@@ -113,11 +115,11 @@ function Outlet({ data }: { data: OtcPaymentData }) {
               {/* Header */}
               <div
                 onClick={() => {
-                  toggleInstruction(item.title);
+                  toggleInstruction(item.title ?? "-");
                 }}
                 className="flex justify-between items-center gap-1 cursor-pointer pt-4"
               >
-                <span className="font-bold block">{item.title}</span>
+                <span className="font-bold block">{item.title ?? "-"}</span>
 
                 {activeInstructions[item.title] ? (
                   <IoIosArrowUp size={25} className="text-black" />

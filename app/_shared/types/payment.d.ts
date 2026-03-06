@@ -94,9 +94,9 @@ export interface OtcPaymentData {
   customer_id: Customer;
   channel_payment_id: ChannelPayment;
   package_id: PackageDetail;
-  va: string;
+  payment_number: string;
   xendit_id: string;
-  expire_at: string; // ISO 8601 datetime string
+  expires_at: string; // ISO 8601 datetime string
   amount: string; // "100000.00"
 }
 
