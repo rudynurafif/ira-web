@@ -175,13 +175,15 @@ const PaymentMehods = () => {
         JSON.stringify((await createRes).data.data),
       );
 
+      if ((await createRes).data?.statusCode === 200) {
+        router.push(
+          `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
+        );
+      }
+
       if (!paymentReqID) {
         throw new Error("Gagal mendapatkan ID pembayaran");
       }
-
-      router.push(
-        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
-      );
     } catch (error: any) {
       toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
       setIsCreatePayment(false);

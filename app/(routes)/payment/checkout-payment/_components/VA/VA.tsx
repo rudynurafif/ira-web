@@ -95,7 +95,7 @@ function VA({ data }: { data: VAPaymentData }) {
             {formatPaymentNumber(data.va)}
           </span>
 
-          <div className="max-sm:flex-col sm:flex sm:justify-between sm:items-center">
+          <div className="flex justify-between items-center gap-2">
             <button
               type="button"
               disabled={isCopied}
@@ -130,9 +130,9 @@ function VA({ data }: { data: VAPaymentData }) {
               </div>
             </button>
 
-            <div className="sm:text-right">
+            <div className="text-right">
               {selectedImage && (
-                <div className="flex sm:justify-end">
+                <div className="flex justify-end">
                   <Image
                     src={selectedImage}
                     alt=""
@@ -143,14 +143,14 @@ function VA({ data }: { data: VAPaymentData }) {
                 </div>
               )}
 
-              <span className="block pt-2 font-medium max-[580px]:text-sm">
-                PT. INTEGRASI JARINGAN EKOSISTEM
+              <span className="block pt-2 font-medium max-[580px]:text-[10px]">
+                PT. TELEMEDIA KOMUNIKASI PRATAMA
               </span>
             </div>
           </div>
 
-          <div className="flex justify-between gap-2 w-full pt-3">
-            <div>Bayar Sebelum</div>
+          <div className="flex justify-between gap-2 w-full pt-3 max-sm:text-sm">
+            <div className="">Bayar Sebelum</div>
             <div className="sm:text-right font-medium">
               {formatDate(data.expire_at)}
             </div>
