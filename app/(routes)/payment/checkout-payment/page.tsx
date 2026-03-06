@@ -10,19 +10,8 @@ import {
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import Outlet from "./_components/Outlet/Outlet";
-import {
-  EWalletPaymentData,
-  OtcPaymentData,
-  QRISPaymentData,
-  VAPaymentData,
-} from "@/app/_shared/types/payment";
-import {
-  getCurrentPayment,
-  getEWalletById,
-  getOTCById,
-  getQRISById,
-  getVaById,
-} from "@/app/_api/Payment/Payment";
+import { UnifiedPaymentData } from "@/app/_shared/types/payment";
+import { getCurrentPayment } from "@/app/_api/Payment/Payment";
 import toast from "react-hot-toast";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import Loader from "@/app/_components/Loader";
@@ -37,7 +26,7 @@ function Page() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState<
-    VAPaymentData | EWalletPaymentData | QRISPaymentData
+    UnifiedPaymentData | undefined
   >();
   const id = params.get("id");
   const [openModalCancel, setopenModalCancel] = useState(false);
@@ -71,10 +60,7 @@ function Page() {
 
     //   if (stored) {
     //     try {
-    //       const parsed = JSON.parse(stored) as
-    //         | VAPaymentData
-    //         | EWalletPaymentData
-    //         | QRISPaymentData;
+    //       const parsed = JSON.parse(stored) as UnifiedPaymentData;
     //       setPaymentInfo(parsed);
     //     } catch (e) {
     //       console.error("Gagal parse paymentInfo:", e);
@@ -155,18 +141,18 @@ function Page() {
 
           {params.get("type") &&
           params.get("type")?.toLowerCase() === "qris" ? (
-            <QRIS data={paymentInfo as QRISPaymentData} />
+            <QRIS data={paymentInfo as UnifiedPaymentData} />
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "va" ? (
             paymentInfo ? (
-              <VA data={paymentInfo as VAPaymentData} />
+              <VA data={paymentInfo as UnifiedPaymentData} />
             ) : null
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "otc" ? (
-            <Outlet data={paymentInfo as OtcPaymentData} />
+            <Outlet data={paymentInfo as UnifiedPaymentData} />
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "ewallet" ? (
-            <EWallet data={paymentInfo as EWalletPaymentData} />
+            <EWallet data={paymentInfo as UnifiedPaymentData} />
           ) : (
             ""
           )}

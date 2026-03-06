@@ -42,84 +42,33 @@ export interface PaymentAttempt {
   raw_payload: string | null;
 }
 
-export interface VAPaymentData {
-  id: string;
-  customer_id: Customer;
-  channel_payment_id: ChannelPayment;
-  package_id: PackageDetail;
-  va: string;
-  xendit_id: string;
-  expire_at: string;
-  amount: string;
-  payment_attempt: PaymentAttempt;
-}
-
-export interface QRISPaymentData {
-  id: string;
-  customer_id: Customer;
-  channel_payment_id: ChannelPayment;
-  package_id: PackageDetail;
-  va: string;
-  xendit_id: string;
-  expire_at: string;
-  amount: string;
-  payment_attempt: PaymentAttempt;
-}
-
-export interface EWalletPaymentData {
+export interface UnifiedPaymentData {
   id: string;
   customer_id: Customer;
   package_id: PackageDetail;
   gateway: string;
-  method_category: string;
+  method_category: "va" | "e_wallet" | "qris" | "otc";
   channel_code: string;
-  amount: string;
+  amount: string | number;
   currency: string;
-  payment_number: string | null;
-  status: string;
-  failure_code: string | null;
-  failure_message: string | null;
-  xendit_event_id: string;
-  expires_at: string | null;
-  desktop_web_checkout_url: string | null;
-  mobile_web_checkout_url: string | null;
-  mobile_deeplink_checkout_url: string | null;
-  qr_checkout_string: string | null;
-  raw_payload: string;
+  status: "pending" | "paid" | "failed" | "expired";
+  expires_at?: string | null;
+  xendit_event_id?: string | null;
+  reference_id?: string | null;
+  failure_code?: string | null;
+  failure_message?: string | null;
+  raw_payload?: any;
+
+  va?: string;
+  channel_payment_id?: ChannelPayment;
+
+  desktop_web_checkout_url?: string | null;
+  mobile_web_checkout_url?: string | null;
+  mobile_deeplink_checkout_url?: string | null;
+  qr_checkout_string?: string | null;
+
+  payment_number?: string | null;
   payment_attempt: PaymentAttempt;
-}
-
-export interface OtcPaymentData {
-  id: string;
-  customer_id: Customer;
-  channel_payment_id: ChannelPayment;
-  package_id: PackageDetail;
-  va: string;
-  xendit_id: string;
-  expire_at: string; // ISO 8601 datetime string
-  amount: string; // "100000.00"
-}
-
-export interface QRISPaymentData {
-  id: string;
-  customer_id: Customer;
-  package_id: PackageDetail;
-  gateway: string; // e.g. "xendit"
-  method_category: "qris";
-  channel_code: "QRIS";
-  amount: string; // "100000.00"
-  currency: "IDR";
-  payment_number: string | null;
-  status: string; // e.g. "pending", "paid", "expired"
-  failure_code: string | null;
-  failure_message: string | null;
-  xendit_event_id: string; // e.g. "qr_44ba7987-..."
-  expires_at: string; // ISO 8601 datetime string
-  desktop_web_checkout_url: string | null;
-  mobile_web_checkout_url: string | null;
-  mobile_deeplink_checkout_url: string | null;
-  qr_checkout_string: string; // Base64 atau string QR
-  raw_payload: string; // JSON string dari Xendit (bisa di-parse terpisah jika perlu)
 }
 
 export interface Customer {

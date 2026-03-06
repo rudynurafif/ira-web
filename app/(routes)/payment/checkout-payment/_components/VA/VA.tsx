@@ -9,7 +9,7 @@ import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { dataVa } from "./Data/dataVa";
-import { VAPaymentData } from "@/app/_shared/types/payment";
+import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import {
   formatDate,
   formatPaymentNumber,
@@ -21,7 +21,7 @@ import Lottie from "lottie-react";
 import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
 import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 
-function VA({ data }: { data: VAPaymentData }) {
+function VA({ data }: { data: UnifiedPaymentData }) {
   const router = useRouter();
 
   const [selectedImage, setSelectedImage] = useState<any>("");
@@ -92,7 +92,7 @@ function VA({ data }: { data: VAPaymentData }) {
             Nomor Virtual Account
           </span>
           <span className="font-bold text-dark-primary-2 text-[20px] sm:text-[23px] block pt-2">
-            {formatPaymentNumber(data.va)}
+            {formatPaymentNumber(data.va ?? "-")}
           </span>
 
           <div className="flex justify-between items-center gap-2">
@@ -101,7 +101,7 @@ function VA({ data }: { data: VAPaymentData }) {
               disabled={isCopied}
               onClick={() => {
                 navigator.clipboard
-                  .writeText(data.va)
+                  .writeText(data.va ?? "-")
                   .then(() => {
                     setIsCopied(true);
                     toast.success("Nomor Virtual Account Berhasil Disalin!");
@@ -151,8 +151,8 @@ function VA({ data }: { data: VAPaymentData }) {
 
           <div className="flex justify-between gap-2 w-full pt-3 max-sm:text-sm">
             <div className="">Bayar Sebelum</div>
-            <div className="sm:text-right font-medium">
-              {formatDate(data.expire_at)}
+            <div className="text-right font-medium">
+              {formatDate(data.payment_attempt.expires_at ?? "-")}
             </div>
           </div>
         </div>

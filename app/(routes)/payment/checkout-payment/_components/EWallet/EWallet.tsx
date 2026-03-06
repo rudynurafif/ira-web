@@ -1,6 +1,6 @@
 "use client";
 
-import { EWalletPaymentData } from "@/app/_shared/types/payment";
+import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import Lottie from "lottie-react";
 import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
 import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 
-const EWallet = ({ data }: { data: EWalletPaymentData }) => {
+const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
   const [checkOutUrl, setCheckOutUrl] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<any>("");
   const [activeInstructions, setActiveInstructions] = useState<any>({});
