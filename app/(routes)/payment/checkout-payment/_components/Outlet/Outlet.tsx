@@ -15,11 +15,11 @@ import Lottie from "lottie-react";
 import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
 import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import { OtcPaymentData } from "@/app/_shared/types/payment";
+import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import Indomaret from "@/public/assets/Icons/payment-method/outlet/indomaret-large.png";
 import Alfamart from "@/public/assets/Icons/payment-method/outlet/logo-alfamart.png";
 
-function Outlet({ data }: { data: OtcPaymentData }) {
+function Outlet({ data }: { data: UnifiedPaymentData }) {
   const [selectedImage, setSelectedImage] = useState<any>("");
   const [selectedInstructionList, setSelectedInstructionList] = useState([]);
 
@@ -103,8 +103,11 @@ function Outlet({ data }: { data: OtcPaymentData }) {
           Kode: {data.payment_number ?? "-"}
         </div>
 
-        <div className="mt-6">
-          Mohon Bayar Sebelum: {formatDate(data.expires_at) ?? "N/A"}
+        <div className="flex justify-between gap-2 w-full pt-3 max-sm:text-sm">
+          <div className="">Bayar Sebelum</div>
+          <div className="text-right font-medium">
+            {formatDate(data.expires_at ?? "-")}
+          </div>
         </div>
       </div>
 
