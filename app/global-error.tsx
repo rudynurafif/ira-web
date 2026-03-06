@@ -87,7 +87,7 @@ export default function GlobalError({
             Coba Lagi
           </button>
           <button
-            onClick={() => (window.location.href = "/customer-area")}
+            onClick={() => (window.location.href = "/")}
             style={{
               padding: "12px 24px",
               backgroundColor: "#d7201d",
