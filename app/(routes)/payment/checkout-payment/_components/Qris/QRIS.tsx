@@ -8,12 +8,12 @@ import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import { getPaymentStatus } from "@/app/_api/Payment/Payment";
-import { QRISPaymentData } from "@/app/_shared/types/payment";
+import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import QRCode from "qrcode";
 import iraLogo from "@/public/assets/Images/LogoIra.png";
 import { LuDownload } from "react-icons/lu";
 
-function QRIS({ data }: { data: QRISPaymentData }) {
+function QRIS({ data }: { data: UnifiedPaymentData }) {
   const router = useRouter();
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
@@ -23,9 +23,9 @@ function QRIS({ data }: { data: QRISPaymentData }) {
   const [checkOutUrl, setCheckOutUrl] = useState<string | null>(null);
 
   const generateQR = useCallback(async () => {
-    if (!data.qr_checkout_string) return;
+    if (!data?.qr_checkout_string) return;
     try {
-      const url = await QRCode.toDataURL(data.qr_checkout_string, {
+      const url = QRCode.toDataURL(data?.qr_checkout_string, {
         width: 256,
         margin: 2,
         color: {
@@ -33,11 +33,11 @@ function QRIS({ data }: { data: QRISPaymentData }) {
           light: "#ffffff",
         },
       });
-      setQrDataUrl(url);
+      setQrDataUrl(await url);
     } catch (err) {
       console.error("Gagal generate QR:", err);
     }
-  }, [data.qr_checkout_string]);
+  }, [data?.qr_checkout_string]);
 
   useEffect(() => {
     generateQR();

@@ -170,7 +170,7 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
     return value ? String(value) : defaultValue;
   };
 
-  // si untuk menampilkan alamat lengkap
+  // Fungsi untuk menampilkan alamat lengkap
   const getFullAddress = () => {
     const addressParts = [getFieldValue("actual_address")].filter(Boolean);
 

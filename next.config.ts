@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  productionBrowserSourceMaps: false,
+
   images: {
     remotePatterns: [
       {
@@ -33,29 +35,29 @@ export default withSentryConfig(nextConfig, {
 
   org: "ije-ug",
 
-  project: "javascript-nextjs",
+  project: "ira-website",
 
   // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
+  silent: true,
 
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+  sourcemaps: {
+    disable: true,
+    filesToDeleteAfterUpload: ["**/*.js.map"],
+  },
 
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+    excludeReplayShadowDom: true,
+    excludeReplayIframe: true,
+    excludeReplayWorker: true,
+  },
 
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // This can increase your server load as well as your hosting bill.
-  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-  // side errors will fail.
+  widenClientFileUpload: false,
+
   tunnelRoute: "/monitoring",
 
   webpack: {
-    // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-    // See the following for more information:
-    // https://docs.sentry.io/product/crons/
-    // https://vercel.com/docs/cron-jobs
-    automaticVercelMonitors: true,
+    automaticVercelMonitors: false,
 
     // Tree-shaking options for reducing bundle size
     treeshake: {

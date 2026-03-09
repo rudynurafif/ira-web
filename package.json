@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,11 +13,8 @@
     "@emotion/styled": "^11.14.1",
     "@geoapify/geocoder-autocomplete": "^3.0.1",
     "@mui/material": "^7.3.1",
-    "@react-google-maps/api": "^2.20.7",
     "@reduxjs/toolkit": "^2.9.2",
     "@sentry/nextjs": "^10.42.0",
-    "@vis.gl/react-google-maps": "^1.5.5",
-    "antd": "^5.27.0",
     "axios": "^1.11.0",
     "cookies-next": "^6.1.0",
     "event-source-polyfill": "^1.0.31",

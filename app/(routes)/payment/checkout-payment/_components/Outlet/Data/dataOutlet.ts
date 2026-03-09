@@ -14,7 +14,7 @@ export const dataOutlet = [
           {
             title: "Petunjuk Bayar Alfamart",
             list: [
-              "Datangi Alfamart terdekat dan informasikan ingin membayar tagihan <b>“PT. INTEGRASI JARINGAN EKOSISTEM”</b>",
+              "Datangi Alfamart terdekat dan informasikan ingin membayar tagihan <b>“PT. TELEMEDIA KOMUNIKASI PRATAMA”</b>",
               "Tunjukkan <b>barcode pembayaran</b> di atas",
               "Pastikan nominal yang keluar sesuai dengan nominal total pembayaran.",
               "Kasir akan memproses tagihan > bayar sesuai nominal > simpan struk sebagai bukti pembayaran",
@@ -36,7 +36,7 @@ export const dataOutlet = [
           {
             title: "Petunjuk Bayar Indomaret",
             list: [
-              "Datangi Indomaret terdekat dan informasikan ingin membayar tagihan <b>“PT. INTEGRASI JARINGAN EKOSISTEM”</b>",
+              "Datangi Indomaret terdekat dan informasikan ingin membayar tagihan <b>“PT. TELEMEDIA KOMUNIKASI PRATAMA”</b>",
               "Tunjukkan <b>barcode pembayaran</b> di atas",
               "Pastikan nominal yang keluar sesuai dengan nominal total pembayaran.",
               "Kasir akan memproses tagihan > bayar sesuai nominal > simpan struk sebagai bukti pembayaran",
