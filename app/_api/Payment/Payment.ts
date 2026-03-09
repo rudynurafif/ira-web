@@ -130,3 +130,16 @@ export const getPaymentStatus = async () => {
     throw error;
   }
 };
+
+export const getCurrentPayment = async () => {
+  try {
+    const data = await FwaAxios({
+      url: `/app/transaction/current-payment`,
+      method: "GET",
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

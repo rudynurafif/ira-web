@@ -1,6 +1,7 @@
 import {
   bca,
   bjb,
+  bnc,
   bni,
   bri,
   bsi,
@@ -150,6 +151,31 @@ export const dataVa = [
             title: "Petunjuk mBanking",
             list: [
               "Login ke <b>BSI Mobile</b>",
+              "Pilih menu <b>Bayar > Virtual Account</b>",
+              "Masukkan nomor <b>Virtual Account</b>",
+              "Konfirmasi nama dan nominal",
+              "Masukkan PIN untuk menyelesaikan transaksi",
+            ],
+          },
+          {
+            title: "Petunjuk ATM",
+            list: [
+              "Masukkan kartu ATM dan PIN",
+              "Pilih <b>Transaksi Lainnya > Pembayaran > Virtual Account</b>",
+              "Masukkan nomor VA dan tekan <b>Benar</b>",
+              "Konfirmasi dan tekan <b>Ya</b>",
+            ],
+          },
+        ],
+      },
+      {
+        name: "BNC",
+        image: bnc,
+        instructions: [
+          {
+            title: "Petunjuk mBanking",
+            list: [
+              "Login ke <b>BNC Mobile</b>",
               "Pilih menu <b>Bayar > Virtual Account</b>",
               "Masukkan nomor <b>Virtual Account</b>",
               "Konfirmasi nama dan nominal",

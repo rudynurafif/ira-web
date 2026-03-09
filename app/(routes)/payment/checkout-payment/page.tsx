@@ -4,24 +4,20 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import QRIS from "./_components/Qris/QRIS";
 import VA from "./_components/VA/VA";
-import { convertToCurrency, convertToCurrency2 } from "@/app/_shared/utils";
+import {
+  convertToCurrency,
+  convertToCurrency2,
+  toastErrorFromAPI,
+} from "@/app/_shared/utils";
 import Outlet from "./_components/Outlet/Outlet";
-import {
-  EWalletPaymentData,
-  OtcPaymentData,
-  QRISPaymentData,
-  VAPaymentData,
-} from "@/app/_shared/types/payment";
-import {
-  getEWalletById,
-  getOTCById,
-  getQRISById,
-  getVaById,
-} from "@/app/_api/Payment/Payment";
+import { UnifiedPaymentData } from "@/app/_shared/types/payment";
+import { getCurrentPayment } from "@/app/_api/Payment/Payment";
 import toast from "react-hot-toast";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import Loader from "@/app/_components/Loader";
 import EWallet from "./_components/EWallet/EWallet";
+import ModalTemplate from "@/app/_components/modal/ModalTemplate";
+import Image from "next/image";
 
 function Page() {
   const router = useRouter();
@@ -30,34 +26,53 @@ function Page() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState<
-    VAPaymentData | EWalletPaymentData | QRISPaymentData
+    UnifiedPaymentData | undefined
   >();
   const id = params.get("id");
+  const [openModalCancel, setopenModalCancel] = useState(false);
+
+  const handleCancelPayment = () => {
+    const confirmed = window.confirm("Apakah Anda Yakin?");
+
+    if (confirmed) {
+      window.location.href = "/customer-area";
+    }
+  };
+
+  const getCurrentPaymentData = async () => {
+    try {
+      const res = await getCurrentPayment();
+
+      setPaymentInfo(res.data?.data);
+    } catch (err: any) {
+      toastErrorFromAPI(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = sessionStorage.getItem("paymentInfo");
+    getCurrentPaymentData();
 
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as
-            | VAPaymentData
-            | EWalletPaymentData
-            | QRISPaymentData;
-          setPaymentInfo(parsed);
-        } catch (e) {
-          console.error("Gagal parse paymentInfo:", e);
-          toast.error("Data pembayaran tidak valid.");
-          router.replace("/payment");
-        }
-      } else {
-        // Jika tidak ada di sessionStorage, redirect
-        toast.error("Sesi pembayaran tidak ditemukan.");
-        router.replace("/payment");
-      }
-    }
+    // Ambil Dari Session Storage
+    // if (typeof window !== "undefined") {
+    //   const stored = sessionStorage.getItem("paymentInfo");
 
-    setIsLoading(false);
+    //   if (stored) {
+    //     try {
+    //       const parsed = JSON.parse(stored) as UnifiedPaymentData;
+    //       setPaymentInfo(parsed);
+    //     } catch (e) {
+    //       console.error("Gagal parse paymentInfo:", e);
+    //       toast.error("Data pembayaran tidak valid.");
+    //       router.replace("/payment");
+    //     }
+    //   } else {
+    //     // Jika tidak ada di sessionStorage, redirect
+    //     toast.error("Sesi pembayaran tidak ditemukan.");
+    //     router.replace("/payment");
+    //   }
+    // }
   }, [router]);
 
   const bankFee =
@@ -79,14 +94,14 @@ function Page() {
 
   return (
     <div className="">
-      <div className="container mx-auto p-6 my-8">
+      <div className="container mx-auto p-6">
         <div className="flex gap-2 items-center justify-center">
           <div className="font-bold text-primary-text md:text-3xl text-2xl">
             Pembayaran
           </div>
         </div>
 
-        <div className="mt-5 bg-white shadow-[0px_4px_20px_0px_rgba(0,0,0,0.12)] rounded-xl p-6">
+        <div className="mt-6 sm:bg-white sm:shadow-[0px_4px_20px_0px_rgba(0,0,0,0.12)] sm:rounded-xl sm:p-6">
           <div className="grid grid-cols-2 gap-y-2 sm:text-base text-xs">
             <div>Nama Paket</div>
             <div className="text-right">
@@ -105,7 +120,11 @@ function Page() {
 
             <div>Biaya Bank/Admin</div>
             <div className="text-right">
-              {convertToCurrency2(bankFee) ?? convertToCurrency2(bankFeeBackup)}
+              {convertToCurrency2(
+                bankFee !== undefined && bankFee !== null && bankFee !== 0
+                  ? bankFee
+                  : bankFeeBackup,
+              )}
             </div>
           </div>
 
@@ -122,31 +141,59 @@ function Page() {
 
           {params.get("type") &&
           params.get("type")?.toLowerCase() === "qris" ? (
-            <QRIS data={paymentInfo as QRISPaymentData} />
+            <QRIS data={paymentInfo as UnifiedPaymentData} />
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "va" ? (
             paymentInfo ? (
-              <VA data={paymentInfo as VAPaymentData} />
+              <VA data={paymentInfo as UnifiedPaymentData} />
             ) : null
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "otc" ? (
-            <Outlet data={paymentInfo as OtcPaymentData} />
+            <Outlet data={paymentInfo as UnifiedPaymentData} />
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "ewallet" ? (
-            <EWallet data={paymentInfo as EWalletPaymentData} />
+            <EWallet data={paymentInfo as UnifiedPaymentData} />
           ) : (
             ""
           )}
 
           <button
             type="button"
-            onClick={() => router.push("/customer-area")}
-            className="cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold text-primary hover:text-dark-primary-2 w-full max-sm:text-sm py-3"
+            onClick={handleCancelPayment}
+            className="cursor-pointer underline sm:mt-10 mt-3 rounded-lg font-bold text-primary hover:text-dark-primary-2 w-full max-sm:text-sm py-3"
           >
-            Kembali ke Area Pelanggan
+            Kembali Ke Area Pelanggan
           </button>
         </div>
       </div>
+
+      {/* <ModalTemplate
+        closeModal={() => {
+          setopenModalCancel(false);
+        }}
+      >
+        <div className="p-6 mt-6">
+          <div className="flex justify-center">
+            <Image
+              src={limitImage}
+              width={170}
+              height={170}
+              alt="limit-image"
+            />
+          </div>
+
+          <h3 className="text-2xl font-bold text-center text-primary mt-6">
+            Apakah Anda Yakin Ingin Membatalkan Pembayaran
+          </h3>
+
+          <button
+            className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
+            onClick={() => setopenModalCancel(false)}
+          >
+            Oke, Mengerti
+          </button>
+        </div>
+      </ModalTemplate> */}
     </div>
   );
 }
