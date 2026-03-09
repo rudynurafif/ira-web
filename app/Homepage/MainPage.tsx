@@ -55,16 +55,18 @@ function MainPage() {
         isStatic: true,
       };
 
-      const apiSlides: SlideData[] = res_banner.data.data.map((item: any) => ({
-        image: item.web_apps_image
-          ? `${process.env.NEXT_PUBLIC_URL_OBS}${item.web_apps_image}`
-          : "",
-        imageMobile: item.responsive_web_apps_image
-          ? `${process.env.NEXT_PUBLIC_URL_OBS}${item.responsive_web_apps_image}`
-          : "",
-        url: item.url,
-        isStatic: false,
-      }));
+      const apiSlides: SlideData[] = res_banner?.data?.data?.map(
+        (item: any) => ({
+          image: item.web_apps_image
+            ? `${process.env.NEXT_PUBLIC_URL_OBS}${item.web_apps_image}`
+            : "",
+          imageMobile: item.responsive_web_apps_image
+            ? `${process.env.NEXT_PUBLIC_URL_OBS}${item.responsive_web_apps_image}`
+            : "",
+          url: item.url,
+          isStatic: false,
+        }),
+      );
 
       setSlides([staticHero, ...apiSlides]);
     } catch (err: any) {
@@ -80,9 +82,9 @@ function MainPage() {
     }
   }
 
-  useEffect(() => {
-    getBannerImage();
-  }, []);
+  // useEffect(() => {
+  //   getBannerImage();
+  // }, []);
 
   const FirstSlideContent = () => (
     <div className="relative md:bg-[url('/assets/Images/hero-ira-new.webp')] bg-[url('/assets/Images/hero-ira-new-mobile.webp')] bg-cover bg-right bg-no-repeat text-white">

@@ -213,7 +213,7 @@ export default function NotifikasiDrawerContent({
         return;
       }
 
-      const safeResult = res.data.result.map((item: any) =>
+      const safeResult = res?.data?.result?.map((item: any) =>
         safeParseNotifPayload(item),
       ) as NotificationItem[];
 
