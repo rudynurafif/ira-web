@@ -126,8 +126,20 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
       otpCacheRef.current = {};
       setErrors({});
     } else {
-      // ✅ Opsional: reset juga saat ditutup (good hygiene)
-      // Tapi tidak wajib karena tidak dipakai
+      setName("");
+      setPhoneNumber("");
+      setEmail("");
+      setActualAddress("");
+      setLongitude("");
+      setLatitude("");
+
+      baselineRef.current = {};
+
+      setOtp("");
+      setOtpStatus("idle");
+      setVerifiedPhone(null);
+      otpCacheRef.current = {};
+      setErrors({});
     }
   }, [
     open,
@@ -572,7 +584,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                 (needsOtp && otpStatus !== "valid") ||
                 Object.values(errors).some((v) => v && v.trim() !== "")
               }
-              className="cursor-pointer w-full rounded-lg bg-primary p-2 sm:text-lg font-semibold text-white hover:bg-dark-primary-2 disabled:cursor-not-allowed! disabled:bg-slate-400"
+              className="cursor-pointer w-full rounded-lg bg-primary border-2 border-primary p-2 sm:text-lg font-semibold text-white hover:bg-dark-primary-2 disabled:border-slate-400 disabled:cursor-not-allowed! disabled:bg-slate-400"
             >
               {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
