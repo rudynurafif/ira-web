@@ -7,11 +7,12 @@ import React, { useEffect, useState } from "react";
 import { dataEWallet } from "./Data/dataEWallet";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { getPaymentStatus } from "@/app/_api/Payment/Payment";
-import { toastErrorFromAPI } from "@/app/_shared/utils";
+import { formatDate, toastErrorFromAPI } from "@/app/_shared/utils";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Lottie from "lottie-react";
 import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
 import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
+import toast from "react-hot-toast";
 
 const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
   const [checkOutUrl, setCheckOutUrl] = useState<string | null>(null);
@@ -82,6 +83,8 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
     if (url) {
       router.push(url);
       // window.location.href = url;
+    } else {
+      toast.error("URL tidak ditemukan. Silahkan coba metode pembayaran lain");
     }
   };
 
@@ -117,6 +120,15 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
         >
           Bayar Disini
         </button>
+
+        {data?.expires_at && (
+          <div className="flex justify-between gap-2 w-full pt-3 max-sm:text-sm text-primary">
+            <div className="">Bayar Sebelum</div>
+            <div className="text-right font-medium">
+              {formatDate(data?.expires_at)}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="">
@@ -169,7 +181,7 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
+          className="bg-white hover:bg-red-50 border-2 border-primary text-primary disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-full font-bold w-full max-sm:text-sm py-3"
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>

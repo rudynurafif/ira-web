@@ -6,7 +6,6 @@ import MapGeoapify from "@/app/_components/form/MapGeoapify";
 import { PackageData } from "@/app/_shared/types/customer-area";
 import {
   getPackagesRegister,
-  registerUser,
   registerUserFromCoverage,
 } from "@/app/_api/Auth/Auth";
 import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";

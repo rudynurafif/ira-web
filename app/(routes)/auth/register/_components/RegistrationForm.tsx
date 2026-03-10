@@ -26,8 +26,7 @@ import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import {
   convertToCurrency,
   EMAIL_REGEX,
-  PHONE_LIVE_REGEX,
-  PHONE_REGEX,
+  PHONE_BEST_REGEX,
   regexEmail,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
@@ -561,7 +560,7 @@ function RegistrationForm({
 
     if (!formData.phone) {
       errors.phone = "No handphone harus diisi";
-    } else if (!PHONE_LIVE_REGEX.test(formData.phone)) {
+    } else if (!PHONE_BEST_REGEX.test(formData.phone)) {
       errors.phone = "Nomor handphone tidak valid.";
     }
 
@@ -727,7 +726,7 @@ function RegistrationForm({
   }
 
   useEffect(() => {
-    console.log(formData);
+    // console.log(formData);
     // console.log("mitra IDs: ", mitraID);
     // console.log("bts IDs: ", btsID);
     // console.log(isCovered);
@@ -803,7 +802,7 @@ function RegistrationForm({
   return (
     <div className="container mx-auto">
       <h1 className="text-center sm:text-[32px] text-2xl text-old-primary font-bold">
-        {title}
+        <span>{title}</span>
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-7">
@@ -854,7 +853,7 @@ function RegistrationForm({
             {errors.package_id && (
               <p className="text-red-500 animate-bounce mt-3 text-sm flex items-center gap-1">
                 <FaCircleExclamation className="text-red-500" />
-                {errors.package_id}
+                <span>{errors.package_id}</span>
               </p>
             )}
 
@@ -985,28 +984,30 @@ function RegistrationForm({
 
               {otpStatus === "verifying" && (
                 <p className="text-primary mt-1 text-sm italic">
-                  Memverifikasi OTP...
+                  <span>Memverifikasi OTP...</span>
                 </p>
               )}
 
               {otpStatus === "valid" && (
                 <p className="text-green-600 mt-1 text-sm flex items-center gap-1">
                   <FaCircleCheck className="text-green-600" />
-                  OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
+                  <span>
+                    OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
+                  </span>
                 </p>
               )}
 
               {otpStatus === "invalid" && !errors.otp && (
                 <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
                   <FaCircleExclamation className="text-red-500" />
-                  Kode OTP tidak valid atau sudah kedaluwarsa.
+                  <span>Kode OTP tidak valid atau sudah kedaluwarsa.</span>
                 </p>
               )}
 
               {errors.otp && (
                 <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
                   <FaCircleExclamation className="text-red-500" />
-                  {errors.otp}
+                  <span>{errors.otp}</span>
                 </p>
               )}
             </div>
@@ -1354,20 +1355,24 @@ function RegistrationForm({
                 {isCheckCoverage && (
                   <p className="mt-1 text-gray-500 flex items-center gap-2 text-sm">
                     <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
-                    Mengecek jangkauan...
+                    <span>Mengecek jangkauan...</span>
                   </p>
                 )}
                 {isCovered && !isCheckCoverage && (
                   <p className="mt-1 text-green-primary flex items-center gap-1 text-sm">
                     <FaCircleCheck className="text-green-primary" />
-                    Selamat! Alamat Anda berada di dalam jangkauan kami.
+                    <span>
+                      Selamat! Alamat Anda berada di dalam jangkauan kami.
+                    </span>
                   </p>
                 )}
                 {!isCovered && !isCheckCoverage && (
                   <p className="mt-3 animate-bounce text-red-primary flex items-center gap-1 text-sm">
                     <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
-                    Lokasi Anda belum berada di jangkauan area kami, dan kami
-                    sedang menuju ke daerah Anda.
+                    <span>
+                      Lokasi Anda belum berada di jangkauan area kami, dan kami
+                      sedang menuju ke daerah Anda.
+                    </span>
                   </p>
                 )}
               </>
@@ -1458,10 +1463,10 @@ function RegistrationForm({
                   <div className="loading w-5 h-5"></div>
                   <span className="italic text-white">Loading...</span>
                 </div>
-              ) : mode === "register" ? (
-                "Registrasi"
               ) : (
-                "Berlangganan Kembali"
+                <span>
+                  {mode === "register" ? "Registrasi" : "Berlangganan Kembali"}
+                </span>
               )}
             </button>
           </div>
@@ -1513,7 +1518,9 @@ function RegistrationForm({
         <ModalTemplate
           closeModal={() => {
             setIsOpenModalReqLoc(false);
-            toast("Mohon izinkan akses lokasi browser");
+            toast(
+              "Mohon izinkan akses lokasi browser dan gunakan browser Google Chrome",
+            );
             router.push("/");
           }}
         >

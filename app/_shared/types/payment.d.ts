@@ -109,6 +109,8 @@ export interface ChannelPayment {
   id: string;
   code: string; // e.g. "BCA"
   name: string; // e.g. "BCA Virtual Account"
+  logo: string;
+  description: string;
   status: "active" | "inactive" | string;
   category: PaymentCategory; // e.g. "va"
   fee_type: "flat" | "percent" | string;

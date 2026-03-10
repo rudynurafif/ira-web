@@ -33,6 +33,7 @@ import {
   selectCustomerPackageState,
 } from "@/app/store/slice/customerPackageSlice";
 import { getSetting } from "@/app/_api/Settings/Settings";
+import { getCurrentPayment } from "@/app/_api/Payment/Payment";
 import OutCoverage from "../OutCoverage";
 import InCoverage from "../InCoverage";
 import { getCheckCoverageLogin } from "@/app/_api/Location/Location";
@@ -40,6 +41,8 @@ import { getUser } from "@/app/store/slice/authSlice";
 import toast from "react-hot-toast";
 import RegistrationSummary from "./Modal/RegistrationSummary";
 import imageFailed from "@/public/assets/check-coverage/check-failed.png";
+import { UnifiedPaymentData } from "@/app/_shared/types/payment";
+import PendingPaymentCard from "./PendingPaymentCard";
 
 const PAGE_SIZE = 5;
 
@@ -73,10 +76,34 @@ const PackageAndHistory = () => {
   const [modalResult, setModalResult] = useState<boolean>(false);
   const [isCoverage, setIsCoverage] = useState<boolean>(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-
   const [latestIsFree, setLatestIsFree] = useState(false);
 
+  const [paymentInfo, setPaymentInfo] = useState<
+    UnifiedPaymentData | undefined
+  >();
+  const [hasPendingPayment, setHasPendingPayment] = useState(false);
+
   const dispatch = useAppDispatch();
+
+  const getCurrentPaymentData = async () => {
+    try {
+      const res = await getCurrentPayment();
+
+      setPaymentInfo(res.data?.data);
+      setHasPendingPayment(
+        res.data?.data?.payment_attempt?.status === "pending",
+      );
+      console.log("hasPendingPayment: ", hasPendingPayment);
+    } catch (err: any) {
+      console.error("Gagal get current payment:", err);
+    }
+  };
+
+  // useEffect(() => {
+  //   if (!userInfo?.is_coverage === false || userInfo?.is_active)
+  //     getCurrentPaymentData();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [userInfo]);
 
   const handleCheckCoverage = async () => {
     try {
@@ -357,20 +384,25 @@ const PackageAndHistory = () => {
     <>
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
-        {activePacketData && isInactive ? (
-          <InactiveCard data={activePacketData} />
-        ) : userInfo.status === "dismantled" ||
-          userInfo.status === "suspend" ? (
-          <ExpiredCard data={activePacketData} isDismantled={true} />
-        ) : status === "expired" ? (
-          <ExpiredCard data={activePacketData} />
-        ) : activePacketData ? (
-          <ActivePackageCard data={activePacketData} />
-        ) : userInfo.is_coverage === false ? (
-          <OutCoverage onCheckCoverage={handleCheckCoverage} />
-        ) : userInfo.is_coverage === true ? (
-          <InCoverage />
-        ) : null}
+        {
+          // hasPendingPayment && paymentInfo ? (
+          //   <PendingPaymentCard data={paymentInfo} />
+          // ) :
+          activePacketData && isInactive ? (
+            <InactiveCard data={activePacketData} />
+          ) : userInfo.status === "dismantled" ||
+            userInfo.status === "suspend" ? (
+            <ExpiredCard data={activePacketData} isDismantled={true} />
+          ) : status === "expired" ? (
+            <ExpiredCard data={activePacketData} />
+          ) : activePacketData ? (
+            <ActivePackageCard data={activePacketData} />
+          ) : userInfo.is_coverage === false ? (
+            <OutCoverage onCheckCoverage={handleCheckCoverage} />
+          ) : userInfo.is_coverage === true ? (
+            <InCoverage />
+          ) : null
+        }
 
         {/* Banner Cubmu */}
         {addOns.length > 0 && (
@@ -437,20 +469,25 @@ const PackageAndHistory = () => {
       {/* DESKTOP (≥ sm) */}
       <div className="hidden sm:grid grid-cols-12 gap-6">
         <div className="lg:col-span-5 col-span-12 space-y-5">
-          {activePacketData && isInactive ? (
-            <InactiveCard data={activePacketData} />
-          ) : userInfo.status === "dismantled" ||
-            userInfo.status === "suspend" ? (
-            <ExpiredCard data={activePacketData} isDismantled={true} />
-          ) : status === "expired" ? (
-            <ExpiredCard data={activePacketData} />
-          ) : activePacketData ? (
-            <ActivePackageCard data={activePacketData} />
-          ) : userInfo.is_coverage === false ? (
-            <OutCoverage onCheckCoverage={handleCheckCoverage} />
-          ) : userInfo.is_coverage === true ? (
-            <InCoverage />
-          ) : null}
+          {
+            // hasPendingPayment && paymentInfo ? (
+            //   <PendingPaymentCard data={paymentInfo} />
+            // ) :
+            activePacketData && isInactive ? (
+              <InactiveCard data={activePacketData} />
+            ) : userInfo.status === "dismantled" ||
+              userInfo.status === "suspend" ? (
+              <ExpiredCard data={activePacketData} isDismantled={true} />
+            ) : status === "expired" ? (
+              <ExpiredCard data={activePacketData} />
+            ) : activePacketData ? (
+              <ActivePackageCard data={activePacketData} />
+            ) : userInfo.is_coverage === false ? (
+              <OutCoverage onCheckCoverage={handleCheckCoverage} />
+            ) : userInfo.is_coverage === true ? (
+              <InCoverage />
+            ) : null
+          }
 
           {addOns.length > 0 && (
             <div className="relative w-full">

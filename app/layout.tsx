@@ -20,8 +20,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // const maintenanceMode = process.env.MAINTENANCE_MODE === "true";
-
   return (
     <html lang="en" className="h-full">
       <body

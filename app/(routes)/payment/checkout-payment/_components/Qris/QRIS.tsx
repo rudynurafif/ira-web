@@ -6,7 +6,7 @@ import Lottie from "lottie-react";
 import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
 import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import { toastErrorFromAPI } from "@/app/_shared/utils";
+import { formatDate, toastErrorFromAPI } from "@/app/_shared/utils";
 import { getPaymentStatus } from "@/app/_api/Payment/Payment";
 import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import QRCode from "qrcode";
@@ -101,13 +101,15 @@ function QRIS({ data }: { data: UnifiedPaymentData }) {
           {/* QR Code Container */}
           <div className="relative w-64 h-64 bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden">
             {/* QR Code */}
-            <Image
-              src={qrDataUrl}
-              alt="QRIS"
-              width={256}
-              height={256}
-              className="w-full h-full object-contain relative z-10"
-            />
+            {qrDataUrl && (
+              <Image
+                src={qrDataUrl}
+                alt="QRIS"
+                width={256}
+                height={256}
+                className="w-full h-full object-contain relative z-10"
+              />
+            )}
 
             <div className="absolute inset-0 flex items-center justify-center z-20">
               <div className="bg-white rounded-full p-2 shadow-md">
@@ -117,6 +119,7 @@ function QRIS({ data }: { data: UnifiedPaymentData }) {
                   width={48}
                   height={48}
                   className="object-contain"
+                  style={{ width: "auto", height: "auto" }}
                 />
               </div>
             </div>
@@ -138,6 +141,15 @@ function QRIS({ data }: { data: UnifiedPaymentData }) {
             <LuDownload className="w-4 h-4 hover:animate-bounce" />
             Download QR Code
           </button>
+
+          {data?.expires_at && (
+            <div className="flex justify-between gap-2 w-full pt-3 max-sm:text-sm text-primary">
+              <div className="">Bayar Sebelum</div>
+              <div className="text-right font-medium">
+                {formatDate(data?.expires_at)}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* <button
@@ -149,12 +161,12 @@ function QRIS({ data }: { data: UnifiedPaymentData }) {
         </button> */}
       </div>
 
-      <div className="text-center">
+      <div className="text-center my-6">
         <button
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className="bg-primary hover:bg-dark-primary-2 text-white disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
+          className="bg-primary hover:bg-dark-primary-2 text-white disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-full font-bold w-full max-sm:text-sm py-3"
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>

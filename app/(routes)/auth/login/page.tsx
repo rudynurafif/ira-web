@@ -10,7 +10,7 @@ import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
 
 import {
   PASSWORD_ALLOWED_CHARS_REGEX,
-  PHONE_LIVE_REGEX,
+  PHONE_BEST_REGEX,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
 
@@ -127,7 +127,7 @@ const Page = () => {
     if (!val.startsWith("08") && !val.startsWith("62"))
       return "Nomor harus diawali 08 atau 62";
     if (val.length < 7 || val.length > 15) return "Nomor harus 7–15 digit";
-    if (!PHONE_LIVE_REGEX.test(val))
+    if (!PHONE_BEST_REGEX.test(val))
       return "Format nomor handphone tidak valid";
     return "";
   };
@@ -374,13 +374,15 @@ const Page = () => {
               }}
               className=" py-2 mb-5 flex items-center gap-2 rounded-lg text-xl cursor-pointer hover:underline"
             >
-              <IoMdArrowRoundBack /> Kembali
+              <IoMdArrowRoundBack /> <span>Kembali</span>
             </button>
           </div>
         )}
 
         <h1 className="mb-8 text-center text-old-primary font-extrabold text-2xl sm:text-[32px]">
-          {step === "SET_PASSWORD" ? "Buat Password Baru" : "Login IRA"}
+          <span>
+            {step === "SET_PASSWORD" ? "Buat Password Baru" : "Login IRA"}
+          </span>
         </h1>
 
         {step === "SET_PASSWORD" && (
@@ -467,13 +469,15 @@ const Page = () => {
             }`}
           >
             {isLoading && <div className="loading w-5 h-5"></div>}
-            {isLoading
-              ? "Loading..."
-              : step === "SET_PASSWORD"
-                ? "Submit"
-                : step === "LOGIN"
-                  ? "LOGIN"
-                  : "Lanjutkan"}
+            <span>
+              {isLoading
+                ? "Loading..."
+                : step === "SET_PASSWORD"
+                  ? "Submit"
+                  : step === "LOGIN"
+                    ? "LOGIN"
+                    : "Lanjutkan"}
+            </span>
           </button>
         </form>
 
@@ -498,20 +502,6 @@ const Page = () => {
           </button>
         </div>
       </div>
-
-      {/* {isOpenModalReqLoc && status === "denied" && (
-        <ModalTemplate
-          closeModal={() => {
-            setIsOpenModalReqLoc(false);
-            toast("Mohon izinkan akses lokasi browser");
-            router.push("/");
-          }}
-        >
-          <div className="p-6 mt-6">
-            <GeoPermissionGate onGotLocation={(lat, lng) => {}} />
-          </div>
-        </ModalTemplate>
-      )} */}
     </div>
   );
 };

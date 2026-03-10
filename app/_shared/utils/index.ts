@@ -7,11 +7,9 @@ import html2canvas from "html2canvas";
 import { deleteCookie } from "cookies-next";
 import { ErrorData } from "../types/activation";
 
-export const PHONE_REGEX = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
+export const PHONE_BEST_REGEX = /^(?:\+62|62|0)8[1-9]\d{6,12}$/;
 export const PASSWORD_ALLOWED_CHARS_REGEX = /^[a-zA-Z0-9#!_]+$/;
 export const PASSWORD_INPUT_FILTER_REGEX = /[a-zA-Z0-9#!_]/g;
-export const PHONE_LIVE_REGEX = /^(08|62)\d{5,13}$/;
-export const PHONE_REGEX2 = /^\d{8,15}$/;
 export const regexEmail =
   /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 export const NAME_REGEX = /^[a-zA-Z\s.\-]*$/;
@@ -348,7 +346,9 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
       id,
     });
 
-    const isActivationPage = window.location.href.includes("activation");
+    const isActivationPage =
+      window.location.href.includes("activation") ||
+      window.location.href.includes("payment");
 
     if (!isActivationPage) {
       setTimeout(() => {

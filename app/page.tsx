@@ -19,10 +19,19 @@ export default function Home() {
 
   useEffect(() => {
     const ua = navigator.userAgent;
-    if (/Opera Mini|UCBrowser/.test(ua)) {
+    const isChrome =
+      /Chrome|CriOS/i.test(ua) &&
+      !/Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(ua);
+    const isSafari =
+      /Safari/i.test(ua) &&
+      !/Chrome|CriOS|Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(
+        ua,
+      );
+
+    if (!isChrome && !isSafari) {
       toast.error(
-        "Deteksi Browser: Anda menggunakan Opera Mini/UC Browser. \n\n" +
-          "Beberapa fitur mungkin tidak berfungsi, silakan salin link ini dan buka menggunakan Google Chrome atau Safari.",
+        "Deteksi Browser: Anda tidak menggunakan Google Chrome ataupun Safari. \n\n" +
+          "Beberapa fitur mungkin tidak berfungsi secara optimal. Silakan salin link ini dan buka menggunakan Google Chrome atau Safari.",
         {
           duration: 15_000,
           position: "top-center",
