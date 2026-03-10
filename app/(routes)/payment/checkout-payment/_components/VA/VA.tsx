@@ -131,11 +131,14 @@ function VA({ data }: { data: UnifiedPaymentData }) {
             </button>
 
             <div className="text-right">
-              {selectedImage && (
+              {data.channel_payment_id?.logo && (
                 <div className="flex justify-end">
                   <Image
-                    src={selectedImage}
-                    alt=""
+                    src={
+                      `${process.env.NEXT_PUBLIC_URL_OBS}${data.channel_payment_id?.logo}` ||
+                      selectedImage
+                    }
+                    alt={data.channel_payment_id?.name}
                     width={500}
                     height={500}
                     className="w-31 h-fit my-3"
@@ -143,66 +146,84 @@ function VA({ data }: { data: UnifiedPaymentData }) {
                 </div>
               )}
 
-              <span className="block pt-2 font-medium max-[580px]:text-[10px]">
+              <span className="block pt-2 font-medium max-[580px]:text-[12px]">
                 PT. TELEMEDIA KOMUNIKASI PRATAMA
               </span>
             </div>
           </div>
 
-          <div className="flex justify-between gap-2 w-full pt-3 max-sm:text-sm">
-            <div className="">Bayar Sebelum</div>
-            <div className="text-right font-medium">
-              {formatDate(data.payment_attempt.expires_at ?? "-")}
+          {data.payment_attempt?.expires_at && (
+            <div className="flex justify-between gap-2 w-full pt-3 max-sm:text-sm text-primary">
+              <div className="">Bayar Sebelum</div>
+              <div className="text-right font-medium">
+                {formatDate(data?.payment_attempt?.expires_at)}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
       <div>
-        <div className="">
-          {selectedInstructionList.map((item: any, index: number) => (
-            <div key={index}>
-              {/* Header */}
-              <div
-                onClick={() => {
-                  toggleInstruction(item.title);
-                }}
-                className="flex justify-between items-center gap-1 pt-4 cursor-pointer"
-              >
-                <span className="font-bold block">{item.title}</span>
+        {data.channel_payment_id?.description ? (
+          <div className="container mx-auto my-6">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: data.channel_payment_id.description,
+              }}
+              className="
+                          [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mt-4 [&>h2]:mb-2
+                          [&>h3]:text-base [&>h3]:font-semibold [&>h3]:mt-3 [&>h3]:mb-2
+                          [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:space-y-1
+                          [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1
+                          [&>p]:my-2 [&>p]:text-sm
+                          [&>strong]:font-semibold  
+                        "
+            />
+          </div>
+        ) : (
+          <div className="">
+            {selectedInstructionList.map((item: any, index: number) => (
+              <div key={index}>
+                <div
+                  onClick={() => {
+                    toggleInstruction(item.title);
+                  }}
+                  className="flex justify-between items-center gap-1 pt-4 cursor-pointer"
+                >
+                  <span className="font-bold block">{item.title}</span>
 
-                {activeInstructions[item.title] ? (
-                  <IoIosArrowUp size={25} className="text-black" />
-                ) : (
-                  <IoIosArrowDown size={25} className="text-black" />
+                  {activeInstructions[item.title] ? (
+                    <IoIosArrowUp size={25} className="text-black" />
+                  ) : (
+                    <IoIosArrowDown size={25} className="text-black" />
+                  )}
+                </div>
+
+                <div
+                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                    activeInstructions[item.title]
+                      ? "max-h-125 opacity-100"
+                      : "max-h-0 opacity-0"
+                  } pt-2`}
+                >
+                  <ol className="list-decimal pl-7 max-sm:text-sm">
+                    {item.list.map((step: any, idx: number) => (
+                      <li
+                        key={idx}
+                        dangerouslySetInnerHTML={{ __html: step }}
+                        className="mb-2"
+                      />
+                    ))}
+                  </ol>
+                </div>
+
+                {index !== selectedInstructionList.length - 1 && (
+                  <div className="bg-[#C5C5C5] w-full h-px mt-3"></div>
                 )}
               </div>
-
-              {/* Content */}
-              <div
-                className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                  activeInstructions[item.title]
-                    ? "max-h-125 opacity-100"
-                    : "max-h-0 opacity-0"
-                } pt-2`}
-              >
-                <ol className="list-decimal pl-7 max-sm:text-sm">
-                  {item.list.map((step: any, idx: number) => (
-                    <li
-                      key={idx}
-                      dangerouslySetInnerHTML={{ __html: step }}
-                      className="mb-2"
-                    />
-                  ))}
-                </ol>
-              </div>
-
-              {index !== selectedInstructionList.length - 1 && (
-                <div className="bg-[#C5C5C5] w-full h-px mt-3"></div>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="text-center">
@@ -210,7 +231,7 @@ function VA({ data }: { data: UnifiedPaymentData }) {
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className="bg-primary hover:bg-dark-primary-2 text-white disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-lg font-bold w-full max-sm:text-sm py-3"
+          className={`${isLoadingStatus ? "opacity-50" : "hover:bg-dark-primary-2"} bg-primary text-white disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-full font-bold w-full max-sm:text-sm py-3`}
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>

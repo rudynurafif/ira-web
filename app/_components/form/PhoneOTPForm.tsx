@@ -2,7 +2,7 @@ import { sendOtpLogin, sendOtpRegister } from "@/app/_api/Auth/Auth";
 import {
   formatTimer,
   getPhoneHistory,
-  PHONE_REGEX,
+  PHONE_BEST_REGEX,
   savePhoneToHistory,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
@@ -176,12 +176,17 @@ function PhoneOTPForm({
   }
 
   const isRunning = timerReset > 0;
-  const isFilled = PHONE_REGEX.test(value);
+  const isFilled = PHONE_BEST_REGEX.test(value);
 
   const ONLY_DIGITS = /[^\d]/g;
   const handleNumericChange = (raw: string) => {
-    const digitsOnly = raw.replace(ONLY_DIGITS, "");
+    const digitsOnly = raw.replace(ONLY_DIGITS, "").slice(0, 15);
     onChange(digitsOnly);
+
+    if (PHONE_BEST_REGEX.test(digitsOnly)) {
+      savePhoneToHistory(digitsOnly);
+      setPhoneHistory(getPhoneHistory());
+    }
   };
   const handlePaste: React.ClipboardEventHandler<HTMLInputElement> = (e) => {
     e.preventDefault();

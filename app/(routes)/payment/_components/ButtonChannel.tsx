@@ -20,7 +20,7 @@ const ButtonChannel: React.FC<ButtonChannelProps> = ({
   return (
     <button
       onClick={() => handleClick(channel.id)}
-      className={`flex items-center justify-center p-4 shadow-[0_0_10px_0_rgba(0,0,0,0.2)] rounded-lg transition ${
+      className={`flex items-center justify-center p-2 shadow-[0_0_10px_0_rgba(0,0,0,0.2)] rounded-lg transition ${
         selected ? "bg-blue-100" : ""
       } hover:cursor-pointer hover:bg-blue-50`}
     >
@@ -29,8 +29,8 @@ const ButtonChannel: React.FC<ButtonChannelProps> = ({
           src={Logo}
           alt={channel.name}
           width={80}
-          height={24}
-          className="max-h-6 object-contain"
+          height={40}
+          className="max-h-10 object-contain"
         />
       ) : (
         <span className="text-xs text-gray-500 truncate">{channel.name}</span>

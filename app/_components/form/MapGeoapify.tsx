@@ -150,7 +150,7 @@ function MapGeoapify({
           (error) => {
             console.error("Gagal dapat lokasi:", error?.message);
             toast.error(
-              "Mohon izinkan akses lokasi untuk melakukan pendaftaran.",
+              "Mohon izinkan akses lokasi dan gunakan browser Google Chrome untuk melakukan pendaftaran.",
             );
             setIsLoading(false);
           },
