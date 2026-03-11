@@ -16,7 +16,7 @@ function MapGeoapify({
   mode,
   isInteractive = true,
 }: {
-  mode: "register" | "reregister";
+  mode: "register" | "reregister" | "update_address";
   getAddress: (address: string, meta?: { source: "init" | "user" }) => void;
   onPlaceChange?: (payload: {
     address: string;

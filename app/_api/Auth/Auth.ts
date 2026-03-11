@@ -26,6 +26,19 @@ export const registerUserFromCoverage = async (body: any) => {
   }
 };
 
+export const updateRequestCoverage = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/customer/update-request-coverage",
+      method: "PUT",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // request coverage
 export const requestCoverage = async (body: any) => {
   try {

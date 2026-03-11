@@ -33,7 +33,7 @@ function ModalTemplate({
         {/* Close Button */}
         <button
           onClick={closeModal}
-          className="absolute cursor-pointer top-5 right-5 z-9999 text-black"
+          className="absolute cursor-pointer top-5 right-5 z-9999 text-black bg-white p-2 rounded-full"
         >
           <LiaTimesSolid size={24} />
         </button>

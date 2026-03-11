@@ -53,8 +53,8 @@ type Editable = {
   phone_number?: string;
   email?: string;
   actual_address?: string;
-  latitude?: string;
-  longitude?: string;
+  // latitude?: string;
+  // longitude?: string;
 };
 
 function normalize(v: unknown) {
@@ -68,8 +68,8 @@ const FIELDS = [
   "phone_number",
   "email",
   "actual_address",
-  "latitude",
-  "longitude",
+  // "latitude",
+  // "longitude",
 ] as const;
 
 function buildDiffPayload(prev: Editable, next: Editable, otp?: string) {
@@ -128,8 +128,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         phone_number: initial?.phone_number ?? "",
         email: initial?.email ?? "",
         actual_address: initial?.actual_address ?? "",
-        latitude: initial?.latitude ? String(initial.latitude) : "",
-        longitude: initial?.longitude ? String(initial.longitude) : "",
+        // latitude: initial?.latitude ? String(initial.latitude) : "",
+        // longitude: initial?.longitude ? String(initial.longitude) : "",
       };
 
       setOtp("");
@@ -159,8 +159,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
     initial?.phone_number,
     initial?.email,
     initial?.actual_address,
-    initial?.longitude,
-    initial?.latitude,
+    // initial?.longitude,
+    // initial?.latitude,
   ]);
 
   useEffect(() => {
@@ -287,8 +287,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         phone_number,
         email,
         actual_address: actualAddress,
-        latitude,
-        longitude,
+        // latitude,
+        // longitude,
       },
       otp,
     );
@@ -353,7 +353,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
 
       <ModalTemplate
         closeModal={onClose}
-        classNameModal="lg:min-w-[50%] md:min-w-[70%] max-sm:mx-4"
+        classNameModal="lg:min-w-[50%] md:min-w-[70%]"
       >
         <form
           onSubmit={handleSubmit}
@@ -362,7 +362,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         >
           {/* Header */}
           <div className="relative flex items-center justify-center my-6">
-            <h3 className="text-2xl font-bold text-black">Edit Profile</h3>
+            <h3 className="text-2xl font-bold text-black">Ubah Data Pribadi</h3>
           </div>
 
           <div className="flex-1 overflow-y-auto overflow-hidden space-y-4 p-6">
@@ -518,7 +518,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
             </div>
 
             {/* Map */}
-            {(userInfo?.notes
+            {/* {(userInfo?.notes
               ?.toLowerCase()
               .includes("pelanggan pre-registrasi") ||
               shipmentStatus === "waiting") && (
@@ -550,7 +550,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                   />
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Alamat */}
             <div>

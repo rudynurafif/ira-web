@@ -215,7 +215,7 @@ function PhoneOTPForm({
             list={`ira-phone-history-${name}`}
             onChange={(e) => handleNumericChange(e.target.value)}
             onPaste={handlePaste}
-            className={`px-5 py-3 disabled:bg-background-customer disabled:cursor-not-allowed! bg-primary-spectrum rounded-xl w-full border ${
+            className={`pl-5 py-3 disabled:bg-background-customer disabled:cursor-not-allowed! bg-primary-spectrum rounded-xl w-full border ${
               error ? "border-red-500" : "border-[#D5D5D5]"
             } placeholder:text-gray-400 placeholder:text-sm`}
             {...props}

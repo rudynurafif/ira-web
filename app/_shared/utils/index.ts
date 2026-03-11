@@ -282,7 +282,7 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
   const errorCode = error.code;
   const errorMessage = error.message || "";
 
-  // Cek apakah ini Network Error (termasuk CORS & Timeout)
+  // Case Network Error (termasuk CORS & Timeout)
   if (
     isNetworkError ||
     errorCode === "ERR_NETWORK" ||
@@ -291,16 +291,16 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     let userMessage =
       "Koneksi internet bermasalah. Silakan periksa koneksi Anda dan coba lagi.";
 
-    // 1. Prioritas: Cek Timeout dulu (karena kodenya spesifik)
+    // Case 1. Prioritas: Cek Timeout dulu (karena kodenya spesifik)
     if (errorCode === "ECONNABORTED") {
       userMessage = "Permintaan timeout. Silakan coba lagi.";
     }
-    // 2. Prioritas: Cek Pesan Error yang mengandung kata CORS
+    // Case 2. Prioritas: Cek Pesan Error yang mengandung kata CORS
     else if (errorMessage.toLowerCase().includes("cors")) {
       userMessage =
         "Terjadi kesalahan (CORS). Silakan coba beberapa saat lagi.";
     }
-    // 3. Deteksi CORS "Silent" (Tanpa pesan 'cors' eksplisit)
+    // Case 3. Deteksi CORS "Silent" (Tanpa pesan 'cors' eksplisit)
     // Ciri-ciri: Tidak ada response, request ada, code ERR_NETWORK, tapi bukan timeout
     else if (errorCode === "ERR_NETWORK") {
       // Kita asumsikan ERR_NETWORK yang bukan timeout kemungkinan besar adalah CORS atau Down total
@@ -328,6 +328,7 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     (typeof error?.message === "string" && error.message) ||
     "Terjadi kesalahan, silakan coba lagi.";
 
+  // Case Forbidden 403
   if (errorStatusCode === 403) {
     toast.error("Hak akses tidak tersedia. Silakan login kembali.", { id });
     deleteCookie("token-ira");
@@ -337,6 +338,7 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     return;
   }
 
+  // Case Server Error 500
   if (
     errorStatusCode !== null &&
     errorStatusCode >= 500 &&
@@ -345,19 +347,10 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
     toast.error("Terjadi kesalahan. Silakan coba lagi.", {
       id,
     });
-
-    const isActivationPage =
-      window.location.href.includes("activation") ||
-      window.location.href.includes("payment");
-
-    if (!isActivationPage) {
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 5000);
-    }
     return;
   }
 
+  // Case Default Error
   toast.error(errorMsg, { id, duration: 7500 });
 };
 

@@ -468,7 +468,7 @@ const Page = () => {
                 : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             }`}
           >
-            {isLoading && <div className="loading w-5 h-5"></div>}
+            <div className={`loading w-5 h-5 ${isLoading ? "block" : "hidden"}`}></div>
             <span>
               {isLoading
                 ? "Loading..."
