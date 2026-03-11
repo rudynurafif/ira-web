@@ -435,7 +435,7 @@ export default function NotifikasiDrawerContent({
             <Image
               src={emptyNotif}
               alt="Empty Notification"
-              className="mx-auto max-w-50 sm:max-w-75 mb-6"
+              className="mx-auto max-w-30 sm:max-w-75 mb-6"
             />
             <p className="text-xl">Tidak ada notifikasi</p>
           </div>

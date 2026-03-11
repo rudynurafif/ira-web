@@ -9,7 +9,9 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   getPackagesRegister,
   registerUser,
+  registerUserFromCoverage,
   requestCoverage,
+  updateRequestCoverage,
   verifyOtp,
 } from "@/app/_api/Auth/Auth";
 import {
@@ -84,7 +86,7 @@ const initialFormData: FormType = {
 };
 
 type RegistrationFormProps = {
-  mode: "register" | "reregister";
+  mode: "register" | "reregister" | "update_address";
   initialData?: Partial<FormType>; // opsional, untuk autofill
   customerId?: string; // opsional, jika butuh ID untuk submit
   title: string;
@@ -100,9 +102,19 @@ function RegistrationForm({
   showCancelButton = false,
   showBannerCovered = false,
 }: RegistrationFormProps) {
+  // Clean up notes from initialData
+  let defaultNotes = initialData?.notes || "";
+  if (defaultNotes) {
+    defaultNotes = defaultNotes
+      .replace(/\s*-\s*Pelanggan pre-registrasi/gi, "")
+      .replace(/Pelanggan pre-registrasi/gi, "")
+      .trim();
+  }
+
   const [formData, setFormData] = useState<FormType>({
     ...initialFormData,
     ...(initialData || {}),
+    ...(initialData?.notes !== undefined ? { notes: defaultNotes } : {}),
   });
 
   const [isAutoFilling, setIsAutoFilling] = useState(false);
@@ -168,7 +180,7 @@ function RegistrationForm({
   const { userInfo } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (mode === "reregister" && initialData) {
+    if ((mode === "reregister" || mode === "update_address") && initialData) {
       const { province, city, district, sub_district } = initialData;
 
       // Autofill the province
@@ -684,20 +696,30 @@ function RegistrationForm({
 
         let res;
 
-        if (mode === "register") {
+        if (mode === "register" || mode === "reregister") {
           res = coveredNow
             ? await registerUser(body)
             : await requestCoverage({
                 ...body,
                 phone_number_verified: otpStatus === "valid",
               });
-        } else if (mode === "reregister") {
+        } else if (mode === "update_address") {
           res = coveredNow
-            ? await registerUser(body)
-            : await requestCoverage({
+            ? await registerUserFromCoverage({
                 ...body,
-                phone_number_verified: otpStatus === "valid",
+              })
+            : await updateRequestCoverage({
+                ...body,
               });
+        }
+
+        // replace token
+        if (mode === "reregister" || mode === "update_address") {
+          const token = res?.data?.data ?? res?.data?.token;
+          if (token) {
+            deleteCookie("token-ira");
+            setCookie("token-ira", token);
+          }
         }
 
         // Keperluan set password setelah register
@@ -709,9 +731,6 @@ function RegistrationForm({
         setIsModalRegisterSuccess(true);
         setOtpStatus("idle");
         resetForm();
-
-        // const token = res?.data?.data ?? res?.data?.token;
-        // if (token) setCookie("token-ira", token);
       } catch (error: any) {
         // error konflik 409
         if (error?.response?.data?.statusCode === 409) {
@@ -938,7 +957,7 @@ function RegistrationForm({
               mode="register"
               inputMode="numeric"
               isImportant
-              isDisabled={otpStatus === "valid" || mode === "reregister"}
+              isDisabled={otpStatus === "valid" || mode !== "register"}
               value={formData.phone}
               onChange={(value: string) => {
                 setFormData((prevData: any) => ({
@@ -953,6 +972,10 @@ function RegistrationForm({
             {mode === "register" ? (
               <p className="text-xs text-muted mt-1">
                 *Pastikan nomor yang Anda masukkan benar dan aktif
+              </p>
+            ) : mode === "update_address" ? (
+              <p className="text-xs text-muted mt-1">
+                {/* *Pastikan nomor Anda sudah benar dan aktif */}
               </p>
             ) : (
               <p className="text-xs text-muted mt-1">
@@ -982,34 +1005,26 @@ function RegistrationForm({
                 }}
               />
 
-              {otpStatus === "verifying" && (
-                <p className="text-primary mt-1 text-sm italic">
-                  <span>Memverifikasi OTP...</span>
-                </p>
-              )}
+              <p className={`text-primary mt-1 text-sm italic ${otpStatus === "verifying" ? "block" : "hidden"}`}>
+                <span>Memverifikasi OTP...</span>
+              </p>
 
-              {otpStatus === "valid" && (
-                <p className="text-green-600 mt-1 text-sm flex items-center gap-1">
-                  <FaCircleCheck className="text-green-600" />
-                  <span>
-                    OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
-                  </span>
-                </p>
-              )}
+              <p className={`text-green-600 mt-1 text-sm items-center gap-1 ${otpStatus === "valid" ? "flex" : "hidden"}`}>
+                <FaCircleCheck className="text-green-600" />
+                <span>
+                  OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
+                </span>
+              </p>
 
-              {otpStatus === "invalid" && !errors.otp && (
-                <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
-                  <FaCircleExclamation className="text-red-500" />
-                  <span>Kode OTP tidak valid atau sudah kedaluwarsa.</span>
-                </p>
-              )}
+              <p className={`text-red-500 mt-1 text-sm items-center gap-1 ${(otpStatus === "invalid" && !errors.otp) ? "flex" : "hidden"}`}>
+                <FaCircleExclamation className="text-red-500" />
+                <span>Kode OTP tidak valid atau sudah kedaluwarsa.</span>
+              </p>
 
-              {errors.otp && (
-                <p className="text-red-500 mt-1 text-sm flex items-center gap-1">
-                  <FaCircleExclamation className="text-red-500" />
-                  <span>{errors.otp}</span>
-                </p>
-              )}
+              <p className={`text-red-500 mt-1 text-sm items-center gap-1 ${errors.otp ? "flex" : "hidden"}`}>
+                <FaCircleExclamation className="text-red-500" />
+                <span>{errors.otp}</span>
+              </p>
             </div>
           )}
 
@@ -1046,6 +1061,114 @@ function RegistrationForm({
               error={errors.nokk}
             />
           </div> */}
+
+          {mode === "update_address" && (
+            <>
+              {/* Map */}
+              <div className="col-span-2">
+                {/* Versi Geoapify */}
+                {status !== "denied" && (
+                  <>
+                    <p className="text-sm text-muted mb-1">
+                      *Pastikan titik lokasi pada peta sudah sesuai dengan
+                      alamat Anda
+                    </p>
+                    <MapGeoapify
+                      mode={mode}
+                      initialLatitude={Number(initialData?.latitude)}
+                      initialLongitude={Number(initialData?.longitude)}
+                      getAddress={(value: string) => {
+                        setFormData((prevData: any) => ({
+                          ...prevData,
+                          actual_address: value,
+                        }));
+                        setErrors({ ...errors, actual_address: "" });
+                      }}
+                      onPlaceChange={async (p) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          actual_address: p.address,
+                          address_gmaps: p.raw_result,
+                          latitude: String(p.latitude),
+                          longitude: String(p.longitude),
+                        }));
+                      }}
+                    />
+
+                    <p className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}>
+                      <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
+                      <span>Mengecek jangkauan...</span>
+                    </p>
+                    <p className={`mt-1 text-green-primary items-center gap-1 text-sm ${(isCovered && !isCheckCoverage) ? "flex" : "hidden"}`}>
+                      <FaCircleCheck className="text-green-primary" />
+                      <span>
+                        Selamat! Alamat Anda berada di dalam jangkauan kami.
+                      </span>
+                    </p>
+                    <p className={`mt-3 animate-bounce text-red-primary items-center gap-1 text-sm ${(!isCovered && !isCheckCoverage) ? "flex" : "hidden"}`}>
+                      <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
+                      <span>
+                        Lokasi Anda belum berada di jangkauan area kami, dan
+                        kami sedang menuju ke daerah Anda.
+                      </span>
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Alamat Lengkap */}
+              <div className="col-span-2">
+                <DynamicForm
+                  label="Alamat Lengkap"
+                  type="textarea"
+                  isImportant
+                  rows={4}
+                  name="actual_address"
+                  value={formData.actual_address}
+                  onChange={(value: string) => {
+                    const cleaned = sanitizeAddress(value);
+
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      actual_address: cleaned,
+                    }));
+
+                    setErrors((prev) => ({ ...prev, actual_address: "" }));
+                  }}
+                  placeholder={
+                    status === "denied"
+                      ? "Izinkan akses lokasi di browser Anda untuk mengisi alamat"
+                      : formData.address_gmaps
+                        ? "Masukkan/rapikan Alamat Lengkap"
+                        : "Pilih alamat dari pencarian peta untuk mengaktifkan"
+                  }
+                  error={errors.actual_address}
+                  disabled={!formData.address_gmaps}
+                />
+              </div>
+
+              {/* Patokan Alamat */}
+              <div className="col-span-2">
+                <DynamicForm
+                  label="Patokan Alamat (opsional)"
+                  isImportant={false}
+                  name="notes"
+                  value={formData.notes}
+                  onChange={(value: string) => {
+                    const cleaned = sanitizeAddress(value);
+
+                    setFormData((prevData: any) => ({
+                      ...prevData,
+                      notes: cleaned,
+                    }));
+                  }}
+                  // isClearable
+                  placeholder="Masukkan Patokan Alamat (jika ada)"
+                  error={errors.notes}
+                />
+              </div>
+            </>
+          )}
 
           {/* Provinsi */}
           <div className="max-md:col-span-2 col-span-1">
@@ -1292,123 +1415,121 @@ function RegistrationForm({
           </div>
 
           {/* Patokan Alamat */}
-          <div className="max-md:col-span-2 col-span-1">
-            <DynamicForm
-              label="Patokan Alamat (opsional)"
-              isImportant={false}
-              name="notes"
-              value={formData.notes}
-              onChange={(value: string) => {
-                const cleaned = sanitizeAddress(value);
+          {mode !== "update_address" && (
+            <div className="max-md:col-span-2 col-span-1">
+              <DynamicForm
+                label="Patokan Alamat (opsional)"
+                isImportant={false}
+                name="notes"
+                value={formData.notes}
+                onChange={(value: string) => {
+                  const cleaned = sanitizeAddress(value);
 
-                setFormData((prevData: any) => ({
-                  ...prevData,
-                  notes: cleaned,
-                }));
-              }}
-              // isClearable
-              placeholder="Masukkan Patokan Alamat (jika ada)"
-              error={errors.notes}
-            />
-          </div>
+                  setFormData((prevData: any) => ({
+                    ...prevData,
+                    notes: cleaned,
+                  }));
+                }}
+                // isClearable
+                placeholder="Masukkan Patokan Alamat (jika ada)"
+                error={errors.notes}
+              />
+            </div>
+          )}
 
           {/* Map */}
-          <div className="col-span-2">
-            {/* Versi Geoapify */}
-            {status !== "denied" && (
-              <>
-                {mode === "register" && (
+          {mode !== "update_address" && (
+            <div className="col-span-2">
+              {/* Versi Geoapify */}
+              {status !== "denied" && (
+                <>
                   <p className="text-sm text-muted mb-1">
                     *Pastikan titik lokasi pada peta sudah sesuai dengan alamat
                     Anda
                   </p>
-                )}
-                <MapGeoapify
-                  mode={mode}
-                  initialLatitude={Number(initialData?.latitude)}
-                  initialLongitude={Number(initialData?.longitude)}
-                  getAddress={(value: string) => {
-                    setFormData((prevData: any) => ({
-                      ...prevData,
-                      actual_address: value,
-                    }));
-                    setErrors({ ...errors, actual_address: "" });
-                  }}
-                  onPlaceChange={async (p) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      actual_address: p.address,
-                      address_gmaps: p.raw_result,
-                      latitude: String(p.latitude),
-                      longitude: String(p.longitude),
-                      // province: "",
-                      // city: "",
-                      // district: "",
-                      // sub_district: "",
-                      // postal_code: "",
-                    }));
+                  <MapGeoapify
+                    mode={mode}
+                    initialLatitude={Number(initialData?.latitude)}
+                    initialLongitude={Number(initialData?.longitude)}
+                    getAddress={(value: string) => {
+                      setFormData((prevData: any) => ({
+                        ...prevData,
+                        actual_address: value,
+                      }));
+                      setErrors({ ...errors, actual_address: "" });
+                    }}
+                    onPlaceChange={async (p) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        actual_address: p.address,
+                        address_gmaps: p.raw_result,
+                        latitude: String(p.latitude),
+                        longitude: String(p.longitude),
+                        // province: "",
+                        // city: "",
+                        // district: "",
+                        // sub_district: "",
+                        // postal_code: "",
+                      }));
 
-                    // await autofillLocationViaApiWithRaw(p.raw_result);
-                  }}
-                />
+                      // await autofillLocationViaApiWithRaw(p.raw_result);
+                    }}
+                  />
 
-                {isCheckCoverage && (
-                  <p className="mt-1 text-gray-500 flex items-center gap-2 text-sm">
+                  <p className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}>
                     <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
                     <span>Mengecek jangkauan...</span>
                   </p>
-                )}
-                {isCovered && !isCheckCoverage && (
-                  <p className="mt-1 text-green-primary flex items-center gap-1 text-sm">
+                  <p className={`mt-1 text-green-primary items-center gap-1 text-sm ${(isCovered && !isCheckCoverage) ? "flex" : "hidden"}`}>
                     <FaCircleCheck className="text-green-primary" />
                     <span>
                       Selamat! Alamat Anda berada di dalam jangkauan kami.
                     </span>
                   </p>
-                )}
-                {!isCovered && !isCheckCoverage && (
-                  <p className="mt-3 animate-bounce text-red-primary flex items-center gap-1 text-sm">
+                  <p className={`mt-3 animate-bounce text-red-primary items-center gap-1 text-sm ${(!isCovered && !isCheckCoverage) ? "flex" : "hidden"}`}>
                     <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
                     <span>
-                      Lokasi Anda belum berada di jangkauan area kami, dan kami
-                      sedang menuju ke daerah Anda.
+                      Lokasi Anda belum berada di jangkauan area kami, dan
+                      kami sedang menuju ke daerah Anda.
                     </span>
                   </p>
-                )}
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Alamat Lengkap */}
-          <div className="col-span-2">
-            <DynamicForm
-              label="Alamat Lengkap"
-              type="textarea"
-              isImportant
-              rows={4}
-              name="actual_address"
-              value={formData.actual_address}
-              onChange={(value: string) => {
-                const cleaned = sanitizeAddress(value);
+          {mode !== "update_address" && (
+            <div className="col-span-2">
+              <DynamicForm
+                label="Alamat Lengkap"
+                type="textarea"
+                isImportant
+                rows={4}
+                name="actual_address"
+                value={formData.actual_address}
+                onChange={(value: string) => {
+                  const cleaned = sanitizeAddress(value);
 
-                setFormData((prevData) => ({
-                  ...prevData,
-                  actual_address: cleaned,
-                }));
+                  setFormData((prevData) => ({
+                    ...prevData,
+                    actual_address: cleaned,
+                  }));
 
-                setErrors((prev) => ({ ...prev, actual_address: "" }));
-              }}
-              placeholder={
-                status === "denied"
-                  ? "Izinkan akses lokasi di browser Anda untuk mengisi alamat"
-                  : formData.address_gmaps
-                    ? "Masukkan/rapikan Alamat Lengkap"
-                    : "Pilih alamat dari pencarian peta untuk mengaktifkan"
-              }
-              error={errors.actual_address}
-              disabled={!formData.address_gmaps}
-            />
-          </div>
+                  setErrors((prev) => ({ ...prev, actual_address: "" }));
+                }}
+                placeholder={
+                  status === "denied"
+                    ? "Izinkan akses lokasi di browser Anda untuk mengisi alamat"
+                    : formData.address_gmaps
+                      ? "Masukkan/rapikan Alamat Lengkap"
+                      : "Pilih alamat dari pencarian peta untuk mengaktifkan"
+                }
+                error={errors.actual_address}
+                disabled={!formData.address_gmaps}
+              />
+            </div>
+          )}
 
           {/* Kode Voucher */}
           <div className="col-span-2">
@@ -1458,16 +1579,17 @@ function RegistrationForm({
                   : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
               } text-xl rounded-xl ${showCancelButton ? "w-full" : "mx-auto"} `}
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="loading w-5 h-5"></div>
-                  <span className="italic text-white">Loading...</span>
-                </div>
-              ) : (
-                <span>
-                  {mode === "register" ? "Registrasi" : "Berlangganan Kembali"}
-                </span>
-              )}
+              <div className={`flex items-center justify-center gap-2 ${isLoading ? "" : "hidden"}`}>
+                <div className="loading w-5 h-5"></div>
+                <span className="italic text-white">Loading...</span>
+              </div>
+              <span className={isLoading ? "hidden" : ""}>
+                {mode === "register"
+                  ? "Registrasi"
+                  : mode === "reregister"
+                    ? "Berlangganan Kembali"
+                    : "Konfirmasi"}
+              </span>
             </button>
           </div>
 
@@ -1499,18 +1621,14 @@ function RegistrationForm({
         <ModalTemplate
           closeModal={() => {
             setIsModalRegisterSuccess(false);
-
-            if (token && mode === "reregister") {
+            if (mode === "update_address") {
               window.location.href = "/customer-area";
-            } else {
-              deleteCookie("token-ira");
-              window.location.href = "/auth/login";
             }
             setCoveredAtSubmit(null);
           }}
           classNameModal="w-[90%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3 px-5 py-10"
         >
-          <ModalRegister isCovered={coveredAtSubmit ?? false} />
+          <ModalRegister isCovered={coveredAtSubmit ?? false} mode={mode} />
         </ModalTemplate>
       )}
 

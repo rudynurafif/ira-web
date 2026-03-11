@@ -37,7 +37,7 @@ type Props = {
 function stopSilently(qr: Html5Qrcode | null) {
   if (!qr) return Promise.resolve();
   try {
-    const p = (qr as any).stop?.();
+    const p = typeof (qr as any).stop === "function" ? (qr as any).stop() : undefined;
     if (p && typeof p.then === "function")
       return (p as Promise<void>).catch(() => {});
     return Promise.resolve();
@@ -48,7 +48,7 @@ function stopSilently(qr: Html5Qrcode | null) {
 function clearSilently(qr: Html5Qrcode | null) {
   if (!qr) return Promise.resolve();
   try {
-    const p = (qr as any).clear?.();
+    const p = typeof (qr as any).clear === "function" ? (qr as any).clear() : undefined;
     if (p && typeof p.then === "function")
       return (p as Promise<void>).catch(() => {});
     return Promise.resolve();
@@ -59,7 +59,9 @@ function clearSilently(qr: Html5Qrcode | null) {
 async function safeApply(track: MediaStreamTrack | null, c: any) {
   if (!track) return;
   try {
-    await (track as any).applyConstraints?.(c);
+    if (typeof track.applyConstraints === "function") {
+      await track.applyConstraints(c);
+    }
   } catch (e) {
     console.warn("applyConstraints failed", e);
   }
@@ -211,8 +213,8 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
     if (!t) return;
     setTrack(t);
 
-    const c: any = (t as any).getCapabilities?.() || {};
-    const s: any = (t as any).getSettings?.() || {};
+    const c: any = typeof (t as any).getCapabilities === "function" ? (t as any).getCapabilities() : {};
+    const s: any = typeof (t as any).getSettings === "function" ? (t as any).getSettings() : {};
     setCaps(c);
 
     if (c.zoom)
@@ -289,8 +291,8 @@ export default function Html5BarcodeScanner({ onDetected, onManual }: Props) {
       const t = media?.getVideoTracks()[0] || null;
 
       if (t) {
-        const c: any = (t as any).getCapabilities?.() || {};
-        const s: any = (t as any).getSettings?.() || {};
+        const c: any = typeof (t as any).getCapabilities === "function" ? (t as any).getCapabilities() : {};
+        const s: any = typeof (t as any).getSettings === "function" ? (t as any).getSettings() : {};
 
         // simpan ke state untuk UI (slider, torch, dll)
         setTrack(t);

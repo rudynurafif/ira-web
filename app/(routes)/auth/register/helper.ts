@@ -56,8 +56,9 @@ export function scrollToFirstError(errObj: Record<string, string>) {
   if (el) {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     // Fokus kalau bisa (biar user langsung ngerti)
-    // (kalau wrapper, biasanya input di dalamnya)
-    (el as any).focus?.();
+    if (typeof (el as any).focus === "function") {
+      (el as any).focus();
+    }
   } else {
     // fallback: scroll ke atas form
     window.scrollTo({ top: 0, behavior: "smooth" });
