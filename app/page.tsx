@@ -32,6 +32,7 @@ export default function Home() {
         "Deteksi Browser: Anda tidak menggunakan Google Chrome ataupun Safari. \n\n" +
           "Beberapa fitur mungkin tidak berfungsi secara optimal. Silakan salin link ini dan buka menggunakan Google Chrome atau Safari.",
         {
+          id: "browser-warning-toast",
           duration: 15_000,
           position: "bottom-center",
           style: { whiteSpace: "pre-line" },
