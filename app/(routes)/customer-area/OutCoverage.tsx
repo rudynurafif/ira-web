@@ -46,7 +46,8 @@ const OutCoverage = ({ onCheckCoverage }: { onCheckCoverage: () => void }) => {
 
             <span className="relative flex gap-2 items-center z-10 text-white text-sm sm:text-base md:text-lg font-bold whitespace-nowrap px-16">
               <div className={`loading w-5 h-5 ${isLoading ? "block" : "hidden"}`}></div>
-              {isLoading ? "Mengecek..." : "Cek Jangkauan"}
+              <span className={isLoading ? "hidden" : "block"}>Cek Jangkauan</span>
+              <span className={isLoading ? "block" : "hidden"}>Mengecek...</span>
             </span>
           </div>
         </button>

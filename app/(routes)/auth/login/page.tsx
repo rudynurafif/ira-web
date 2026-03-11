@@ -469,15 +469,14 @@ const Page = () => {
             }`}
           >
             <div className={`loading w-5 h-5 ${isLoading ? "block" : "hidden"}`}></div>
-            <span>
-              {isLoading
-                ? "Loading..."
-                : step === "SET_PASSWORD"
-                  ? "Submit"
-                  : step === "LOGIN"
-                    ? "LOGIN"
-                    : "Lanjutkan"}
+            <span className={isLoading ? "hidden" : "block"}>
+              {step === "SET_PASSWORD"
+                ? "Submit"
+                : step === "LOGIN"
+                  ? "LOGIN"
+                  : "Lanjutkan"}
             </span>
+            <span className={isLoading ? "block" : "hidden"}>Loading...</span>
           </button>
         </form>
 
