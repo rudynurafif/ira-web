@@ -176,9 +176,25 @@ const PaymentMehods = () => {
       );
 
       if ((await createRes).data?.statusCode === 200) {
-        router.push(
-          `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
-        );
+        const data = (await createRes).data.data;
+
+        const url =
+          data.desktop_web_checkout_url ??
+          data.mobile_web_checkout_url ??
+          data.qr_checkout_string ??
+          data.mobile_deeplink_checkout_url ??
+          undefined;
+
+        if (selectedChannel.category !== "ewallet") {
+          router.push(
+            `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
+          );
+        } else if (selectedChannel.category === "ewallet" && url) {
+          window.location.href = url;
+          // window.open(url, "_blank");
+        } else {
+          toast.error("Terjadi kesalahan, silakan coba metode pembayaran lain");
+        }
       }
 
       if (!paymentReqID) {
@@ -188,15 +204,15 @@ const PaymentMehods = () => {
       toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
       setIsCreatePayment(false);
     } finally {
-      // setIsCreatePayment(false);
+      setIsCreatePayment(false);
     }
   };
 
   if (isLoading) return <ChannelsSkeleton />;
 
   return (
-    <div className="container mx-auto my-8 p-6">
-      <div className="flex gap-2 items-center mb-6">
+    <div className="container mx-auto my-8 sm:p-6">
+      <div className="flex gap-2 items-center mb-6 max-sm:ml-4">
         <MdOutlineKeyboardArrowLeft
           className="cursor-pointer w-fit"
           onClick={() => router.back()}
@@ -207,7 +223,7 @@ const PaymentMehods = () => {
         </h2>
       </div>
       {/* Modal Header */}
-      <div className="bg-white rounded-xl shadow-lg p-6 ">
+      <div className="bg-white sm:rounded-xl sm:shadow-lg p-6 ">
         {/* Virtual Account */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
@@ -216,7 +232,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-4">
             {virtualAccounts.length > 0 ? (
               virtualAccounts.map((channel) => {
-                const Logo = PAYMENT_LOGOS[channel.code];
+                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}
@@ -246,7 +262,7 @@ const PaymentMehods = () => {
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
             E-Wallet
           </h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-4">
             {ewallets.length > 0 ? (
               ewallets.map((channel) => {
                 const Logo = PAYMENT_LOGOS[channel.code];
@@ -306,7 +322,7 @@ const PaymentMehods = () => {
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
             QRIS
           </h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-4">
             {qrisChannels.length > 0 ? (
               qrisChannels.map((channel) => {
                 const Logo = PAYMENT_LOGOS[channel.code];
@@ -339,7 +355,7 @@ const PaymentMehods = () => {
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
             Outlet
           </h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-4">
             {outlets.length > 0 ? (
               outlets.map((channel) => {
                 const Logo = PAYMENT_LOGOS[channel.code];

@@ -271,7 +271,7 @@ function Header() {
           handleAuthButton();
           setIsOpenMenu(false);
         }}
-        className={`flex-shrink-0 flex items-center justify-center gap-1 ${
+        className={`shrink-0 flex items-center justify-center gap-1 ${
           pathname === "/" ? "bg-button-login" : "bg-primary"
         } text-white rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap shadow-sm`}
       >
@@ -297,8 +297,13 @@ function Header() {
           <div className="flex justify-between items-center">
             {/* Logo */}
             <Link href="/" className="flex gap-5 cursor-pointer">
-              <Image
-                src={pathname === "/" ? IraWhiteIcon : IraIcon}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={
+                  pathname === "/"
+                    ? IraWhiteIcon?.src || IraWhiteIcon
+                    : IraIcon?.src || IraIcon
+                }
                 alt="Internet Rakyat"
                 className="w-31.25"
               />

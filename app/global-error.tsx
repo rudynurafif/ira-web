@@ -1,7 +1,6 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function GlobalError({
@@ -12,15 +11,6 @@ export default function GlobalError({
   reset: () => void;
 }) {
   const [currentRoute, setCurrentRoute] = useState<string>("Unknown Route");
-
-  // Hook ini mungkin gagal jika error terjadi sebelum routing inisialisasi
-  try {
-    const searchParams = useSearchParams();
-    // Kita hanya bisa mengambil pathname secara tidak langsung atau mengasumsikan dari window
-    // Karena useSearchParams hanya memberi akses ke query params
-  } catch (e) {
-    // Abaikan jika hook gagal
-  }
 
   useEffect(() => {
     // Kirim error ke Sentry

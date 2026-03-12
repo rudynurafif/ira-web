@@ -2,7 +2,7 @@ import { sendOtpLogin, sendOtpRegister } from "@/app/_api/Auth/Auth";
 import {
   formatTimer,
   getPhoneHistory,
-  PHONE_REGEX,
+  PHONE_BEST_REGEX,
   savePhoneToHistory,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
@@ -176,12 +176,17 @@ function PhoneOTPForm({
   }
 
   const isRunning = timerReset > 0;
-  const isFilled = PHONE_REGEX.test(value);
+  const isFilled = PHONE_BEST_REGEX.test(value);
 
   const ONLY_DIGITS = /[^\d]/g;
   const handleNumericChange = (raw: string) => {
-    const digitsOnly = raw.replace(ONLY_DIGITS, "");
+    const digitsOnly = raw.replace(ONLY_DIGITS, "").slice(0, 15);
     onChange(digitsOnly);
+
+    if (PHONE_BEST_REGEX.test(digitsOnly)) {
+      savePhoneToHistory(digitsOnly);
+      setPhoneHistory(getPhoneHistory());
+    }
   };
   const handlePaste: React.ClipboardEventHandler<HTMLInputElement> = (e) => {
     e.preventDefault();
@@ -210,7 +215,7 @@ function PhoneOTPForm({
             list={`ira-phone-history-${name}`}
             onChange={(e) => handleNumericChange(e.target.value)}
             onPaste={handlePaste}
-            className={`px-5 py-3 disabled:bg-background-customer disabled:cursor-not-allowed! bg-primary-spectrum rounded-xl w-full border ${
+            className={`pl-5 py-3 disabled:bg-background-customer disabled:cursor-not-allowed! bg-primary-spectrum rounded-xl w-full border ${
               error ? "border-red-500" : "border-[#D5D5D5]"
             } placeholder:text-gray-400 placeholder:text-sm`}
             {...props}

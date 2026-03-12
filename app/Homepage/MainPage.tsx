@@ -299,7 +299,7 @@ function MainPage() {
         modules={[Autoplay, Pagination, Navigation]}
         spaceBetween={0}
         slidesPerView={1}
-        loop={true}
+        loop={slides.length > 1}
         autoplay={{
           delay: 5000,
           disableOnInteraction: false,

@@ -85,6 +85,11 @@ const PersonalData = () => {
         <div className="bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] max-sm:py-2 max-sm:px-0 px-3 py-5">
           <ProfileLabel label="Nama Lengkap" data={userInfo?.name || "-"} />
           <ProfileLabel
+            showCopyButton={true}
+            value={userInfo?.phone_number || "-"}
+            onCopy={(value) =>
+              toast.success(`Nomor Handphone berhasil disalin`)
+            }
             label="Nomor Handphone"
             data={userInfo?.phone_number || "-"}
           />

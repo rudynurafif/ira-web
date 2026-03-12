@@ -9,7 +9,7 @@ import { verifyOtp, sendOtpLogin } from "@/app/_api/Auth/Auth";
 import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
 import {
-  PHONE_REGEX,
+  PHONE_BEST_REGEX,
   formatTimer,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
@@ -69,7 +69,7 @@ const Page = () => {
     });
   };
 
-  const validPhoneNumber = PHONE_REGEX.test(phone);
+  const validPhoneNumber = PHONE_BEST_REGEX.test(phone);
   const storageKeys = useMemo(() => {
     const p = phone || "__none__";
     return {

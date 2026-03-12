@@ -53,27 +53,7 @@ function Page() {
 
   useEffect(() => {
     getCurrentPaymentData();
-
-    // Ambil Dari Session Storage
-    // if (typeof window !== "undefined") {
-    //   const stored = sessionStorage.getItem("paymentInfo");
-
-    //   if (stored) {
-    //     try {
-    //       const parsed = JSON.parse(stored) as UnifiedPaymentData;
-    //       setPaymentInfo(parsed);
-    //     } catch (e) {
-    //       console.error("Gagal parse paymentInfo:", e);
-    //       toast.error("Data pembayaran tidak valid.");
-    //       router.replace("/payment");
-    //     }
-    //   } else {
-    //     // Jika tidak ada di sessionStorage, redirect
-    //     toast.error("Sesi pembayaran tidak ditemukan.");
-    //     router.replace("/payment");
-    //   }
-    // }
-  }, [router]);
+  }, []);
 
   const bankFee =
     paymentInfo && "channel_payment_id" in paymentInfo
