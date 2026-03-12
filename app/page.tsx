@@ -5,7 +5,7 @@ import MainPage from "./Homepage/MainPage";
 import WhyFWAPage from "./Homepage/WhyFWAPage";
 import { verifyOtp } from "@/app/_api/Auth/Auth";
 import toast from "react-hot-toast";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import CookieHandler from "./_components/CookieHandler";
 import DownloadApp from "./Homepage/DownloadApp";
 import { Notification } from "./_components/Notification";
@@ -13,19 +13,28 @@ import { useAppContext } from "./_shared/context/AppContext";
 
 export default function Home() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(false);
   const { fcmToken } = useAppContext();
 
   useEffect(() => {
     const ua = navigator.userAgent;
-    if (/Opera Mini|UCBrowser/.test(ua)) {
+    const isChrome =
+      /Chrome|CriOS/i.test(ua) &&
+      !/Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(ua);
+    const isSafari =
+      /Safari/i.test(ua) &&
+      !/Chrome|CriOS|Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(
+        ua,
+      );
+
+    if (!isChrome && !isSafari) {
       toast.error(
-        "Deteksi Browser: Anda menggunakan Opera Mini/UC Browser. \n\n" +
-          "Beberapa fitur mungkin tidak berfungsi, silakan salin link ini dan buka menggunakan Google Chrome atau Safari.",
+        "Deteksi Browser: Anda tidak menggunakan Google Chrome ataupun Safari. \n\n" +
+          "Beberapa fitur mungkin tidak berfungsi secara optimal. Silakan salin link ini dan buka menggunakan Google Chrome atau Safari.",
         {
+          id: "browser-warning-toast",
           duration: 15_000,
-          position: "top-center",
+          position: "bottom-center",
           style: { whiteSpace: "pre-line" },
         },
       );
@@ -39,9 +48,6 @@ export default function Home() {
     }),
     [fcmToken],
   );
-
-  const otpCode = searchParams.get("code");
-  const phone = searchParams.get("phone_number");
 
   const handleVerify = async (body: any) => {
     setIsVerifying(true);
@@ -68,26 +74,32 @@ export default function Home() {
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete("code");
       newUrl.searchParams.delete("phone_number");
-      router.replace(newUrl.toString());
+      router.replace(newUrl.pathname + newUrl.search);
     }
   };
 
   useEffect(() => {
-    if (otpCode && otpCode.length === 6 && !isNaN(Number(otpCode))) {
-      const body = {
-        otp: otpCode,
-        phone_number: phone,
-        type: null,
-      };
-      handleVerify(body);
+    // Only run on client-side
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const otpCode = searchParams.get("code");
+      const phone = searchParams.get("phone_number");
+
+      if (otpCode && otpCode.length === 6 && !isNaN(Number(otpCode))) {
+        const body = {
+          otp: otpCode,
+          phone_number: phone,
+          type: null,
+        };
+        handleVerify(body);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otpCode, phone]);
+  }, []);
 
   return (
     <div>
       <Notification mode="store" body={bodyToken} />
-
       <CookieHandler />
 
       {isVerifying && (

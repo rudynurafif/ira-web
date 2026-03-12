@@ -6,6 +6,7 @@ import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import DynamicForm from "@/app/_components/form/DynamicForm";
+import MapGeoapify from "@/app/_components/form/MapGeoapify";
 import toast from "react-hot-toast";
 import { verifyOtp } from "@/app/_api/Auth/Auth";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
@@ -16,13 +17,11 @@ import {
 import { useRouter } from "next/navigation";
 import {
   EMAIL_REGEX,
-  NAME_REGEX,
-  PHONE_REGEX,
-  PHONE_REGEX2,
+  PHONE_BEST_REGEX,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import { getUser } from "@/app/store/slice/authSlice";
-import { useAppDispatch } from "@/app/store/store";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import {
   sanitizeAddress,
   sanitizeAlphanumeric,
@@ -54,6 +53,8 @@ type Editable = {
   phone_number?: string;
   email?: string;
   actual_address?: string;
+  // latitude?: string;
+  // longitude?: string;
 };
 
 function normalize(v: unknown) {
@@ -62,7 +63,14 @@ function normalize(v: unknown) {
   return String(v);
 }
 
-const FIELDS = ["name", "phone_number", "email", "actual_address"] as const;
+const FIELDS = [
+  "name",
+  "phone_number",
+  "email",
+  "actual_address",
+  // "latitude",
+  // "longitude",
+] as const;
 
 function buildDiffPayload(prev: Editable, next: Editable, otp?: string) {
   const changed: Record<string, string> = {};
@@ -104,6 +112,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
+  const { userInfo, shipmentStatus } = useAppSelector((state) => state.auth);
+
   useEffect(() => {
     if (open) {
       setName(initial?.name ?? "");
@@ -118,6 +128,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         phone_number: initial?.phone_number ?? "",
         email: initial?.email ?? "",
         actual_address: initial?.actual_address ?? "",
+        // latitude: initial?.latitude ? String(initial.latitude) : "",
+        // longitude: initial?.longitude ? String(initial.longitude) : "",
       };
 
       setOtp("");
@@ -147,8 +159,8 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
     initial?.phone_number,
     initial?.email,
     initial?.actual_address,
-    initial?.longitude,
-    initial?.latitude,
+    // initial?.longitude,
+    // initial?.latitude,
   ]);
 
   useEffect(() => {
@@ -270,7 +282,14 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
 
     const diff = buildDiffPayload(
       baselineRef.current,
-      { name, phone_number, email, actual_address: actualAddress },
+      {
+        name,
+        phone_number,
+        email,
+        actual_address: actualAddress,
+        // latitude,
+        // longitude,
+      },
       otp,
     );
 
@@ -334,7 +353,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
 
       <ModalTemplate
         closeModal={onClose}
-        classNameModal="lg:min-w-[50%] md:min-w-[70%] max-sm:mx-4"
+        classNameModal="lg:min-w-[50%] md:min-w-[70%]"
       >
         <form
           onSubmit={handleSubmit}
@@ -343,7 +362,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
         >
           {/* Header */}
           <div className="relative flex items-center justify-center my-6">
-            <h3 className="text-2xl font-bold text-black">Edit Profile</h3>
+            <h3 className="text-2xl font-bold text-black">Ubah Data Pribadi</h3>
           </div>
 
           <div className="flex-1 overflow-y-auto overflow-hidden space-y-4 p-6">
@@ -382,7 +401,7 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                   const digitsOnly = value.replace(/\D/g, "").slice(0, 15);
                   setPhoneNumber(digitsOnly);
 
-                  if (digitsOnly && !PHONE_REGEX2.test(digitsOnly)) {
+                  if (digitsOnly && !PHONE_BEST_REGEX.test(digitsOnly)) {
                     setErrors((e) => ({
                       ...e,
                       phone_number: "Masukkan nomor HP yang valid",
@@ -497,6 +516,41 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
                   "Opsional: tambahkan email untuk notifikasi dan pemulihan akun."}
               </p>
             </div>
+
+            {/* Map */}
+            {/* {(userInfo?.notes
+              ?.toLowerCase()
+              .includes("pelanggan pre-registrasi") ||
+              shipmentStatus === "waiting") && (
+              <div className="max-sm:col-span-2 col-span-1">
+                <p className="text-muted mb-1">Titik Lokasi*</p>
+                <div className="mb-4">
+                  <MapGeoapify
+                    mode="register"
+                    initialLatitude={
+                      initial?.latitude ? Number(initial.latitude) : -6.2
+                    }
+                    initialLongitude={
+                      initial?.longitude
+                        ? Number(initial.longitude)
+                        : 106.816666
+                    }
+                    getAddress={(value: string) => {
+                      const cleaned = sanitizeAddress(value);
+                      setActualAddress(cleaned);
+                      setErrors((e) => ({ ...e, actual_address: "" }));
+                    }}
+                    onPlaceChange={async (p) => {
+                      const cleaned = sanitizeAddress(p.address);
+                      setActualAddress(cleaned);
+                      setLatitude(String(p.latitude));
+                      setLongitude(String(p.longitude));
+                      setErrors((e) => ({ ...e, actual_address: "" }));
+                    }}
+                  />
+                </div>
+              </div>
+            )} */}
 
             {/* Alamat */}
             <div>

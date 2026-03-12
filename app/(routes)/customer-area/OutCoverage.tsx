@@ -45,8 +45,9 @@ const OutCoverage = ({ onCheckCoverage }: { onCheckCoverage: () => void }) => {
             <div className="absolute top-1.5 left-1/2 -translate-x-1/2 fancy-background-expired w-[95%] h-6.5 rounded-full z-0" />
 
             <span className="relative flex gap-2 items-center z-10 text-white text-sm sm:text-base md:text-lg font-bold whitespace-nowrap px-16">
-              {isLoading && <div className="loading w-5 h-5"></div>}
-              {isLoading ? "Mengecek..." : "Cek Jangkauan"}
+              <div className={`loading w-5 h-5 ${isLoading ? "block" : "hidden"}`}></div>
+              <span className={isLoading ? "hidden" : "block"}>Cek Jangkauan</span>
+              <span className={isLoading ? "block" : "hidden"}>Mengecek...</span>
             </span>
           </div>
         </button>

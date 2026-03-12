@@ -33,6 +33,7 @@ import {
   selectCustomerPackageState,
 } from "@/app/store/slice/customerPackageSlice";
 import { getSetting } from "@/app/_api/Settings/Settings";
+import { getCurrentPayment } from "@/app/_api/Payment/Payment";
 import OutCoverage from "../OutCoverage";
 import InCoverage from "../InCoverage";
 import { getCheckCoverageLogin } from "@/app/_api/Location/Location";
@@ -40,6 +41,9 @@ import { getUser } from "@/app/store/slice/authSlice";
 import toast from "react-hot-toast";
 import RegistrationSummary from "./Modal/RegistrationSummary";
 import imageFailed from "@/public/assets/check-coverage/check-failed.png";
+import { UnifiedPaymentData } from "@/app/_shared/types/payment";
+import PendingPaymentCard from "./PendingPaymentCard";
+import RegistrationForm from "../../auth/register/_components/RegistrationForm";
 
 const PAGE_SIZE = 5;
 
@@ -73,10 +77,35 @@ const PackageAndHistory = () => {
   const [modalResult, setModalResult] = useState<boolean>(false);
   const [isCoverage, setIsCoverage] = useState<boolean>(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-
   const [latestIsFree, setLatestIsFree] = useState(false);
 
+  const [paymentInfo, setPaymentInfo] = useState<
+    UnifiedPaymentData | undefined
+  >();
+  const [hasPendingPayment, setHasPendingPayment] = useState(false);
+  const [showUpdateAddressForm, setShowUpdateAddressForm] = useState(false);
+
   const dispatch = useAppDispatch();
+
+  const getCurrentPaymentData = async () => {
+    try {
+      const res = await getCurrentPayment();
+
+      setPaymentInfo(res.data?.data);
+      setHasPendingPayment(
+        res.data?.data?.payment_attempt?.status === "pending",
+      );
+      console.log("hasPendingPayment: ", hasPendingPayment);
+    } catch (err: any) {
+      console.error("Gagal get current payment:", err);
+    }
+  };
+
+  // useEffect(() => {
+  //   if (!userInfo?.is_coverage === false || userInfo?.is_active)
+  //     getCurrentPaymentData();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [userInfo]);
 
   const handleCheckCoverage = async () => {
     try {
@@ -357,20 +386,25 @@ const PackageAndHistory = () => {
     <>
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
-        {activePacketData && isInactive ? (
-          <InactiveCard data={activePacketData} />
-        ) : userInfo.status === "dismantled" ||
-          userInfo.status === "suspend" ? (
-          <ExpiredCard data={activePacketData} isDismantled={true} />
-        ) : status === "expired" ? (
-          <ExpiredCard data={activePacketData} />
-        ) : activePacketData ? (
-          <ActivePackageCard data={activePacketData} />
-        ) : userInfo.is_coverage === false ? (
-          <OutCoverage onCheckCoverage={handleCheckCoverage} />
-        ) : userInfo.is_coverage === true ? (
-          <InCoverage />
-        ) : null}
+        {
+          // hasPendingPayment && paymentInfo ? (
+          //   <PendingPaymentCard data={paymentInfo} />
+          // ) :
+          activePacketData && isInactive ? (
+            <InactiveCard data={activePacketData} />
+          ) : userInfo.status === "dismantled" ||
+            userInfo.status === "suspend" ? (
+            <ExpiredCard data={activePacketData} isDismantled={true} />
+          ) : status === "expired" ? (
+            <ExpiredCard data={activePacketData} />
+          ) : activePacketData ? (
+            <ActivePackageCard data={activePacketData} />
+          ) : userInfo.is_coverage === false ? (
+            <OutCoverage onCheckCoverage={handleCheckCoverage} />
+          ) : userInfo.is_coverage === true ? (
+            <InCoverage />
+          ) : null
+        }
 
         {/* Banner Cubmu */}
         {addOns.length > 0 && (
@@ -437,20 +471,25 @@ const PackageAndHistory = () => {
       {/* DESKTOP (≥ sm) */}
       <div className="hidden sm:grid grid-cols-12 gap-6">
         <div className="lg:col-span-5 col-span-12 space-y-5">
-          {activePacketData && isInactive ? (
-            <InactiveCard data={activePacketData} />
-          ) : userInfo.status === "dismantled" ||
-            userInfo.status === "suspend" ? (
-            <ExpiredCard data={activePacketData} isDismantled={true} />
-          ) : status === "expired" ? (
-            <ExpiredCard data={activePacketData} />
-          ) : activePacketData ? (
-            <ActivePackageCard data={activePacketData} />
-          ) : userInfo.is_coverage === false ? (
-            <OutCoverage onCheckCoverage={handleCheckCoverage} />
-          ) : userInfo.is_coverage === true ? (
-            <InCoverage />
-          ) : null}
+          {
+            // hasPendingPayment && paymentInfo ? (
+            //   <PendingPaymentCard data={paymentInfo} />
+            // ) :
+            activePacketData && isInactive ? (
+              <InactiveCard data={activePacketData} />
+            ) : userInfo.status === "dismantled" ||
+              userInfo.status === "suspend" ? (
+              <ExpiredCard data={activePacketData} isDismantled={true} />
+            ) : status === "expired" ? (
+              <ExpiredCard data={activePacketData} />
+            ) : activePacketData ? (
+              <ActivePackageCard data={activePacketData} />
+            ) : userInfo.is_coverage === false ? (
+              <OutCoverage onCheckCoverage={handleCheckCoverage} />
+            ) : userInfo.is_coverage === true ? (
+              <InCoverage />
+            ) : null
+          }
 
           {addOns.length > 0 && (
             <div className="relative w-full">
@@ -580,21 +619,72 @@ const PackageAndHistory = () => {
               </div>
               <div className="my-8 text-start px-5">
                 <h1 className="text-primary text-center text-2xl font-bold w-full sm:w-3/4 mx-auto">
-                  Layanan di Areamu Segera Hadir
+                  Yah... Lokasi Kamu Belum Terjangkau Internet Rakyat
                 </h1>
                 <p className="mt-3 w-full mx-auto text-center">
-                  Jangan khawatir! Kami akan segera memberi tahu kamu melalui
-                  Aplikasi IRA jika layanan kami tersedia di daerahmu.
+                  Mohon maaf saat ini layanan belum tersedia di alamat yang kamu
+                  masukkan.
+                </p>
+                <p className="mt-3 w-full mx-auto text-center">
+                  Kamu bisa memperbarui alamat yang benar dan sesuai atau coba
+                  lagi dengan detail yang lebih lengkap (RT/RW, patokan, atau
+                  titik lokasi di peta)
                 </p>
                 <button
-                  onClick={() => setModalResult(false)}
-                  className="w-full cursor-pointer py-4 text-white font-bold bg-primary hover:bg-dark-primary-2 rounded-xl mt-6"
+                  onClick={() => {
+                    setModalResult(false);
+                    setShowUpdateAddressForm(true);
+                  }}
+                  className="w-full cursor-pointer py-3 text-white font-bold bg-primary hover:bg-dark-primary-2 sm:rounded-xl rounded-full mt-6"
                 >
-                  Tutup
+                  Perbarui Alamat
                 </button>
               </div>
             </div>
           )}
+        </ModalTemplate>
+      )}
+
+      {showUpdateAddressForm && (
+        <ModalTemplate
+          closeModal={() => setShowUpdateAddressForm(false)}
+          classNameModal="p-6"
+          width="max-w-[1200px]"
+        >
+          <RegistrationForm
+            mode="update_address"
+            title="Perbarui Alamat Pemasangan"
+            showCancelButton={true}
+            showBannerCovered={true}
+            initialData={{
+              fullname: userInfo?.name || "",
+              email: userInfo?.email || "",
+              phone: userInfo?.phone_number || "",
+              latitude: userInfo?.latitude
+                ? String(userInfo.latitude)
+                : undefined,
+              longitude: userInfo?.longitude
+                ? String(userInfo.longitude)
+                : undefined,
+              actual_address: userInfo?.address || "",
+              province: userInfo?.province_id?.id
+                ? String(userInfo.province_id?.id)
+                : "",
+              city: userInfo?.city_id?.id ? String(userInfo.city_id?.id) : "",
+              district: userInfo?.district_id?.id
+                ? String(userInfo.district_id?.id)
+                : "",
+              sub_district: userInfo?.sub_district_id?.id
+                ? String(userInfo.sub_district_id?.id)
+                : "",
+              rt: userInfo?.rt || "",
+              rw: userInfo?.rw || "",
+              postal_code: userInfo?.postal_code
+                ? String(userInfo.postal_code)
+                : "",
+              notes: userInfo?.notes || "",
+            }}
+          />
         </ModalTemplate>
       )}
     </>

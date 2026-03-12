@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  PHONE_REGEX,
+  PHONE_BEST_REGEX,
   getPhoneHistory,
   savePhoneToHistory,
 } from "@/app/_shared/utils";
@@ -42,7 +42,7 @@ export default function PhoneNumberForm({
     const digitsOnly = raw.replace(ONLY_DIGITS, "").slice(0, MAX_LENGTH);
     onChange(digitsOnly);
 
-    if (PHONE_REGEX.test(digitsOnly)) {
+    if (PHONE_BEST_REGEX.test(digitsOnly)) {
       savePhoneToHistory(digitsOnly);
       setPhoneHistory(getPhoneHistory());
     }
