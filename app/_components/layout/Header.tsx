@@ -297,11 +297,15 @@ function Header() {
           <div className="flex justify-between items-center">
             {/* Logo */}
             <Link href="/" className="flex gap-5 cursor-pointer">
-              <Image
-                src={pathname === "/" ? IraWhiteIcon : IraIcon}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={
+                  pathname === "/"
+                    ? IraWhiteIcon?.src || IraWhiteIcon
+                    : IraIcon?.src || IraIcon
+                }
                 alt="Internet Rakyat"
                 className="w-31.25"
-                priority
               />
             </Link>
 
