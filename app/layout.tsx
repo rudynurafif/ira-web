@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import ClientProvider from "./_components/ClientProvider";
 import { AppProvider } from "./_shared/context/AppContext";
 import SentryConfigProvider from "./_components/SentryConfigProvider";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 export const metadata: Metadata = {
   title: "Internet Rakyat",
@@ -57,6 +58,7 @@ export default function RootLayout({
           </AppProvider>
         </Suspense>
       </body>
+      <GoogleAnalytics gaId={"G-F36SCC718L"} />
     </html>
   );
 }
