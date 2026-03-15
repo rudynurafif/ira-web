@@ -162,6 +162,26 @@ function RegistrationForm({
   const token = getCookie("token-ira");
 
   useEffect(() => {
+    const ua = navigator.userAgent;
+    const isChrome =
+      /Chrome|CriOS/i.test(ua) &&
+      !/Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(ua);
+
+    if (!isChrome) {
+      toast.error(
+        "Deteksi Browser: Anda tidak menggunakan Google Chrome. \n\n" +
+          "Demi kelancaran dan keamanan, silakan buka internetrakyat.id di web browser Google Chrome.",
+        {
+          id: "browser-warning-toast",
+          duration: 15_000,
+          position: "bottom-center",
+          style: { whiteSpace: "pre-line" },
+        },
+      );
+    }
+  }, []);
+
+  useEffect(() => {
     if (status === "denied") setIsOpenModalReqLoc(true);
   }, [status]);
 
@@ -1005,23 +1025,31 @@ function RegistrationForm({
                 }}
               />
 
-              <p className={`text-primary mt-1 text-sm italic ${otpStatus === "verifying" ? "block" : "hidden"}`}>
+              <p
+                className={`text-primary mt-1 text-sm italic ${otpStatus === "verifying" ? "block" : "hidden"}`}
+              >
                 <span>Memverifikasi OTP...</span>
               </p>
 
-              <p className={`text-green-600 mt-1 text-sm items-center gap-1 ${otpStatus === "valid" ? "flex" : "hidden"}`}>
+              <p
+                className={`text-green-600 mt-1 text-sm items-center gap-1 ${otpStatus === "valid" ? "flex" : "hidden"}`}
+              >
                 <FaCircleCheck className="text-green-600" />
                 <span>
                   OTP berhasil diverifikasi! Anda bisa melanjutkan registrasi.
                 </span>
               </p>
 
-              <p className={`text-red-500 mt-1 text-sm items-center gap-1 ${(otpStatus === "invalid" && !errors.otp) ? "flex" : "hidden"}`}>
+              <p
+                className={`text-red-500 mt-1 text-sm items-center gap-1 ${otpStatus === "invalid" && !errors.otp ? "flex" : "hidden"}`}
+              >
                 <FaCircleExclamation className="text-red-500" />
                 <span>Kode OTP tidak valid atau sudah kedaluwarsa.</span>
               </p>
 
-              <p className={`text-red-500 mt-1 text-sm items-center gap-1 ${errors.otp ? "flex" : "hidden"}`}>
+              <p
+                className={`text-red-500 mt-1 text-sm items-center gap-1 ${errors.otp ? "flex" : "hidden"}`}
+              >
                 <FaCircleExclamation className="text-red-500" />
                 <span>{errors.otp}</span>
               </p>
@@ -1070,8 +1098,10 @@ function RegistrationForm({
                 {status !== "denied" && (
                   <>
                     <p className="text-sm text-muted mb-1">
-                      *Pastikan titik lokasi pada peta sudah sesuai dengan
-                      alamat Anda
+                      <span>
+                        *Pastikan titik lokasi pada peta sudah sesuai dengan
+                        alamat pemasangan Anda
+                      </span>
                     </p>
                     <MapGeoapify
                       mode={mode}
@@ -1095,17 +1125,23 @@ function RegistrationForm({
                       }}
                     />
 
-                    <p className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}>
+                    <p
+                      className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}
+                    >
                       <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
                       <span>Mengecek jangkauan...</span>
                     </p>
-                    <p className={`mt-1 text-green-primary items-center gap-1 text-sm ${(isCovered && !isCheckCoverage) ? "flex" : "hidden"}`}>
+                    <p
+                      className={`mt-1 text-green-primary items-center gap-1 text-sm ${isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
+                    >
                       <FaCircleCheck className="text-green-primary" />
                       <span>
                         Selamat! Alamat Anda berada di dalam jangkauan kami.
                       </span>
                     </p>
-                    <p className={`mt-3 animate-bounce text-red-primary items-center gap-1 text-sm ${(!isCovered && !isCheckCoverage) ? "flex" : "hidden"}`}>
+                    <p
+                      className={`mt-3 animate-bounce text-red-primary items-center gap-1 text-sm ${!isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
+                    >
                       <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
                       <span>
                         Lokasi Anda belum berada di jangkauan area kami, dan
@@ -1444,8 +1480,10 @@ function RegistrationForm({
               {status !== "denied" && (
                 <>
                   <p className="text-sm text-muted mb-1">
-                    *Pastikan titik lokasi pada peta sudah sesuai dengan alamat
-                    Anda
+                    <span>
+                      *Pastikan titik lokasi pada peta sudah sesuai dengan
+                      alamat pemasangan Anda
+                    </span>
                   </p>
                   <MapGeoapify
                     mode={mode}
@@ -1476,21 +1514,27 @@ function RegistrationForm({
                     }}
                   />
 
-                  <p className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}>
+                  <p
+                    className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}
+                  >
                     <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
                     <span>Mengecek jangkauan...</span>
                   </p>
-                  <p className={`mt-1 text-green-primary items-center gap-1 text-sm ${(isCovered && !isCheckCoverage) ? "flex" : "hidden"}`}>
+                  <p
+                    className={`mt-1 text-green-primary items-center gap-1 text-sm ${isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
+                  >
                     <FaCircleCheck className="text-green-primary" />
                     <span>
                       Selamat! Alamat Anda berada di dalam jangkauan kami.
                     </span>
                   </p>
-                  <p className={`mt-3 animate-bounce text-red-primary items-center gap-1 text-sm ${(!isCovered && !isCheckCoverage) ? "flex" : "hidden"}`}>
+                  <p
+                    className={`mt-3 animate-bounce text-red-primary items-center gap-1 text-sm ${!isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
+                  >
                     <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
                     <span>
-                      Lokasi Anda belum berada di jangkauan area kami, dan
-                      kami sedang menuju ke daerah Anda.
+                      Lokasi Anda belum berada di jangkauan area kami, dan kami
+                      sedang menuju ke daerah Anda.
                     </span>
                   </p>
                 </>
@@ -1579,7 +1623,9 @@ function RegistrationForm({
                   : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
               } text-xl rounded-xl ${showCancelButton ? "w-full" : "mx-auto"} `}
             >
-              <div className={`flex items-center justify-center gap-2 ${isLoading ? "" : "hidden"}`}>
+              <div
+                className={`flex items-center justify-center gap-2 ${isLoading ? "" : "hidden"}`}
+              >
                 <div className="loading w-5 h-5"></div>
                 <span className="italic text-white">Loading...</span>
               </div>

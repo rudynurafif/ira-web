@@ -74,6 +74,26 @@ const Page = () => {
   );
 
   useEffect(() => {
+    const ua = navigator.userAgent;
+    const isChrome =
+      /Chrome|CriOS/i.test(ua) &&
+      !/Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(ua);
+
+    if (!isChrome) {
+      toast.error(
+        "Deteksi Browser: Anda tidak menggunakan Google Chrome. \n\n" +
+          "Demi kelancaran dan keamanan, silakan buka internetrakyat.id di web browser Google Chrome.",
+        {
+          id: "browser-warning-toast",
+          duration: 15_000,
+          position: "bottom-center",
+          style: { whiteSpace: "pre-line" },
+        },
+      );
+    }
+  }, []);
+
+  useEffect(() => {
     const regPhone = localStorage.getItem("registration_phone");
 
     if (regPhone) {
@@ -468,15 +488,21 @@ const Page = () => {
                 : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             }`}
           >
-            <div className={`loading w-5 h-5 ${isLoading ? "block" : "hidden"}`}></div>
+            <div
+              className={`loading w-5 h-5 ${isLoading ? "block" : "hidden"}`}
+            ></div>
             <span className={isLoading ? "hidden" : "block"}>
-              {step === "SET_PASSWORD"
-                ? "Submit"
-                : step === "LOGIN"
-                  ? "LOGIN"
-                  : "Lanjutkan"}
+              <span>
+                {step === "SET_PASSWORD"
+                  ? "Submit"
+                  : step === "LOGIN"
+                    ? "LOGIN"
+                    : "Lanjutkan"}
+              </span>
             </span>
-            <span className={isLoading ? "block" : "hidden"}>Loading...</span>
+            <span className={isLoading ? "block" : "hidden"}>
+              <span>Loading...</span>
+            </span>
           </button>
         </form>
 

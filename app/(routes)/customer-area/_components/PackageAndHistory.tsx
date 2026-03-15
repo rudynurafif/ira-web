@@ -653,7 +653,7 @@ const PackageAndHistory = () => {
         >
           <RegistrationForm
             mode="update_address"
-            title="Perbarui Alamat Pemasangan"
+            title="Perbarui Alamat"
             showCancelButton={true}
             showBannerCovered={true}
             initialData={{

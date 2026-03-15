@@ -21,16 +21,11 @@ export default function Home() {
     const isChrome =
       /Chrome|CriOS/i.test(ua) &&
       !/Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(ua);
-    const isSafari =
-      /Safari/i.test(ua) &&
-      !/Chrome|CriOS|Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(
-        ua,
-      );
 
-    if (!isChrome && !isSafari) {
+    if (!isChrome) {
       toast.error(
-        "Deteksi Browser: Anda tidak menggunakan Google Chrome ataupun Safari. \n\n" +
-          "Beberapa fitur mungkin tidak berfungsi secara optimal. Silakan salin link ini dan buka menggunakan Google Chrome atau Safari.",
+        "Deteksi Browser: Anda tidak menggunakan Google Chrome. \n\n" +
+          "Demi kelancaran dan keamanan, silakan buka internetrakyat.id di web browser Google Chrome.",
         {
           id: "browser-warning-toast",
           duration: 15_000,

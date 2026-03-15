@@ -58,8 +58,8 @@ const Page = () => {
             <span className="font-bold text-sm">Pengguna iPhone</span>
             <span className="text-xs">
               Untuk hasil terbaik, silakan buka link ini di{" "}
-              <strong>Safari</strong> atau <strong>Chrome</strong>. Klik titik
-              tiga (•••) di kanan atas &gt; <strong>Open in Browser</strong>.
+              <strong>Google Chrome</strong>. Klik titik tiga (•••) di kanan
+              atas &gt; <strong>Open in Browser</strong>.
             </span>
           </div>
         );

@@ -98,7 +98,7 @@ export const useFCM = () => {
 
   const showPermissionGuide = () => {
     toast(
-      "Notifikasi dinonaktifkan. Silakan buka di browser Chrome/Safari untuk mengaktifkan notifikasi.",
+      "Notifikasi dinonaktifkan. Silakan buka di browser Google Chrome untuk mengaktifkan notifikasi.",
       {
         duration: 8000,
         icon: "🔔",

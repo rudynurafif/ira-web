@@ -38,7 +38,7 @@ function ListCoverageArea() {
       // setListArea(res_getListLocation);
       setListArea(dummyCoveredLocations);
     } catch (error: any) {
-      console.log(error.response.data.message);
+      console.log(error?.response?.data?.message || error?.message || "Error");
     }
   }
 
