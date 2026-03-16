@@ -27,6 +27,7 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import { Notification } from "@/app/_components/Notification";
 import { useAppContext } from "@/app/_shared/context/AppContext";
+import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 
 /**
  * STEP FLOW
@@ -73,25 +74,7 @@ const Page = () => {
     [fcmToken],
   );
 
-  useEffect(() => {
-    const ua = navigator.userAgent;
-    const isChrome =
-      /Chrome|CriOS/i.test(ua) &&
-      !/Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(ua);
-
-    if (!isChrome) {
-      toast.error(
-        "Deteksi Browser: Anda tidak menggunakan Google Chrome. \n\n" +
-          "Demi kelancaran dan keamanan, silakan buka internetrakyat.id di web browser Google Chrome.",
-        {
-          id: "browser-warning-toast",
-          duration: 15_000,
-          position: "bottom-center",
-          style: { whiteSpace: "pre-line" },
-        },
-      );
-    }
-  }, []);
+  useBrowserDetection();
 
   useEffect(() => {
     const regPhone = localStorage.getItem("registration_phone");
