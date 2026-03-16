@@ -153,14 +153,13 @@ export default function ModalEditProfile({ open, onClose, initial }: Props) {
       otpCacheRef.current = {};
       setErrors({});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     open,
     initial?.name,
     initial?.phone_number,
     initial?.email,
     initial?.actual_address,
-    // initial?.longitude,
-    // initial?.latitude,
   ]);
 
   useEffect(() => {

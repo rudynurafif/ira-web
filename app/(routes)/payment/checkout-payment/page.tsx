@@ -43,6 +43,12 @@ function Page() {
     try {
       const res = await getCurrentPayment();
 
+      if (res?.data?.data === null) {
+        toast.error("Terjadi kesalahan. Silakan pilih paket kembali");
+        router.push("/payment");
+        return;
+      }
+
       setPaymentInfo(res.data?.data);
     } catch (err: any) {
       toastErrorFromAPI(err);
@@ -53,6 +59,7 @@ function Page() {
 
   useEffect(() => {
     getCurrentPaymentData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const bankFee =

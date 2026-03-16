@@ -11,7 +11,7 @@ export const useBrowserDetection = () => {
     if (!isChrome) {
       toast.error(
         "Deteksi Browser: Anda tidak menggunakan Google Chrome. \n\n" +
-          "Demi kelancaran dan keamanan, silakan buka internetrakyat.id di web browser Google Chrome.",
+          "Demi kelancaran dan keamanan Anda, silakan buka internetrakyat.id di web browser Google Chrome.",
         {
           id: "browser-warning-toast",
           duration: 15_000,

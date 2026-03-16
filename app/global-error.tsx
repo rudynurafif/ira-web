@@ -59,7 +59,7 @@ export default function GlobalError({
             }}
           >
             <p style={{ margin: 0, fontWeight: "500", color: "#4a5568", lineHeight: "1.5" }}>
-              💡 Demi kelancaran dan keamanan, silakan buka <strong style={{ color: "#d7201d" }}>internetrakyat.id</strong> di web browser <strong>Google Chrome</strong>.
+              💡 Demi kelancaran dan keamanan Anda, silakan buka <strong style={{ color: "#d7201d" }}>internetrakyat.id</strong> di web browser <strong>Google Chrome</strong>.
             </p>
           </div>
 
