@@ -75,13 +75,19 @@ const PaymentMehods = () => {
     }
   }, [isLoggedIn, router]);
 
+  useEffect(() => {
+    if (isLoggedIn && !selectedPackage) {
+      toast.error("Informasi paket hilang, silakan pilih ulang.");
+      router.push("/payment");
+    }
+  }, [isLoggedIn, router, selectedPackage]);
+
   const handleCheckPackage: () => Promise<void> = async () => {
     try {
       const res = await checkPackage();
 
       if (res?.data?.data === false) {
         setOpenModalNotAllowed(true);
-        window.location.href = "/customer-area";
       }
     } catch (err) {
       toastErrorFromAPI(err);
@@ -137,6 +143,13 @@ const PaymentMehods = () => {
 
   const handleCreatePayment = async () => {
     if (!selectedChannel) return;
+
+    if (!selectedPackage?.id) {
+      toast.error("Data paket tidak ditemukan. Silakan pilih paket kembali.");
+      router.push("/payment");
+      return;
+    }
+
     setIsCreatePayment(true);
 
     try {
@@ -382,12 +395,10 @@ const PaymentMehods = () => {
         </div>
 
         <button
-          disabled={!selectedChannel || isCreatePayment}
-          // onClick={() => router.push("/payment")}
           onClick={handleCreatePayment}
           className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-full sm:rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed! disabled:bg-slate-400"
         >
-          {isCreatePayment ? "Mohon menunggu.." : "Bayar"}
+          <span>{isCreatePayment ? "Mohon menunggu.." : "Bayar"}</span>
         </button>
       </div>
 
@@ -419,7 +430,6 @@ const PaymentMehods = () => {
             </div>
 
             <button
-              className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
               onClick={() => {
                 setOpenModalNotAllowed(false);
                 router.push("/customer-area");

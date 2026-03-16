@@ -10,31 +10,14 @@ import CookieHandler from "./_components/CookieHandler";
 import DownloadApp from "./Homepage/DownloadApp";
 import { Notification } from "./_components/Notification";
 import { useAppContext } from "./_shared/context/AppContext";
+import { useBrowserDetection } from "./hooks/useBrowserDetection";
 
 export default function Home() {
   const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(false);
   const { fcmToken } = useAppContext();
 
-  useEffect(() => {
-    const ua = navigator.userAgent;
-    const isChrome =
-      /Chrome|CriOS/i.test(ua) &&
-      !/Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(ua);
-
-    if (!isChrome) {
-      toast.error(
-        "Deteksi Browser: Anda tidak menggunakan Google Chrome. \n\n" +
-          "Demi kelancaran dan keamanan, silakan buka internetrakyat.id di web browser Google Chrome.",
-        {
-          id: "browser-warning-toast",
-          duration: 15_000,
-          position: "bottom-center",
-          style: { whiteSpace: "pre-line" },
-        },
-      );
-    }
-  }, []);
+  useBrowserDetection();
 
   const bodyToken = useMemo(
     () => ({

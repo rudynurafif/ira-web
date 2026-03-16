@@ -35,6 +35,7 @@ import {
 import { useRouter } from "next/navigation";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import MapGeoapify from "@/app/_components/form/MapGeoapify";
+import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import {
   sanitizeAddress,
@@ -161,25 +162,7 @@ function RegistrationForm({
 
   const token = getCookie("token-ira");
 
-  useEffect(() => {
-    const ua = navigator.userAgent;
-    const isChrome =
-      /Chrome|CriOS/i.test(ua) &&
-      !/Edg|OPR|Opera|UCBrowser|SamsungBrowser|MiuiBrowser/i.test(ua);
-
-    if (!isChrome) {
-      toast.error(
-        "Deteksi Browser: Anda tidak menggunakan Google Chrome. \n\n" +
-          "Demi kelancaran dan keamanan, silakan buka internetrakyat.id di web browser Google Chrome.",
-        {
-          id: "browser-warning-toast",
-          duration: 15_000,
-          position: "bottom-center",
-          style: { whiteSpace: "pre-line" },
-        },
-      );
-    }
-  }, []);
+  useBrowserDetection();
 
   useEffect(() => {
     if (status === "denied") setIsOpenModalReqLoc(true);

@@ -14,9 +14,12 @@ import Image from "next/image";
 import iraIcon from "@/public/assets/Icons/IraIconFooter.png";
 import moment from "moment";
 import { getSetting } from "@/app/_api/Settings/Settings";
+import googlePlay from "@/public/assets/Images/GooglePlayBlack.png";
+import appStore from "@/public/assets/Images/AppStoreBlack.png";
 import { BsTelephone } from "react-icons/bs";
 import { MdOutlineMail } from "react-icons/md";
 import SkeletonBase from "../skeletons/SkeletonBase";
+import { handleDownloadClick } from "@/app/_shared/utils";
 
 function Footer() {
   const [phoneCS, setPhoneCS] = useState<string | null>("");
@@ -79,14 +82,14 @@ function Footer() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 w-full lg:w-[70%]">
             <div className="col-span-1 md:col-span-2">
               <h5 className="font-bold mb-2.5">Address</h5>
-              <p className="font-semibold">PT. Telemedia Komunikasi Pratama</p>
+              <p className="font-semibold" suppressHydrationWarning><span>PT. Telemedia Komunikasi Pratama</span></p>
               {isLoading ? (
                 <div className="mt-2 flex flex-col gap-1">
                   <SkeletonBase height="h-4" />
                   <SkeletonBase height="h-4" />
                 </div>
               ) : (
-                <p>{address}</p>
+                <p suppressHydrationWarning><span>{address}</span></p>
               )}
             </div>
             <div className="col-span-1 ">
@@ -166,6 +169,30 @@ function Footer() {
                   <FaTiktok size={24} />
                 </Link>
               </div>
+
+              <h5 className="font-bold mb-2.5 mt-5">Download Aplikasi IRA</h5>
+              <div className="mt-2 flex flex-row gap-2">
+                <div
+                  className="cursor-pointer"
+                  onClick={() => handleDownloadClick("google")}
+                >
+                  <Image
+                    src={googlePlay}
+                    alt="Google Play"
+                    className="w-24 hover:scale-105"
+                  />
+                </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => handleDownloadClick("apple")}
+                >
+                  <Image
+                    src={appStore}
+                    alt="App Store"
+                    className="w-24 hover:scale-105"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div className="text-left lg:text-right w-full md:w-[30%] lg:mt-0 mt-5">
@@ -191,13 +218,13 @@ function Footer() {
                 </Link>
               </span>
             </p>
-            <p className="">
-              Copyright © {moment().year()} PT. Telemedia Komunikasi Pratama
+            <p className="" suppressHydrationWarning>
+              <span>Copyright © {moment().year()} PT. Telemedia Komunikasi Pratama</span>
             </p>
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.1603.01</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.1603.02</div>
       </div>
     </div>
   );

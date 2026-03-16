@@ -53,11 +53,6 @@ const PackageAndHistory = () => {
   const allHistory = useAppSelector(selectCustomerPackages);
 
   const [currentPage, setCurrentPage] = useState(1);
-  // const [subscriptionHistory, setSubscriptionHistory] = useState<
-  //   SubscriptionHistoryAPI[]
-  // >([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
-  const searchParams = useSearchParams();
   const { label, status, days } = packageCountdown(
     activePacketData?.end_date ?? null,
   );
@@ -70,8 +65,6 @@ const PackageAndHistory = () => {
   const [isAllowed, setIsAllowed] = useState(false);
   const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
-  const [startDateFilter, setStartDateFilter] = useState<any>();
-  const [endDateFilter, setEndDateFilter] = useState<any>();
   const [phoneCS, setPhoneCS] = useState<string | null>("");
 
   const [modalResult, setModalResult] = useState<boolean>(false);
@@ -185,20 +178,12 @@ const PackageAndHistory = () => {
     if (userInfo) setIsInactive(userInfo?.status === "inactive");
   }, [isInactive, userInfo, userInfo?.status]);
 
-  const handleCheckPackage = async (pkg?: any) => {
+  const handleCheckPackage = async () => {
     try {
-      if (pkg) {
-        sessionStorage.setItem("selectedPackage", JSON.stringify(pkg));
-      }
-
       const res = await checkPackage();
 
       if (res?.data?.data === true) {
-        if (latestIsFree) {
-          router.push("/payment");
-        } else {
-          router.push("/payment/payment-methods");
-        }
+        router.push("/payment");
       } else {
         setOpenModalNotAllowed(true);
       }
@@ -321,7 +306,7 @@ const PackageAndHistory = () => {
                 alt="button-beli-lagi-home"
                 width={100}
                 height={152}
-                onClick={() => handleCheckPackage(activePacketData?.package_id)}
+                onClick={() => handleCheckPackage()}
                 className="relative z-10"
                 style={{
                   filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
@@ -351,7 +336,7 @@ const PackageAndHistory = () => {
               style={{
                 filter: "drop-shadow(0 0 12px rgba(255, 0, 0, 0.6))",
               }}
-              onClick={() => handleCheckPackage(activePacketData?.package_id)}
+              onClick={() => handleCheckPackage()}
             >
               Beli Lagi
               <Image
