@@ -469,7 +469,7 @@ function MapGeoapify({
               }}
               className="flex items-center justify-center gap-2 bg-white p-2 shadow-md rounded-lg cursor-pointer text-gray-500 hover:text-gray-700"
             >
-              <p className="text-black font-semibold">Cari</p>
+              <p className="text-black font-semibold"><span>Cari</span></p>
               <FaSearch size={16} color="black" />
             </button>
 
@@ -510,7 +510,7 @@ function MapGeoapify({
           {/* Loading & Predictions */}
           {isLoading && (
             <div className="bg-white mt-3 border rounded-lg px-4 py-2 w-full">
-              Mencari lokasi... {cooldownCount > 0 && cooldownCount}
+              <span>Mencari lokasi... {cooldownCount > 0 && cooldownCount}</span>
             </div>
           )}
 
@@ -522,13 +522,15 @@ function MapGeoapify({
                   onClick={() => handleSuggestionClick(feature)}
                   className="cursor-pointer p-3 border-b last:border-b-0 hover:bg-gray-50"
                 >
-                  <p className="font-medium">{feature.properties.formatted}</p>
+                  <p className="font-medium"><span>{feature.properties.formatted}</span></p>
                   <p className="text-sm text-gray-600">
-                    {feature?.properties?.city ??
-                      feature?.properties?.county ??
-                      "Kota"}
-                    , {feature?.properties?.state ?? "Provinsi"},{" "}
-                    {feature?.properties?.country ?? "Negara"}
+                    <span>
+                      {feature?.properties?.city ??
+                        feature?.properties?.county ??
+                        "Kota"}
+                      , {feature?.properties?.state ?? "Provinsi"},{" "}
+                      {feature?.properties?.country ?? "Negara"}
+                    </span>
                   </p>
                 </div>
               ))}
@@ -545,7 +547,7 @@ function MapGeoapify({
       >
         {!location && (
           <div className="flex items-center justify-center h-full bg-gray-100 text-gray-500">
-            Sedang mengambil lokasi Anda...
+            <span>Sedang mengambil lokasi Anda...</span>
           </div>
         )}
       </div>
