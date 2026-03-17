@@ -15,6 +15,9 @@ function MapGeoapify({
   initialLongitude,
   mode,
   isInteractive = true,
+  showSearch = true,
+  showClose = true,
+  height = "500px",
 }: {
   mode: "register" | "reregister" | "update_address";
   getAddress: (address: string, meta?: { source: "init" | "user" }) => void;
@@ -28,6 +31,9 @@ function MapGeoapify({
   initialLatitude?: number;
   initialLongitude?: number;
   isInteractive?: boolean;
+  showSearch?: boolean;
+  showClose?: boolean;
+  height?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -54,6 +60,9 @@ function MapGeoapify({
 
   // ref untuk menyimpan address terbaru (dipakai di fetch setelah cooldown)
   const latestAddressRef = useRef(address);
+  const mapInstanceRef = useRef<any>(null);
+  const markerInstanceRef = useRef<any>(null);
+
   useEffect(() => {
     latestAddressRef.current = address;
   }, [address]);
@@ -64,7 +73,12 @@ function MapGeoapify({
   useEffect(() => {
     if (status === "denied") return;
 
-    if (initialLatitude && initialLongitude) {
+    if (
+      initialLatitude &&
+      initialLongitude &&
+      initialLatitude !== 0 &&
+      initialLongitude !== 0
+    ) {
       setLocation({ lat: initialLatitude, lng: initialLongitude });
 
       // Optionally, you can get the address from these coordinates (reverse geocoding)
@@ -287,18 +301,42 @@ function MapGeoapify({
     } else {
       renderMap();
     }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location, isInteractive]);
+  }, [location === null, isInteractive]); // Only re-init if location was null or interactivity changed
 
   useEffect(() => {
-    if ((window as any).mapInstance && location) {
-      const map = (window as any).mapInstance;
-      const marker = (window as any).markerInstance;
+    if (mapInstanceRef.current && location) {
+      const map = mapInstanceRef.current;
+      const marker = markerInstanceRef.current;
 
       map.setView([location.lat, location.lng], 18);
-      marker.setLatLng([location.lat, location.lng]);
+      if (marker) marker.setLatLng([location.lat, location.lng]);
+
+      // Ensure map fits container correctly
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
     }
   }, [location]);
+
+  // Handle marker draggability during cooldown
+  useEffect(() => {
+    const marker = markerInstanceRef.current;
+    if (marker) {
+      if (isInteractive && !isCooldown) {
+        marker.dragging?.enable();
+      } else {
+        marker.dragging?.disable();
+      }
+    }
+  }, [isCooldown, isInteractive]);
 
   const loadLeafletAndMap = () => {
     const link = document.createElement("link");
@@ -320,12 +358,12 @@ function MapGeoapify({
     const L = (window as any).L;
 
     // Kalau sudah ada mapInstance, jangan init ulang – cukup update view/marker
-    if ((window as any).mapInstance) {
-      const map = (window as any).mapInstance;
-      const marker = (window as any).markerInstance;
+    if (mapInstanceRef.current) {
+      const map = mapInstanceRef.current;
+      const marker = markerInstanceRef.current;
 
       map.setView([location.lat, location.lng], 18);
-      marker.setLatLng([location.lat, location.lng]);
+      if (marker) marker.setLatLng([location.lat, location.lng]);
       return;
     }
 
@@ -355,13 +393,24 @@ function MapGeoapify({
     if (isInteractive) {
       marker.off("dragend");
 
-      marker.on("dragend", (e: any) => {
+      marker.on("dragend", async (e: any) => {
         const { lat, lng } = e.target.getLatLng();
         setLocation({ lat, lng });
 
+        // Update coordinates immediately in the parent
+        onPlaceChange?.({
+          address: latestAddressRef.current,
+          raw_result: null,
+          latitude: lat,
+          longitude: lng,
+          source: "user",
+        });
+
+        if (isCooldown) return;
+
         setIsLoading(true);
 
-        startCooldown(10, async () => {
+        startCooldown(3, async () => {
           const last = lastReverseCoordsRef.current;
           if (last && last.lat === lat && last.lng === lng) {
             setIsLoading(false);
@@ -376,9 +425,9 @@ function MapGeoapify({
             const data = await res.json();
             const feature = data.features[0];
 
-            if (feature && inputRef.current) {
+            if (feature) {
               const addr = feature.properties.formatted;
-              inputRef.current.value = addr;
+              if (inputRef.current) inputRef.current.value = addr;
               setAddress(addr);
 
               feature.query = data?.query || null;
@@ -401,9 +450,13 @@ function MapGeoapify({
       });
     }
 
-    (window as any).mapInitialized = true;
-    (window as any).mapInstance = map;
-    (window as any).markerInstance = marker;
+    mapInstanceRef.current = map;
+    markerInstanceRef.current = marker;
+
+    // Fix for hidden containers/size computation
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
   };
 
   useEffect(() => {
@@ -448,7 +501,7 @@ function MapGeoapify({
   return (
     <div className="relative">
       {/* Input Alamat */}
-      {isInteractive && (
+      {isInteractive && showSearch && (
         <div className="absolute top-4 z-1000 w-full px-2 sm:px-5">
           <div className="relative w-full flex items-center justify-center gap-2 sm:gap-4">
             <button
@@ -469,7 +522,9 @@ function MapGeoapify({
               }}
               className="flex items-center justify-center gap-2 bg-white p-2 shadow-md rounded-lg cursor-pointer text-gray-500 hover:text-gray-700"
             >
-              <p className="text-black font-semibold"><span>Cari</span></p>
+              <p className="text-black font-semibold">
+                <span>Cari</span>
+              </p>
               <FaSearch size={16} color="black" />
             </button>
 
@@ -496,7 +551,7 @@ function MapGeoapify({
               }}
               className="w-full disabled:cursor-not-allowed! bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {address && (
+            {address && showClose && (
               <button
                 type="button"
                 onClick={clearInput}
@@ -510,7 +565,9 @@ function MapGeoapify({
           {/* Loading & Predictions */}
           {isLoading && (
             <div className="bg-white mt-3 border rounded-lg px-4 py-2 w-full">
-              <span>Mencari lokasi... {cooldownCount > 0 && cooldownCount}</span>
+              <span>
+                Mencari lokasi... {cooldownCount > 0 && cooldownCount}
+              </span>
             </div>
           )}
 
@@ -522,7 +579,9 @@ function MapGeoapify({
                   onClick={() => handleSuggestionClick(feature)}
                   className="cursor-pointer p-3 border-b last:border-b-0 hover:bg-gray-50"
                 >
-                  <p className="font-medium"><span>{feature.properties.formatted}</span></p>
+                  <p className="font-medium">
+                    <span>{feature.properties.formatted}</span>
+                  </p>
                   <p className="text-sm text-gray-600">
                     <span>
                       {feature?.properties?.city ??
@@ -542,8 +601,8 @@ function MapGeoapify({
       {/* Peta */}
       <div
         ref={mapContainerRef}
-        className="w-full h-100 rounded-xl border border-gray-300 relative  overflow-hidden"
-        style={{ minHeight: "300px" }}
+        className="w-full rounded-xl border border-gray-300 relative overflow-hidden"
+        style={{ height: height, minHeight: height }}
       >
         {!location && (
           <div className="flex items-center justify-center h-full bg-gray-100 text-gray-500">
@@ -553,16 +612,16 @@ function MapGeoapify({
       </div>
 
       {/* Overlay Cooldown */}
-      {/* {isCooldown && (
-        <div className="absolute bottom-7 right-5 flex items-center justify-center z-1000 rounded-xl">
-          <div className="bg-white px-6 py-3 rounded-lg shadow-lg">
-            <p>
-              Sedang mencari... {" "}
-              <span className="text-primary">({cooldownCount})</span>
+      {isCooldown && isInteractive && (
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center z-1000">
+          <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-gray-200 flex items-center gap-2">
+            <p className="text-sm font-semibold text-gray-700">
+              Sinkronisasi lokasi pemasangan...{" "}
+              <span className="text-primary">({cooldownCount}s)</span>
             </p>
           </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 }
