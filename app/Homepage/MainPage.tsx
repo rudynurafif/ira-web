@@ -180,6 +180,7 @@ function MainPage() {
               alt="wifi-icon"
               className="mx-auto"
             />
+            {/* Desktop */}
             <div
               className="bg-opacity-black-10 sm:inline-block hidden rounded-full px-5 py-2.5 2xl:text-xl sm:text-lg text-sm text-white font-semibold mt-2.5 shadow-sm shadow-white"
               style={{
@@ -197,6 +198,7 @@ function MainPage() {
             </div>
           </div>
 
+          {/* Mobile */}
           <div className="text-center">
             <div
               className="bg-white/25 sm:hidden inline-block rounded-full px-5 py-2.5 2xl:text-xl sm:text-lg text-sm text-white font-semibold mt-2.5 shadow-sm shadow-white"
@@ -221,7 +223,7 @@ function MainPage() {
             </h1>
             <Link
               href="/auth/register"
-              className="inline-flex gap-2 justify-center items-center mt-10 py-1.5 max-sm:py-1 max-sm:px-0.5 gradient-box rounded-full custom-click cursor-pointer"
+              className="inline-flex gap-2 justify-center items-center mt-6 py-1.5 max-sm:py-1 max-sm:px-0.5 gradient-box rounded-full custom-click cursor-pointer"
               id="button-berlangganan-sekarang"
             >
               <div className="w-[97%] xl:py-9 relative flex justify-center px-3.75 gap-1 items-center bg-subs-new rounded-full h-15.5 mt-px overflow-hidden custom-bg-animation">
@@ -249,8 +251,8 @@ function MainPage() {
             </div>
           )}
 
-          <div className="z-9999">
-            <div className="hidden md:absolute bottom-5 left-10 md:flex flex-col gap-3">
+          <div className="z-9999 mt-10">
+            <div className="hidden lg:absolute bottom-5 left-10 lg:flex flex-col gap-3">
               <div className="flex justify-start items-center gap-3">
                 <Image
                   src={googleButton}

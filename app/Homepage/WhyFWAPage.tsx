@@ -45,7 +45,7 @@ function WhyFWAPage() {
   return (
     <div className="container mx-auto px-5 text-black py-12 sm:py-18">
       {/* Versi GO Commercial */}
-      <div className="md:hidden flex flex-col items-center gap-4 w-full pb-20 -mt-20">
+      <div className="lg:hidden flex flex-col items-center gap-4 w-full pb-20 -mt-30">
         {/* Teks Atas */}
         <p className=" font-bold text-2xl text-center z-9999">
           Temukan Aplikasi IRA di
