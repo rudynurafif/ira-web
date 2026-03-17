@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
 import { PackageData } from "@/app/_shared/types/customer-area";
 import {
   checkPackage,
@@ -11,16 +10,7 @@ import {
   getPackageList,
 } from "@/app/_api/Customer/CustomerArea";
 import { convertToCurrency, toastErrorFromAPI } from "@/app/_shared/utils";
-import {
-  PaymentChannel,
-  SubscriptionHistoryAPI,
-} from "@/app/_shared/types/payment";
-import {
-  createPaymentRequestEWallet,
-  createPaymentRequestOTC,
-  createPaymentRequestQRIS,
-  createPaymentRequestVA,
-} from "@/app/_api/Payment/Payment";
+import { SubscriptionHistoryAPI } from "@/app/_shared/types/payment";
 import Loader from "@/app/_components/Loader";
 import ErrorFallback from "@/app/_components/ErrorFallback";
 import bannerPerpanjang from "@/public/assets/Images/banner-perpanjang-paket.png";
@@ -42,16 +32,6 @@ const Payment = () => {
       return null;
     }
   })();
-  const selectedChannelFromLS = (() => {
-    if (typeof window === "undefined") return null;
-    const item = sessionStorage.getItem("selectedPaymentMethod");
-    if (!item) return null;
-    try {
-      return JSON.parse(item) as PaymentChannel;
-    } catch {
-      return null;
-    }
-  })();
 
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
@@ -63,9 +43,6 @@ const Payment = () => {
   const [isAllowed, setIsAllowed] = useState(false);
   const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
-  const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
-    selectedChannelFromLS,
-  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
@@ -116,11 +93,7 @@ const Payment = () => {
           setIsLatestPackageFree(isFree);
 
           if (!isFree) {
-            setSelectedPackage(latest.package_id);
-            sessionStorage.setItem(
-              "selectedPackage",
-              JSON.stringify(latest.package_id),
-            );
+            // Kita tetap set latestPackage untuk display info saja, tapi JANGAN setSelectedPackage di sini
           }
         }
       } catch (err) {
@@ -132,6 +105,14 @@ const Payment = () => {
   }, []);
 
   useEffect(() => {
+    if (packages.length > 0) {
+      const firstPkg = packages[0];
+      setSelectedPackage(firstPkg);
+      sessionStorage.setItem("selectedPackage", JSON.stringify(firstPkg));
+    }
+  }, [packages]);
+
+  useEffect(() => {
     fetchPackages();
   }, []);
 
@@ -140,60 +121,7 @@ const Payment = () => {
     setSelectedPackage(pkg);
   };
 
-  const handleCreatePayment = async () => {
-    if (!selectedChannel) return;
-
-    try {
-      let createRes;
-
-      const payload = {
-        package_id: selectedPackage?.id,
-        payment_channel_id: selectedChannel?.id,
-      };
-
-      switch (selectedChannel.category) {
-        case "va":
-          createRes = createPaymentRequestVA(payload);
-          break;
-        case "qris":
-          createRes = createPaymentRequestQRIS(payload);
-          break;
-        case "ewallet":
-          createRes = createPaymentRequestEWallet(payload);
-          break;
-        case "otc":
-          createRes = createPaymentRequestOTC(payload);
-          break;
-        case "card":
-          toast.error(
-            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`,
-          );
-          return;
-        default:
-          throw new Error("Metode Pembayaran Tidak Didukung");
-      }
-
-      const paymentReqID = (await createRes)?.data?.data?.id;
-      sessionStorage.setItem(
-        "paymentInfo",
-        JSON.stringify((await createRes).data.data),
-      );
-
-      if (!paymentReqID) {
-        throw new Error("Gagal mendapatkan ID pembayaran");
-      }
-
-      router.push(
-        `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
-      );
-    } catch (error: any) {
-      toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
-    }
-  };
-
   const handleCheckPackage: () => Promise<void> = async () => {
-    // router.push("/payment/payment-methods");
-
     try {
       const res = await checkPackage();
 
@@ -217,7 +145,7 @@ const Payment = () => {
   return (
     <div className="container flex flex-col justify-between max-sm:min-h-[80vh] mx-auto sm:my-8 max-sm:px-4 max-sm:py-6">
       <div>
-        <div className="flex gap-2 items-center justify-center mb-7">
+        <div className="flex gap-2 items-center justify-center mb-6">
           <div className="font-bold text-primary-text text-3xl">
             Perpanjang Paket
           </div>
@@ -248,7 +176,11 @@ const Payment = () => {
                   selected={
                     selectedPackage?.id === latestPackage?.package_id?.id
                   }
-                  onSelect={handleSelect}
+                  onSelect={
+                    packages.some((p) => p.id === latestPackage.package_id.id)
+                      ? handleSelect
+                      : () => {}
+                  }
                   convertToCurrency={convertToCurrency}
                 />
               </div>
@@ -257,8 +189,15 @@ const Payment = () => {
             </>
           )}
 
-          <h2 className="sm:text-2xl text-lg text-primary-text font-bold mb-3">
-            {isLatestPackageFree ? "Daftar Paket" : "Paket Lainnya"}
+          <h2
+            className="sm:text-2xl text-lg text-primary-text font-bold mb-3"
+            suppressHydrationWarning
+          >
+            <span>
+              {isLatestPackageFree
+                ? "Daftar Paket"
+                : "Pilih Paket Internet Untuk Perpanjang"}
+            </span>
           </h2>
 
           <div className="md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 max-sm:space-y-6">
@@ -278,58 +217,12 @@ const Payment = () => {
               </div>
             )}
           </div>
-
-          {/* <div className="my-8">
-          <div
-            className="flex cursor-pointer mt-6 justify-between border border-gray-border shadow-md gap-4 rounded-lg p-4 items-center"
-            onClick={() => router.push("/payment/payment-methods")}
-          >
-            <div className="flex items-center gap-4 md:gap-8">
-              {selectedChannel ? (
-                <Image
-                  src={PAYMENT_LOGOS[selectedChannel.code] || ccSvg}
-                  alt={selectedChannel.name}
-                  className="w-full object-contain"
-                />
-              ) : (
-                <Image
-                  src={ccSvg}
-                  width={80}
-                  height={80}
-                  alt="Metode pembayaran"
-                />
-              )}
-
-              <div className="sm:text-lg text-sm font-semibold">
-                {selectedChannel?.name ??
-                  "*Pilih metode pembayaran terlebih dahulu"}
-              </div>
-            </div>
-
-            <button
-              className="rounded-lg flex gap-1 items-center text-dark-primary-2 font-bold cursor-pointer"
-              onClick={() => router.push("/payment/payment-methods")}
-            >
-              <p className="hidden md:block">
-                {selectedChannel
-                  ? "Ganti Metode Pembayaran"
-                  : "Pilih Metode Pembayaran"}
-              </p>
-
-              <IoIosArrowForward
-                size={18}
-                className="text-dark-primary-2 font-bold"
-              />
-            </button>
-          </div>
-        </div> */}
         </div>
       </div>
 
-      <div className="mt-12">
+      <div className="">
         <button
           className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
-          // onClick={handleCreatePayment}
           onClick={handleCheckPackage}
           disabled={!selectedPackage}
         >

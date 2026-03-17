@@ -27,6 +27,7 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import { Notification } from "@/app/_components/Notification";
 import { useAppContext } from "@/app/_shared/context/AppContext";
+import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 
 /**
  * STEP FLOW
@@ -72,6 +73,8 @@ const Page = () => {
     }),
     [fcmToken],
   );
+
+  useBrowserDetection();
 
   useEffect(() => {
     const regPhone = localStorage.getItem("registration_phone");
@@ -468,15 +471,21 @@ const Page = () => {
                 : "bg-primary hover:bg-dark-primary-2 cursor-pointer"
             }`}
           >
-            <div className={`loading w-5 h-5 ${isLoading ? "block" : "hidden"}`}></div>
+            <div
+              className={`loading w-5 h-5 ${isLoading ? "block" : "hidden"}`}
+            ></div>
             <span className={isLoading ? "hidden" : "block"}>
-              {step === "SET_PASSWORD"
-                ? "Submit"
-                : step === "LOGIN"
-                  ? "LOGIN"
-                  : "Lanjutkan"}
+              <span>
+                {step === "SET_PASSWORD"
+                  ? "Submit"
+                  : step === "LOGIN"
+                    ? "LOGIN"
+                    : "Lanjutkan"}
+              </span>
             </span>
-            <span className={isLoading ? "block" : "hidden"}>Loading...</span>
+            <span className={isLoading ? "block" : "hidden"}>
+              <span>Loading...</span>
+            </span>
           </button>
         </form>
 

@@ -30,8 +30,8 @@ export default function SentryConfigProvider({
 
         // Tandai sudah load
         localStorage.setItem("SENTRY_CONFIG_LOADED", currentStatusStr);
-      } catch (error) {
-        console.error("Gagal mengambil status Sentry dari API:", error);
+      } catch (error: any) {
+        console.warn("Gagal mengambil status Sentry dari API:", error?.message || error);
         // Fail-safe: Default ON jika error
         localStorage.setItem("SENTRY_CONFIG_STATUS", "true");
         localStorage.setItem("SENTRY_CONFIG_LOADED", "true");
