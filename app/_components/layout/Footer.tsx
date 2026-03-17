@@ -82,14 +82,18 @@ function Footer() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 w-full lg:w-[70%]">
             <div className="col-span-1 md:col-span-2">
               <h5 className="font-bold mb-2.5">Address</h5>
-              <p className="font-semibold" suppressHydrationWarning><span>PT. Telemedia Komunikasi Pratama</span></p>
+              <p className="font-semibold" suppressHydrationWarning>
+                <span>PT. Telemedia Komunikasi Pratama</span>
+              </p>
               {isLoading ? (
                 <div className="mt-2 flex flex-col gap-1">
                   <SkeletonBase height="h-4" />
                   <SkeletonBase height="h-4" />
                 </div>
               ) : (
-                <p suppressHydrationWarning><span>{address}</span></p>
+                <p suppressHydrationWarning>
+                  <span>{address}</span>
+                </p>
               )}
             </div>
             <div className="col-span-1 ">
@@ -219,12 +223,14 @@ function Footer() {
               </span>
             </p>
             <p className="" suppressHydrationWarning>
-              <span>Copyright © {moment().year()} PT. Telemedia Komunikasi Pratama</span>
+              <span>
+                Copyright © {moment().year()} PT. Telemedia Komunikasi Pratama
+              </span>
             </p>
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.1603.02</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.1703.01</div>
       </div>
     </div>
   );
