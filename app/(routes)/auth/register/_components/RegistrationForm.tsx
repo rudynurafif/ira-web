@@ -140,8 +140,7 @@ function RegistrationForm({
     initialData?.longitude &&
     String(initialData.latitude) !== "0" &&
     String(initialData.longitude) !== "0";
-  const [isCheckCoverage, setIsCheckCoverage] =
-    useState<boolean>(!hasInitialLocation);
+  const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
   const [mitraID, setMitraID] = useState<
     { id: string | number; [key: string]: any }[]
   >([]);
@@ -578,21 +577,24 @@ function RegistrationForm({
         );
       } else {
         setGeocodeCooldown(0);
-        setIsAddressMapped(true); // Still show map so user can set manually
+        const isAuthError = data.status === "REQUEST_DENIED";
 
-        // Try to get current position as fallback if geocoding failed
-        if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition((position) => {
-            const { latitude, longitude } = position.coords;
-            setFormData((prev) => ({
-              ...prev,
-              latitude: String(latitude),
-              longitude: String(longitude),
-            }));
-          });
+        if (!isAuthError) {
+          setIsAddressMapped(true); // Still show map so user can set manually if not an auth error
+
+          // Try to get current position as fallback if geocoding failed
+          if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition((position) => {
+              const { latitude, longitude } = position.coords;
+              setFormData((prev) => ({
+                ...prev,
+                latitude: String(latitude),
+                longitude: String(longitude),
+              }));
+            });
+          }
         }
 
-        const isAuthError = data.status === "REQUEST_DENIED";
         toast.error(
           isAuthError
             ? "API Key Google Maps Anda terblokir/dibatasi (IP/Referer). Silakan cek Google Cloud Console atau atur titik manual di peta."

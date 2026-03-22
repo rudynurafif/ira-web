@@ -363,7 +363,7 @@ const Page = () => {
   // RENDER
   // ===============================
   return (
-    <div className="flex w-full justify-center px-6 my-10">
+    <div className="flex w-full justify-center px-6 py-6 sm:py-10">
       <div className="w-full max-w-xl">
         <Notification mode="store" body={bodyToken} />
 
