@@ -474,6 +474,14 @@ export const formatTime = (seconds: number): string => {
 
 export const handleDownloadClick = (type: "google" | "apple" | "web"): void => {
   try {
+    if (
+      typeof window !== "undefined" &&
+      typeof (window as any).fbq === "function" &&
+      type !== "web"
+    ) {
+      (window as any).fbq("track", "CustomizeProduct");
+    }
+
     if (type === "google") {
       window.open(
         "https://play.google.com/store/apps/details?id=com.weave.ira",

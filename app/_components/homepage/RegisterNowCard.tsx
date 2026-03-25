@@ -13,6 +13,14 @@ function RegisterNowCard() {
         </p>
         <Link
           href="/auth/register"
+          onClick={() => {
+            if (
+              typeof window !== "undefined" &&
+              typeof (window as any).fbq === "function"
+            ) {
+              (window as any).fbq("track", "Lead");
+            }
+          }}
           className="text-primary underline underline-animation-register text-2xl max-sm:text-base font-bold"
         >
           Register Sekarang {">"}
