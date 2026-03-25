@@ -228,7 +228,7 @@ function CheckCoverage() {
             {/* Loading + cooldown counter */}
             {isLoading && (
               <div className="border-2 rounded-lg px-4 py-2 w-full block absolute z-50 bg-white mt-2">
-                Mencari lokasi...{" "}
+                <span>Mencari lokasi... </span>
                 {cooldownCount > 0 && (
                   <span className="text-primary font-semibold">
                     ({cooldownCount})
