@@ -116,6 +116,14 @@ function MainPage() {
             </h1>
             <Link
               href="/auth/register"
+              onClick={() => {
+                if (
+                  typeof window !== "undefined" &&
+                  typeof (window as any).fbq === "function"
+                ) {
+                  (window as any).fbq("track", "Lead");
+                }
+              }}
               className="inline-flex gap-2 justify-center items-center mt-10 py-1.5 max-sm:py-1 max-sm:px-0.5 gradient-box rounded-full custom-click cursor-pointer"
               id="button-berlangganan-sekarang"
             >
@@ -223,6 +231,14 @@ function MainPage() {
             </h1>
             <Link
               href="/auth/register"
+              onClick={() => {
+                if (
+                  typeof window !== "undefined" &&
+                  typeof (window as any).fbq === "function"
+                ) {
+                  (window as any).fbq("track", "Lead");
+                }
+              }}
               className="inline-flex gap-2 justify-center items-center mt-6 py-1.5 max-sm:py-1 max-sm:px-0.5 gradient-box rounded-full custom-click cursor-pointer"
               id="button-berlangganan-sekarang"
             >

@@ -732,6 +732,14 @@ function RegistrationForm({
           localStorage.setItem("registration_phone", phoneValue);
         }
 
+        // Facebook Pixel Track CompleteRegistration
+        if (
+          typeof window !== "undefined" &&
+          typeof (window as any).fbq === "function"
+        ) {
+          (window as any).fbq("track", "CompleteRegistration");
+        }
+
         setIsModalRegisterSuccess(true);
         if (pathname === "/auth/register") {
           window.history.pushState(null, "", "/auth/register/popup");

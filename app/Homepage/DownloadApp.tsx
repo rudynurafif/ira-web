@@ -11,6 +11,11 @@ import { handleDownloadClick } from "../_shared/utils";
 const DownloadApp = () => {
   const handleClickBanner = () => {
     if (typeof window === "undefined") return;
+
+    if (typeof (window as any).fbq === "function") {
+      (window as any).fbq("track", "CustomizeProduct");
+    }
+
     const ua = navigator.userAgent.toLowerCase();
     const isApple = /mac|iphone|ipad|ipod/.test(ua);
     handleDownloadClick(isApple ? "apple" : "google");
