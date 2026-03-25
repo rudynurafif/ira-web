@@ -78,7 +78,8 @@ export default function GlobalError({
             >
               💡 Demi kelancaran dan keamanan Anda, silakan buka{" "}
               <strong style={{ color: "#d7201d" }}>internetrakyat.id</strong> di
-              web browser <strong>Google Chrome</strong>.
+              web browser <strong>Google Chrome</strong> versi terbaru, atau download aplikasi
+              Internet Rakyat di Play Store atau App Store jika error terus terjadi.
             </p>
           </div>
 

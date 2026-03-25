@@ -434,6 +434,7 @@ function MapGeoapify({
     setAddress("");
     setPredictions([]);
     setLocation(null);
+    lastAutocompleteQueryRef.current = null; // ✅ Reset pencarian terakhir agar bisa dicari ulang
 
     onPlaceChange?.({
       address: "",
