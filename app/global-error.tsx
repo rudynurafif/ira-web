@@ -15,6 +15,7 @@ export default function GlobalError({
   useEffect(() => {
     // Kirim error ke Sentry
     Sentry.captureException(error);
+    console.error(error);
 
     if (typeof window !== "undefined") {
       setCurrentRoute(window.location.pathname + window.location.search);
@@ -38,9 +39,18 @@ export default function GlobalError({
           <h2 style={{ fontSize: "24px", marginBottom: "8px", color: "#333" }}>
             Oops! Terjadi kesalahan.
           </h2>
-          
-          <p style={{ color: "#d7201d", marginBottom: "16px", fontWeight: "bold", padding: "0 16px", wordBreak: "break-word" }}>
-            Pesan Kesalahan: {error?.message || "Terjadi kesalahan tidak dikenal."}
+
+          <p
+            style={{
+              color: "#d7201d",
+              marginBottom: "16px",
+              fontWeight: "bold",
+              padding: "0 16px",
+              wordBreak: "break-word",
+            }}
+          >
+            Pesan Kesalahan:{" "}
+            {error?.message || "Terjadi kesalahan tidak dikenal."}
           </p>
 
           <div
@@ -55,11 +65,20 @@ export default function GlobalError({
               maxWidth: "500px",
               width: "90%",
               margin: "0 auto 20px auto",
-              textAlign: "center"
+              textAlign: "center",
             }}
           >
-            <p style={{ margin: 0, fontWeight: "500", color: "#4a5568", lineHeight: "1.5" }}>
-              💡 Demi kelancaran dan keamanan Anda, silakan buka <strong style={{ color: "#d7201d" }}>internetrakyat.id</strong> di web browser <strong>Google Chrome</strong>.
+            <p
+              style={{
+                margin: 0,
+                fontWeight: "500",
+                color: "#4a5568",
+                lineHeight: "1.5",
+              }}
+            >
+              💡 Demi kelancaran dan keamanan Anda, silakan buka{" "}
+              <strong style={{ color: "#d7201d" }}>internetrakyat.id</strong> di
+              web browser <strong>Google Chrome</strong>.
             </p>
           </div>
 
