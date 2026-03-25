@@ -182,6 +182,12 @@ function Header() {
 
   const handleAuthButton = () => {
     if (pathname === "/auth/login") {
+      if (
+        typeof window !== "undefined" &&
+        typeof (window as any).fbq === "function"
+      ) {
+        (window as any).fbq("track", "Lead");
+      }
       router.push("/auth/register");
     } else if (pathname === "/auth/register") {
       router.push("/auth/login");
