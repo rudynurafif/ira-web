@@ -32,7 +32,7 @@ import {
   regexEmail,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import MapGeoapify from "@/app/_components/form/MapGeoapify";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
@@ -169,6 +169,7 @@ function RegistrationForm({
   }, [status]);
 
   const router = useRouter();
+  const pathname = usePathname();
 
   const STORAGE_KEY = `otp:register:phone`;
 
@@ -732,6 +733,9 @@ function RegistrationForm({
         }
 
         setIsModalRegisterSuccess(true);
+        if (pathname === "/auth/register") {
+          window.history.pushState(null, "", "/auth/register/popup");
+        }
         setOtpStatus("idle");
         resetForm();
       } catch (error: any) {
@@ -1650,6 +1654,9 @@ function RegistrationForm({
         <ModalTemplate
           closeModal={() => {
             setIsModalRegisterSuccess(false);
+            if (pathname === "/auth/register") {
+              window.history.replaceState(null, "", "/auth/register");
+            }
             if (mode === "update_address") {
               window.location.href = "/customer-area";
             }

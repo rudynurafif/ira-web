@@ -434,6 +434,7 @@ function MapGeoapify({
     setAddress("");
     setPredictions([]);
     setLocation(null);
+    lastAutocompleteQueryRef.current = null; // ✅ Reset pencarian terakhir agar bisa dicari ulang
 
     onPlaceChange?.({
       address: "",
@@ -510,7 +511,8 @@ function MapGeoapify({
           {/* Loading & Predictions */}
           {isLoading && (
             <div className="bg-white mt-3 border rounded-lg px-4 py-2 w-full">
-              <span>Mencari lokasi... {cooldownCount > 0 && cooldownCount}</span>
+              <span>Mencari lokasi... </span>
+              {cooldownCount > 0 && <span>{cooldownCount}</span>}
             </div>
           )}
 
