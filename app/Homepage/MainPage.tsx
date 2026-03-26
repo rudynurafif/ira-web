@@ -123,20 +123,20 @@ function MainPage() {
                   }
                   if (typeof (window as any).ttq === "object") {
                     (window as any).ttq.identify({
-                      "email": "<hashed_email_address>",
-                      "phone_number": "<hashed_phone_number>",
-                      "external_id": "<hashed_external_id>"
+                      email: "<hashed_email_address>",
+                      phone_number: "<hashed_phone_number>",
+                      external_id: "<hashed_external_id>",
                     });
-                    (window as any).ttq.track('Lead', {
-                      "contents": [
+                    (window as any).ttq.track("Lead", {
+                      contents: [
                         {
-                          "content_id": "<content_identifier>",
-                          "content_type": "<content_type>",
-                          "content_name": "<content_name>"
-                        }
+                          content_id: "main_hero",
+                          content_type: "button_click",
+                          content_name: "Tombol Gratis 1 Bulan - Hero Banner",
+                        },
                       ],
-                      "value": "<content_value>",
-                      "currency": "<content_currency>"
+                      value: 0,
+                      currency: "IDR",
                     });
                   }
                 }
@@ -255,20 +255,20 @@ function MainPage() {
                   }
                   if (typeof (window as any).ttq === "object") {
                     (window as any).ttq.identify({
-                      "email": "<hashed_email_address>",
-                      "phone_number": "<hashed_phone_number>",
-                      "external_id": "<hashed_external_id>"
+                      email: "<hashed_email_address>",
+                      phone_number: "<hashed_phone_number>",
+                      external_id: "<hashed_external_id>",
                     });
-                    (window as any).ttq.track('Lead', {
-                      "contents": [
+                    (window as any).ttq.track("Lead", {
+                      contents: [
                         {
-                          "content_id": "<content_identifier>",
-                          "content_type": "<content_type>",
-                          "content_name": "<content_name>"
-                        }
+                          content_id: "promo_section",
+                          content_type: "button_click",
+                          content_name: "Tombol Gratis 1 Bulan - Promo Section",
+                        },
                       ],
-                      "value": "<content_value>",
-                      "currency": "<content_currency>"
+                      value: 0,
+                      currency: "IDR",
                     });
                   }
                 }

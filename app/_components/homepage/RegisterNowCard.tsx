@@ -20,20 +20,20 @@ function RegisterNowCard() {
               }
               if (typeof (window as any).ttq === "object") {
                 (window as any).ttq.identify({
-                  "email": "<hashed_email_address>",
-                  "phone_number": "<hashed_phone_number>",
-                  "external_id": "<hashed_external_id>"
+                  email: "<hashed_email_address>",
+                  phone_number: "<hashed_phone_number>",
+                  external_id: "<hashed_external_id>",
                 });
-                (window as any).ttq.track('Lead', {
-                  "contents": [
+                (window as any).ttq.track("Lead", {
+                  contents: [
                     {
-                      "content_id": "<content_identifier>",
-                      "content_type": "<content_type>",
-                      "content_name": "<content_name>"
-                    }
+                      content_id: "section_banner",
+                      content_type: "button_click",
+                      content_name: "Tombol Register Sekarang Di Section",
+                    },
                   ],
-                  "value": "<content_value>",
-                  "currency": "<content_currency>"
+                  value: 0,
+                  currency: "IDR",
                 });
               }
             }
