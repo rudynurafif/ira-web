@@ -276,6 +276,7 @@ function MapGeoapify({
     const lng = geometry.coordinates[0];
 
     setLocation({ lat, lng });
+    lastReverseCoordsRef.current = { lat, lng }; // ✅ CEGAH DOUBLE LOADING DI 'moveend'
 
     onPlaceChange?.({
       address: addr,
@@ -375,14 +376,19 @@ function MapGeoapify({
         const { lat, lng } = map.getCenter();
         setLocation({ lat, lng });
 
+        const last = lastReverseCoordsRef.current;
+        // Cek jika pergeseran tidak ada / sangat kecil (karena diklik dari suggestion atau zoom in/out)
+        if (
+          last &&
+          Math.abs(last.lat - lat) < 0.00005 &&
+          Math.abs(last.lng - lng) < 0.00005
+        ) {
+          return;
+        }
+
         setIsLoading(true);
 
         startCooldown(10, async () => {
-          const last = lastReverseCoordsRef.current;
-          if (last && last.lat === lat && last.lng === lng) {
-            setIsLoading(false);
-            return;
-          }
           lastReverseCoordsRef.current = { lat, lng };
 
           try {
@@ -449,14 +455,13 @@ function MapGeoapify({
     if (inputRef.current) inputRef.current.value = "";
     setAddress("");
     setPredictions([]);
-    setLocation(null);
     lastAutocompleteQueryRef.current = null; // ✅ Reset pencarian terakhir agar bisa dicari ulang
 
     onPlaceChange?.({
       address: "",
       raw_result: null,
-      latitude: 0,
-      longitude: 0,
+      latitude: location?.lat ?? 0,
+      longitude: location?.lng ?? 0,
       source: "user",
     });
     getAddress("", { source: "user" });
