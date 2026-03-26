@@ -14,11 +14,28 @@ function RegisterNowCard() {
         <Link
           href="/auth/register"
           onClick={() => {
-            if (
-              typeof window !== "undefined" &&
-              typeof (window as any).fbq === "function"
-            ) {
-              (window as any).fbq("track", "Lead");
+            if (typeof window !== "undefined") {
+              if (typeof (window as any).fbq === "function") {
+                (window as any).fbq("track", "Lead");
+              }
+              if (typeof (window as any).ttq === "object") {
+                (window as any).ttq.identify({
+                  "email": "<hashed_email_address>",
+                  "phone_number": "<hashed_phone_number>",
+                  "external_id": "<hashed_external_id>"
+                });
+                (window as any).ttq.track('Lead', {
+                  "contents": [
+                    {
+                      "content_id": "<content_identifier>",
+                      "content_type": "<content_type>",
+                      "content_name": "<content_name>"
+                    }
+                  ],
+                  "value": "<content_value>",
+                  "currency": "<content_currency>"
+                });
+              }
             }
           }}
           className="text-primary underline underline-animation-register text-2xl max-sm:text-base font-bold"
