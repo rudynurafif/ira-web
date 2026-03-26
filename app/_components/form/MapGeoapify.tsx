@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { FaSearch } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
+import { MdMyLocation } from "react-icons/md";
 
 const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
 
@@ -36,6 +37,12 @@ function MapGeoapify({
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null,
   );
+  // Simpan koordinat awal (GPS) agar bisa dikembalikan saat user klik reset
+  const [originalLocation, setOriginalLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
   const [address, setAddress] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCooldown, setIsCooldown] = useState(false);
@@ -66,6 +73,7 @@ function MapGeoapify({
 
     if (initialLatitude && initialLongitude) {
       setLocation({ lat: initialLatitude, lng: initialLongitude });
+      setOriginalLocation({ lat: initialLatitude, lng: initialLongitude });
 
       // Optionally, you can get the address from these coordinates (reverse geocoding)
       fetch(
@@ -105,6 +113,7 @@ function MapGeoapify({
           async (position) => {
             const { latitude, longitude } = position.coords;
             setLocation({ lat: latitude, lng: longitude });
+            setOriginalLocation({ lat: latitude, lng: longitude });
 
             // Ambil alamat dari koordinat (reverse geocoding)
             try {
@@ -267,6 +276,7 @@ function MapGeoapify({
     const lng = geometry.coordinates[0];
 
     setLocation({ lat, lng });
+    lastReverseCoordsRef.current = { lat, lng }; // ✅ CEGAH DOUBLE LOADING DI 'moveend'
 
     onPlaceChange?.({
       address: addr,
@@ -295,7 +305,15 @@ function MapGeoapify({
       const map = (window as any).mapInstance;
       const marker = (window as any).markerInstance;
 
-      map.setView([location.lat, location.lng], 18);
+      const currentCenter = map.getCenter();
+      // Hanya ganti view jika bergesernya signifikan (karena klik search / init awal)
+      // Ini mencegah infinite loop dari event "moveend" map
+      if (
+        Math.abs(currentCenter.lat - location.lat) > 0.00005 ||
+        Math.abs(currentCenter.lng - location.lng) > 0.00005
+      ) {
+        map.setView([location.lat, location.lng], 18);
+      }
       marker.setLatLng([location.lat, location.lng]);
     }
   }, [location]);
@@ -319,13 +337,8 @@ function MapGeoapify({
 
     const L = (window as any).L;
 
-    // Kalau sudah ada mapInstance, jangan init ulang – cukup update view/marker
+    // Kalau sudah ada mapInstance, jangan init ulang
     if ((window as any).mapInstance) {
-      const map = (window as any).mapInstance;
-      const marker = (window as any).markerInstance;
-
-      map.setView([location.lat, location.lng], 18);
-      marker.setLatLng([location.lat, location.lng]);
       return;
     }
 
@@ -349,24 +362,33 @@ function MapGeoapify({
     ).addTo(map);
 
     const marker = L.marker([location.lat, location.lng], {
-      draggable: isInteractive,
+      draggable: false, // Marker tidak perlu didrag karena selalu mengikuti tengah map
     }).addTo(map);
 
     if (isInteractive) {
-      marker.off("dragend");
+      // Event saat map sedang digeser (live)
+      map.on("move", () => {
+        marker.setLatLng(map.getCenter());
+      });
 
-      marker.on("dragend", (e: any) => {
-        const { lat, lng } = e.target.getLatLng();
+      // Event saat map selesai digeser
+      map.on("moveend", () => {
+        const { lat, lng } = map.getCenter();
         setLocation({ lat, lng });
+
+        const last = lastReverseCoordsRef.current;
+        // Cek jika pergeseran tidak ada / sangat kecil (karena diklik dari suggestion atau zoom in/out)
+        if (
+          last &&
+          Math.abs(last.lat - lat) < 0.00005 &&
+          Math.abs(last.lng - lng) < 0.00005
+        ) {
+          return;
+        }
 
         setIsLoading(true);
 
         startCooldown(10, async () => {
-          const last = lastReverseCoordsRef.current;
-          if (last && last.lat === lat && last.lng === lng) {
-            setIsLoading(false);
-            return;
-          }
           lastReverseCoordsRef.current = { lat, lng };
 
           try {
@@ -433,14 +455,13 @@ function MapGeoapify({
     if (inputRef.current) inputRef.current.value = "";
     setAddress("");
     setPredictions([]);
-    setLocation(null);
     lastAutocompleteQueryRef.current = null; // ✅ Reset pencarian terakhir agar bisa dicari ulang
 
     onPlaceChange?.({
       address: "",
       raw_result: null,
-      latitude: 0,
-      longitude: 0,
+      latitude: location?.lat ?? 0,
+      longitude: location?.lng ?? 0,
       source: "user",
     });
     getAddress("", { source: "user" });
@@ -470,7 +491,9 @@ function MapGeoapify({
               }}
               className="flex items-center justify-center gap-2 bg-white p-2 shadow-md rounded-lg cursor-pointer text-gray-500 hover:text-gray-700"
             >
-              <p className="text-black font-semibold"><span>Cari</span></p>
+              <p className="text-black font-semibold">
+                <span>Cari</span>
+              </p>
               <FaSearch size={16} color="black" />
             </button>
 
@@ -524,7 +547,9 @@ function MapGeoapify({
                   onClick={() => handleSuggestionClick(feature)}
                   className="cursor-pointer p-3 border-b last:border-b-0 hover:bg-gray-50"
                 >
-                  <p className="font-medium"><span>{feature.properties.formatted}</span></p>
+                  <p className="font-medium">
+                    <span>{feature.properties.formatted}</span>
+                  </p>
                   <p className="text-sm text-gray-600">
                     <span>
                       {feature?.properties?.city ??
@@ -543,28 +568,42 @@ function MapGeoapify({
 
       {/* Peta */}
       <div
-        ref={mapContainerRef}
-        className="w-full h-100 rounded-xl border border-gray-300 relative  overflow-hidden"
+        className="w-full h-100 rounded-xl border border-gray-300 relative overflow-hidden group"
         style={{ minHeight: "300px" }}
       >
         {!location && (
-          <div className="flex items-center justify-center h-full bg-gray-100 text-gray-500">
+          <div className="absolute inset-0 z-[1000] flex items-center justify-center h-full bg-gray-100 text-gray-500">
             <span>Sedang mengambil lokasi Anda...</span>
           </div>
         )}
-      </div>
+        <div ref={mapContainerRef} className="w-full h-full relative z-0" />
 
-      {/* Overlay Cooldown */}
-      {/* {isCooldown && (
-        <div className="absolute bottom-7 right-5 flex items-center justify-center z-1000 rounded-xl">
-          <div className="bg-white px-6 py-3 rounded-lg shadow-lg">
-            <p>
-              Sedang mencari... {" "}
-              <span className="text-primary">({cooldownCount})</span>
-            </p>
-          </div>
-        </div>
-      )} */}
+        {/* Tombol My Location (Refresh Map) */}
+        {isInteractive && originalLocation && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setLocation(originalLocation);
+              const mapInstance = (window as any).mapInstance;
+              if (mapInstance) {
+                mapInstance.setView(
+                  [originalLocation.lat, originalLocation.lng],
+                  mapInstance.getZoom(),
+                );
+              }
+            }}
+            className="absolute bottom-6 right-4 z-[1000] bg-white p-3 rounded-full shadow-md border border-gray-200 hover:bg-gray-50 flex items-center justify-center cursor-pointer transition-transform transform active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 opacity-100"
+            title="Kembali ke lokasi Anda"
+          >
+            <MdMyLocation
+              size={24}
+              className="text-gray-700 hover:text-primary"
+            />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
