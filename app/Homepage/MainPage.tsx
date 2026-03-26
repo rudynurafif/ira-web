@@ -122,22 +122,7 @@ function MainPage() {
                     (window as any).fbq("track", "Lead");
                   }
                   if (typeof (window as any).ttq === "object") {
-                    (window as any).ttq.identify({
-                      email: "<hashed_email_address>",
-                      phone_number: "<hashed_phone_number>",
-                      external_id: "<hashed_external_id>",
-                    });
-                    (window as any).ttq.track("Lead", {
-                      contents: [
-                        {
-                          content_id: "main_hero",
-                          content_type: "button_click",
-                          content_name: "Tombol Gratis 1 Bulan - Hero Banner",
-                        },
-                      ],
-                      value: 0,
-                      currency: "IDR",
-                    });
+                    (window as any).ttq.track("Lead", { content_name: "Tombol Gratis 1 Bulan - Hero Banner" });
                   }
                 }
               }}
@@ -254,22 +239,7 @@ function MainPage() {
                     (window as any).fbq("track", "Lead");
                   }
                   if (typeof (window as any).ttq === "object") {
-                    (window as any).ttq.identify({
-                      email: "<hashed_email_address>",
-                      phone_number: "<hashed_phone_number>",
-                      external_id: "<hashed_external_id>",
-                    });
-                    (window as any).ttq.track("Lead", {
-                      contents: [
-                        {
-                          content_id: "promo_section",
-                          content_type: "button_click",
-                          content_name: "Tombol Gratis 1 Bulan - Promo Section",
-                        },
-                      ],
-                      value: 0,
-                      currency: "IDR",
-                    });
+                    (window as any).ttq.track("Lead", { content_name: "Tombol Gratis 1 Bulan - Promo Section" });
                   }
                 }
               }}
