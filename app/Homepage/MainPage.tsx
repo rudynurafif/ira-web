@@ -117,11 +117,28 @@ function MainPage() {
             <Link
               href="/auth/register"
               onClick={() => {
-                if (
-                  typeof window !== "undefined" &&
-                  typeof (window as any).fbq === "function"
-                ) {
-                  (window as any).fbq("track", "Lead");
+                if (typeof window !== "undefined") {
+                  if (typeof (window as any).fbq === "function") {
+                    (window as any).fbq("track", "Lead");
+                  }
+                  if (typeof (window as any).ttq === "object") {
+                    (window as any).ttq.identify({
+                      "email": "<hashed_email_address>",
+                      "phone_number": "<hashed_phone_number>",
+                      "external_id": "<hashed_external_id>"
+                    });
+                    (window as any).ttq.track('Lead', {
+                      "contents": [
+                        {
+                          "content_id": "<content_identifier>",
+                          "content_type": "<content_type>",
+                          "content_name": "<content_name>"
+                        }
+                      ],
+                      "value": "<content_value>",
+                      "currency": "<content_currency>"
+                    });
+                  }
                 }
               }}
               className="inline-flex gap-2 justify-center items-center mt-10 py-1.5 max-sm:py-1 max-sm:px-0.5 gradient-box rounded-full custom-click cursor-pointer"
@@ -232,11 +249,28 @@ function MainPage() {
             <Link
               href="/auth/register"
               onClick={() => {
-                if (
-                  typeof window !== "undefined" &&
-                  typeof (window as any).fbq === "function"
-                ) {
-                  (window as any).fbq("track", "Lead");
+                if (typeof window !== "undefined") {
+                  if (typeof (window as any).fbq === "function") {
+                    (window as any).fbq("track", "Lead");
+                  }
+                  if (typeof (window as any).ttq === "object") {
+                    (window as any).ttq.identify({
+                      "email": "<hashed_email_address>",
+                      "phone_number": "<hashed_phone_number>",
+                      "external_id": "<hashed_external_id>"
+                    });
+                    (window as any).ttq.track('Lead', {
+                      "contents": [
+                        {
+                          "content_id": "<content_identifier>",
+                          "content_type": "<content_type>",
+                          "content_name": "<content_name>"
+                        }
+                      ],
+                      "value": "<content_value>",
+                      "currency": "<content_currency>"
+                    });
+                  }
                 }
               }}
               className="inline-flex gap-2 justify-center items-center mt-6 py-1.5 max-sm:py-1 max-sm:px-0.5 gradient-box rounded-full custom-click cursor-pointer"
