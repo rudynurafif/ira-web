@@ -217,7 +217,7 @@ function PhoneOTPForm({
             onPaste={handlePaste}
             className={`pl-5 py-3 disabled:bg-background-customer disabled:cursor-not-allowed! bg-primary-spectrum rounded-xl w-full border ${
               error ? "border-red-500" : "border-[#D5D5D5]"
-            } placeholder:text-gray-400 placeholder:text-sm`}
+            } placeholder:text-gray-400 placeholder:text-sm max-sm:text-sm max-sm:min-h-[50px]`}
             {...props}
           />
 
