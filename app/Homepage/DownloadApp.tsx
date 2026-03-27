@@ -16,22 +16,7 @@ const DownloadApp = () => {
       (window as any).fbq("track", "CustomizeProduct");
     }
     if (typeof (window as any).ttq === "object") {
-      (window as any).ttq.identify({
-        "email": "<hashed_email_address>",
-        "phone_number": "<hashed_phone_number>",
-        "external_id": "<hashed_external_id>"
-      });
-      (window as any).ttq.track('Download', {
-        "contents": [
-          {
-            "content_id": "<content_identifier>",
-            "content_type": "<content_type>",
-            "content_name": "<content_name>"
-          }
-        ],
-        "value": "<content_value>",
-        "currency": "<content_currency>"
-      });
+      (window as any).ttq.track('Download');
     }
 
     const ua = navigator.userAgent.toLowerCase();
