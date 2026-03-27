@@ -97,6 +97,7 @@ body {
     opacity: 0;
     /* height: 0px; */
   }
+
   to {
     opacity: 1;
     /* height: 225px; */
@@ -116,6 +117,7 @@ button {
     opacity: 1;
     /* height: 225px; */
   }
+
   to {
     opacity: 0;
     /* height: 0px; */
@@ -157,7 +159,8 @@ button {
   font-size: 60px;
   font-style: normal;
   font-weight: 700;
-  line-height: 117.7%; /* 58.85px */
+  line-height: 117.7%;
+  /* 58.85px */
 }
 
 .slick-track {
@@ -167,13 +170,11 @@ button {
 
 .background-card-register {
   border: 1px solid #a39494;
-  background: linear-gradient(
-    183deg,
-    #fff -2.94%,
-    #fefdfd 45.46%,
-    #fbf6f6 57.71%,
-    #e39f9f 118.06%
-  );
+  background: linear-gradient(183deg,
+      #fff -2.94%,
+      #fefdfd 45.46%,
+      #fbf6f6 57.71%,
+      #e39f9f 118.06%);
 }
 
 .underline-animation-register {
@@ -199,21 +200,19 @@ button {
 }
 
 .bg-faq {
-  background: linear-gradient(
-    221deg,
-    #fff -2.94%,
-    #fefdfd 45.46%,
-    #fbf6f6 63.61%,
-    #f6eaea 75.71%,
-    #efd9d9 86.6%,
-    #eed4d4 92.65%,
-    #ffcccc 97.49%,
-    #ff9999 102.33%,
-    #fe7171 107.17%,
-    #fe6767 111.15%,
-    #fe4343 115.64%,
-    #fe0202 118.06%
-  );
+  background: linear-gradient(221deg,
+      #fff -2.94%,
+      #fefdfd 45.46%,
+      #fbf6f6 63.61%,
+      #f6eaea 75.71%,
+      #efd9d9 86.6%,
+      #eed4d4 92.65%,
+      #ffcccc 97.49%,
+      #ff9999 102.33%,
+      #fe7171 107.17%,
+      #fe6767 111.15%,
+      #fe4343 115.64%,
+      #fe0202 118.06%);
 }
 
 .loading {
@@ -248,12 +247,10 @@ button {
 } */
 
 .bg-subs-new {
-  background: linear-gradient(
-    173.48deg,
-    #ff5f5d -12.78%,
-    #cd2a27 37.72%,
-    #c21e1b 91.2%
-  );
+  background: linear-gradient(173.48deg,
+      #ff5f5d -12.78%,
+      #cd2a27 37.72%,
+      #c21e1b 91.2%);
   box-shadow:
     0px 0px 33.1708px #ff3ba0,
     inset 0px 0px 21.0795px rgba(255, 165, 211, 0.55);
@@ -261,21 +258,18 @@ button {
 }
 
 .bg-subs-expired {
-  background: linear-gradient(
-    173.48deg,
-    /* #ff5f5d -12.78%, */ #520201 7.72%,
-    #d6211e 91.2%
-  );
+  background: linear-gradient(173.48deg,
+      /* #ff5f5d -12.78%, */
+      #520201 7.72%,
+      #d6211e 91.2%);
 
   /* filter: drop-shadow(0px 0px 21.349px #ffaae3); */
 }
 
 .fancy-background {
-  background: linear-gradient(
-    180deg,
-    #ff6bb7 -78.1%,
-    rgba(255, 147, 202, 0) 101.42%
-  );
+  background: linear-gradient(180deg,
+      #ff6bb7 -78.1%,
+      rgba(255, 147, 202, 0) 101.42%);
   /* background: linear-gradient(
     189.83deg,
     #ff3ba0 -78.1%,
@@ -284,11 +278,9 @@ button {
 }
 
 .fancy-background-expired {
-  background: linear-gradient(
-    180deg,
-    #f6f6f6 -78.1%,
-    rgba(255, 147, 202, 0) 101.42%
-  );
+  background: linear-gradient(180deg,
+      #f6f6f6 -78.1%,
+      rgba(255, 147, 202, 0) 101.42%);
 }
 
 .custom-click,
@@ -315,13 +307,11 @@ button {
   z-index: 1;
   transform: skew(-30deg);
   background: rgba(255, 255, 255, 0.5);
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 10%,
-    rgba(255, 255, 255, 0.35) 40%,
-    rgba(255, 255, 255, 0.35) 50%,
-    rgba(255, 255, 255, 0) 80%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 10%,
+      rgba(255, 255, 255, 0.35) 40%,
+      rgba(255, 255, 255, 0.35) 50%,
+      rgba(255, 255, 255, 0) 80%);
   animation-duration: 1.5s;
   animation-iteration-count: infinite;
   animation-timing-function: ease-out;
@@ -336,6 +326,7 @@ button {
   0% {
     background-position: 0% 0%;
   }
+
   100% {
     background-position: -200% 0%;
   }
@@ -361,9 +352,11 @@ button {
   0% {
     left: -80px;
   }
+
   60% {
     left: 100%;
   }
+
   100% {
     left: 100%;
   }
@@ -373,9 +366,11 @@ button {
   0% {
     left: -120px;
   }
+
   60% {
     left: 100%;
   }
+
   100% {
     left: 100%;
   }
@@ -539,8 +534,10 @@ button.ghost {
 }
 
 .hide-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 @layer utilities {
@@ -564,13 +561,14 @@ button.ghost {
 .text-outline {
   -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.7);
   -webkit-text-fill-color: white;
-  text-shadow: 
+  text-shadow:
     /* Outline luar */
     -1px -1px 0 rgba(0, 0, 0, 0.8),
     1px -1px 0 rgba(0, 0, 0, 0.8),
     -1px 1px 0 rgba(0, 0, 0, 0.8),
     1px 1px 0 rgba(0, 0, 0, 0.8),
-    /* Shadow utama ke kiri-bawah */ -3px 4px 6px rgba(0, 0, 0, 0.45);
+    /* Shadow utama ke kiri-bawah */
+    -3px 4px 6px rgba(0, 0, 0, 0.45);
 }
 
 .button-perpanjang {
@@ -592,7 +590,8 @@ button.ghost {
   font-family: "Be Vietnam Pro";
   font-style: normal;
   font-weight: 800;
-  line-height: 115%; /* 16.1px */
+  line-height: 115%;
+  /* 16.1px */
   text-transform: capitalize;
 }
 
@@ -606,6 +605,7 @@ button.ghost {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -627,7 +627,8 @@ button.ghost {
 }
 
 .notif-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: #b91c1c; /* sedikit lebih gelap */
+  background-color: #b91c1c;
+  /* sedikit lebih gelap */
 }
 
 /* Firefox */
@@ -635,3 +636,15 @@ button.ghost {
   scrollbar-width: thin;
   scrollbar-color: #d7201d transparent;
 }
+
+.collaboration-section-title {
+  background: linear-gradient(136deg, #000 2.93%, #9C1816 83.81%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* font-family: Figtree; */
+  font-style: normal;
+  font-weight: 700;
+  line-height: 100%;
+}
+

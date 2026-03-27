@@ -45,13 +45,11 @@ function WhyFWAPage() {
   return (
     <div className="container mx-auto px-5 text-black py-12 sm:py-18">
       {/* Versi GO Commercial */}
-      <div className="lg:hidden flex flex-col items-center gap-4 w-full pb-20 -mt-30">
-        {/* Teks Atas */}
+      {/* <div className="lg:hidden flex flex-col items-center gap-4 w-full pb-20 -mt-30">
         <p className=" font-bold text-2xl text-center z-9999">
           Temukan Aplikasi IRA di
         </p>
 
-        {/* Tombol Google Play (Lebar menyesuaikan konten/tengah) */}
         <div className="w-full flex gap-4 justify-center z-9999">
           <Image
             src={googleButton}
@@ -71,12 +69,10 @@ function WhyFWAPage() {
           />
         </div>
 
-        {/* Teks Tengah */}
         <p className=" font-bold text-sm sm:text-base text-center z-9999">
           atau Kunjungi Kami di
         </p>
 
-        {/* Tombol Bawah (Website & Dealer) */}
         <div className="flex flex-row gap-4 w-full justify-center z-9999">
           <Image
             src={webButton}
@@ -94,7 +90,7 @@ function WhyFWAPage() {
             className="h-7.5 w-auto hover:scale-105 transition-transform"
           />
         </div>
-      </div>
+      </div> */}
 
       <h1 className="text-[32px] max-sm:text-[24px] font-bold text-center">
         Mengapa pilih Internet Rakyat <span className="inline">(IRA) ?</span>

@@ -11,6 +11,11 @@ import DownloadApp from "./Homepage/DownloadApp";
 import { Notification } from "./_components/Notification";
 import { useAppContext } from "./_shared/context/AppContext";
 import { useBrowserDetection } from "./hooks/useBrowserDetection";
+import Image from "next/image";
+import signingCeremony from "@/public/assets/Images/signing-ceremony.webp";
+import VisiMisi from "./Homepage/VisiMisi";
+import Collaboration from "./Homepage/Collaboration";
+import FlagshipProduct from "./Homepage/FlagshipProduct";
 
 export default function Home() {
   const router = useRouter();
@@ -90,6 +95,14 @@ export default function Home() {
       )}
 
       <MainPage />
+      <VisiMisi />
+      <Image
+        src={signingCeremony}
+        alt="Signing Ceremony"
+        className="w-full h-fit shrink-0 "
+      />
+      <Collaboration />
+      <FlagshipProduct />
       <WhyFWAPage />
       <DownloadApp />
       <FAQPage />
