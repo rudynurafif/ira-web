@@ -37,11 +37,7 @@ function MapGeoapify({
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null,
   );
-  // Simpan koordinat awal (GPS) agar bisa dikembalikan saat user klik reset
-  const [originalLocation, setOriginalLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
+
 
   const [address, setAddress] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -73,7 +69,6 @@ function MapGeoapify({
 
     if (initialLatitude && initialLongitude) {
       setLocation({ lat: initialLatitude, lng: initialLongitude });
-      setOriginalLocation({ lat: initialLatitude, lng: initialLongitude });
 
       // Optionally, you can get the address from these coordinates (reverse geocoding)
       fetch(
@@ -113,7 +108,6 @@ function MapGeoapify({
           async (position) => {
             const { latitude, longitude } = position.coords;
             setLocation({ lat: latitude, lng: longitude });
-            setOriginalLocation({ lat: latitude, lng: longitude });
 
             // Ambil alamat dari koordinat (reverse geocoding)
             try {
@@ -579,22 +573,40 @@ function MapGeoapify({
         <div ref={mapContainerRef} className="w-full h-full relative z-0" />
 
         {/* Tombol My Location (Refresh Map) */}
-        {isInteractive && originalLocation && (
+        {isInteractive && (
           <button
             type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setLocation(originalLocation);
-              const mapInstance = (window as any).mapInstance;
-              if (mapInstance) {
-                mapInstance.setView(
-                  [originalLocation.lat, originalLocation.lng],
-                  mapInstance.getZoom(),
+
+              if ("geolocation" in navigator) {
+                setIsLoading(true);
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    const mapInstance = (window as any).mapInstance;
+                    if (mapInstance) {
+                      mapInstance.setView([lat, lng], 18);
+                    }
+                    setLocation({ lat, lng });
+                    // Reverse geocoding otomatis tertrigger oleh "moveend",
+                    // jadi kita tidak perlu fetch API & cooldown manual di sini.
+                  },
+                  (error) => {
+                    console.error("Gagal mendapatkan lokasi GPS:", error);
+                    toast.error("Gagal mendeteksi lokasi GPS Anda saat ini.");
+                    setIsLoading(false);
+                  },
+                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
+              } else {
+                toast.error("Browser tidak mendukung geolocation");
               }
             }}
-            className="absolute bottom-6 right-4 z-[1000] bg-white p-3 rounded-full shadow-md border border-gray-200 hover:bg-gray-50 flex items-center justify-center cursor-pointer transition-transform transform active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 opacity-100"
+            className="absolute bottom-6 right-4 z-1000 bg-white p-3 rounded-full shadow-md border border-gray-200 hover:bg-gray-50 flex items-center justify-center cursor-pointer transition-transform transform active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 opacity-100"
             title="Kembali ke lokasi Anda"
           >
             <MdMyLocation

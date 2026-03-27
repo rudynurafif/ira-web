@@ -19,22 +19,7 @@ function RegisterNowCard() {
                 (window as any).fbq("track", "Lead");
               }
               if (typeof (window as any).ttq === "object") {
-                (window as any).ttq.identify({
-                  "email": "<hashed_email_address>",
-                  "phone_number": "<hashed_phone_number>",
-                  "external_id": "<hashed_external_id>"
-                });
-                (window as any).ttq.track('Lead', {
-                  "contents": [
-                    {
-                      "content_id": "<content_identifier>",
-                      "content_type": "<content_type>",
-                      "content_name": "<content_name>"
-                    }
-                  ],
-                  "value": "<content_value>",
-                  "currency": "<content_currency>"
-                });
+                (window as any).ttq.track("Lead", { content_name: "Tombol Register Sekarang Di Section" });
               }
             }
           }}
