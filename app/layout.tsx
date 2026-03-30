@@ -40,7 +40,7 @@ export default function RootLayout({
             <SentryConfigProvider>
               <ClientProvider>
                 {/* {!maintenanceMode && <Header />} */}
-                <Header />
+                {/* <Header /> */}
                 <main className="flex-1">
                   {/* Non-aktif perubahan consume SSE behaviour */}
                   {/* <SSEProvider> */}

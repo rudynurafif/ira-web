@@ -34,7 +34,13 @@ import {
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
 import { useRouter, usePathname } from "next/navigation";
-import { FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
+import {
+  FaCircleCheck,
+  FaCircleExclamation,
+  FaListUl,
+  FaLocationDot,
+  FaListCheck,
+} from "react-icons/fa6";
 import MapGeoapify from "@/app/_components/form/MapGeoapify";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
@@ -746,6 +752,12 @@ function RegistrationWizard({
       errors.otp = "OTP belum terverifikasi";
     }
 
+    if (!agreement) {
+      toast.error("Anda harus menyetujui syarat & ketentuan");
+      setIsLoading(false);
+      return;
+    }
+
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
 
@@ -759,116 +771,101 @@ function RegistrationWizard({
       setIsLoading(false);
       return;
     } else {
-      // Open summary modal instead of submitting directly
-      setIsLoading(false);
-      setIsSummaryModalOpen(true);
-    }
-  }
+      try {
+        const addressArray = [formData.address_gmaps];
+        const type =
+          userInfo?.status === "canceled-instalation"
+            ? "tipe-cancel"
+            : userInfo?.status === "inactive"
+              ? "tipe inactive"
+              : "tipe regist baru";
 
-  async function handleFinalSubmit(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    if (!agreement) {
-      toast.error(
-        "Anda harus menyetujui syarat & ketentuan sebelum melanjutkan.",
-      );
-      return;
-    }
-    setIsSummaryModalOpen(false);
-    setIsLoading(true);
-    try {
-      const addressArray = [formData.address_gmaps];
-      const type =
-        userInfo?.status === "canceled-instalation"
-          ? "tipe-cancel"
-          : userInfo?.status === "inactive"
-            ? "tipe inactive"
-            : "tipe regist baru";
+        const body: any = {
+          ...(coveredNow && { package_id: formData.package_id }),
+          phone_number: formData.phone ?? "",
+          name: formData.fullname ?? "",
+          ...(formData.email && { email: formData.email }),
+          ...(mitraID.length > 0 && { mitra_ids: mitraID }),
+          ...(btsID.length > 0 && { bts_ids: btsID }),
+          // nik: formData.nik ?? "",
+          // no_kk: formData.nokk ?? "",
+          // password: formData.password ?? "",
+          province_id: formData.province ?? "",
+          city_id: formData.city ?? "",
+          district_id: formData.district ?? "",
+          sub_district_id: formData.sub_district ?? "",
+          postal_code: formData.postal_code ?? "",
+          rw: formData.rw ?? "",
+          rt: formData.rt ?? "",
+          address: addressArray ?? "",
+          actual_address: formData.actual_address ?? "",
+          ...(formData.latitude && { latitude: formData.latitude }),
+          ...(formData.longitude && { longitude: formData.longitude }),
+          ...(formData.notes && { notes: formData.notes }),
+          ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
+          // type,
+        };
 
-      const body: any = {
-        ...(isCovered && { package_id: formData.package_id }),
-        phone_number: formData.phone ?? "",
-        name: formData.fullname ?? "",
-        ...(formData.email && { email: formData.email }),
-        ...(mitraID.length > 0 && { mitra_ids: mitraID }),
-        ...(btsID.length > 0 && { bts_ids: btsID }),
-        // nik: formData.nik ?? "",
-        // no_kk: formData.nokk ?? "",
-        // password: formData.password ?? "",
-        province_id: formData.province ?? "",
-        city_id: formData.city ?? "",
-        district_id: formData.district ?? "",
-        sub_district_id: formData.sub_district ?? "",
-        postal_code: formData.postal_code ?? "",
-        rw: formData.rw ?? "",
-        rt: formData.rt ?? "",
-        address: addressArray ?? "",
-        actual_address: formData.actual_address ?? "",
-        ...(formData.latitude && { latitude: formData.latitude }),
-        ...(formData.longitude && { longitude: formData.longitude }),
-        ...(formData.notes && { notes: formData.notes }),
-        ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
-        // type,
-      };
+        let res;
 
-      let res;
-
-      if (mode === "register" || mode === "reregister") {
-        res = isCovered
-          ? await registerUser(body)
-          : await requestCoverage({
-              ...body,
-              phone_number_verified: otpStatus === "valid",
-            });
-      } else if (mode === "update_address") {
-        res = isCovered
-          ? await registerUserFromCoverage({
-              ...body,
-            })
-          : await updateRequestCoverage({
-              ...body,
-            });
-      }
-
-      // replace token
-      if (mode === "reregister" || mode === "update_address") {
-        const token = res?.data?.data ?? res?.data?.token;
-        if (token) {
-          deleteCookie("token-ira");
-          setCookie("token-ira", token);
+        if (mode === "register" || mode === "reregister") {
+          res = coveredNow
+            ? await registerUser(body)
+            : await requestCoverage({
+                ...body,
+                phone_number_verified: otpStatus === "valid",
+              });
+        } else if (mode === "update_address") {
+          res = coveredNow
+            ? await registerUserFromCoverage({
+                ...body,
+              })
+            : await updateRequestCoverage({
+                ...body,
+              });
         }
-      }
 
-      // Keperluan set password setelah register
-      const phoneValue = formData.phone?.trim();
-      if (phoneValue && mode === "register") {
-        localStorage.setItem("registration_phone", phoneValue);
-      }
-
-      // Facebook & TikTok Pixel Track CompleteRegistration
-      if (typeof window !== "undefined") {
-        if (typeof (window as any).fbq === "function") {
-          (window as any).fbq("track", "CompleteRegistration");
+        // replace token
+        if (mode === "reregister" || mode === "update_address") {
+          const token = res?.data?.data ?? res?.data?.token;
+          if (token) {
+            deleteCookie("token-ira");
+            setCookie("token-ira", token);
+          }
         }
-        if (typeof (window as any).ttq === "object") {
-          (window as any).ttq.track("CompleteRegistration");
-        }
-      }
 
-      setIsModalRegisterSuccess(true);
-      if (pathname === "/auth/register") {
-        window.history.pushState(null, "", "/auth/register/popup");
-      }
-      setOtpStatus("idle");
-      resetForm();
-    } catch (error: any) {
-      // error konflik 409
-      if (error?.response?.data?.statusCode === 409) {
+        // Keperluan set password setelah register
+        const phoneValue = formData.phone?.trim();
+        if (phoneValue && mode === "register") {
+          localStorage.setItem("registration_phone", phoneValue);
+        }
+
+        // Facebook & TikTok Pixel Track CompleteRegistration
+        if (typeof window !== "undefined") {
+          if (typeof (window as any).fbq === "function") {
+            (window as any).fbq("track", "CompleteRegistration");
+          }
+          if (typeof (window as any).ttq === "object") {
+            (window as any).ttq.track("CompleteRegistration");
+          }
+        }
+
+        setIsModalRegisterSuccess(true);
+        if (pathname === "/auth/register") {
+          window.history.pushState(null, "", "/auth/register/popup");
+        }
         setOtpStatus("idle");
-        setFormData((prev) => ({ ...prev, otp: "" }));
+        resetForm();
+      } catch (error: any) {
+        // error konflik 409
+        if (error?.response?.data?.statusCode === 409) {
+          setOtpStatus("idle");
+          setFormData((prev) => ({ ...prev, otp: "" }));
+        }
+        toastErrorFromAPI(error, "Gagal melakukan registrasi");
+      } finally {
+        setIsLoading(false);
       }
-      toastErrorFromAPI(error, "Gagal melakukan registrasi");
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -992,283 +989,306 @@ function RegistrationWizard({
     // }
   };
 
+  const handleProceedToSummary = () => {
+    if (!formData.latitude || !formData.longitude) {
+      toast.error("Lokasi anda belum lengkap");
+      return;
+    }
+    setStep(3);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <div className="w-full relative mx-auto text-black">
+    <div className="w-full relative text-black pt-2 md:pt-4 flex flex-col items-center pb-20">
       {isLoading && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-white bg-opacity-70">
           <Loader />
         </div>
       )}
 
-      {/* Title & Subtitle */}
-      <div className="text-center md:px-20 lg:px-32 mb-10 mt-4">
-        <h2 className="text-2xl md:text-3xl font-extrabold mb-4">{title}</h2>
-        <p className="text-sm md:text-base text-gray-700 font-medium">
-          Isi data pribadi dan alamat lengkap kamu untuk mulai berlangganan
-          Internet Rakyat. Pastikan alamat sesuai dan detail agar proses
-          pengecekan jangkauan dan pemasangan bisa berjalan cepat dan tepat.
-        </p>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
-        {/* Sidebar */}
-        <div className="w-full lg:w-[280px] xl:w-[320px] flex-shrink-0">
-          <div className="bg-[#FFEFEF] text-black font-extrabold text-lg text-center py-4 rounded-xl mb-6 shadow-[0_2px_4px_rgba(0,0,0,0.05)] border border-red-50">
-            STEP {step} dari 2
-          </div>
-
-          <div className="space-y-8 px-2 md:px-4">
+      {/* Stepper */}
+      <div className="flex flex-col items-center mb-6 md:mb-8 w-full px-2 relative z-20">
+        <div className="bg-white rounded-full flex items-center justify-center px-4 md:px-5 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.15)] gap-2 sm:gap-4 md:gap-5 border-[1.5px] border-white/60">
+          <span className="font-bold text-black text-sm sm:text-base whitespace-nowrap pl-1 md:pl-2">
+            Tahap {step}{" "}
+            <span className="font-medium text-gray-500 text-xs sm:text-base">
+              dari 3
+            </span>
+          </span>
+          <div className="flex items-center gap-1.5 sm:gap-2 mr-1">
             <div
-              className="flex items-center gap-4 cursor-pointer"
-              onClick={() => step === 2 && setStep(1)}
+              className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 1 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-200 text-gray-400"}`}
             >
-              {step > 1 ? (
-                <Image
-                  src="/assets/Icons/check-green-icon.png"
-                  alt="Selesai"
-                  width={28}
-                  height={28}
-                  className="w-7 h-7 object-contain flex-shrink-0"
-                />
-              ) : (
-                <Image
-                  src="/assets/Icons/pending-icon.png"
-                  alt="Sedang Berjalan"
-                  width={28}
-                  height={28}
-                  className="w-7 h-7 object-contain flex-shrink-0"
-                />
-              )}
-              <span
-                className={`font-extrabold text-sm md:text-base ${step === 1 ? "text-primary" : "text-gray-800"}`}
-              >
-                Pengisian Informasi Pribadi
-              </span>
+              <FaListUl size={16} />
             </div>
-
-            <div className="flex items-center gap-4">
-              {step === 2 ? (
-                <Image
-                  src="/assets/Icons/pending-icon.png"
-                  alt="Sedang Berjalan"
-                  width={28}
-                  height={28}
-                  className="w-7 h-7 object-contain flex-shrink-0"
-                />
-              ) : (
-                <Image
-                  src="/assets/Icons/pending-icon.png"
-                  alt="Belum Dimulai"
-                  width={28}
-                  height={28}
-                  className="w-7 h-7 object-contain flex-shrink-0 opacity-50 grayscale"
-                />
-              )}
-              <span
-                className={`font-extrabold text-sm md:text-base ${step === 2 ? "text-primary" : "text-gray-400"}`}
-              >
-                Pengisian Lokasi Pemasangan
-              </span>
+            <div
+              className={`w-8 sm:w-10 h-[2px] transition-colors duration-300 ${step >= 2 ? "bg-[#b61515]" : "bg-gray-300"}`}
+            />
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 2 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-200 text-gray-400"}`}
+            >
+              <FaLocationDot size={16} />
+            </div>
+            <div
+              className={`w-8 sm:w-10 h-[2px] transition-colors duration-300 ${step >= 3 ? "bg-[#b61515]" : "bg-gray-300"}`}
+            />
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 3 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-200 text-gray-400"}`}
+            >
+              <FaListCheck size={16} />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1">
-          <div className="border border-primary rounded-2xl p-6 lg:p-8 bg-white shadow-sm overflow-hidden">
-            {/* STEP 1 */}
+      {/* Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-[1536px] rounded-3xl md:rounded-[40px] bg-[#a80f0f] shadow-[0_20px_60px_rgba(164,18,18,0.4)] overflow-visible relative flex flex-col lg:flex-row h-[70vh] lg:border-2 border-white"
+      >
+        <div
+          className="w-full lg:w-[60%] left-[3%] relative flex justify-center items-end min-h-[260px] md:min-h-[300px] lg:min-h-[500px]"
+          style={{ clipPath: "inset(-200% -200% 0 -200%)" }}
+        >
+          <div className="absolute inset-x-0 bottom-0 w-full flex justify-end md:justify-center lg:justify-end items-end h-full z-30 pointer-events-none">
+            <Image
+              src={`/assets/Images/person-reg-${step}.png`}
+              className="object-contain object-bottom xl:scale-115 2xl:scale-125 transform origin-bottom md:translate-y-[15px] lg:translate-x-[-10px] lg:translate-y-[20px] xl:translate-x-[-15px] xl:translate-y-[24px] 2xl:translate-x-[-20px] 2xl:translate-y-[28px] drop-shadow-[5px_0_15px_rgba(0,0,0,0.5)] z-30"
+              alt="Person"
+              fill
+              priority
+            />
+          </div>
+        </div>
+
+        <div className="w-full lg:w-[60%] xl:w-[58%] 2xl:w-[55%] flex justify-center items-start p-6 z-25 relative">
+          <div className="bg-white rounded-[24px] md:rounded-[32px] w-full max-h-full min-h-[400px] shadow-2xl p-4 sm:p-6 flex flex-col justify-start relative border border-white/50 overflow-y-auto custom-scrollbar">
             {step === 1 && (
-              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <h3 className="font-extrabold text-lg md:text-xl mb-6 text-black">
-                  Silakan Isi Data Pribadi Kamu
-                </h3>
+              <div className="animate-in fade-in duration-500 w-full h-full flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-lg md:text-xl mb-6 text-black">
+                    Silakan Isi Data Pribadi Kamu
+                  </h3>
 
-                <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-2">
-                  <div className="flex-1">
-                    <DynamicForm
-                      label="Nama Lengkap"
-                      isImportant
-                      name="fullname"
-                      type="text"
-                      placeholder="Nama Lengkap"
-                      value={formData.fullname}
-                      onChange={(value: string) => {
-                        const val = sanitizeName(value);
-                        setFormData({ ...formData, fullname: val });
-                        setErrors({ ...errors, fullname: "" });
-                      }}
-                      error={errors.fullname || ""}
-                      disabled={isAutoFilling}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <DynamicForm
-                      label="Email (Opsional)"
-                      isImportant={false}
-                      name="email"
-                      type="email"
-                      placeholder="user@mail.com"
-                      value={formData.email}
-                      onChange={(value: string) => {
-                        const val = sanitizeEmail(value);
-                        setFormData({ ...formData, email: val });
-                        if (val && !EMAIL_REGEX.test(val)) {
-                          setErrors({
-                            ...errors,
-                            email: "Format email tidak valid",
-                          });
-                        } else {
-                          setErrors({ ...errors, email: "" });
+                  <div className="flex flex-col gap-4">
+                    {/* Row 1 Col 1 */}
+                    <div>
+                      <DynamicForm
+                        label="Nama Lengkap"
+                        isImportant
+                        name="fullname"
+                        type="text"
+                        placeholder="Nama Lengkap"
+                        value={formData.fullname}
+                        onChange={(value: string) => {
+                          const val = sanitizeName(value);
+                          setFormData({ ...formData, fullname: val });
+                          setErrors({ ...errors, fullname: "" });
+                        }}
+                        error={errors.fullname || ""}
+                        disabled={isAutoFilling}
+                      />
+                    </div>
+                    {/* Row 1 Col 2 */}
+                    <div>
+                      <DynamicForm
+                        label="Email (Opsional)"
+                        isImportant={false}
+                        name="email"
+                        type="email"
+                        placeholder="user@mail.com"
+                        value={formData.email}
+                        onChange={(value: string) => {
+                          const val = sanitizeEmail(value);
+                          setFormData({ ...formData, email: val });
+                          if (val && !EMAIL_REGEX.test(val)) {
+                            setErrors({
+                              ...errors,
+                              email: "Format email tidak valid",
+                            });
+                          } else {
+                            setErrors({ ...errors, email: "" });
+                          }
+                        }}
+                        error={errors.email || ""}
+                        disabled={isAutoFilling}
+                      />
+                    </div>
+                    {/* Row 2 Col 1 */}
+                    <div className="pt-2">
+                      <PhoneOTPForm
+                        storageKey={`otp:register:phone`}
+                        otpDurationSec={0}
+                        label="Nomor Handphone"
+                        name="phone"
+                        mode="register"
+                        inputMode="numeric"
+                        isImportant
+                        isDisabled={
+                          otpStatus === "valid" || mode !== "register"
                         }
-                      }}
-                      error={errors.email || ""}
-                      disabled={isAutoFilling}
-                    />
+                        value={formData.phone}
+                        onChange={(value: string) => {
+                          setFormData((prevData: any) => ({
+                            ...prevData,
+                            phone: value,
+                          }));
+                          setErrors({ ...errors, phone: "" });
+                        }}
+                        placeholder="contoh: 08123456789"
+                        error={errors.phone}
+                      />
+                    </div>
+                    {/* Row 2 Col 2 */}
+                    <div className="pt-2">
+                      <GroupedOTP
+                        isInvalid={!!errors.otp || otpStatus === "invalid"}
+                        label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
+                        isImportant
+                        name="otp"
+                        value={formData.otp}
+                        isDisabled={otpStatus === "valid"}
+                        onChange={(val: string) => {
+                          const cleaned = sanitizeAlphanumeric(val);
+                          setFormData((prev) => ({ ...prev, otp: cleaned }));
+                          if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
+                          if (otpStatus !== "idle") setOtpStatus("idle");
+                        }}
+                        onComplete={(val: string) => {
+                          handleVerifyOtp(val);
+                        }}
+                      />
+
+                      <p
+                        className={`text-primary mt-1 text-sm italic ${otpStatus === "verifying" ? "block" : "hidden"}`}
+                      >
+                        <span>Memverifikasi OTP...</span>
+                      </p>
+
+                      <p
+                        className={`text-green-600 mt-1 text-sm flex items-center gap-1 ${otpStatus === "valid" ? "flex" : "hidden"}`}
+                      >
+                        <span>OTP Terverifikasi</span> <FaCircleCheck />
+                      </p>
+
+                      {errors.otp && (
+                        <p className="text-primary text-xs mt-1">
+                          {errors.otp}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-
-                <div className="mb-4 pt-4 flex flex-col md:flex-row gap-4 md:gap-6">
-                  <div className="flex-1">
-                    <PhoneOTPForm
-                      storageKey={`otp:register:phone`}
-                      otpDurationSec={0}
-                      label="Nomor Handphone"
-                      name="phone"
-                      mode="register"
-                      inputMode="numeric"
-                      isImportant
-                      isDisabled={otpStatus === "valid" || mode !== "register"}
-                      value={formData.phone}
-                      onChange={(value: string) => {
-                        setFormData((prevData: any) => ({
-                          ...prevData,
-                          phone: value,
-                        }));
-                        setErrors({ ...errors, phone: "" });
-                      }}
-                      placeholder="contoh: 08123456789"
-                      error={errors.phone}
-                    />
-                  </div>
-                  <div className="flex-1 pt-1 opacity-100 mt-2 md:mt-0 transition-opacity">
-                    <GroupedOTP
-                      isInvalid={!!errors.otp || otpStatus === "invalid"}
-                      label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
-                      isImportant
-                      name="otp"
-                      value={formData.otp}
-                      isDisabled={otpStatus === "valid"}
-                      onChange={(val: string) => {
-                        const cleaned = sanitizeAlphanumeric(val);
-                        setFormData((prev) => ({ ...prev, otp: cleaned }));
-                        if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
-                        if (otpStatus !== "idle") setOtpStatus("idle");
-                      }}
-                      onComplete={(val: string) => {
-                        handleVerifyOtp(val);
-                      }}
-                    />
-
-                    <p
-                      className={`text-primary mt-1 text-sm italic ${otpStatus === "verifying" ? "block" : "hidden"}`}
-                    >
-                      <span>Memverifikasi OTP...</span>
-                    </p>
-
-                    <p
-                      className={`text-green-600 mt-1 text-sm flex items-center gap-1 ${otpStatus === "valid" ? "flex" : "hidden"}`}
-                    >
-                      <span>OTP Terverifikasi</span> <FaCircleCheck />
-                    </p>
-
-                    {errors.otp && (
-                      <p className="text-primary text-xs mt-1">{errors.otp}</p>
-                    )}
-                  </div>
+                <div className="flex justify-center my-6">
+                  <button
+                    type="button"
+                    onClick={handleNextStep1}
+                    className="bg-primary hover:bg-dark-primary-2 text-white font-bold py-3 px-12 rounded-xl text-sm md:text-base shadow-md transition-transform transform active:scale-95 duration-200 w-full md:w-auto"
+                  >
+                    Selanjutnya
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* STEP 2 */}
             {step === 2 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h3 className="font-extrabold text-lg md:text-xl mb-6 text-black">
-                  Silakan Isi Alamat Lengkap
-                </h3>
+              <div className="animate-in fade-in duration-500 w-full h-full pt-2 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-lg md:text-xl mb-6 text-black">
+                    Silakan Isi Alamat Lengkap Pemasangan Anda
+                  </h3>
 
-                {/* Package Selector */}
-                {isCovered && (
-                  <div className="mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <p className="text-sm font-semibold mb-2 text-black">
-                      Paket yang tersedia<span className="text-primary">*</span>
-                    </p>
-
-                    {isLoadingPackage ? (
-                      <PackageCardMobileSkeletonList count={2} />
-                    ) : packages?.length ? (
-                      <div className="md:grid max-sm:p-1 grid-cols-1 md:grid-cols-2 gap-4 max-sm:space-y-4">
-                        {packages.map((pkg) => (
-                          <PackageCardMobile
-                            key={pkg.id}
-                            pkg={pkg}
-                            selected={selectedPackage?.id === pkg?.id}
-                            onSelect={handleSelect}
-                            convertToCurrency={convertToCurrency}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-gray-500 text-sm mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                        Belum ada daftar paket yang tersedia dari sistem.
-                      </div>
-                    )}
-
-                    {errors.package_id && (
-                      <p className="text-primary text-xs flex items-center gap-1 mt-2">
-                        <FaCircleExclamation />
-                        <span>{errors.package_id}</span>
+                  {/* Package Selector */}
+                  {isCovered ? (
+                    <div className="mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <p className="text-sm font-semibold mb-2 text-black">
+                        Paket yang tersedia
+                        <span className="text-primary">*</span>
                       </p>
-                    )}
-                  </div>
-                )}
 
-                {/* Kode Pos Area */}
-                <div className="mb-6 relative z-[60]">
-                  <div className="flex flex-col md:flex-row gap-2 w-full md:w-1/2">
-                    <div className="w-[100%] md:w-full">
-                      <div className="relative">
-                        <DynamicForm
-                          label="Kode POS"
-                          type="number"
-                          isImportant
-                          name="postal_code"
-                          onChange={(value: string) => {
-                            if (/^\d{0,5}$/.test(value)) {
-                              setFormData((prev: any) => ({
-                                ...prev,
-                                postal_code: value,
-                              }));
-                              setErrors({ ...errors, postal_code: "" });
-                            }
-                          }}
-                          placeholder="Masukkan 5 digit Kode POS"
-                          value={formData.postal_code}
-                          error={errors.postal_code || ""}
-                          disabled={Boolean(
-                            isAutoFilling ||
-                            (mode === "update_address" &&
-                              initialData?.postal_code &&
-                              initialData?.postal_code ===
-                                formData.postal_code),
-                          )}
+                      {isLoadingPackage ? (
+                        <PackageCardMobileSkeletonList count={2} />
+                      ) : packages?.length ? (
+                        <div className="max-w-md grid max-sm:p-1 grid-cols-1  gap-4 max-sm:space-y-4">
+                          {packages.map((pkg) => (
+                            <PackageCardMobile
+                              key={pkg.id}
+                              pkg={pkg}
+                              selected={selectedPackage?.id === pkg?.id}
+                              onSelect={handleSelect}
+                              convertToCurrency={convertToCurrency}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-gray-500 text-sm mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          Belum ada daftar paket yang tersedia dari sistem.
+                        </div>
+                      )}
+
+                      {errors.package_id && (
+                        <p className="text-primary text-xs flex items-center gap-1 mt-2">
+                          <FaCircleExclamation />
+                          <span>{errors.package_id}</span>
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      {/* <div className="my-6">
+                        <Image
+                          src={bannerImageNoCovered}
+                          className="w-full hidden sm:block"
+                          alt="banner-no-coverage"
                         />
-                        {isLoadingArea && (
-                          <div className="absolute top-[45px] right-4 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                        )}
+                        <div className="block sm:hidden bg-[#FEFCE8] py-2 px-3 border border-[#A16207] rounded-lg">
+                          <p className="text-xs text-[#A16207]">
+                            <strong>Layanan di areamu segera hadir:</strong>{" "}
+                            Jangan khawatir! Silakan daftar sekarang agar akunmu
+                            tersimpan di sistem kami.
+                          </p>
+                        </div>
+                      </div> */}
+                    </>
+                  )}
+
+                  {/* Kode Pos Area */}
+                  <div className="mb-6 relative z-[60]">
+                    <div className="flex flex-col md:flex-row gap-2 w-full md:w-1/2">
+                      <div className="w-[100%] md:w-full">
+                        <div className="relative">
+                          <DynamicForm
+                            label="Kode POS"
+                            type="number"
+                            isImportant
+                            name="postal_code"
+                            onChange={(value: string) => {
+                              if (/^\d{0,5}$/.test(value)) {
+                                setFormData((prev: any) => ({
+                                  ...prev,
+                                  postal_code: value,
+                                }));
+                                setErrors({ ...errors, postal_code: "" });
+                              }
+                            }}
+                            placeholder="Masukkan 5 digit Kode POS"
+                            value={formData.postal_code}
+                            error={errors.postal_code || ""}
+                            disabled={Boolean(
+                              isAutoFilling ||
+                              (mode === "update_address" &&
+                                initialData?.postal_code &&
+                                initialData?.postal_code ===
+                                  formData.postal_code),
+                            )}
+                          />
+                          {isLoadingArea && (
+                            <div className="absolute top-[45px] right-4 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  {/* {!isCovered && formData.postal_code && (
+                    {/* {!isCovered && formData.postal_code && (
                     <div className="w-full p-3 rounded-md bg-[#FFF9CC] border border-orange-200 mt-2">
                       <h4 className="flex items-center gap-2 font-bold text-orange-600 mb-1">
                         <FaCircleExclamation size={20} /> Area kamu belum
@@ -1281,340 +1301,517 @@ function RegistrationWizard({
                       </p>
                     </div>
                   )} */}
-                </div>
+                  </div>
 
-                {/* Map Area */}
-                <div className="mb-6 relative z-10 space-y-2">
-                  <p className="font-bold text-sm text-black mb-2">
-                    Arahkan Pin Lokasi ke Titik Alamat Anda
+                  {/* Map Area */}
+                  <div className="mb-6 relative z-10 space-y-2">
+                    <p className="font-bold text-sm text-black mb-2">
+                      Arahkan Pin Lokasi ke Titik Alamat Anda
+                    </p>
+                    <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
+                      <div className="w-full h-full pointer-events-none">
+                        <MapGeoapify
+                          mode={mode as any}
+                          initialLatitude={Number(formData.latitude || 0)}
+                          initialLongitude={Number(formData.longitude || 0)}
+                          getAddress={() => {}}
+                          isInteractive={false}
+                        />
+                      </div>
+                      {/* The "Sesuaikan Pin Point" Floating Red Button from design mockup */}
+                      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 w-[90%] md:w-fit">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTempMapPayload({
+                              latitude: formData.latitude,
+                              longitude: formData.longitude,
+                              address: formData.actual_address,
+                              address_gmaps: formData.address_gmaps,
+                            });
+                            setIsOpenMapModal(true);
+                          }}
+                          className="w-full md:w-[300px] bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-primary-dark transition text-sm cursor-pointer"
+                        >
+                          Sesuaikan Pin Point
+                        </button>
+                      </div>
+                    </div>
+                    {errors.latitude && (
+                      <p className="text-primary text-xs mt-1">
+                        Lokasi GPS harus dipilih dari peta otomatis.
+                      </p>
+                    )}
+                  </div>
+
+                  <p
+                    className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}
+                  >
+                    <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
+                    <span>Mengecek jangkauan...</span>
                   </p>
-                  <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
-                    <div className="w-full h-full pointer-events-none">
-                      <MapGeoapify
-                        mode={mode as any}
-                        initialLatitude={Number(formData.latitude || 0)}
-                        initialLongitude={Number(formData.longitude || 0)}
-                        getAddress={() => {}}
-                        isInteractive={false}
+                  <p
+                    className={`mt-1 text-green-primary items-center gap-1 text-sm ${isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
+                  >
+                    <FaCircleCheck className="text-green-primary" />
+                    <span>
+                      Selamat! Alamat Anda berada di dalam jangkauan kami.
+                    </span>
+                  </p>
+                  <p
+                    className={`mt-2 animate-bounce text-red-primary items-center gap-1 text-sm ${!isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
+                  >
+                    <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
+                    <span>
+                      Lokasi Anda belum berada di jangkauan area kami, dan kami
+                      sedang menuju ke daerah Anda.
+                    </span>
+                  </p>
+
+                  {/* Address Select Area */}
+                  <div className="mt-3 flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-50">
+                    <div className="flex-1">
+                      <DynamicSelectForm
+                        label="Provinsi"
+                        isImportant
+                        name="province"
+                        options={provinceOptions}
+                        onChange={(value: any) => {
+                          if (value) {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              province: value.value,
+                              city: "",
+                              district: "",
+                              sub_district: "",
+                              postal_code: "",
+                            }));
+                          } else {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              province: "",
+                              city: "",
+                              district: "",
+                              sub_district: "",
+                              postal_code: "",
+                            }));
+                          }
+                          setErrors({ ...errors, province: "" });
+                        }}
+                        placeholder="Pilih Provinsi"
+                        value={formData.province}
+                        error={errors.province}
                       />
                     </div>
-                    {/* The "Sesuaikan Pin Point" Floating Red Button from design mockup */}
-                    <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 w-[90%] md:w-fit">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setTempMapPayload({
-                            latitude: formData.latitude,
-                            longitude: formData.longitude,
-                            address: formData.actual_address,
-                            address_gmaps: formData.address_gmaps,
-                          });
-                          setIsOpenMapModal(true);
+                    <div className="flex-1">
+                      <DynamicSelectForm
+                        label="Kota/Kabupaten"
+                        isImportant
+                        name="city"
+                        options={cityOptions}
+                        onChange={(value: any) => {
+                          if (value) {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              city: value.value,
+                              district: "",
+                              sub_district: "",
+                              postal_code: "",
+                            }));
+                          } else {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              city: "",
+                              district: "",
+                              sub_district: "",
+                              postal_code: "",
+                            }));
+                          }
+                          setErrors({ ...errors, city: "" });
                         }}
-                        className="w-full md:w-[300px] bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-primary-dark transition text-sm cursor-pointer"
-                      >
-                        Sesuaikan Pin Point
-                      </button>
+                        isDisabled={!formData.province}
+                        placeholder={`${
+                          !formData.province
+                            ? "Pilih Provinsi Terlebih Dahulu"
+                            : "Pilih Kota/Kabupaten"
+                        }`}
+                        value={formData.city}
+                        error={errors.city}
+                      />
                     </div>
                   </div>
-                  {errors.latitude && (
-                    <p className="text-primary text-xs mt-1">
-                      Lokasi GPS harus dipilih dari peta otomatis.
-                    </p>
+
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-40">
+                    <div className="flex-1">
+                      <DynamicSelectForm
+                        label="Kecamatan"
+                        isImportant
+                        name="district"
+                        options={districtOptions}
+                        onChange={(value: any) => {
+                          if (value) {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              district: value.value,
+                              sub_district: "",
+                              postal_code: "",
+                            }));
+                          } else {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              district: "",
+                              sub_district: "",
+                              postal_code: "",
+                            }));
+                          }
+                          setErrors({ ...errors, district: "" });
+                        }}
+                        isDisabled={!formData.city}
+                        placeholder={`${
+                          !formData.city
+                            ? "Pilih Kota/Kab Terlebih Dahulu"
+                            : "Pilih Kecamatan"
+                        }`}
+                        value={formData.district}
+                        error={errors.district}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <DynamicSelectForm
+                        label="Kelurahan"
+                        isImportant
+                        name="sub_district"
+                        options={subdistrictOptions}
+                        onChange={(value: any) => {
+                          if (value) {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              sub_district: value.value,
+                              postal_code: "",
+                            }));
+                          } else {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              sub_district: "",
+                              postal_code: "",
+                            }));
+                          }
+                          setErrors({ ...errors, sub_district: "" });
+                        }}
+                        isDisabled={!formData.district}
+                        placeholder={`${
+                          !formData.district
+                            ? "Pilih Kecamatan Terlebih Dahulu"
+                            : "Pilih Kelurahan"
+                        }`}
+                        value={formData.sub_district}
+                        error={errors.sub_district}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-30">
+                    <div className="flex-1">
+                      <DynamicForm
+                        label="RW"
+                        isImportant
+                        name="rw"
+                        value={formData.rw}
+                        onChange={(value: string) => {
+                          if (/^\d{0,3}$/.test(value)) {
+                            setFormData((prevData: any) => ({
+                              ...prevData,
+                              rw: value,
+                            }));
+                            setErrors({ ...errors, rw: "" });
+                          }
+                        }}
+                        placeholder="Masukkan RW"
+                        error={errors.rw}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <DynamicForm
+                        label="RT"
+                        isImportant
+                        name="rt"
+                        value={formData.rt}
+                        onChange={(value: string) => {
+                          if (/^\d{0,3}$/.test(value)) {
+                            setFormData((prevData: any) => ({
+                              ...prevData,
+                              rt: value,
+                            }));
+                            setErrors({ ...errors, rt: "" });
+                          }
+                        }}
+                        placeholder="Masukkan RT"
+                        error={errors.rt}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Exact Address */}
+                  <div className="mb-4">
+                    <DynamicForm
+                      label="Alamat Lengkap"
+                      isImportant
+                      name="actual_address"
+                      type="textarea"
+                      placeholder="Masukkan alamat lengkap..."
+                      value={formData.actual_address}
+                      onChange={(value: string) => {
+                        const val = sanitizeAddress(value);
+                        setFormData({ ...formData, actual_address: val });
+                        setErrors({ ...errors, actual_address: "" });
+                      }}
+                      error={errors.actual_address || ""}
+                      row={3}
+                    />
+                  </div>
+
+                  {/* Patokan */}
+                  <div className="mb-4">
+                    <DynamicForm
+                      label="Patokan Alamat (opsional)"
+                      isImportant={false}
+                      name="notes"
+                      type="text"
+                      placeholder="Masukkan patokan alamat (jika ada)"
+                      value={formData.notes || ""}
+                      onChange={(value: string) => {
+                        const val = sanitizeAlphanumeric(value);
+                        setFormData({ ...formData, notes: val });
+                      }}
+                      error={""}
+                    />
+                  </div>
+
+                  {/* Mengetahui IRA Dari Mana */}
+                  {mode === "register" && (
+                    <>
+                      <div className="mb-4 relative z-20">
+                        <DynamicSelectForm
+                          label="Mengetahui IRA Darimana"
+                          isImportant={false}
+                          name="social"
+                          options={[{ label: "Lainnya", value: "Lainnya" }]}
+                          onChange={() => {}}
+                          placeholder="Pilih"
+                          value="Lainnya"
+                          error={""}
+                        />
+                      </div>
+                      {/* Jelaskan Lebih Detail */}
+                      <div className="mb-6">
+                        <DynamicForm
+                          label="Jelaskan Lebih Detail"
+                          isImportant={false}
+                          name="detail"
+                          type="text"
+                          placeholder="Tulis dari mana kamu tahu"
+                          value={""}
+                          onChange={(value: string) => {}}
+                          error={""}
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
-
-                <p
-                  className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}
-                >
-                  <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
-                  <span>Mengecek jangkauan...</span>
-                </p>
-                <p
-                  className={`mt-1 text-green-primary items-center gap-1 text-sm ${isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
-                >
-                  <FaCircleCheck className="text-green-primary" />
-                  <span>
-                    Selamat! Alamat Anda berada di dalam jangkauan kami.
-                  </span>
-                </p>
-                <p
-                  className={`mt-3 animate-bounce text-red-primary items-center gap-1 text-sm ${!isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
-                >
-                  <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
-                  <span>
-                    Lokasi Anda belum berada di jangkauan area kami, dan kami
-                    sedang menuju ke daerah Anda.
-                  </span>
-                </p>
-
-                {/* Address Select Area */}
-                <div className="mt-3 flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-50">
-                  <div className="flex-1">
-                    <DynamicSelectForm
-                      label="Provinsi"
-                      isImportant
-                      name="province"
-                      options={provinceOptions}
-                      onChange={(value: any) => {
-                        if (value) {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            province: value.value,
-                            city: "",
-                            district: "",
-                            sub_district: "",
-                            postal_code: "",
-                          }));
-                        } else {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            province: "",
-                            city: "",
-                            district: "",
-                            sub_district: "",
-                            postal_code: "",
-                          }));
-                        }
-                        setErrors({ ...errors, province: "" });
-                      }}
-                      placeholder="Pilih Provinsi"
-                      value={formData.province}
-                      error={errors.province}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <DynamicSelectForm
-                      label="Kota/Kabupaten"
-                      isImportant
-                      name="city"
-                      options={cityOptions}
-                      onChange={(value: any) => {
-                        if (value) {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            city: value.value,
-                            district: "",
-                            sub_district: "",
-                            postal_code: "",
-                          }));
-                        } else {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            city: "",
-                            district: "",
-                            sub_district: "",
-                            postal_code: "",
-                          }));
-                        }
-                        setErrors({ ...errors, city: "" });
-                      }}
-                      placeholder="Pilih Kota/Kabupaten"
-                      value={formData.city}
-                      error={errors.city}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-40">
-                  <div className="flex-1">
-                    <DynamicSelectForm
-                      label="Kecamatan"
-                      isImportant
-                      name="district"
-                      options={districtOptions}
-                      onChange={(value: any) => {
-                        if (value) {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            district: value.value,
-                            sub_district: "",
-                            postal_code: "",
-                          }));
-                        } else {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            district: "",
-                            sub_district: "",
-                            postal_code: "",
-                          }));
-                        }
-                        setErrors({ ...errors, district: "" });
-                      }}
-                      placeholder="Pilih Kecamatan"
-                      value={formData.district}
-                      error={errors.district}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <DynamicSelectForm
-                      label="Kelurahan"
-                      isImportant
-                      name="sub_district"
-                      options={subdistrictOptions}
-                      onChange={(value: any) => {
-                        if (value) {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            sub_district: value.value,
-                            postal_code: "",
-                          }));
-                        } else {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            sub_district: "",
-                            postal_code: "",
-                          }));
-                        }
-                        setErrors({ ...errors, sub_district: "" });
-                      }}
-                      placeholder="Pilih Kelurahan"
-                      value={formData.sub_district}
-                      error={errors.sub_district}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-30">
-                  <div className="flex-1">
-                    <DynamicForm
-                      label="RW"
-                      isImportant
-                      name="rw"
-                      type="number"
-                      placeholder="Masukkan RW"
-                      value={formData.rw}
-                      onChange={(value: string) => {
-                        if (/^d{0,3}$/.test(value)) {
-                          setFormData((prev) => ({ ...prev, rw: value }));
-                          setErrors({ ...errors, rw: "" });
-                        }
-                      }}
-                      error={errors.rw || ""}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <DynamicForm
-                      label="RT"
-                      isImportant
-                      name="rt"
-                      type="number"
-                      placeholder="Masukkan RT"
-                      value={formData.rt}
-                      onChange={(value: string) => {
-                        if (/^d{0,3}$/.test(value)) {
-                          setFormData((prev) => ({ ...prev, rt: value }));
-                          setErrors({ ...errors, rt: "" });
-                        }
-                      }}
-                      error={errors.rt || ""}
-                    />
-                  </div>
-                </div>
-
-                {/* Exact Address */}
-                <div className="mb-4">
-                  <DynamicForm
-                    label="Alamat Lengkap"
-                    isImportant
-                    name="actual_address"
-                    type="textarea"
-                    placeholder="Masukkan alamat lengkap..."
-                    value={formData.actual_address}
-                    onChange={(value: string) => {
-                      const val = sanitizeAddress(value);
-                      setFormData({ ...formData, actual_address: val });
-                      setErrors({ ...errors, actual_address: "" });
+                <div className="flex gap-4 mt-8">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep(1);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    error={errors.actual_address || ""}
-                    row={3}
-                  />
+                    className="flex-1 bg-white border-2 border-primary text-primary hover:bg-red-50 font-bold py-3 px-4 rounded-xl text-sm md:text-base shadow-sm transition-transform active:scale-95 duration-200"
+                  >
+                    Kembali
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleProceedToSummary}
+                    className="flex-1 bg-primary hover:bg-dark-primary-2 text-white font-bold py-3 px-4 rounded-xl text-sm md:text-base shadow-md transition-transform active:scale-95 duration-200"
+                  >
+                    Selanjutnya
+                  </button>
                 </div>
-
-                {/* Patokan */}
-                <div className="mb-4">
-                  <DynamicForm
-                    label="Patokan Alamat (opsional)"
-                    isImportant={false}
-                    name="notes"
-                    type="text"
-                    placeholder="Masukkan patokan alamat (jika ada)"
-                    value={formData.notes || ""}
-                    onChange={(value: string) => {
-                      const val = sanitizeAlphanumeric(value);
-                      setFormData({ ...formData, notes: val });
-                    }}
-                    error={""}
-                  />
-                </div>
-
-                {/* Mengetahui IRA Dari Mana */}
-                {mode === "register" && (
-                  <>
-                    <div className="mb-4 relative z-20">
-                      <DynamicSelectForm
-                        label="Mengetahui IRA Darimana"
-                        isImportant={false}
-                        name="social"
-                        options={[{ label: "Lainnya", value: "Lainnya" }]}
-                        onChange={() => {}}
-                        placeholder="Pilih"
-                        value="Lainnya"
-                        error={""}
-                      />
-                    </div>
-                    {/* Jelaskan Lebih Detail */}
-                    <div className="mb-6">
-                      <DynamicForm
-                        label="Jelaskan Lebih Detail"
-                        isImportant={false}
-                        name="detail"
-                        type="text"
-                        placeholder="Tulis dari mana kamu tahu"
-                        value={""}
-                        onChange={(value: string) => {}}
-                        error={""}
-                      />
-                    </div>
-                  </>
-                )}
               </div>
             )}
-          </div>
 
-          <div className="flex justify-end mt-8">
-            {step === 1 && (
-              <button
-                type="button"
-                onClick={handleNextStep1}
-                className="bg-primary hover:bg-red-700 text-white font-bold py-3 px-12 rounded-xl text-lg shadow-md transition-transform transform active:scale-95 duration-200"
-              >
-                Selanjutnya
-              </button>
-            )}
-            {step === 2 && (
-              <div className="flex gap-8">
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => setStep(1)}
-                  className="flex items-center bg-white border border-primary text-primary hover:bg-red-50 disabled:border-gray-400 disabled:text-gray-400 font-bold py-3 px-6 rounded-xl text-lg shadow-sm transition-transform transform active:scale-95 duration-200"
-                >
-                  <IoArrowBackSharp className="mr-2" /> Step 1
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => handleSubmit(e as any)}
-                  disabled={isLoading}
-                  className="flex-1 bg-primary hover:bg-red-700 disabled:bg-gray-400 text-white font-bold py-3 px-14 rounded-xl text-lg shadow-md transition-transform transform active:scale-95 duration-200"
-                >
-                  {isLoading ? "Memproses..." : "Kirim"}
-                </button>
+            {step === 3 && (
+              <div className="animate-in fade-in duration-500 w-full h-full flex flex-col justify-between">
+                <div>
+                  <div className="">
+                    <h2 className="text-xl md:text-2xl font-bold text-center mb-6 text-black">
+                      Konfirmasi Data Pelanggan
+                    </h2>
+
+                    <div className="space-y-6 text-sm">
+                      {/* Paket Terpilih */}
+                      <div>
+                        <h4 className="font-bold text-gray-800 mb-2">
+                          Paket Dipilih
+                        </h4>
+                        <div className="border border-red-200 bg-red-50 rounded-lg p-4 flex justify-between items-center shadow-sm">
+                          <div className="flex gap-2 items-center">
+                            <Image
+                              src="/assets/Icons/lightning-red.svg"
+                              width={16}
+                              height={16}
+                              alt="bolt"
+                            />
+                            <span className="font-bold text-gray-800">
+                              {selectedPackage?.name || "Paket IRA"}
+                            </span>
+                          </div>
+                          <div className="bg-white border border-gray-200 rounded px-2 md:px-3 py-1 text-xs md:text-sm font-semibold text-gray-700">
+                            Rp{convertToCurrency(selectedPackage?.price || 0)} /
+                            30 Hari
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Data Pribadi */}
+                      <div>
+                        <h4 className="font-bold text-gray-800 mb-2 border-b pb-1">
+                          Informasi Data Pribadi
+                        </h4>
+                        <div className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-y-2 mt-2">
+                          <span className="text-gray-500">Nama Pelanggan</span>
+                          <span className="font-medium text-gray-900">
+                            {formData.fullname}
+                          </span>
+                          <span className="text-gray-500">Email</span>
+                          <span className="font-medium text-gray-900">
+                            {formData.email || "-"}
+                          </span>
+                          <span className="text-gray-500">Nomor Handphone</span>
+                          <span className="font-medium text-gray-900">
+                            {formData.phone}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Lokasi Pemasangan */}
+                      <div>
+                        <h4 className="font-bold text-gray-800 mb-2 border-b pb-1">
+                          Informasi Lokasi Pemasangan
+                        </h4>
+                        <div className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-y-2 mt-2">
+                          <span className="text-gray-500">Provinsi</span>
+                          <span className="font-medium text-gray-900">
+                            {provinceOptions.find(
+                              (o) => o.value === formData.province,
+                            )?.label || "-"}
+                          </span>
+
+                          <span className="text-gray-500">Kota/Kabupaten</span>
+                          <span className="font-medium text-gray-900">
+                            {cityOptions.find((o) => o.value === formData.city)
+                              ?.label || "-"}
+                          </span>
+
+                          <span className="text-gray-500">Kecamatan</span>
+                          <span className="font-medium text-gray-900">
+                            {districtOptions.find(
+                              (o) => o.value === formData.district,
+                            )?.label || "-"}
+                          </span>
+
+                          <span className="text-gray-500">Kelurahan</span>
+                          <span className="font-medium text-gray-900">
+                            {subdistrictOptions.find(
+                              (o) => o.value === formData.sub_district,
+                            )?.label || "-"}
+                          </span>
+
+                          <span className="text-gray-500">Kode Pos</span>
+                          <span className="font-medium text-gray-900">
+                            {formData.postal_code}
+                          </span>
+
+                          <span className="text-gray-500">Alamat Lengkap</span>
+                          <span className="font-medium text-gray-900 leading-snug break-words">
+                            {formData.actual_address || "-"}
+                          </span>
+
+                          <span className="text-gray-500">Patokan Alamat</span>
+                          <span className="font-medium text-gray-900">
+                            {formData.notes || "-"}
+                          </span>
+                        </div>
+
+                        {/* Map Mini Preview */}
+                        <div className="mt-4 w-full h-[350px] rounded-xl overflow-hidden pointer-events-none opacity-80 border border-gray-200">
+                          <MapGeoapify
+                            mode={mode as any}
+                            initialLatitude={Number(formData.latitude || 0)}
+                            initialLongitude={Number(formData.longitude || 0)}
+                            getAddress={() => {}}
+                            isInteractive={false}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Tambahan Info */}
+                      {mode === "register" && (
+                        <div>
+                          <h4 className="font-bold text-gray-800 mb-2 border-b pb-1">
+                            Informasi Tentang IRA
+                          </h4>
+                          <div className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-y-2 mt-2">
+                            <span className="text-gray-500">
+                              Sumber Informasi
+                            </span>
+                            <span className="font-medium text-gray-900">
+                              Lainnya
+                            </span>
+                            <span className="text-gray-500">
+                              Detail Lebih Lanjut
+                            </span>
+                            <span className="font-medium text-gray-900">
+                              Tahu dari teman
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Checkbox Agreement */}
+                    <div className="my-6 border-t border-gray-100 pt-4">
+                      <CheckboxAgreeForm
+                        value={agreement as any}
+                        onChange={() => setAgreement(!agreement)}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-4 pb-4">
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => {
+                      setStep(2);
+                    }}
+                    className="flex-1 px-4 py-3 rounded-xl border border-primary text-primary bg-white font-bold text-center text-sm md:text-base hover:bg-red-50 transition"
+                  >
+                    Kembali
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading || Object.keys(errors).length > 0}
+                    className="flex-1 px-4 py-3 rounded-xl bg-[#da251c] text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
+                  >
+                    Kirim & Daftarkan
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </form>
 
       {isModalRegisterSuccess && (
         <ModalTemplate
@@ -1716,165 +1913,6 @@ function RegistrationWizard({
       )}
 
       {/* Confirmation Summary Modal */}
-      {isSummaryModalOpen && (
-        <ModalTemplate
-          closeModal={() => setIsSummaryModalOpen(false)}
-          classNameModal="w-[95%] max-w-2xl bg-white rounded-2xl"
-        >
-          <div className="p-2 md:p-6 pb-2">
-            <h2 className="text-xl md:text-2xl font-bold text-center mb-6 text-black">
-              Konfirmasi Data Pelanggan
-            </h2>
-
-            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar text-sm">
-              {/* Paket Terpilih */}
-              <div>
-                <h4 className="font-bold text-gray-800 mb-2">Paket Dipilih</h4>
-                <div className="border border-red-200 bg-red-50 rounded-lg p-4 flex justify-between items-center shadow-sm">
-                  <div className="flex gap-2 items-center">
-                    <Image
-                      src="/assets/Icons/lightning-red.svg"
-                      width={16}
-                      height={16}
-                      alt="bolt"
-                    />
-                    <span className="font-bold text-gray-800">
-                      {selectedPackage?.name || "Paket IRA"}
-                    </span>
-                  </div>
-                  <div className="bg-white border border-gray-200 rounded px-2 md:px-3 py-1 text-xs md:text-sm font-semibold text-gray-700">
-                    Rp{convertToCurrency(selectedPackage?.price || 0)} / 30 Hari
-                  </div>
-                </div>
-              </div>
-
-              {/* Data Pribadi */}
-              <div>
-                <h4 className="font-bold text-gray-800 mb-2 border-b pb-1">
-                  Informasi Data Pribadi
-                </h4>
-                <div className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-y-2 mt-2">
-                  <span className="text-gray-500">Nama Pelanggan</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.fullname}
-                  </span>
-                  <span className="text-gray-500">Email</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.email || "-"}
-                  </span>
-                  <span className="text-gray-500">Nomor Handphone</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.phone}
-                  </span>
-                </div>
-              </div>
-
-              {/* Lokasi Pemasangan */}
-              <div>
-                <h4 className="font-bold text-gray-800 mb-2 border-b pb-1">
-                  Informasi Lokasi Pemasangan
-                </h4>
-                <div className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-y-2 mt-2">
-                  <span className="text-gray-500">Provinsi</span>
-                  <span className="font-medium text-gray-900">
-                    {provinceOptions.find((o) => o.value === formData.province)
-                      ?.label || "-"}
-                  </span>
-
-                  <span className="text-gray-500">Kota/Kabupaten</span>
-                  <span className="font-medium text-gray-900">
-                    {cityOptions.find((o) => o.value === formData.city)
-                      ?.label || "-"}
-                  </span>
-
-                  <span className="text-gray-500">Kecamatan</span>
-                  <span className="font-medium text-gray-900">
-                    {districtOptions.find((o) => o.value === formData.district)
-                      ?.label || "-"}
-                  </span>
-
-                  <span className="text-gray-500">Kelurahan</span>
-                  <span className="font-medium text-gray-900">
-                    {subdistrictOptions.find(
-                      (o) => o.value === formData.sub_district,
-                    )?.label || "-"}
-                  </span>
-
-                  <span className="text-gray-500">Kode Pos</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.postal_code}
-                  </span>
-
-                  <span className="text-gray-500">Alamat Lengkap</span>
-                  <span className="font-medium text-gray-900 leading-snug break-words">
-                    {formData.actual_address || "-"}
-                  </span>
-
-                  <span className="text-gray-500">Patokan Alamat</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.notes || "-"}
-                  </span>
-                </div>
-
-                {/* Map Mini Preview */}
-                <div className="mt-4 w-full h-[150px] rounded-xl overflow-hidden pointer-events-none opacity-80 border border-gray-200">
-                  <MapGeoapify
-                    mode={mode as any}
-                    initialLatitude={Number(formData.latitude || 0)}
-                    initialLongitude={Number(formData.longitude || 0)}
-                    getAddress={() => {}}
-                    isInteractive={false}
-                  />
-                </div>
-              </div>
-
-              {/* Tambahan Info */}
-              {mode === "register" && (
-                <div>
-                  <h4 className="font-bold text-gray-800 mb-2 border-b pb-1">
-                    Informasi Tentang IRA
-                  </h4>
-                  <div className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-y-2 mt-2">
-                    <span className="text-gray-500">Sumber Informasi</span>
-                    <span className="font-medium text-gray-900">Lainnya</span>
-                    <span className="text-gray-500">Detail Lebih Lanjut</span>
-                    <span className="font-medium text-gray-900">
-                      Tahu dari teman
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Checkbox Agreement */}
-            <div className="mt-6 border-t border-gray-100 pt-4">
-              <CheckboxAgreeForm
-                value={agreement as any}
-                onChange={() => setAgreement(!agreement)}
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-4 mt-6">
-              <button
-                type="button"
-                onClick={() => setIsSummaryModalOpen(false)}
-                className="flex-1 py-3 border border-primary text-primary font-bold rounded-xl hover:bg-red-50 transition"
-              >
-                Tutup
-              </button>
-              <button
-                type="button"
-                onClick={handleFinalSubmit}
-                disabled={isLoading || !agreement}
-                className="flex-1 py-3 bg-primary disabled:bg-gray-400 text-white font-bold rounded-xl hover:bg-primary-dark transition"
-              >
-                Berlangganan Sekarang
-              </button>
-            </div>
-          </div>
-        </ModalTemplate>
-      )}
     </div>
   );
 }

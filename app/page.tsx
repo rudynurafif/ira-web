@@ -11,6 +11,9 @@ import DownloadApp from "./Homepage/DownloadApp";
 import { Notification } from "./_components/Notification";
 import { useAppContext } from "./_shared/context/AppContext";
 import { useBrowserDetection } from "./hooks/useBrowserDetection";
+import { FaRegUserCircle } from "react-icons/fa";
+import Image from "next/image";
+import FloatingNavbar from "./_components/FloatingNavbar";
 
 export default function Home() {
   const router = useRouter();
@@ -80,6 +83,9 @@ export default function Home() {
       <Notification mode="store" body={bodyToken} />
       <CookieHandler />
 
+      {/* Floating Navbar */}
+      <FloatingNavbar />
+
       {isVerifying && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg text-center shadow-lg">
@@ -90,7 +96,7 @@ export default function Home() {
       )}
 
       <MainPage />
-      <WhyFWAPage />
+      {/* <WhyFWAPage /> */}
       <DownloadApp />
       <FAQPage />
     </div>

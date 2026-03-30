@@ -49,7 +49,7 @@ function MainPage() {
       const res_banner = await getImageBanner(params);
 
       const staticHero: SlideData = {
-        image: "/assets/Images/bg-section-1.png",
+        image: "/assets/Images/hero-ira-new.webp",
         imageMobile: "/assets/Images/hero-ira-new-mobile.webp",
         url: undefined,
         isStatic: true,
@@ -73,7 +73,7 @@ function MainPage() {
       console.error(err.response?.data?.message || err);
       setSlides([
         {
-          image: "/assets/Images/bg-section-1.png",
+          image: "/assets/Images/hero-ira-new.webp",
           imageMobile: "/assets/Images/hero-ira-new-mobile.webp",
           url: undefined,
           isStatic: true,
@@ -87,7 +87,7 @@ function MainPage() {
   // }, []);
 
   const FirstSlideContent = () => (
-    <div className="relative md:bg-[url('/assets/Images/bg-section-1.png')] bg-[url('/assets/Images/hero-ira-new-mobile.webp')] bg-cover bg-right bg-no-repeat text-white">
+    <div className="relative md:bg-[url('/assets/Images/hero-ira-new.webp')] bg-[url('/assets/Images/hero-ira-new-mobile.webp')] bg-cover bg-right bg-no-repeat text-white">
       {/* Original (Hidden) */}
       <div className="hidden">
         <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
@@ -122,9 +122,7 @@ function MainPage() {
                     (window as any).fbq("track", "Lead");
                   }
                   if (typeof (window as any).ttq === "object") {
-                    (window as any).ttq.track("Lead", {
-                      content_name: "Tombol Gratis 1 Bulan - Hero Banner",
-                    });
+                    (window as any).ttq.track("Lead", { content_name: "Tombol Gratis 1 Bulan - Hero Banner" });
                   }
                 }
               }}
@@ -159,7 +157,7 @@ function MainPage() {
 
       {/* Versi Go Commercial */}
       <div className="relative">
-        {/* <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div> */}
+        <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
         <div className="container mx-auto px-5 py-20">
           <div className="text-center flex flex-col gap-5 sm:my-6 my-4">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl 2xl:text-6xl font-bold">
@@ -241,9 +239,7 @@ function MainPage() {
                     (window as any).fbq("track", "Lead");
                   }
                   if (typeof (window as any).ttq === "object") {
-                    (window as any).ttq.track("Lead", {
-                      content_name: "Tombol Gratis 1 Bulan - Promo Section",
-                    });
+                    (window as any).ttq.track("Lead", { content_name: "Tombol Gratis 1 Bulan - Promo Section" });
                   }
                 }
               }}
@@ -275,7 +271,7 @@ function MainPage() {
             </div>
           )}
 
-          {/* <div className="z-9999 mt-10">
+          <div className="z-9999 mt-10">
             <div className="hidden lg:absolute bottom-5 left-10 lg:flex flex-col gap-3">
               <div className="flex justify-start items-center gap-3">
                 <Image
@@ -313,7 +309,7 @@ function MainPage() {
                 />
               </div>
             </div>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>
