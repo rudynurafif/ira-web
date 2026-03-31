@@ -5,10 +5,10 @@ import RegistrationWizard from "./_components/RegistrationWizard";
 
 function Page() {
   return (
-    <div className="bg-white min-h-screen w-full relative">
-      {/* Red background - covers top portion only */}
+    <div className="bg-white min-h-screen w-full relative overflow-x-hidden">
+      {/* Red background - covers entire height */}
       <div
-        className="absolute top-0 left-0 w-full h-[75vh] bg-cover bg-center bg-no-repeat"
+        className="absolute top-0 left-0 w-full h-[85vh] bg-cover bg-left bg-no-repeat"
         style={{ backgroundImage: "url('/assets/Images/bg-register.png')" }}
       />
 

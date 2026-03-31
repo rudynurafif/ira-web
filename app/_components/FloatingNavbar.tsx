@@ -2,22 +2,24 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { FaRegUserCircle } from "react-icons/fa";
+import { PiUserCircleFill } from "react-icons/pi";
 
 const FloatingNavbar = () => {
   const router = useRouter();
 
   return (
-    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-100 w-[85%] max-w-4xl h-12 md:h-[60px] rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.15)] flex items-stretch border-[1.5px] border-white/60 overflow-hidden bg-linear-to-r from-[#e7c7c7] via-[#e2cfcf] to-[#e5caca] backdrop-blur-md">
+    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-100 w-[95%] sm:w-[85%] max-w-4xl h-12 md:h-[60px] rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.15)] flex items-stretch border-[1.5px] border-white/60 overflow-hidden bg-[#f2bbba] backdrop-blur-md">
       {/* Left Section (Red Block with Logo) */}
-      <div className="bg-[#b31b1b] h-full pl-3 pr-4 md:pl-5 md:pr-6 flex items-center justify-center border-r-[1.5px] border-white/40">
-        <div className="flex items-center gap-2">
+      <div className="bg-[#b31b1b] h-full flex items-center justify-center px-2 sm:pl-3 sm:pr-4 md:pl-5 md:pr-6 border-r-[1.5px] border-white/40">
+        <div className="flex items-center gap-1 md:gap-2">
           <Image
             src="/assets/Icons/IraWhiteIcon.svg"
             alt="Logo"
-            className="h-8 md:h-9 object-contain"
-            width={100}
-            height={100}
+            className="h-7 sm:h-8 md:h-9 w-auto object-contain cursor-pointer"
+            width={80}
+            height={80}
             fallback-src="/assets/Images/LogoIra.png"
+            onClick={() => router.push("/")}
             onError={(e: any) => {
               e.currentTarget.src = "/assets/Images/LogoIra.png";
             }}
@@ -26,7 +28,7 @@ const FloatingNavbar = () => {
       </div>
 
       {/* Center Links */}
-      <div className="flex items-center justify-center mx-auto gap-3 sm:gap-4 md:gap-8 px-4 md:px-8 text-black font-semibold text-[11px] sm:text-[12px] md:text-[14px]">
+      <div className="flex-1 flex items-center justify-evenly sm:px-2 gap-2 sm:gap-4 text-black font-semibold text-[11px] sm:text-[12px] md:text-[14px]">
         <a href="#apps" className="hover:text-red-700 transition">
           Apps
         </a>
@@ -35,7 +37,7 @@ const FloatingNavbar = () => {
         </a>
         <a
           href="#cek-jangkauan"
-          className="hover:text-red-700 transition hidden sm:inline"
+          className="hover:text-red-700 transition text-center"
         >
           Cek Jangkauan
         </a>
@@ -52,7 +54,7 @@ const FloatingNavbar = () => {
           </span>
           <div className="bg-[#ece0e0] rounded-full p-[3px] shadow-inner h-7 w-7 md:h-[38px] md:w-[38px] flex items-center justify-center shrink-0">
             <div className="bg-white rounded-full h-full w-full flex items-center justify-center shadow-sm border border-gray-100">
-              <FaRegUserCircle className="text-[#da251c] w-4 h-4 md:w-6 md:h-6" />
+              <PiUserCircleFill className="text-[#da251c] w-4 h-4 md:w-6 md:h-6" />
             </div>
           </div>
         </button>

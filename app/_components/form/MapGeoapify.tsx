@@ -38,7 +38,6 @@ function MapGeoapify({
     null,
   );
 
-
   const [address, setAddress] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCooldown, setIsCooldown] = useState(false);
@@ -586,7 +585,7 @@ function MapGeoapify({
                   (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    
+
                     const mapInstance = (window as any).mapInstance;
                     if (mapInstance) {
                       mapInstance.setView([lat, lng], 18);
@@ -600,7 +599,7 @@ function MapGeoapify({
                     toast.error("Gagal mendeteksi lokasi GPS Anda saat ini.");
                     setIsLoading(false);
                   },
-                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
                 );
               } else {
                 toast.error("Browser tidak mendukung geolocation");

@@ -16,6 +16,9 @@ function MapGeoapifyLite({
   onPlaceChange?: (payload: {
     latitude: number;
     longitude: number;
+    postcode?: string;
+    address?: string;
+    raw_result?: any;
   }) => void;
   initialLatitude?: number;
   initialLongitude?: number;
@@ -29,8 +32,6 @@ function MapGeoapifyLite({
     null,
   );
 
-
-
   const lastReverseCoordsRef = useRef<{ lat: number; lng: number } | null>(
     null,
   );
@@ -39,9 +40,14 @@ function MapGeoapifyLite({
 
   useEffect(() => {
     // If we have an initial value provided explicitly, use it instantly.
-    if (initialLatitude && initialLongitude && initialLatitude !== 0 && initialLongitude !== 0) {
+    if (
+      initialLatitude &&
+      initialLongitude &&
+      initialLatitude !== 0 &&
+      initialLongitude !== 0
+    ) {
       setLocation({ lat: initialLatitude, lng: initialLongitude });
-      
+
       if (isInteractive) {
         onPlaceChange?.({
           latitude: initialLatitude,
@@ -83,12 +89,10 @@ function MapGeoapifyLite({
       }
     } else {
       // mode non interaktif tapi belum ada koordinat
-      setLocation({ lat: -6.2088, lng: 106.8456 }); // Fallback Jakarta  
+      setLocation({ lat: -6.2088, lng: 106.8456 }); // Fallback Jakarta
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialLatitude, initialLongitude, isInteractive]);
-
-
 
   useEffect(() => {
     if (!mapContainerRef.current || !location) return;
@@ -142,7 +146,7 @@ function MapGeoapifyLite({
     }
 
     const map = L.map(mapContainerRef.current, {
-      zoomControl: false,
+      zoomControl: true,
       dragging: isInteractive,
       touchZoom: isInteractive,
       scrollWheelZoom: isInteractive,
@@ -160,7 +164,7 @@ function MapGeoapifyLite({
     ).addTo(map);
 
     const marker = L.marker([location.lat, location.lng], {
-      draggable: false, 
+      draggable: false,
     }).addTo(map);
 
     if (isInteractive) {
@@ -168,7 +172,7 @@ function MapGeoapifyLite({
         marker.setLatLng(map.getCenter());
       });
 
-      map.on("moveend", () => {
+      map.on("moveend", async () => {
         const { lat, lng } = map.getCenter();
         setLocation({ lat, lng });
 
@@ -182,15 +186,37 @@ function MapGeoapifyLite({
         }
 
         lastReverseCoordsRef.current = { lat, lng };
-        if (onPlaceChange) {
-          onPlaceChange({ latitude: lat, longitude: lng });
+
+        // Reverse Geocoding untuk mendapatkan info alamat & postcode
+        try {
+          console.log("masuk");
+          const res = await fetch(
+            `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_API_KEY}`,
+          );
+          const data = await res.json();
+          const feature = data.features?.[0];
+
+          if (onPlaceChange) {
+            onPlaceChange({
+              latitude: lat,
+              longitude: lng,
+              postcode: feature?.properties?.postcode || "",
+              address: feature?.properties?.formatted || "",
+              raw_result: feature,
+            });
+          }
+        } catch (err) {
+          console.error("Reverse geocoding lite failed:", err);
+          if (onPlaceChange) {
+            onPlaceChange({ latitude: lat, longitude: lng });
+          }
         }
       });
     }
 
     mapRef.current = map;
     markerRef.current = marker;
-    
+
     // Fix leafet grey/white map in modal by firing resize events
     [100, 300, 600, 1000].forEach((timeout) => {
       setTimeout(() => {
@@ -214,9 +240,7 @@ function MapGeoapifyLite({
   return (
     <>
       {/* Peta */}
-      <div
-        className="w-full h-full rounded-xl relative overflow-hidden group min-h-[350px] md:min-h-[400px]"
-      >
+      <div className="w-full h-full rounded-xl relative overflow-hidden group min-h-[350px] md:min-h-[400px]">
         {!location && (
           <div className="absolute inset-0 z-1000 flex items-center justify-center h-full bg-gray-100 text-gray-500">
             <span>Memuat Peta...</span>
@@ -237,32 +261,33 @@ function MapGeoapifyLite({
                   (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    
+
                     if (mapRef.current) {
                       mapRef.current.setView([lat, lng], 18);
                     }
                     setLocation({ lat, lng });
-                    
+
                     if (onPlaceChange) {
-                        onPlaceChange({ latitude: lat, longitude: lng });
+                      onPlaceChange({ latitude: lat, longitude: lng });
                     }
                   },
                   (error) => {
                     toast.error("Gagal mendeteksi lokasi GPS Anda saat ini.");
                   },
-                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
                 );
               } else {
                 toast.error("Browser tidak mendukung geolocation");
               }
             }}
-            className="absolute bottom-24 md:bottom-6 right-4 z-1000 bg-white p-3 rounded-full shadow-md border border-gray-200 hover:bg-gray-50 flex items-center justify-center cursor-pointer transition-transform transform active:scale-95"
+            className="absolute bottom-30 right-4 z-1000 bg-white p-3 rounded-full shadow-md border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-1 cursor-pointer transition-transform transform active:scale-95"
             title="Kembali ke lokasi Anda"
           >
             <MdMyLocation
               size={24}
               className="text-gray-700 hover:text-primary"
             />
+            {/* <p className="text-xs">Kembali Ke Lokasi Saya</p> */}
           </button>
         )}
       </div>

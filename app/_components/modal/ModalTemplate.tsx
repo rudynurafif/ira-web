@@ -7,12 +7,14 @@ function ModalTemplate({
   children,
   width = "max-w-2xl",
   justify = "justify-center",
+  isCloseButton = true,
 }: {
   closeModal: () => void;
   classNameModal?: string;
   children: ReactNode;
   width?: string;
   justify?: string;
+  isCloseButton?: boolean;
 }) {
   return (
     <div
@@ -31,12 +33,14 @@ function ModalTemplate({
         }`}
       >
         {/* Close Button */}
-        <button
-          onClick={closeModal}
-          className="absolute cursor-pointer top-5 right-5 z-9999 text-black bg-white p-2 rounded-full"
-        >
-          <LiaTimesSolid size={24} />
-        </button>
+        {isCloseButton && (
+          <button
+            onClick={closeModal}
+            className="absolute cursor-pointer top-5 right-5 z-9999 text-black bg-white p-2 rounded-full"
+          >
+            <LiaTimesSolid size={24} />
+          </button>
+        )}
 
         {/* Scrollable Content */}
         <div className="overflow-y-auto max-h-[calc(90vh-3rem)] hide-scrollbar">

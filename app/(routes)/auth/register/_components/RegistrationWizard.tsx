@@ -5,7 +5,7 @@ import DynamicSelectForm from "@/app/_components/form/DynamicSelectForm";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { ReactSelectType } from "@/app/_shared/types/form";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, useRef } from "react";
 import {
   getPackagesRegister,
   registerUser,
@@ -32,6 +32,7 @@ import {
   PHONE_BEST_REGEX,
   regexEmail,
   toastErrorFromAPI,
+  handleDownloadClick,
 } from "@/app/_shared/utils";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -41,6 +42,7 @@ import {
   FaLocationDot,
   FaListCheck,
 } from "react-icons/fa6";
+import { IoClose } from "react-icons/io5";
 import MapGeoapify from "@/app/_components/form/MapGeoapify";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
@@ -67,10 +69,6 @@ import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import MapGeoapifyLite from "@/app/_components/form/MapGeoapifyLite";
 import Image from "next/image";
 import bannerImageNoCovered from "@/public/assets/Images/banner-out-coverage.png";
-import bannerImageCovered from "@/public/assets/Images/banner-in-coverage.png";
-import { FaBackward } from "react-icons/fa";
-import { IoIosArrowRoundBack } from "react-icons/io";
-import { IoArrowBackSharp } from "react-icons/io5";
 
 const initialFormData: FormType = {
   package_id: "",
@@ -78,8 +76,7 @@ const initialFormData: FormType = {
   email: "",
   phone: "",
   otp: "",
-  // password: "",
-  // confirm_password: "",
+
   nik: "",
   nokk: "",
   province: "",
@@ -130,7 +127,6 @@ function RegistrationWizard({
     ...(initialData?.notes !== undefined ? { notes: defaultNotes } : {}),
   });
 
-  const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [isOpenMapModal, setIsOpenMapModal] = useState(false);
   const [tempMapPayload, setTempMapPayload] = useState<any>(null);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
@@ -144,6 +140,9 @@ function RegistrationWizard({
   const [postalCodeOptions, setPostalCodeOptions] = useState<ReactSelectType[]>(
     [],
   );
+  // Ref untuk menandai apakah kode pos baru saja didapat dari Map
+  // (Gunanya biar Map GAK LONCAT balik ke tengah kecamatan setelah kita geser pin-nya)
+  const lastPostcodeFromMap = useRef<string | null>(null);
   const hasInitialLocation =
     initialData?.latitude &&
     initialData?.longitude &&
@@ -184,17 +183,19 @@ function RegistrationWizard({
       setIsOpenModalReqLoc(true);
     } else if (
       status === "granted" &&
+      step === 2 &&
       (!formData.latitude || formData.latitude === "0")
     ) {
       handleRequestLocation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, step]);
 
   const router = useRouter();
   const pathname = usePathname();
 
   const STORAGE_KEY = `otp:register:phone`;
+  const PERSIST_KEY = `registration_wizard_data`;
 
   function startOtpTimerFromParent(seconds: number) {
     if (!Number.isFinite(seconds) || seconds <= 0) return;
@@ -274,45 +275,51 @@ function RegistrationWizard({
     }
   }, [mode, initialData]);
 
-  // un comment kalo pakai API autofill
-  // async function autofillLocationViaApiWithRaw(rawResult: any) {
-  //   setIsAutoFilling(true);
-  //   try {
-  //     const resp = await getUserLocation(rawResult);
-  //     const payload = resp?.data;
-  //     if (!payload || payload.statusCode !== 200) {
-  //       toast.error("Gagal mengenali lokasi dari API.");
-  //       return;
-  //     }
-  //     const prov = payload?.result?.province ?? null;
-  //     const city = payload?.result?.city ?? null;
-  //     const dist = payload?.result?.district ?? null;
-  //     const subd = payload?.result?.sub_district ?? null;
-  //     const pcode = payload?.result?.postal_code ?? null; // bisa null
-  //     // set ID yang dipilih; efek cascade kamu akan load opsi & labelnya
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       province: prov?.id ? String(prov.id) : "",
-  //       city: city?.id ? String(city.id) : "",
-  //       district: dist?.id ? String(dist.id) : "",
-  //       sub_district: subd?.id ? String(subd.id) : "",
-  //       postal_code: pcode ? String(pcode) : "",
-  //     }));
-  //     if (prov?.id && prov?.name) {
-  //       setProvinceOptions((opts) =>
-  //         opts.some((o) => String(o.value) === String(prov.id))
-  //           ? opts
-  //           : [{ label: prov.name, value: String(prov.id) }, ...opts]
-  //       );
-  //     }
-  //     toast.success("Lokasi terisi otomatis ✔");
-  //   } catch (err: any) {
-  //     // console.error("getUserLocation failed:", err);
-  //     toastErrorFromAPI(err, "Autofill lokasi gagal");
-  //   } finally {
-  //     setIsAutoFilling(false);
-  //   }
-  // }
+  // -- Persistence Logic --
+  // 1. Load data from localStorage on Mount
+  useEffect(() => {
+    const savedData = localStorage.getItem(PERSIST_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        if (parsed.formData) setFormData(parsed.formData);
+        if (parsed.step) setStep(parsed.step);
+        if (parsed.selectedPackage) {
+          setSelectedPackage(parsed.selectedPackage);
+        }
+        if (parsed.otpStatus) {
+          setOtpStatus(parsed.otpStatus);
+        }
+      } catch (err) {
+        console.error("Failed to restore registration data", err);
+      }
+    }
+  }, []);
+
+  // 2. Save data to localStorage on Change
+  useEffect(() => {
+    const dataToSave = { formData, step, selectedPackage, otpStatus };
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(dataToSave));
+  }, [formData, step, selectedPackage, otpStatus, PERSIST_KEY]);
+
+  useEffect(() => {
+    if (isModalRegisterSuccess && pathname === "/auth/register") {
+      // Masukkan ke history buat GA
+      window.history.pushState(null, "", "/auth/register/popup");
+
+      // Setelah 5 detik, kembalikan ke URL normal agar kalau di-refresh gak 404
+      const timeout = setTimeout(() => {
+        window.history.replaceState(null, "", "/auth/register");
+      }, 5000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isModalRegisterSuccess, pathname]);
+
+  // 3. Clear Storage helper
+  const clearPersistance = () => {
+    localStorage.removeItem(PERSIST_KEY);
+  };
 
   useEffect(() => {
     const checkCoverage = async () => {
@@ -324,6 +331,7 @@ function RegistrationWizard({
       ) {
         setIsCovered(false);
         setMitraID([]);
+        setIsCheckCoverage(false); // Ensure loader is off
         return;
       }
 
@@ -466,111 +474,71 @@ function RegistrationWizard({
 
   const [isLoadingArea, setIsLoadingArea] = useState(false);
 
-  // Debounce Kode Pos -> Autofill Lokasi
+  // Debounce Kode Pos -> Autofill Lokasi (Koordinat Map)
   useEffect(() => {
-    if (!formData.postal_code || formData.postal_code.length < 5) return;
+    // Jalankan jika panjang karakter 3 s/d 5
+    if (
+      !formData.postal_code ||
+      formData.postal_code.length < 3 ||
+      formData.postal_code.length > 5
+    )
+      return;
+
+    // JANGAN JALANKAN jika Kode POS ini dikirim oleh Map (Biar Gak Loncat Balik)
+    if (formData.postal_code === lastPostcodeFromMap.current) {
+      return;
+    }
 
     const timer = setTimeout(async () => {
       try {
         setIsLoadingArea(true);
-        const res = await getLocationByPostalCode(formData.postal_code);
-        const locData = res.data?.data;
-        if (locData && Object.keys(locData).length > 0) {
-          const { province, city, district, sub_district } = locData;
-
-          if (province) {
-            setProvinceOptions((opts) => {
-              const exists = opts.find((o) => o.value === String(province.id));
-              return exists
-                ? opts
-                : [
-                    { label: province.name, value: String(province.id) },
-                    ...opts,
-                  ];
-            });
-          }
-          if (city) {
-            setCityOptions((opts) => {
-              const exists = opts.find((o) => o.value === String(city.id));
-              return exists
-                ? opts
-                : [{ label: city.name, value: String(city.id) }, ...opts];
-            });
-          }
-          if (district) {
-            setDistrictOptions((opts) => {
-              const exists = opts.find((o) => o.value === String(district.id));
-              return exists
-                ? opts
-                : [
-                    { label: district.name, value: String(district.id) },
-                    ...opts,
-                  ];
-            });
-          }
-          if (sub_district) {
-            setSubdistrictOptions((opts) => {
-              const exists = opts.find(
-                (o) => o.value === String(sub_district.id),
-              );
-              return exists
-                ? opts
-                : [
-                    {
-                      label: sub_district.name,
-                      value: String(sub_district.id),
-                    },
-                    ...opts,
-                  ];
-            });
-          }
-
-          setFormData((prev) => ({
-            ...prev,
-            province: province ? String(province.id) : prev.province,
-            city: city ? String(city.id) : prev.city,
-            district: district ? String(district.id) : prev.district,
-            sub_district: sub_district
-              ? String(sub_district.id)
-              : prev.sub_district,
-          }));
-
-          // Panggil geoapify utk dapetin lat/lng berdasarkan kode pos
-          try {
-            const MAP_KEY =
-              process.env.NEXT_PUBLIC_MAP_API_KEY ||
-              "9babe437b7aa4d84b359813bfdd4ff7a";
-            const resMap = await fetch(
-              `https://api.geoapify.com/v1/geocode/search?postcode=${formData.postal_code}&country=Indonesia&apiKey=${MAP_KEY}`,
-            );
-            const dataMap = await resMap.json();
-            if (dataMap?.features?.length > 0) {
-              const { lat, lon } = dataMap.features[0].properties;
-              if (lat && lon) {
-                setFormData((prev) => ({
-                  ...prev,
-                  latitude: String(lat),
-                  longitude: String(lon),
-                }));
-                setTempMapPayload((prev: any) => ({
-                  ...prev,
-                  latitude: String(lat),
-                  longitude: String(lon),
-                }));
-              }
-            }
-          } catch (e) {
-            console.error("Gagal mendeteksi koordinat kode pos", e);
-          }
-
-          toast.success("Area lokasi ditemukan ✔");
+        if (step === 2) {
+          toast(
+            "Pastikan Pin Lokasi sudah sesuai dengan alamat pemasangan anda",
+          );
         }
-      } catch (err: any) {
-        toastErrorFromAPI(err, "Gagal melacak kode pos");
+
+        // Panggil geoapify utk dapetin lat/lng (centering map) berdasarkan kode pos
+        const MAP_KEY =
+          process.env.NEXT_PUBLIC_MAP_API_KEY ||
+          "9babe437b7aa4d84b359813bfdd4ff7a";
+        const resMap = await fetch(
+          `https://api.geoapify.com/v1/geocode/search?postcode=${formData.postal_code}&country=Indonesia&apiKey=${MAP_KEY}`,
+        );
+        const dataMap = await resMap.json();
+        if (dataMap?.features?.length > 0) {
+          const { lat, lon } = dataMap.features[0].properties;
+          if (lat && lon) {
+            setFormData((prev) => {
+              // BREAK THE LOOP: Jika beda koordinatnya sangat kecil sekali, jangan update lagi
+              // Ini biar kalau map yang men-set Kode Pos, gak balik lagi diserobot sama ini
+              const diffLat = Math.abs(Number(prev.latitude) - lat);
+              const diffLon = Math.abs(Number(prev.longitude) - lon);
+
+              if (diffLat < 0.0001 && diffLon < 0.0001) {
+                return prev;
+              }
+
+              return {
+                ...prev,
+                latitude: String(lat),
+                longitude: String(lon),
+              };
+            });
+
+            setTempMapPayload((prev: any) => ({
+              ...prev,
+              latitude: String(lat),
+              longitude: String(lon),
+            }));
+          }
+        }
+      } catch (e) {
+        console.error("Gagal mendeteksi koordinat kode pos", e);
       } finally {
         setIsLoadingArea(false);
       }
-    }, 1000);
+    }, 1_500);
 
     return () => clearTimeout(timer);
   }, [formData.postal_code]);
@@ -661,6 +629,7 @@ function RegistrationWizard({
   }, [formData.latitude, formData.longitude, mitraID]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    console.log("masuk");
     e.preventDefault();
 
     setIsLoading(true);
@@ -692,30 +661,6 @@ function RegistrationWizard({
       errors.otp = "Kode OTP harus 6 digit";
     }
 
-    // if (!formData.password || formData.password.length < 6) {
-    //   errors.password = "Password minimal 6 karakter";
-    // }
-
-    // if (formData.password !== formData.confirm_password) {
-    //   errors.confirm_password = "Password tidak sama";
-    // }
-
-    // if (!formData.confirm_password) {
-    //   errors.confirm_password = "Konfirmasi password wajib diisi";
-    // }
-
-    // if (!formData.nik) {
-    //   errors.nik = "NIK harus diisi";
-    // } else if (!/^\d{16}$/.test(formData.nik)) {
-    //   errors.nik = "NIK harus 16 digit angka";
-    // }
-
-    // if (!formData.nokk) {
-    //   errors.nokk = "No KK harus diisi";
-    // } else if (!/^\d{16}$/.test(formData.nokk)) {
-    //   errors.nokk = "No KK harus 16 digit angka";
-    // }
-
     if (!formData.province) {
       errors.province = "Provinsi harus diisi";
     }
@@ -732,13 +677,13 @@ function RegistrationWizard({
       errors.sub_district = "Kelurahan harus diisi";
     }
 
-    if (!formData.rw || formData.rw === "0") {
-      errors.rw = "RW harus diisi";
-    }
+    // if (!formData.rt || formData.rt === "0") {
+    //   errors.rt = "RT harus diisi";
+    // }
 
-    if (!formData.rt || formData.rt === "0") {
-      errors.rt = "RT harus diisi";
-    }
+    // if (!formData.rw || formData.rw === "0") {
+    //   errors.rw = "RW harus diisi";
+    // }
 
     if (!formData.postal_code) {
       errors.postal_code = "Kode Pos harus diisi";
@@ -795,9 +740,9 @@ function RegistrationWizard({
           district_id: formData.district ?? "",
           sub_district_id: formData.sub_district ?? "",
           postal_code: formData.postal_code ?? "",
-          rw: formData.rw ?? "",
-          rt: formData.rt ?? "",
-          address: addressArray ?? "",
+          ...(formData.rw && { rw: formData.rw }),
+          ...(formData.rt && { rt: formData.rt }),
+          ...(formData.address_raw && { address: [formData.address_raw] }),
           actual_address: formData.actual_address ?? "",
           ...(formData.latitude && { latitude: formData.latitude }),
           ...(formData.longitude && { longitude: formData.longitude }),
@@ -851,10 +796,8 @@ function RegistrationWizard({
         }
 
         setIsModalRegisterSuccess(true);
-        if (pathname === "/auth/register") {
-          window.history.pushState(null, "", "/auth/register/popup");
-        }
         setOtpStatus("idle");
+        clearPersistance(); // Clear on success
         resetForm();
       } catch (error: any) {
         // error konflik 409
@@ -870,14 +813,17 @@ function RegistrationWizard({
   }
 
   useEffect(() => {
-    console.log(formData);
+    console.log("form data", formData);
     // console.log("mitra IDs: ", mitraID);
     // console.log("bts IDs: ", btsID);
     // console.log(isCovered);
-  }, [btsID, formData, mitraID, isCovered]);
+    // console.log("error", errors);
+  }, [btsID, formData, mitraID, isCovered, errors]);
 
   function resetForm() {
+    setStep(1);
     setFormData(initialFormData);
+    clearPersistance(); // Clear on reset
     setErrors({});
     setAgreement(false);
     setIsLoading(false);
@@ -927,73 +873,147 @@ function RegistrationWizard({
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+  }, [isLoading, formData, step]);
 
   // const isPasswordMismatch =
   //   Boolean(formData.password) &&
   //   Boolean(formData.confirm_password) &&
   //   formData.password !== formData.confirm_password;
 
-  const isValid =
+  const isInvalid =
     isLoading ||
     !agreement ||
     status === "denied" ||
     isCheckCoverage ||
     isLoadingPackage;
-  // !formData.package_id;
-  // || isPasswordMismatch;
 
   const handleNextStep1 = () => {
-    setStep(2);
+    // setStep(2);
 
-    // let newErrors = { ...errors };
-    // let hasError = false;
+    let newErrors = { ...errors };
+    let hasError = false;
 
-    // if (!formData.fullname || !formData.fullname.trim()) {
-    //   newErrors.fullname = "Nama Lengkap wajib diisi.";
-    //   hasError = true;
-    // } else {
-    //   delete newErrors.fullname;
-    // }
+    if (!formData.fullname || !formData.fullname.trim()) {
+      newErrors.fullname = "Nama Lengkap wajib diisi.";
+      hasError = true;
+    } else {
+      delete newErrors.fullname;
+    }
 
-    // if (!formData.phone || !formData.phone.trim()) {
-    //   newErrors.phone = "Nomor Ponsel wajib diisi.";
-    //   hasError = true;
-    // } else {
-    //   delete newErrors.phone;
-    // }
+    if (!formData.phone || !formData.phone.trim()) {
+      newErrors.phone = "Nomor Ponsel wajib diisi.";
+      hasError = true;
+    } else {
+      delete newErrors.phone;
+    }
 
-    // if (
-    //   formData.email &&
-    //   formData.email.trim() &&
-    //   !EMAIL_REGEX.test(formData.email)
-    // ) {
-    //   newErrors.email = "Format email tidak valid.";
-    //   hasError = true;
-    // } else {
-    //   delete newErrors.email;
-    // }
+    if (
+      formData.email &&
+      formData.email.trim() &&
+      !EMAIL_REGEX.test(formData.email)
+    ) {
+      newErrors.email = "Format email tidak valid.";
+      hasError = true;
+    } else {
+      delete newErrors.email;
+    }
 
-    // if (otpStatus !== "valid" && !initialData?.phone) {
-    //   toast.error("Silakan selesaikan pengisian OTP terlebih dahulu.");
-    //   hasError = true;
-    // }
+    if (otpStatus !== "valid" && !initialData?.phone) {
+      newErrors.otp = "OTP belum terverifikasi";
+      toast.error("Silakan selesaikan verifikasi OTP terlebih dahulu.");
+      hasError = true;
+    }
 
-    // setErrors(newErrors);
+    setErrors(newErrors);
 
-    // if (!hasError) {
-    //   setStep(2);
-    //   window.scrollTo({ top: 0, behavior: "smooth" });
-    // } else {
-    //   scrollToFirstError(newErrors);
-    // }
+    if (!hasError) {
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      scrollToFirstError(newErrors);
+    }
+  };
+
+  const handleClickBanner = () => {
+    if (typeof window === "undefined") return;
+
+    if (typeof (window as any).fbq === "function") {
+      (window as any).fbq("track", "CustomizeProduct");
+    }
+    if (typeof (window as any).ttq === "object") {
+      (window as any).ttq.track("Download");
+    }
+
+    const ua = navigator.userAgent.toLowerCase();
+    const isApple = /mac|iphone|ipad|ipod/.test(ua);
+    handleDownloadClick(isApple ? "apple" : "google");
+
+    if (token && (mode === "reregister" || mode === "update_address")) {
+      window.location.href = "/customer-area";
+    } else {
+      deleteCookie("token-ira");
+      window.location.href = "/auth/login";
+    }
+  };
+
+  const handleCloseModalSuccess = () => {
+    setIsModalRegisterSuccess(false);
+    if (pathname === "/auth/register") {
+      window.history.replaceState(null, "", "/auth/register");
+    }
+    if (mode === "update_address") {
+      window.location.href = "/customer-area";
+    }
+    setCoveredAtSubmit(null);
   };
 
   const handleProceedToSummary = () => {
+    let newErrors: { [key: string]: string } = { ...errors };
+    let hasError = false;
+
+    // Validasi field wajib Step 2
+    if (!formData.province) {
+      newErrors.province = "Provinsi harus dipilih";
+      hasError = true;
+    }
+    if (!formData.city) {
+      newErrors.city = "Kota harus dipilih";
+      hasError = true;
+    }
+    if (!formData.district) {
+      newErrors.district = "Kecamatan harus dipilih";
+      hasError = true;
+    }
+    if (!formData.sub_district) {
+      newErrors.sub_district = "Kelurahan harus dipilih";
+      hasError = true;
+    }
+    if (!formData.postal_code) {
+      newErrors.postal_code = "Kode POS harus diisi";
+      hasError = true;
+    }
+    if (!formData.actual_address || !formData.actual_address.trim()) {
+      newErrors.actual_address = "Alamat lengkap harus diisi";
+      hasError = true;
+    }
+
     if (!formData.latitude || !formData.longitude) {
-      toast.error("Lokasi anda belum lengkap");
+      toast.error("Silakan tentukan titik lokasi pemasangan Anda pada peta");
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      // Munculkan toast rangkuman error
+      toast.error(buildErrorToast(newErrors));
+
+      // Tunggu render sebentar agar elemen error muncul di DOM
+      setTimeout(() => {
+        scrollToFirstError(newErrors);
+      }, 50);
       return;
     }
+
     setStep(3);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -1006,36 +1026,43 @@ function RegistrationWizard({
         </div>
       )}
 
+      {/* Title */}
+      <div className="w-full flex justify-center mb-4 md:mb-5">
+        <h1 className="text-3xl md:text-[40px] lg:text-[48px] text-white font-extrabold text-center drop-shadow-md">
+          Registrasi IRA
+        </h1>
+      </div>
+
       {/* Stepper */}
-      <div className="flex flex-col items-center mb-6 md:mb-8 w-full px-2 relative z-20">
-        <div className="bg-white rounded-full flex items-center justify-center px-4 md:px-5 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.15)] gap-2 sm:gap-4 md:gap-5 border-[1.5px] border-white/60">
-          <span className="font-bold text-black text-sm sm:text-base whitespace-nowrap pl-1 md:pl-2">
+      <div className="flex  flex-col items-center md:mb-0 w-full px-1 sm:px-2 relative z-20">
+        <div className="bg-white rounded-t-[30px] flex items-center justify-center px-2 sm:px-4 md:px-5 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.15)] gap-1.5 sm:gap-4 md:gap-5 border-2 border-b-0 border-[#A50E0E]">
+          <span className="font-bold text-black text-[11px] sm:text-base whitespace-nowrap pl-1 md:pl-2">
             Tahap {step}{" "}
-            <span className="font-medium text-gray-500 text-xs sm:text-base">
+            <span className="font-medium text-gray-500 text-[10px] sm:text-base">
               dari 3
             </span>
           </span>
-          <div className="flex items-center gap-1.5 sm:gap-2 mr-1">
+          <div className="flex items-center gap-1 sm:gap-2 mr-1">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 1 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-200 text-gray-400"}`}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 1 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-400 text-white"}`}
             >
-              <FaListUl size={16} />
+              <FaListUl className="text-xs sm:text-base" />
             </div>
             <div
-              className={`w-8 sm:w-10 h-[2px] transition-colors duration-300 ${step >= 2 ? "bg-[#b61515]" : "bg-gray-300"}`}
+              className={`w-4 sm:w-8 md:w-10 h-[2px] transition-colors duration-300 ${step >= 2 ? "bg-[#b61515]" : "bg-gray-300"}`}
             />
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 2 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-200 text-gray-400"}`}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 2 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-400 text-white"}`}
             >
-              <FaLocationDot size={16} />
+              <FaLocationDot className="text-xs sm:text-base" />
             </div>
             <div
-              className={`w-8 sm:w-10 h-[2px] transition-colors duration-300 ${step >= 3 ? "bg-[#b61515]" : "bg-gray-300"}`}
+              className={`w-4 sm:w-8 md:w-10 h-[2px] transition-colors duration-300 ${step >= 3 ? "bg-[#b61515]" : "bg-gray-300"}`}
             />
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 3 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-200 text-gray-400"}`}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 3 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-400 text-white"}`}
             >
-              <FaListCheck size={16} />
+              <FaListCheck className="text-xs sm:text-base" />
             </div>
           </div>
         </div>
@@ -1044,16 +1071,17 @@ function RegistrationWizard({
       {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-[1536px] rounded-3xl md:rounded-[40px] bg-[#a80f0f] shadow-[0_20px_60px_rgba(164,18,18,0.4)] overflow-visible relative flex flex-col lg:flex-row h-[70vh] lg:border-2 border-white"
+        className="w-full max-w-[1536px] rounded-3xl md:rounded-[40px] bg-[#a80f0f] shadow-[0_20px_60px_rgba(164,18,18,0.4)] overflow-visible relative flex flex-col lg:flex-row h-auto lg:h-[70vh] min-h-[500px] border-2 border-white mb-10"
       >
+        {/* Person */}
         <div
-          className="w-full lg:w-[60%] left-[3%] relative flex justify-center items-end min-h-[260px] md:min-h-[300px] lg:min-h-[500px]"
+          className="w-full lg:w-[60%] left-[5%] sm:left-[3%] relative flex justify-center items-end min-h-[250px] md:min-h-[300px] lg:min-h-[500px] max-lg:mt-40"
           style={{ clipPath: "inset(-200% -200% 0 -200%)" }}
         >
           <div className="absolute inset-x-0 bottom-0 w-full flex justify-end md:justify-center lg:justify-end items-end h-full z-30 pointer-events-none">
             <Image
               src={`/assets/Images/person-reg-${step}.png`}
-              className="object-contain object-bottom xl:scale-115 2xl:scale-125 transform origin-bottom md:translate-y-[15px] lg:translate-x-[-10px] lg:translate-y-[20px] xl:translate-x-[-15px] xl:translate-y-[24px] 2xl:translate-x-[-20px] 2xl:translate-y-[28px] drop-shadow-[5px_0_15px_rgba(0,0,0,0.5)] z-30"
+              className="object-contain object-bottom  scale-170 lg:scale-120 transform origin-bottom md:translate-y-[15px] lg:translate-x-[-10px] lg:translate-y-[20px] xl:translate-x-[-15px] xl:translate-y-[24px] 2xl:translate-x-[-20px] 2xl:translate-y-[28px] drop-shadow-[5px_0_15px_rgba(0,0,0,0.5)] z-30"
               alt="Person"
               fill
               priority
@@ -1061,7 +1089,9 @@ function RegistrationWizard({
           </div>
         </div>
 
-        <div className="w-full lg:w-[60%] xl:w-[58%] 2xl:w-[55%] flex justify-center items-start p-6 z-25 relative">
+        <div
+          className={`w-full ${step === 2 ? "max-sm:mt-[-10%]" : "max-sm:mt-[-25%]"} lg:w-[60%] xl:w-[58%] 2xl:w-[55%] flex justify-center items-start p-6 max-lg:pt-0 z-25 relative`}
+        >
           <div className="bg-white rounded-[24px] md:rounded-[32px] w-full max-h-full min-h-[400px] shadow-2xl p-4 sm:p-6 flex flex-col justify-start relative border border-white/50 overflow-y-auto custom-scrollbar">
             {step === 1 && (
               <div className="animate-in fade-in duration-500 w-full h-full flex flex-col justify-between">
@@ -1086,7 +1116,6 @@ function RegistrationWizard({
                           setErrors({ ...errors, fullname: "" });
                         }}
                         error={errors.fullname || ""}
-                        disabled={isAutoFilling}
                       />
                     </div>
                     {/* Row 1 Col 2 */}
@@ -1111,7 +1140,6 @@ function RegistrationWizard({
                           }
                         }}
                         error={errors.email || ""}
-                        disabled={isAutoFilling}
                       />
                     </div>
                     {/* Row 2 Col 1 */}
@@ -1140,46 +1168,64 @@ function RegistrationWizard({
                       />
                     </div>
                     {/* Row 2 Col 2 */}
-                    <div className="pt-2">
-                      <GroupedOTP
-                        isInvalid={!!errors.otp || otpStatus === "invalid"}
-                        label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
-                        isImportant
-                        name="otp"
-                        value={formData.otp}
-                        isDisabled={otpStatus === "valid"}
-                        onChange={(val: string) => {
-                          const cleaned = sanitizeAlphanumeric(val);
-                          setFormData((prev) => ({ ...prev, otp: cleaned }));
-                          if (errors.otp) setErrors((e) => ({ ...e, otp: "" }));
-                          if (otpStatus !== "idle") setOtpStatus("idle");
-                        }}
-                        onComplete={(val: string) => {
-                          handleVerifyOtp(val);
-                        }}
-                      />
+                    {/* OTP */}
+                    {mode === "register" && (
+                      <div className="pt-2">
+                        <GroupedOTP
+                          isInvalid={!!errors.otp || otpStatus === "invalid"}
+                          label="Masukkan OTP yang dikirim via Whatsapp atau SMS"
+                          isImportant
+                          name="otp"
+                          value={formData.otp}
+                          isDisabled={otpStatus === "valid"}
+                          onChange={(val) => {
+                            const cleaned = sanitizeAlphanumeric(val);
+                            setFormData((prev) => ({ ...prev, otp: cleaned }));
+                            if (errors.otp)
+                              setErrors((e) => ({ ...e, otp: "" }));
+                            if (otpStatus !== "idle") setOtpStatus("idle");
+                          }}
+                          onComplete={(val) => {
+                            handleVerifyOtp(val);
+                          }}
+                        />
 
-                      <p
-                        className={`text-primary mt-1 text-sm italic ${otpStatus === "verifying" ? "block" : "hidden"}`}
-                      >
-                        <span>Memverifikasi OTP...</span>
-                      </p>
-
-                      <p
-                        className={`text-green-600 mt-1 text-sm flex items-center gap-1 ${otpStatus === "valid" ? "flex" : "hidden"}`}
-                      >
-                        <span>OTP Terverifikasi</span> <FaCircleCheck />
-                      </p>
-
-                      {errors.otp && (
-                        <p className="text-primary text-xs mt-1">
-                          {errors.otp}
+                        <p
+                          className={`text-primary mt-1 text-sm italic ${otpStatus === "verifying" ? "block" : "hidden"}`}
+                        >
+                          <span>Memverifikasi OTP...</span>
                         </p>
-                      )}
-                    </div>
+
+                        <p
+                          className={`text-green-600 mt-1 text-sm items-center gap-1 ${otpStatus === "valid" ? "flex" : "hidden"}`}
+                        >
+                          <FaCircleCheck className="text-green-600" />
+                          <span>
+                            OTP berhasil diverifikasi! Anda bisa melanjutkan
+                            registrasi.
+                          </span>
+                        </p>
+
+                        <p
+                          className={`text-red-500 mt-1 text-sm items-center gap-1 ${otpStatus === "invalid" && !errors.otp ? "flex" : "hidden"}`}
+                        >
+                          <FaCircleExclamation className="text-red-500" />
+                          <span>
+                            Kode OTP tidak valid atau sudah kedaluwarsa.
+                          </span>
+                        </p>
+
+                        <p
+                          className={`text-red-500 mt-1 text-sm items-center gap-1 ${errors.otp ? "flex" : "hidden"}`}
+                        >
+                          <FaCircleExclamation className="text-red-500" />
+                          <span>{errors.otp}</span>
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex justify-center my-6">
+                <div className="flex justify-center mt-6">
                   <button
                     type="button"
                     onClick={handleNextStep1}
@@ -1195,7 +1241,7 @@ function RegistrationWizard({
               <div className="animate-in fade-in duration-500 w-full h-full pt-2 flex flex-col justify-between">
                 <div>
                   <h3 className="font-bold text-lg md:text-xl mb-6 text-black">
-                    Silakan Isi Alamat Lengkap Pemasangan Anda
+                    Silakan Isi Alamat Lengkap
                   </h3>
 
                   {/* Package Selector */}
@@ -1234,139 +1280,25 @@ function RegistrationWizard({
                       )}
                     </div>
                   ) : (
-                    <>
-                      {/* <div className="my-6">
-                        <Image
-                          src={bannerImageNoCovered}
-                          className="w-full hidden sm:block"
-                          alt="banner-no-coverage"
-                        />
-                        <div className="block sm:hidden bg-[#FEFCE8] py-2 px-3 border border-[#A16207] rounded-lg">
-                          <p className="text-xs text-[#A16207]">
-                            <strong>Layanan di areamu segera hadir:</strong>{" "}
-                            Jangan khawatir! Silakan daftar sekarang agar akunmu
-                            tersimpan di sistem kami.
-                          </p>
-                        </div>
-                      </div> */}
-                    </>
-                  )}
-
-                  {/* Kode Pos Area */}
-                  <div className="mb-6 relative z-[60]">
-                    <div className="flex flex-col md:flex-row gap-2 w-full md:w-1/2">
-                      <div className="w-[100%] md:w-full">
-                        <div className="relative">
-                          <DynamicForm
-                            label="Kode POS"
-                            type="number"
-                            isImportant
-                            name="postal_code"
-                            onChange={(value: string) => {
-                              if (/^\d{0,5}$/.test(value)) {
-                                setFormData((prev: any) => ({
-                                  ...prev,
-                                  postal_code: value,
-                                }));
-                                setErrors({ ...errors, postal_code: "" });
-                              }
-                            }}
-                            placeholder="Masukkan 5 digit Kode POS"
-                            value={formData.postal_code}
-                            error={errors.postal_code || ""}
-                            disabled={Boolean(
-                              isAutoFilling ||
-                              (mode === "update_address" &&
-                                initialData?.postal_code &&
-                                initialData?.postal_code ===
-                                  formData.postal_code),
-                            )}
+                    formData.postal_code.length >= 4 && (
+                      <>
+                        <div className="my-6">
+                          <Image
+                            src={bannerImageNoCovered}
+                            className="w-full hidden lg:block"
+                            alt="banner-no-coverage"
                           />
-                          {isLoadingArea && (
-                            <div className="absolute top-[45px] right-4 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                          )}
+                          <div className="block lg:hidden bg-[#FEFCE8] py-2 px-3 border border-[#A16207] rounded-lg">
+                            <p className="text-xs text-[#A16207]">
+                              <strong>Layanan di areamu segera hadir:</strong>{" "}
+                              Jangan khawatir! Silakan daftar sekarang agar
+                              akunmu tersimpan di sistem kami.
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    {/* {!isCovered && formData.postal_code && (
-                    <div className="w-full p-3 rounded-md bg-[#FFF9CC] border border-orange-200 mt-2">
-                      <h4 className="flex items-center gap-2 font-bold text-orange-600 mb-1">
-                        <FaCircleExclamation size={20} /> Area kamu belum
-                        tercakup
-                      </h4>
-                      <p className="text-sm font-medium">
-                        Mohon maaf, layanan IRA belum tersedia di areamu. Kami
-                        sedang memperluas jaringan agar bisa segera hadir di
-                        lokasimu. Tunggu kehadiran kami ya!
-                      </p>
-                    </div>
-                  )} */}
-                  </div>
-
-                  {/* Map Area */}
-                  <div className="mb-6 relative z-10 space-y-2">
-                    <p className="font-bold text-sm text-black mb-2">
-                      Arahkan Pin Lokasi ke Titik Alamat Anda
-                    </p>
-                    <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
-                      <div className="w-full h-full pointer-events-none">
-                        <MapGeoapify
-                          mode={mode as any}
-                          initialLatitude={Number(formData.latitude || 0)}
-                          initialLongitude={Number(formData.longitude || 0)}
-                          getAddress={() => {}}
-                          isInteractive={false}
-                        />
-                      </div>
-                      {/* The "Sesuaikan Pin Point" Floating Red Button from design mockup */}
-                      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 w-[90%] md:w-fit">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setTempMapPayload({
-                              latitude: formData.latitude,
-                              longitude: formData.longitude,
-                              address: formData.actual_address,
-                              address_gmaps: formData.address_gmaps,
-                            });
-                            setIsOpenMapModal(true);
-                          }}
-                          className="w-full md:w-[300px] bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-primary-dark transition text-sm cursor-pointer"
-                        >
-                          Sesuaikan Pin Point
-                        </button>
-                      </div>
-                    </div>
-                    {errors.latitude && (
-                      <p className="text-primary text-xs mt-1">
-                        Lokasi GPS harus dipilih dari peta otomatis.
-                      </p>
-                    )}
-                  </div>
-
-                  <p
-                    className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}
-                  >
-                    <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
-                    <span>Mengecek jangkauan...</span>
-                  </p>
-                  <p
-                    className={`mt-1 text-green-primary items-center gap-1 text-sm ${isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
-                  >
-                    <FaCircleCheck className="text-green-primary" />
-                    <span>
-                      Selamat! Alamat Anda berada di dalam jangkauan kami.
-                    </span>
-                  </p>
-                  <p
-                    className={`mt-2 animate-bounce text-red-primary items-center gap-1 text-sm ${!isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
-                  >
-                    <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
-                    <span>
-                      Lokasi Anda belum berada di jangkauan area kami, dan kami
-                      sedang menuju ke daerah Anda.
-                    </span>
-                  </p>
+                      </>
+                    )
+                  )}
 
                   {/* Address Select Area */}
                   <div className="mt-3 flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-50">
@@ -1432,7 +1364,7 @@ function RegistrationWizard({
                         isDisabled={!formData.province}
                         placeholder={`${
                           !formData.province
-                            ? "Pilih Provinsi Terlebih Dahulu"
+                            ? "Pilih Provinsi  Dahulu"
                             : "Pilih Kota/Kabupaten"
                         }`}
                         value={formData.city}
@@ -1441,6 +1373,7 @@ function RegistrationWizard({
                     </div>
                   </div>
 
+                  {/* Kecamatan Kelurahan */}
                   <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-40">
                     <div className="flex-1">
                       <DynamicSelectForm
@@ -1469,7 +1402,7 @@ function RegistrationWizard({
                         isDisabled={!formData.city}
                         placeholder={`${
                           !formData.city
-                            ? "Pilih Kota/Kab Terlebih Dahulu"
+                            ? "Pilih Kota/Kab  Dahulu"
                             : "Pilih Kecamatan"
                         }`}
                         value={formData.district}
@@ -1501,7 +1434,7 @@ function RegistrationWizard({
                         isDisabled={!formData.district}
                         placeholder={`${
                           !formData.district
-                            ? "Pilih Kecamatan Terlebih Dahulu"
+                            ? "Pilih Kecamatan  Dahulu"
                             : "Pilih Kelurahan"
                         }`}
                         value={formData.sub_district}
@@ -1510,30 +1443,42 @@ function RegistrationWizard({
                     </div>
                   </div>
 
+                  {/* RW RT */}
                   <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-30">
+                    {/* Kode Pos Area */}
                     <div className="flex-1">
                       <DynamicForm
-                        label="RW"
+                        label="Kode POS"
                         isImportant
-                        name="rw"
-                        value={formData.rw}
+                        name="postal_code"
                         onChange={(value: string) => {
-                          if (/^\d{0,3}$/.test(value)) {
-                            setFormData((prevData: any) => ({
-                              ...prevData,
-                              rw: value,
+                          if (/^\d{0,5}$/.test(value)) {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              postal_code: value,
                             }));
-                            setErrors({ ...errors, rw: "" });
+                            setErrors({ ...errors, postal_code: "" });
                           }
                         }}
-                        placeholder="Masukkan RW"
-                        error={errors.rw}
+                        placeholder="Masukkan Kode POS"
+                        value={formData.postal_code}
+                        error={errors.postal_code || ""}
+                        disabled={Boolean(
+                          mode === "update_address" &&
+                          initialData?.postal_code &&
+                          initialData?.postal_code === formData.postal_code,
+                        )}
                       />
+                      {isLoadingArea && (
+                        <div className="absolute top-[45px] right-4 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      )}
                     </div>
+
+                    {/* RT */}
                     <div className="flex-1">
                       <DynamicForm
-                        label="RT"
-                        isImportant
+                        label="RT (Opsional)"
+                        isImportant={false}
                         name="rt"
                         value={formData.rt}
                         onChange={(value: string) => {
@@ -1549,6 +1494,27 @@ function RegistrationWizard({
                         error={errors.rt}
                       />
                     </div>
+
+                    {/* RW */}
+                    <div className="flex-1">
+                      <DynamicForm
+                        label="RW (Opsional)"
+                        isImportant={false}
+                        name="rw"
+                        value={formData.rw}
+                        onChange={(value: string) => {
+                          if (/^\d{0,3}$/.test(value)) {
+                            setFormData((prevData: any) => ({
+                              ...prevData,
+                              rw: value,
+                            }));
+                            setErrors({ ...errors, rw: "" });
+                          }
+                        }}
+                        placeholder="Masukkan RW"
+                        error={errors.rw}
+                      />
+                    </div>
                   </div>
 
                   {/* Exact Address */}
@@ -1558,7 +1524,7 @@ function RegistrationWizard({
                       isImportant
                       name="actual_address"
                       type="textarea"
-                      placeholder="Masukkan alamat lengkap..."
+                      placeholder="Masukkan alamat lengkap pemasangan Anda..."
                       value={formData.actual_address}
                       onChange={(value: string) => {
                         const val = sanitizeAddress(value);
@@ -1566,8 +1532,77 @@ function RegistrationWizard({
                         setErrors({ ...errors, actual_address: "" });
                       }}
                       error={errors.actual_address || ""}
-                      row={3}
+                      rows={3}
                     />
+                  </div>
+
+                  {/* Map Area */}
+                  <div>
+                    <div className="mb-6 relative z-10 space-y-2">
+                      <p className="font-bold text-sm text-black mb-2">
+                        Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda
+                      </p>
+                      <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
+                        <div className="w-full h-full pointer-events-none">
+                          <MapGeoapify
+                            mode={mode as any}
+                            initialLatitude={Number(formData.latitude || 0)}
+                            initialLongitude={Number(formData.longitude || 0)}
+                            getAddress={() => {}}
+                            isInteractive={false}
+                          />
+                        </div>
+                        {/* The "Sesuaikan Pin Point" Floating Red Button from design mockup */}
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 w-[90%] md:w-fit">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTempMapPayload({
+                                latitude: formData.latitude,
+                                longitude: formData.longitude,
+                                address_gmaps: formData.address_gmaps,
+                                postcode: formData.postal_code,
+                              });
+                              setIsOpenMapModal(true);
+                            }}
+                            className="w-full md:w-[300px] bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-primary-dark transition text-sm cursor-pointer"
+                          >
+                            Sesuaikan Pin Point
+                          </button>
+                        </div>
+                      </div>
+                      {errors.latitude && (
+                        <p className="text-primary text-xs mt-1">
+                          Lokasi GPS harus dipilih dari peta otomatis.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mb-3">
+                      <p
+                        className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}
+                      >
+                        <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
+                        <span>Mengecek jangkauan...</span>
+                      </p>
+                      <p
+                        className={`mt-1 text-green-primary items-center gap-1 text-sm ${isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
+                      >
+                        <FaCircleCheck className="text-green-primary" />
+                        <span>
+                          Selamat! Alamat Anda berada di dalam jangkauan kami.
+                        </span>
+                      </p>
+                      <p
+                        className={`mt-1 animate-bounce text-red-primary items-center gap-1 text-sm ${!isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
+                      >
+                        <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
+                        <span>
+                          Lokasi Anda belum berada di jangkauan area kami, dan
+                          kami sedang menuju ke daerah Anda.
+                        </span>
+                      </p>
+                    </div>
                   </div>
 
                   {/* Patokan */}
@@ -1608,8 +1643,8 @@ function RegistrationWizard({
                           label="Jelaskan Lebih Detail"
                           isImportant={false}
                           name="detail"
-                          type="text"
-                          placeholder="Tulis dari mana kamu tahu"
+                          type="textarea"
+                          placeholder="Jelaskan dari mana kamu tahu"
                           value={""}
                           onChange={(value: string) => {}}
                           error={""}
@@ -1618,7 +1653,7 @@ function RegistrationWizard({
                     </>
                   )}
                 </div>
-                <div className="flex gap-4 mt-8">
+                <div className="flex gap-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -1650,28 +1685,22 @@ function RegistrationWizard({
 
                     <div className="space-y-6 text-sm">
                       {/* Paket Terpilih */}
-                      <div>
-                        <h4 className="font-bold text-gray-800 mb-2">
-                          Paket Dipilih
-                        </h4>
-                        <div className="border border-red-200 bg-red-50 rounded-lg p-4 flex justify-between items-center shadow-sm">
-                          <div className="flex gap-2 items-center">
-                            <Image
-                              src="/assets/Icons/lightning-red.svg"
-                              width={16}
-                              height={16}
-                              alt="bolt"
+                      {selectedPackage && (
+                        <div>
+                          <h4 className="font-bold text-gray-800 mb-2">
+                            Paket Dipilih
+                          </h4>
+                          <div className="max-w-md pointer-events-none">
+                            <PackageCardMobile
+                              key={selectedPackage.id}
+                              pkg={selectedPackage}
+                              selected={true}
+                              onSelect={() => {}}
+                              convertToCurrency={convertToCurrency}
                             />
-                            <span className="font-bold text-gray-800">
-                              {selectedPackage?.name || "Paket IRA"}
-                            </span>
-                          </div>
-                          <div className="bg-white border border-gray-200 rounded px-2 md:px-3 py-1 text-xs md:text-sm font-semibold text-gray-700">
-                            Rp{convertToCurrency(selectedPackage?.price || 0)} /
-                            30 Hari
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Data Pribadi */}
                       <div>
@@ -1795,16 +1824,16 @@ function RegistrationWizard({
                     onClick={() => {
                       setStep(2);
                     }}
-                    className="flex-1 px-4 py-3 rounded-xl border border-primary text-primary bg-white font-bold text-center text-sm md:text-base hover:bg-red-50 transition"
+                    className="flex-1 bg-white border-2 border-primary text-primary hover:bg-red-50 font-bold py-3 px-4 rounded-xl text-sm md:text-base shadow-sm transition-transform active:scale-95 duration-200"
                   >
-                    Kembali
+                    Ubah Data
                   </button>
                   <button
                     type="submit"
-                    disabled={isLoading || Object.keys(errors).length > 0}
-                    className="flex-1 px-4 py-3 rounded-xl bg-[#da251c] text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
+                    disabled={isInvalid}
+                    className="flex-1 disabled:cursor-not-allowed px-4 py-3 rounded-xl bg-primary text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
                   >
-                    Kirim & Daftarkan
+                    Berlangganan Sekarang
                   </button>
                 </div>
               </div>
@@ -1815,17 +1844,37 @@ function RegistrationWizard({
 
       {isModalRegisterSuccess && (
         <ModalTemplate
-          closeModal={() => {
-            setIsModalRegisterSuccess(false);
-            if (pathname === "/auth/register") {
-              window.history.replaceState(null, "", "/auth/register");
-            }
-            if (mode === "update_address") {
-              window.location.href = "/customer-area";
-            }
-          }}
+          closeModal={handleClickBanner}
+          width="max-w-[1000px]"
+          classNameModal="w-[95%] p-0 bg-transparent shadow-none"
+          isCloseButton={false}
         >
-          <ModalRegister isCovered={coveredAtSubmit ?? false} mode={mode} />
+          <div className="relative w-full group overflow-hidden rounded-2xl">
+            <div className="w-full cursor-pointer" onClick={handleClickBanner}>
+              {/* Desktop Banner */}
+              <div className="hidden lg:block">
+                <Image
+                  src="/assets/Images/banner-pop-up-regist.png"
+                  alt="Registrasi Berhasil - Download Aplikasi IRA"
+                  width={1000}
+                  height={1000}
+                  className="w-full h-auto drop-shadow-2xl"
+                  priority
+                />
+              </div>
+              {/* Mobile Banner */}
+              <div className="block lg:hidden">
+                <Image
+                  src="/assets/Images/banner-pop-up-regist-mobile.png"
+                  alt="Registrasi Berhasil - Download Aplikasi IRA"
+                  width={1000}
+                  height={1000}
+                  className="w-full h-auto drop-shadow-2xl"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
         </ModalTemplate>
       )}
 
@@ -1876,16 +1925,42 @@ function RegistrationWizard({
                 initialLongitude={Number(
                   tempMapPayload?.longitude || formData.longitude || 0,
                 )}
-                onPlaceChange={(p) => {
+                onPlaceChange={(p: any) => {
+                  // Update temp untuk tombol Simpan
+                  if (p.postcode) {
+                    lastPostcodeFromMap.current = p.postcode;
+                  }
+
                   setTempMapPayload((prev: any) => ({
                     ...prev,
                     latitude: String(p.latitude),
                     longitude: String(p.longitude),
+                    address: p.address,
+                    postcode: p.postcode,
+                    address_raw: p.raw_result,
                   }));
+
+                  // UPDATE REAKTIF KE FORM UTAMA
+                  setFormData((prev) => {
+                    // Hanya update kalau memang beda, biar gak looping
+                    const isSamePC = prev.postal_code === p.postcode;
+                    const isSameLat = prev.latitude === String(p.latitude);
+
+                    if (isSamePC && isSameLat) return prev;
+
+                    return {
+                      ...prev,
+                      // Jika ada postcode baru, sikat
+                      ...(p.postcode ? { postal_code: p.postcode } : {}),
+                      // Update alamat gmaps saja agar reaktif (actual_address dibiarkan berdiri sendiri)
+                      ...(p.address ? { address_gmaps: p.address } : {}),
+                      ...(p.raw_result ? { address_raw: p.raw_result } : {}),
+                    };
+                  });
                 }}
                 isInteractive={true}
               />
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-[90%] md:w-fit">
+              <div className="absolute bottom-8 px-6 left-1/2 -translate-x-1/2 z-10 w-full">
                 <button
                   type="button"
                   onClick={() => {
@@ -1894,15 +1969,23 @@ function RegistrationWizard({
                         ...prev,
                         latitude: tempMapPayload.latitude,
                         longitude: tempMapPayload.longitude,
+                        address_gmaps:
+                          tempMapPayload.address || prev.address_gmaps,
+                        postal_code:
+                          tempMapPayload.postcode || prev.postal_code,
+                        address_raw:
+                          tempMapPayload.address_raw || prev.address_raw,
                       }));
                       setErrors((prev) => ({
                         ...prev,
                         latitude: "",
+                        postal_code: "",
+                        address_gmaps: "",
                       }));
                     }
                     setIsOpenMapModal(false);
                   }}
-                  className="w-full md:w-[300px] bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-primary-dark transition text-sm cursor-pointer"
+                  className="w-full bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-primary-dark transition text-sm cursor-pointer"
                 >
                   Simpan Pin Point
                 </button>
