@@ -32,12 +32,12 @@ const Testimony = () => {
         <div className="flex flex-col lg:flex-row items-center gap-12">
           {/* Text Section */}
           <div className="w-full lg:w-1/3 text-center lg:text-left">
-            <h2 className="text-white text-3xl md:text-5xl font-medium leading-tight">
+            <h2 className="text-white max-sm:text-start text-4xl md:text-5xl font-medium leading-tight">
               Cerita Mereka
               <br />
               Bersama
               <br />
-              <span className="font-extrabold">Internet Rakyat</span>
+              <span className="font-black">Internet Rakyat</span>
             </h2>
           </div>
 

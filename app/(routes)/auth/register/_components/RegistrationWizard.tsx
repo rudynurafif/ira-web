@@ -700,7 +700,9 @@ function RegistrationWizard({
     }
 
     if (!agreement) {
-      toast.error("Anda harus menyetujui syarat & ketentuan");
+      toast.error(
+        "Anda harus menyetujui Syarat dan Ketentuan serta Kebijakan Privasi yang berlaku",
+      );
       setIsLoading(false);
       return;
     }
@@ -883,11 +885,7 @@ function RegistrationWizard({
   //   formData.password !== formData.confirm_password;
 
   const isInvalid =
-    isLoading ||
-    !agreement ||
-    status === "denied" ||
-    isCheckCoverage ||
-    isLoadingPackage;
+    isLoading || status === "denied" || isCheckCoverage || isLoadingPackage;
 
   const handleNextStep1 = () => {
     // setStep(2);
@@ -937,15 +935,6 @@ function RegistrationWizard({
   };
 
   const handleClickBanner = () => {
-    if (typeof window === "undefined") return;
-
-    if (typeof (window as any).fbq === "function") {
-      (window as any).fbq("track", "CustomizeProduct");
-    }
-    if (typeof (window as any).ttq === "object") {
-      (window as any).ttq.track("Download");
-    }
-
     const ua = navigator.userAgent.toLowerCase();
     const isApple = /mac|iphone|ipad|ipod/.test(ua);
     handleDownloadClick(isApple ? "apple" : "google");
@@ -1036,7 +1025,7 @@ function RegistrationWizard({
       </div>
 
       {/* Stepper */}
-      <div className="flex  flex-col items-center md:mb-0 w-full px-1 sm:px-2 relative z-20">
+      <div className="flex flex-col items-center md:mb-0 w-full px-1 sm:px-2 relative z-20">
         <div className="bg-white rounded-t-[30px] flex items-center justify-center px-2 sm:px-4 md:px-5 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.15)] gap-1.5 sm:gap-4 md:gap-5 border-2 border-b-0 border-[#A50E0E]">
           <span className="font-bold text-black text-[11px] sm:text-base whitespace-nowrap pl-1 md:pl-2">
             Tahap {step}{" "}
@@ -1045,24 +1034,57 @@ function RegistrationWizard({
             </span>
           </span>
           <div className="flex items-center gap-1 sm:gap-2 mr-1">
+            {/* Step 1 */}
             <div
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 1 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-400 text-white"}`}
+              onClick={() => {
+                if (step > 1) setStep(1);
+              }}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-300 ${
+                step >= 1
+                  ? "bg-[#b61515] text-white shadow-md cursor-pointer active:scale-90"
+                  : "bg-gray-400 text-white"
+              }`}
+              title="Formulir Data"
             >
               <FaListUl className="text-xs sm:text-base" />
             </div>
+
             <div
               className={`w-4 sm:w-8 md:w-10 h-[2px] transition-colors duration-300 ${step >= 2 ? "bg-[#b61515]" : "bg-gray-300"}`}
             />
+
+            {/* Step 2 */}
             <div
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 2 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-400 text-white"}`}
+              onClick={() => {
+                if (step === 1) handleNextStep1();
+                else if (step > 2) setStep(2);
+              }}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-300 ${
+                step >= 1 // Selalu cursor-pointer karena step 1 pasti dilewati
+                  ? "bg-[#b61515] text-white shadow-md cursor-pointer active:scale-90"
+                  : "bg-gray-400 text-white"
+              } ${step < 2 ? "opacity-50" : ""}`}
+              title="Peta Lokasi"
             >
               <FaLocationDot className="text-xs sm:text-base" />
             </div>
+
             <div
               className={`w-4 sm:w-8 md:w-10 h-[2px] transition-colors duration-300 ${step >= 3 ? "bg-[#b61515]" : "bg-gray-300"}`}
             />
+
+            {/* Step 3 */}
             <div
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-colors duration-300 ${step >= 3 ? "bg-[#b61515] text-white shadow-md" : "bg-gray-400 text-white"}`}
+              onClick={() => {
+                if (step === 2) handleProceedToSummary();
+                // Jika ingin user bisa loncat dari 1 ke 3 jika sudah valid, bisa dikembangkan lagi
+              }}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-300 ${
+                step >= 2
+                  ? "bg-[#b61515] text-white shadow-md cursor-pointer active:scale-90"
+                  : "bg-gray-400 text-white"
+              } ${step < 3 ? "opacity-30" : ""}`}
+              title="Ringkasan & kirim"
             >
               <FaListCheck className="text-xs sm:text-base" />
             </div>
@@ -1595,7 +1617,7 @@ function RegistrationWizard({
                           Selamat! Alamat Anda berada di dalam jangkauan kami.
                         </span>
                       </p>
-                      <p
+                      {/* <p
                         className={`mt-1 animate-bounce text-red-primary items-center gap-1 text-sm ${!isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
                       >
                         <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
@@ -1603,7 +1625,7 @@ function RegistrationWizard({
                           Lokasi Anda belum berada di jangkauan area kami, dan
                           kami sedang menuju ke daerah Anda.
                         </span>
-                      </p>
+                      </p> */}
                     </div>
                   </div>
 
@@ -1882,6 +1904,7 @@ function RegistrationWizard({
 
       {isOpenModalReqLoc && status === "denied" && (
         <ModalTemplate
+          classNameModal="p-6"
           closeModal={() => {
             setIsOpenModalReqLoc(false);
             toast(
@@ -1890,8 +1913,8 @@ function RegistrationWizard({
             router.push("/");
           }}
         >
-          <div className="flex flex-col gap-6 md:px-6 z-60 bg-white">
-            <h2 className="text-[#0D0E10] text-[24px]/[30px] font-bold text-center">
+          <div className="flex flex-col gap-6 z-60 bg-white">
+            <h2 className="text-[#0D0E10] max-sm:mt-10 text-[24px]/[30px] font-bold text-center">
               Akses Lokasi Dibutuhkan
             </h2>
             <GeoPermissionGate

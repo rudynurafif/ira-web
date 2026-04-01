@@ -101,11 +101,14 @@ export default function Home() {
       <div id="apps">
         <DownloadApp />
       </div>
-      <div>
-        <div id="faq">
+      <div className="relative bg-white overflow-hidden">
+        <div id="faq" className="relative z-20">
           <FAQPage />
         </div>
-        <Testimony />
+        <div id="testimony" className="relative z-20 -mt-2">
+          {/* -mt-2 untuk menghilangkan celah mikroskopis antar-div */}
+          <Testimony />
+        </div>
       </div>
     </div>
   );
