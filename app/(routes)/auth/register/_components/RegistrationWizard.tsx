@@ -1625,7 +1625,7 @@ function RegistrationWizard({
                   </div>
 
                   {/* Mengetahui IRA Dari Mana */}
-                  {mode === "register" && (
+                  {/* {mode === "register" && (
                     <>
                       <div className="mb-4 relative z-20">
                         <DynamicSelectForm
@@ -1639,7 +1639,6 @@ function RegistrationWizard({
                           error={""}
                         />
                       </div>
-                      {/* Jelaskan Lebih Detail */}
                       <div className="mb-6">
                         <DynamicForm
                           label="Jelaskan Lebih Detail"
@@ -1654,7 +1653,7 @@ function RegistrationWizard({
                         />
                       </div>
                     </>
-                  )}
+                  )} */}
                 </div>
                 <div className="flex gap-4">
                   <button
@@ -1687,8 +1686,8 @@ function RegistrationWizard({
                     </h2>
 
                     <div className="space-y-6 text-sm">
-                      {/* Paket Terpilih */}
-                      {selectedPackage && (
+                      {/* Paket Terpilih (Hanya tampil jika tercover) */}
+                      {isCovered && selectedPackage && (
                         <div>
                           <h4 className="font-bold text-gray-800 mb-2">
                             Paket Dipilih
@@ -1788,7 +1787,7 @@ function RegistrationWizard({
                       </div>
 
                       {/* Tambahan Info */}
-                      {mode === "register" && (
+                      {/* {mode === "register" && (
                         <div>
                           <h4 className="font-bold text-gray-800 mb-2 border-b pb-1">
                             Informasi Tentang IRA
@@ -1808,7 +1807,7 @@ function RegistrationWizard({
                             </span>
                           </div>
                         </div>
-                      )}
+                      )} */}
                     </div>
 
                     {/* Checkbox Agreement */}

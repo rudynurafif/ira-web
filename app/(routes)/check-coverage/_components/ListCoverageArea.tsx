@@ -53,7 +53,8 @@ function ListCoverageArea() {
         </div>
 
         {/* list area */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 grid-rows-min gap-5 my-10">
+        {/* <div className="grid grid-cols-1 lg:grid-cols-2 grid-rows-min gap-5 my-10"> */}
+        <div className="grid grid-cols-1 grid-rows-min gap-5 my-10">
           <div className="col-span-1">
             {listArea.map((area, idx) => {
               if (idx <= 5) {
@@ -85,7 +86,7 @@ function ListCoverageArea() {
             })}
           </div>
 
-          <div className="col-span-1">
+          {/* <div className="col-span-1">
             {listArea.map((area, idx) => {
               if (idx > 5) {
                 return (
@@ -120,7 +121,7 @@ function ListCoverageArea() {
                 );
               }
             })}
-          </div>
+          </div> */}
         </div>
       </div>
 

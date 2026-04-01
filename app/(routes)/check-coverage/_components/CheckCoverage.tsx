@@ -259,7 +259,7 @@ function CheckCoverage() {
             <div className="relative rounded-full bg-white flex gap-1 items-center justify-between pr-1">
               <input
                 className="placeholder:text-[#8F8F8F] placeholder:font-bold text-sm sm:text-base py-3 w-[93%] rounded-l-full pl-4 pr-1"
-                placeholder="Masukkan Alamat Kamu"
+                placeholder="Masukkan Alamat Anda"
                 ref={inputRef}
                 type="text"
                 value={address}
