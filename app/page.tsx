@@ -12,8 +12,9 @@ import { Notification } from "./_components/Notification";
 import { useAppContext } from "./_shared/context/AppContext";
 import { useBrowserDetection } from "./hooks/useBrowserDetection";
 import { FaRegUserCircle } from "react-icons/fa";
-import Image from "next/image";
 import FloatingNavbar from "./_components/FloatingNavbar";
+import Testimony from "./Homepage/Testimony";
+import { dmSans } from "./_shared/font/font";
 
 export default function Home() {
   const router = useRouter();
@@ -79,7 +80,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div>
+    <div className={dmSans.className}>
       <Notification mode="store" body={bodyToken} />
       <CookieHandler />
 
@@ -100,8 +101,11 @@ export default function Home() {
       <div id="apps">
         <DownloadApp />
       </div>
-      <div id="faq">
-        <FAQPage />
+      <div>
+        <div id="faq">
+          <FAQPage />
+        </div>
+        <Testimony />
       </div>
     </div>
   );
