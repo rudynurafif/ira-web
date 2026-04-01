@@ -1,7 +1,7 @@
 import React from "react";
 
 import Image from "next/image";
-import MapImage from "@/public/assets/check-coverage/map-coverage.webp";
+import MapImage from "@/public/assets/check-coverage/map-coverage.png";
 import CircleBG from "@/public/assets/check-coverage/bg-ring.webp";
 
 function MapCoverageArea() {

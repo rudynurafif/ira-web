@@ -630,362 +630,362 @@ export const dummyCoveredLocations = [
       },
     ],
   },
-  {
-    province_id: 7,
-    province_name: "MALUKU",
-    cities: [
-      {
-        city_id: 1120,
-        city_name: "KABUPATEN BURU SELATAN",
-        status: "live",
-      },
-      {
-        city_id: 1121,
-        city_name: "KABUPATEN KEPULAUAN ARU",
-        status: "live",
-      },
-      {
-        city_id: 1122,
-        city_name: "KABUPATEN KEPULAUAN TANIMBAR",
-        status: "live",
-      },
-      {
-        city_id: 1123,
-        city_name: "KABUPATEN MALUKU BARAT DAYA",
-        status: "live",
-      },
-      {
-        city_id: 1124,
-        city_name: "KABUPATEN MALUKU TENGAH",
-        status: "live",
-      },
-      {
-        city_id: 1125,
-        city_name: "KABUPATEN MALUKU TENGGARA",
-        status: "live",
-      },
-      {
-        city_id: 1126,
-        city_name: "KABUPATEN SERAM BAGIAN BARAT",
-        status: "live",
-      },
-      {
-        city_id: 1127,
-        city_name: "KABUPATEN SERAM BAGIAN TIMUR",
-        status: "live",
-      },
-      {
-        city_id: 1128,
-        city_name: "KABUPATEN BURU",
-        status: "live",
-      },
-      {
-        city_id: 1129,
-        city_name: "KOTA AMBON",
-        status: "live",
-      },
-      {
-        city_id: 1130,
-        city_name: "KOTA TUAL",
-        status: "live",
-      },
-    ],
-  },
-  {
-    province_id: 8,
-    province_name: "MALUKU UTARA",
-    cities: [
-      {
-        city_id: 1131,
-        city_name: "KABUPATEN HALMAHERA BARAT",
-        status: "live",
-      },
-      {
-        city_id: 1132,
-        city_name: "KABUPATEN HALMAHERA SELATAN",
-        status: "live",
-      },
-      {
-        city_id: 1133,
-        city_name: "KABUPATEN HALMAHERA TENGAH",
-        status: "live",
-      },
-      {
-        city_id: 1134,
-        city_name: "KABUPATEN HALMAHERA UTARA",
-        status: "live",
-      },
-      {
-        city_id: 1135,
-        city_name: "KABUPATEN KEPULAUAN SULA",
-        status: "live",
-      },
-      {
-        city_id: 1136,
-        city_name: "KABUPATEN PULAU MOROTAI",
-        status: "live",
-      },
-      {
-        city_id: 1137,
-        city_name: "KABUPATEN PULAU TALIABU",
-        status: "live",
-      },
-      {
-        city_id: 1138,
-        city_name: "KOTA TERNATE",
-        status: "live",
-      },
-      {
-        city_id: 1139,
-        city_name: "KOTA TIDORE KEPULAUAN",
-        status: "live",
-      },
-    ],
-  },
-  {
-    province_id: 9,
-    province_name: "PAPUA",
-    cities: [
-      {
-        city_id: 1140,
-        city_name: "KABUPATEN BIAK NUMFOR",
-        status: "live",
-      },
-      {
-        city_id: 1141,
-        city_name: "KABUPATEN JAYAPURA",
-        status: "live",
-      },
-      {
-        city_id: 1142,
-        city_name: "KABUPATEN KEEROM",
-        status: "live",
-      },
-      {
-        city_id: 1143,
-        city_name: "KABUPATEN KEPULAUAN YAPEN",
-        status: "live",
-      },
-      {
-        city_id: 1144,
-        city_name: "KABUPATEN MAMBERAMO RAYA",
-        status: "live",
-      },
-      {
-        city_id: 1145,
-        city_name: "KABUPATEN SARMI",
-        status: "live",
-      },
-      {
-        city_id: 1146,
-        city_name: "KABUPATEN SUPIORI",
-        status: "live",
-      },
-      {
-        city_id: 1147,
-        city_name: "KABUPATEN WAROPEN",
-        status: "live",
-      },
-      {
-        city_id: 1148,
-        city_name: "KOTA JAYAPURA",
-        status: "live",
-      },
-    ],
-  },
-  {
-    province_id: 10,
-    province_name: "PAPUA BARAT",
-    cities: [
-      {
-        city_id: 1149,
-        city_name: "KABUPATEN FAKFAK",
-        status: "live",
-      },
-      {
-        city_id: 1150,
-        city_name: "KABUPATEN KALIMANA",
-        status: "live",
-      },
-      {
-        city_id: 1151,
-        city_name: "KABUPATEN MANOKWARI",
-        status: "live",
-      },
-      {
-        city_id: 1152,
-        city_name: "KABUPATEN MANOKWARI SELATAN",
-        status: "live",
-      },
-      {
-        city_id: 1153,
-        city_name: "KABUPATEN TELUK BINTUNI",
-        status: "live",
-      },
-      {
-        city_id: 1154,
-        city_name: "KABUPATEN TELUK WONDAMA",
-        status: "live",
-      },
-      {
-        city_id: 1155,
-        city_name: "KABUPATEN PEGUNUNGAN ARFAK",
-        status: "live",
-      },
-    ],
-  },
-  {
-    province_id: 11,
-    province_name: "PAPUA BARAT DAYA",
-    cities: [
-      {
-        city_id: 1156,
-        city_name: "KABUPATEN MAYBRAT",
-        status: "live",
-      },
-      {
-        city_id: 1157,
-        city_name: "KABUPATEN RAJA AMPAT",
-        status: "live",
-      },
-      {
-        city_id: 1158,
-        city_name: "KABUPATEN SORONG",
-        status: "live",
-      },
-      {
-        city_id: 1159,
-        city_name: "KABUPATEN SORONG SELATAN",
-        status: "live",
-      },
-      {
-        city_id: 1160,
-        city_name: "KABUPATEN TAMBRAW",
-        status: "live",
-      },
-      {
-        city_id: 1161,
-        city_name: "KOTA SORONG",
-        status: "live",
-      },
-    ],
-  },
-  {
-    province_id: 12,
-    province_name: "PAPUA PEGUNUNGAN",
-    cities: [
-      {
-        city_id: 1162,
-        city_name: "KABUPATEN JAYAWIJAYA",
-        status: "live",
-      },
-      {
-        city_id: 1163,
-        city_name: "KABUPATEN LANNY JAYA",
-        status: "live",
-      },
-      {
-        city_id: 1164,
-        city_name: "KABUPATEN MAMBERAMO TENGAH",
-        status: "live",
-      },
-      {
-        city_id: 1165,
-        city_name: "KABUPATEN NDUGA",
-        status: "live",
-      },
-      {
-        city_id: 1166,
-        city_name: "KABUPATEN PEGUNUNGAN BINTANG",
-        status: "live",
-      },
-      {
-        city_id: 1167,
-        city_name: "KABUPATEN TOLIKARA",
-        status: "live",
-      },
-      {
-        city_id: 1168,
-        city_name: "KABUPATEN YAHUKIMO",
-        status: "live",
-      },
-      {
-        city_id: 1169,
-        city_name: "KABUPATEN YALIMO",
-        status: "live",
-      },
-    ],
-  },
-  {
-    province_id: 13,
-    province_name: "PAPUA SELATAN",
-    cities: [
-      {
-        city_id: 1170,
-        city_name: "KABUPATEN ASMAT",
-        status: "live",
-      },
-      {
-        city_id: 1171,
-        city_name: "KABUPATEN BOVEN DIGOEL",
-        status: "live",
-      },
-      {
-        city_id: 1172,
-        city_name: "KABUPATEN MAPPI",
-        status: "live",
-      },
-      {
-        city_id: 1173,
-        city_name: "KABUPATEN MERAUKE",
-        status: "live",
-      },
-    ],
-  },
-  {
-    province_id: 14,
-    province_name: "PAPUA TENGAH",
-    cities: [
-      {
-        city_id: 1174,
-        city_name: "KABUPATEN DEIYAI",
-        status: "live",
-      },
-      {
-        city_id: 1175,
-        city_name: "KABUPATEN DOGIYAI",
-        status: "live",
-      },
-      {
-        city_id: 1176,
-        city_name: "KABUPATEN INTAN JAYA",
-        status: "live",
-      },
-      {
-        city_id: 1177,
-        city_name: "KABUPATEN MIMIKA",
-        status: "live",
-      },
-      {
-        city_id: 1178,
-        city_name: "KABUPATEN NABIRE",
-        status: "live",
-      },
-      {
-        city_id: 1179,
-        city_name: "KABUPATEN PANIAI",
-        status: "live",
-      },
-      {
-        city_id: 1180,
-        city_name: "KABUPATEN PUNCAK",
-        status: "live",
-      },
-      {
-        city_id: 1181,
-        city_name: "KABUPATEN PUNCAK JAYA",
-        status: "live",
-      },
-    ],
-  },
+  // {
+  //   province_id: 7,
+  //   province_name: "MALUKU",
+  //   cities: [
+  //     {
+  //       city_id: 1120,
+  //       city_name: "KABUPATEN BURU SELATAN",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1121,
+  //       city_name: "KABUPATEN KEPULAUAN ARU",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1122,
+  //       city_name: "KABUPATEN KEPULAUAN TANIMBAR",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1123,
+  //       city_name: "KABUPATEN MALUKU BARAT DAYA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1124,
+  //       city_name: "KABUPATEN MALUKU TENGAH",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1125,
+  //       city_name: "KABUPATEN MALUKU TENGGARA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1126,
+  //       city_name: "KABUPATEN SERAM BAGIAN BARAT",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1127,
+  //       city_name: "KABUPATEN SERAM BAGIAN TIMUR",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1128,
+  //       city_name: "KABUPATEN BURU",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1129,
+  //       city_name: "KOTA AMBON",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1130,
+  //       city_name: "KOTA TUAL",
+  //       status: "live",
+  //     },
+  //   ],
+  // },
+  // {
+  //   province_id: 8,
+  //   province_name: "MALUKU UTARA",
+  //   cities: [
+  //     {
+  //       city_id: 1131,
+  //       city_name: "KABUPATEN HALMAHERA BARAT",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1132,
+  //       city_name: "KABUPATEN HALMAHERA SELATAN",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1133,
+  //       city_name: "KABUPATEN HALMAHERA TENGAH",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1134,
+  //       city_name: "KABUPATEN HALMAHERA UTARA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1135,
+  //       city_name: "KABUPATEN KEPULAUAN SULA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1136,
+  //       city_name: "KABUPATEN PULAU MOROTAI",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1137,
+  //       city_name: "KABUPATEN PULAU TALIABU",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1138,
+  //       city_name: "KOTA TERNATE",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1139,
+  //       city_name: "KOTA TIDORE KEPULAUAN",
+  //       status: "live",
+  //     },
+  //   ],
+  // },
+  // {
+  //   province_id: 9,
+  //   province_name: "PAPUA",
+  //   cities: [
+  //     {
+  //       city_id: 1140,
+  //       city_name: "KABUPATEN BIAK NUMFOR",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1141,
+  //       city_name: "KABUPATEN JAYAPURA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1142,
+  //       city_name: "KABUPATEN KEEROM",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1143,
+  //       city_name: "KABUPATEN KEPULAUAN YAPEN",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1144,
+  //       city_name: "KABUPATEN MAMBERAMO RAYA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1145,
+  //       city_name: "KABUPATEN SARMI",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1146,
+  //       city_name: "KABUPATEN SUPIORI",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1147,
+  //       city_name: "KABUPATEN WAROPEN",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1148,
+  //       city_name: "KOTA JAYAPURA",
+  //       status: "live",
+  //     },
+  //   ],
+  // },
+  // {
+  //   province_id: 10,
+  //   province_name: "PAPUA BARAT",
+  //   cities: [
+  //     {
+  //       city_id: 1149,
+  //       city_name: "KABUPATEN FAKFAK",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1150,
+  //       city_name: "KABUPATEN KALIMANA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1151,
+  //       city_name: "KABUPATEN MANOKWARI",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1152,
+  //       city_name: "KABUPATEN MANOKWARI SELATAN",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1153,
+  //       city_name: "KABUPATEN TELUK BINTUNI",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1154,
+  //       city_name: "KABUPATEN TELUK WONDAMA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1155,
+  //       city_name: "KABUPATEN PEGUNUNGAN ARFAK",
+  //       status: "live",
+  //     },
+  //   ],
+  // },
+  // {
+  //   province_id: 11,
+  //   province_name: "PAPUA BARAT DAYA",
+  //   cities: [
+  //     {
+  //       city_id: 1156,
+  //       city_name: "KABUPATEN MAYBRAT",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1157,
+  //       city_name: "KABUPATEN RAJA AMPAT",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1158,
+  //       city_name: "KABUPATEN SORONG",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1159,
+  //       city_name: "KABUPATEN SORONG SELATAN",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1160,
+  //       city_name: "KABUPATEN TAMBRAW",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1161,
+  //       city_name: "KOTA SORONG",
+  //       status: "live",
+  //     },
+  //   ],
+  // },
+  // {
+  //   province_id: 12,
+  //   province_name: "PAPUA PEGUNUNGAN",
+  //   cities: [
+  //     {
+  //       city_id: 1162,
+  //       city_name: "KABUPATEN JAYAWIJAYA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1163,
+  //       city_name: "KABUPATEN LANNY JAYA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1164,
+  //       city_name: "KABUPATEN MAMBERAMO TENGAH",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1165,
+  //       city_name: "KABUPATEN NDUGA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1166,
+  //       city_name: "KABUPATEN PEGUNUNGAN BINTANG",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1167,
+  //       city_name: "KABUPATEN TOLIKARA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1168,
+  //       city_name: "KABUPATEN YAHUKIMO",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1169,
+  //       city_name: "KABUPATEN YALIMO",
+  //       status: "live",
+  //     },
+  //   ],
+  // },
+  // {
+  //   province_id: 13,
+  //   province_name: "PAPUA SELATAN",
+  //   cities: [
+  //     {
+  //       city_id: 1170,
+  //       city_name: "KABUPATEN ASMAT",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1171,
+  //       city_name: "KABUPATEN BOVEN DIGOEL",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1172,
+  //       city_name: "KABUPATEN MAPPI",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1173,
+  //       city_name: "KABUPATEN MERAUKE",
+  //       status: "live",
+  //     },
+  //   ],
+  // },
+  // {
+  //   province_id: 14,
+  //   province_name: "PAPUA TENGAH",
+  //   cities: [
+  //     {
+  //       city_id: 1174,
+  //       city_name: "KABUPATEN DEIYAI",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1175,
+  //       city_name: "KABUPATEN DOGIYAI",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1176,
+  //       city_name: "KABUPATEN INTAN JAYA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1177,
+  //       city_name: "KABUPATEN MIMIKA",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1178,
+  //       city_name: "KABUPATEN NABIRE",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1179,
+  //       city_name: "KABUPATEN PANIAI",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1180,
+  //       city_name: "KABUPATEN PUNCAK",
+  //       status: "live",
+  //     },
+  //     {
+  //       city_id: 1181,
+  //       city_name: "KABUPATEN PUNCAK JAYA",
+  //       status: "live",
+  //     },
+  //   ],
+  // },
 ];
