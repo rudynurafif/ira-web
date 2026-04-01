@@ -322,11 +322,12 @@ export const toastErrorFromAPI = (error: any, id?: string) => {
         ? fallbackStatusCode
         : null;
 
-  const errorMsg =
-    (typeof error?.response?.data?.message === "string" &&
-      error.response.data.message) ||
-    (typeof error?.message === "string" && error.message) ||
-    "Terjadi kesalahan, silakan coba lagi.";
+  const rawMsg = error?.response?.data?.message || error?.message;
+  const errorMsg = Array.isArray(rawMsg)
+    ? rawMsg.join(", ")
+    : typeof rawMsg === "string"
+      ? rawMsg
+      : "Terjadi kesalahan, silakan coba lagi.";
 
   // Case Forbidden 403
   if (errorStatusCode === 403) {
