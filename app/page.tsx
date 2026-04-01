@@ -97,8 +97,12 @@ export default function Home() {
 
       <MainPage />
       {/* <WhyFWAPage /> */}
-      <DownloadApp />
-      <FAQPage />
+      <div id="apps">
+        <DownloadApp />
+      </div>
+      <div id="faq">
+        <FAQPage />
+      </div>
     </div>
   );
 }

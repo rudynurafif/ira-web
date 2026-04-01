@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -29,18 +30,18 @@ const FloatingNavbar = () => {
 
       {/* Center Links */}
       <div className="flex-1 flex items-center justify-evenly sm:px-2 gap-2 sm:gap-4 text-black font-semibold text-[11px] sm:text-[12px] md:text-[14px]">
-        <a href="#apps" className="hover:text-red-700 transition">
+        <Link href="/#apps" className="hover:text-red-700 transition">
           Apps
-        </a>
-        <a href="#faq" className="hover:text-red-700 transition">
+        </Link>
+        <Link href="/#faq" className="hover:text-red-700 transition">
           FAQ
-        </a>
-        <a
-          href="#cek-jangkauan"
+        </Link>
+        <Link
+          href="/check-coverage"
           className="hover:text-red-700 transition text-center"
         >
           Cek Jangkauan
-        </a>
+        </Link>
       </div>
 
       {/* Right Section (Login Button) */}
