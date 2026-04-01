@@ -475,6 +475,7 @@ function RegistrationWizard({
   const [isLoadingArea, setIsLoadingArea] = useState(false);
 
   // Debounce Kode Pos -> Autofill Lokasi (Koordinat Map)
+  /*
   useEffect(() => {
     // Jalankan jika panjang karakter 3 s/d 5
     if (
@@ -542,6 +543,7 @@ function RegistrationWizard({
 
     return () => clearTimeout(timer);
   }, [formData.postal_code]);
+  */
 
   const handleRequestLocation = async () => {
     try {
@@ -1648,6 +1650,7 @@ function RegistrationWizard({
                           value={""}
                           onChange={(value: string) => {}}
                           error={""}
+                          rows={3}
                         />
                       </div>
                     </>
@@ -1936,7 +1939,7 @@ function RegistrationWizard({
                     latitude: String(p.latitude),
                     longitude: String(p.longitude),
                     address: p.address,
-                    postcode: p.postcode,
+                    // postcode: p.postcode, // <-- DISCONNECT
                     address_raw: p.raw_result,
                   }));
 
@@ -1951,7 +1954,7 @@ function RegistrationWizard({
                     return {
                       ...prev,
                       // Jika ada postcode baru, sikat
-                      ...(p.postcode ? { postal_code: p.postcode } : {}),
+                      // ...(p.postcode ? { postal_code: p.postcode } : {}), // <-- DISCONNECT
                       // Update alamat gmaps saja agar reaktif (actual_address dibiarkan berdiri sendiri)
                       ...(p.address ? { address_gmaps: p.address } : {}),
                       ...(p.raw_result ? { address_raw: p.raw_result } : {}),
@@ -1971,8 +1974,7 @@ function RegistrationWizard({
                         longitude: tempMapPayload.longitude,
                         address_gmaps:
                           tempMapPayload.address || prev.address_gmaps,
-                        postal_code:
-                          tempMapPayload.postcode || prev.postal_code,
+                        // postal_code: tempMapPayload.postcode || prev.postal_code, // <-- DISCONNECT
                         address_raw:
                           tempMapPayload.address_raw || prev.address_raw,
                       }));

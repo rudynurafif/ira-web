@@ -86,9 +86,27 @@ function MainPage() {
   //   getBannerImage();
   // }, []);
 
+  const handleClickBanner = () => {
+    if (typeof window !== "undefined") {
+      if (typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "Lead");
+      }
+      if (typeof (window as any).ttq === "object") {
+        (window as any).ttq.track("Lead", {
+          content_name: "Tombol Gratis 1 Bulan - Promo Section",
+        });
+      }
+    }
+
+    router.push("/auth/register");
+  };
+
   const FirstSlideContent = () => (
-    <div className="relative md:bg-[url('/assets/Images/bg-section-1.png')] bg-[url('/assets/Images/hero-ira-new-mobile.webp')] bg-cover bg-right bg-no-repeat text-white">
-      {/* Original (Hidden) */}
+    <div
+      className="relative cursor-pointer md:bg-[url('/assets/Images/bg-section-1.png')] bg-[url('/assets/Images/bg-section-1-mobile.png')] bg-cover bg-center md:bg-right bg-no-repeat text-white min-h-screen"
+      onClick={handleClickBanner}
+    >
+      {/* Original Section */}
       <div className="hidden">
         <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
         <div className="container mx-auto px-5 py-25">
@@ -158,7 +176,7 @@ function MainPage() {
       </div>
 
       {/* Versi Go Commercial */}
-      <div className="relative">
+      <div className="relative hidden">
         {/* <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div> */}
         <div className="container mx-auto px-5 py-20">
           <div className="text-center flex flex-col gap-5 sm:my-6 my-4">

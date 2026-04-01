@@ -6,7 +6,7 @@ import appStore from "@/public/assets/Images/AppStoreBlack.png";
 import appImage from "@/public/assets/Images/app-image.png";
 import desktopBannerSspace from "@/public/assets/Images/banner-download-versi-sspace.png";
 import desktopBannerDownload from "@/public/assets/Images/bg-section-2.png";
-import mobileBannerSspace from "@/public/assets/Images/banner-download-versi-sspace-mobile.png";
+import mobileBannerSspace from "@/public/assets/Images/bg-section-2-mobile.png";
 import { handleDownloadClick } from "../_shared/utils";
 
 const DownloadApp = () => {
