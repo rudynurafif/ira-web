@@ -5,11 +5,15 @@ import toast from "react-hot-toast";
 import ModalCheckCoverage from "./ModalCheckCoverage";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { getCheckCoverage } from "@/app/_api/Location/Location";
-import { IoCloseSharp } from "react-icons/io5";
+import { IoCloseSharp, IoSearchSharp } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
 import RegistrationForm from "../../auth/register/_components/RegistrationForm";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import FloatingNavbar from "@/app/_components/FloatingNavbar";
+
+import BannerPrice from "@/public/assets/check-coverage/banner-price.webp";
+import { FaArrowRight, FaXmark } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
 
 const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
 
@@ -30,6 +34,8 @@ function CheckCoverage() {
   const cooldownRef = useRef<NodeJS.Timeout | null>(null);
 
   const lastAutocompleteQueryRef = useRef<string | null>(null);
+
+  const router = useRouter();
 
   const startCooldown = (duration: number = 10, onFinish?: () => void) => {
     if (cooldownRef.current) clearInterval(cooldownRef.current);
@@ -182,105 +188,95 @@ function CheckCoverage() {
     lastAutocompleteQueryRef.current = null;
   };
 
+  const handleClickBanner = () => {
+    if (typeof window !== "undefined") {
+      if (typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "Lead");
+      }
+      if (typeof (window as any).ttq === "object") {
+        (window as any).ttq.track("Lead", {
+          content_name: "Tombol Gratis 1 Bulan - Promo Section",
+        });
+      }
+    }
+
+    router.push("/auth/register");
+  };
+
   return (
     <>
       <FloatingNavbar />
-      <div className="sm:bg-[url(/assets/check-coverage/background-check-coverage.png)] bg-[url(/assets/check-coverage/background-coverage-mobile.png)] bg-cover bg-no-repeat py-52 px-[5%] min-[1261px]:px-[10%]">
-        <div className="bg-white/20 backdrop-blur-[2px] border border-white rounded-3xl py-20 p-6 max-w-6xl mx-auto">
-          <div className="w-full flex justify-center">
-            <h1 className="text-center text-white text-3xl/[120%] sm:text-4xl/[120%] md:text-5xl/[120%] xl:text-[52px]/[120%] font-bold w-full lg:w-4/5">
-              Apakah area Anda berada dalam jangkauan Internet Rakyat (IRA)?
-            </h1>
-          </div>
-          <p className="text-center text-white mt-7.5 text-base sm:text-xl md:text-2xl">
-            Yuk, cek alamat Anda di sini!
-          </p>
-
-          <div className="flex flex-col md:flex-row gap-5 items-center mt-7 lg:w-4/5 w-full mx-auto">
-            {/* Input + Search + Clear */}
-            <div className="w-full sm:w-4/5 md:w-3/5 relative">
-              <div className="relative flex items-center gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={address}
-                  placeholder="Masukkan alamat Anda"
-                  onChange={handleInputChange}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      performAutocompleteSearch(address);
-                    }
-                  }}
-                  className="text-base bg-white sm:text-lg md:text-xl px-6 py-4 w-full rounded-xl"
-                  disabled={isLoading}
+      <div className="sm:bg-[url(/assets/check-coverage/new-bg-coverage.webp)] bg-[url(/assets/check-coverage/background-coverage-mobile.png)] bg-cover bg-no-repeat py-52 px-[5%] min-[1261px]:px-[10%]">
+        {/* new */}
+        <div className="relative bg-[#5b0000]/70 border-2 border-white rounded-[47px] py-40 px-3 sm:px-10 mx-auto max-w-6xl">
+          {/* banner */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#D60000] rounded-full border-[5px] border-white px-5 w-full md:w-5/6 lg:w-4/6 p-2 md:p-0">
+            <div className="flex flex-row justify-between items-center">
+              <div className="w-[40%] sm:w-1/2">
+                <Image
+                  src={BannerPrice}
+                  alt="Banner"
+                  className="w-full mx-auto"
                 />
-
-                {/* ✅ Tombol Clear */}
-                {address && (
-                  <button
-                    type="button"
-                    onClick={clearInput}
-                    className="absolute bg-white rounded-full p-1 cursor-pointer right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    <IoCloseSharp color="#d7201d" size={28} />
-                  </button>
-                )}
               </div>
-
-              {/* Loading + cooldown counter */}
-              {isLoading && (
-                <div className="border-2 rounded-lg px-4 py-2 w-full block absolute z-50 bg-white mt-2">
-                  <span>Mencari lokasi... </span>
-                  {cooldownCount > 0 && (
-                    <span className="text-primary font-semibold">
-                      ({cooldownCount})
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Prediksi */}
-              {!isLoading && predictions.length > 0 && (
-                <div className="border-2 rounded-lg px-2 py-2 absolute z-50 bg-white max-h-60 overflow-y-auto w-full mt-2">
-                  {predictions.map((feature, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => handlePredictionClick(feature)}
-                      className="cursor-pointer max-sm:text-xs text-sm flex gap-2 items-start py-2 hover:bg-gray-100"
-                    >
-                      <div>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="w-5 h-5 text-[#d7201d]"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="text-dark-primary">
-                        {feature.properties.formatted}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="w-[60%] sm:w-1/2">
+                <button
+                  className="font-bold bg-white flex items-center gap-0 sm:gap-1 rounded-full p-1 md:p-2 mx-auto active:scale-98 transition-transform duration-150 ease-out"
+                  onClick={handleClickBanner}
+                >
+                  <p className="text-[#C30300] text-nowrap mx-1 sm:mx-4 text-xs sm:text-base md:text-lg lg:text-xl">
+                    Registrasi Sekarang
+                  </p>
+                  <div className="w-[30px] md:w-[40px] lg:w-[50px] h-[30px] md:h-[40px] lg:h-[50px] rounded-full bg-red-500 flex justify-center items-center ">
+                    <FaArrowRight
+                      color="white"
+                      className="w-[20px] md:w-[26px]"
+                    />
+                  </div>
+                </button>
+              </div>
             </div>
+          </div>
 
-            {/* Tombol Cek */}
-            <div className="w-full sm:w-1/5 md:w-2/5">
+          {/* form */}
+          <div>
+            <p className="text-center text-white font-medium text-2xl sm:text-3xl md:text-4xl lg:text-5xl/[130%]">
+              Apakah area Anda berada
+              <br />
+              dalam jangkauan{" "}
+              <span className="font-semibold">
+                Internet Rakyat {"("}IRA{")"}
+              </span>
+              ?
+            </p>
+            <p className="mt-20 text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium text-white text-center">
+              Yuk, cek alamat Anda di sini!
+            </p>
+          </div>
+
+          {/* Input + Search + Clear */}
+          <div className="w-full sm:w-4/5 md:w-3/5 relative mx-auto mt-5">
+            <div className="relative rounded-full bg-white flex gap-1 items-center justify-between pr-1">
+              <input
+                className="placeholder:text-[#8F8F8F] placeholder:font-bold text-sm sm:text-base py-3 w-[93%] rounded-l-full pl-4 pr-1"
+                placeholder="Masukkan Alamat Kamu"
+                ref={inputRef}
+                type="text"
+                value={address}
+                onChange={handleInputChange}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    performAutocompleteSearch(address);
+                  }
+                }}
+                disabled={isLoading}
+              />
+              {address && (
+                <button type="button" onClick={clearInput}>
+                  <IoCloseSharp color="#d7201d" size={20} />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -291,15 +287,201 @@ function CheckCoverage() {
                   }
                 }}
                 disabled={isLoading}
-                className={`px-6 py-4 text-white disabled:cursor-not-allowed! font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${"bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white"}`}
+                className="w-[40px] h-[40px] rounded-full bg-red-500 flex justify-center items-center active:scale-98 transition-transform duration-150 ease-out"
               >
-                <span className="font-bold sm:text-lg md:text-xl">
-                  Cek Ketersediaan
-                </span>
+                <IoSearchSharp size={26} color="white" />
               </button>
             </div>
+
+            {/* Loading + cooldown counter */}
+            {isLoading && (
+              <div className="border-2 rounded-lg px-4 py-2 w-full block absolute z-50 bg-white mt-2">
+                <span>Mencari lokasi... </span>
+                {cooldownCount > 0 && (
+                  <span className="text-primary font-semibold">
+                    ({cooldownCount})
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Prediksi */}
+            {!isLoading && predictions.length > 0 && (
+              <div className="border-2 rounded-lg px-2 py-2 absolute z-50 bg-white max-h-60 overflow-y-auto w-full mt-2">
+                {predictions.map((feature, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handlePredictionClick(feature)}
+                    className="cursor-pointer max-sm:text-xs text-sm flex gap-2 items-start py-2 hover:bg-gray-100"
+                  >
+                    <div>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-5 h-5 text-[#d7201d]"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="text-dark-primary">
+                      {feature.properties.formatted}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tombol Cek */}
+            {/* <div className="w-full sm:w-1/5 md:w-2/5">
+            <button
+              type="button"
+              onClick={() => {
+                if (dataChooseMap && !isLoading) {
+                  checkRadius();
+                } else if (!isLoading) {
+                  performAutocompleteSearch(address);
+                }
+              }}
+              disabled={isLoading}
+              className={`px-6 py-4 text-white disabled:cursor-not-allowed! font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${"bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white"}`}
+            >
+              <span className="font-bold sm:text-lg md:text-xl">
+                Cek Ketersediaan
+              </span>
+            </button>
           </div>
         </div>
+      </div> */}
+          </div>
+        </div>
+
+        {/* old */}
+        {/* <div className="bg-white/20 backdrop-blur-[2px] border border-white rounded-3xl py-20 p-6 max-w-6xl mx-auto">
+        <div className="w-full flex justify-center">
+          <h1 className="text-center text-white text-3xl/[120%] sm:text-4xl/[120%] md:text-5xl/[120%] xl:text-[52px]/[120%] font-bold w-full lg:w-4/5">
+            Apakah area Anda berada dalam jangkauan Internet Rakyat (IRA)?
+          </h1>
+        </div>
+        <p className="text-center text-white mt-7.5 text-base sm:text-xl md:text-2xl">
+          Yuk, cek alamat Anda di sini!
+        </p>
+
+        <div className="flex flex-col md:flex-row gap-5 items-center mt-7 lg:w-4/5 w-full mx-auto"> */}
+        {/* Input + Search + Clear */}
+        {/* <div className="w-full sm:w-4/5 md:w-3/5 relative">
+            <div className="relative flex items-center gap-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={address}
+                placeholder="Masukkan alamat Anda"
+                onChange={handleInputChange}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    performAutocompleteSearch(address);
+                  }
+                }}
+                className="text-base bg-white sm:text-lg md:text-xl px-6 py-4 w-full rounded-xl"
+                disabled={isLoading}
+              /> */}
+
+        {/* ✅ Tombol Clear */}
+        {/* {address && (
+                <button
+                  type="button"
+                  onClick={clearInput}
+                  className="absolute bg-white rounded-full p-1 cursor-pointer right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  <IoCloseSharp color="#d7201d" size={28} />
+                </button>
+              )}
+            </div> */}
+
+        {/* Loading + cooldown counter */}
+        {/* {isLoading && (
+              <div className="border-2 rounded-lg px-4 py-2 w-full block absolute z-50 bg-white mt-2">
+                <span>Mencari lokasi... </span>
+                {cooldownCount > 0 && (
+                  <span className="text-primary font-semibold">
+                    ({cooldownCount})
+                  </span>
+                )}
+              </div>
+            )} */}
+
+        {/* Prediksi */}
+        {/* {!isLoading && predictions.length > 0 && (
+              <div className="border-2 rounded-lg px-2 py-2 absolute z-50 bg-white max-h-60 overflow-y-auto w-full mt-2">
+                {predictions.map((feature, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handlePredictionClick(feature)}
+                    className="cursor-pointer max-sm:text-xs text-sm flex gap-2 items-start py-2 hover:bg-gray-100"
+                  >
+                    <div>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-5 h-5 text-[#d7201d]"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="text-dark-primary">
+                      {feature.properties.formatted}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )} */}
+        {/* </div> */}
+
+        {/* Tombol Cek */}
+        {/* <div className="w-full sm:w-1/5 md:w-2/5">
+            <button
+              type="button"
+              onClick={() => {
+                if (dataChooseMap && !isLoading) {
+                  checkRadius();
+                } else if (!isLoading) {
+                  performAutocompleteSearch(address);
+                }
+              }}
+              disabled={isLoading}
+              className={`px-6 py-4 text-white disabled:cursor-not-allowed! font-bold cursor-pointer rounded-xl sm:text-xl text-center w-full ${"bg-linear-to-b from-[#9C1816] to-[#D7201D] shadow-lg border border-white"}`}
+            >
+              <span className="font-bold sm:text-lg md:text-xl">
+                Cek Ketersediaan
+              </span>
+            </button>
+          </div>
+        </div>
+      </div> */}
 
         {/* Modal Result */}
         {modalResult && (
