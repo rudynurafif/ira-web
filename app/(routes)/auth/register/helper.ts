@@ -43,25 +43,37 @@ export const ERROR_LABEL: Partial<Record<keyof FormType, string>> = {
 };
 
 export function scrollToFirstError(errObj: Record<string, string>) {
+  // Hanya ambil key yang ada di ERROR_ORDER dan MEMANG memiliki pesan error (tidak kosong)
   const orderedKeys = ERROR_ORDER.filter((k) => !!errObj[k as string]);
   const firstKey = orderedKeys[0] as string | undefined;
   if (!firstKey) return;
 
-  // Cari elemen berdasarkan name / id.
-  // Pastikan komponen input kamu benar-benar me-render atribut name/id ke elemen <input>/<select>/<textarea>
+  // Cari elemen berdasarkan wrapper dulu (agar dropdown react-select kena scroll),
+  // baru cari berdasarkan name / id sebagai fallback.
   const el =
-    (document.querySelector(`[name="${firstKey}"]`) as HTMLElement | null) ||
-    (document.getElementById(firstKey) as HTMLElement | null);
+    document.getElementById(`scroll-target-${firstKey}`) ||
+    document.querySelector(`[name="${firstKey}"]`) ||
+    document.getElementById(firstKey);
 
-  if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    // Fokus kalau bisa (biar user langsung ngerti)
-    if (typeof (el as any).focus === "function") {
-      (el as any).focus();
+  const element = el as HTMLElement | null;
+
+  if (element) {
+    console.log(
+      "Scrolling to:",
+      firstKey,
+      "Found as wrapper:",
+      !!document.getElementById(`scroll-target-${firstKey}`),
+    );
+    element.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+      inline: "nearest",
+    });
+
+    // Focus kalau itu input asli (bukan wrapper)
+    if (typeof (element as any).focus === "function") {
+      (element as any).focus();
     }
-  } else {
-    // fallback: scroll ke atas form
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
 

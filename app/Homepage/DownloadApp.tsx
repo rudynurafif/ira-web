@@ -5,7 +5,8 @@ import googlePlay from "@/public/assets/Images/GooglePlayBlack.png";
 import appStore from "@/public/assets/Images/AppStoreBlack.png";
 import appImage from "@/public/assets/Images/app-image.png";
 import desktopBannerSspace from "@/public/assets/Images/banner-download-versi-sspace.png";
-import mobileBannerSspace from "@/public/assets/Images/banner-download-versi-sspace-mobile.png";
+import desktopBannerDownload from "@/public/assets/Images/bg-section-2.png";
+import mobileBannerSspace from "@/public/assets/Images/bg-section-2-mobile.png";
 import { handleDownloadClick } from "../_shared/utils";
 
 const DownloadApp = () => {
@@ -16,7 +17,7 @@ const DownloadApp = () => {
       (window as any).fbq("track", "CustomizeProduct");
     }
     if (typeof (window as any).ttq === "object") {
-      (window as any).ttq.track('Download');
+      (window as any).ttq.track("Download");
     }
 
     const ua = navigator.userAgent.toLowerCase();
@@ -86,7 +87,7 @@ const DownloadApp = () => {
           {/* Desktop Banner */}
           <div className="hidden sm:block">
             <Image
-              src={desktopBannerSspace}
+              src={desktopBannerDownload}
               alt="Download Aplikasi IRA Desktop"
               width={1920}
               height={600}
