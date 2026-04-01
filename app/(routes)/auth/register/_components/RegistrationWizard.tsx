@@ -624,7 +624,7 @@ function RegistrationWizard({
   }, [formData.latitude, formData.longitude, mitraID]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    console.log("masuk");
+    // console.log("masuk");
     e.preventDefault();
 
     setIsLoading(true);
@@ -809,13 +809,13 @@ function RegistrationWizard({
     }
   }
 
-  useEffect(() => {
-    console.log("form data", formData);
-    // console.log("mitra IDs: ", mitraID);
-    // console.log("bts IDs: ", btsID);
-    // console.log(isCovered);
-    // console.log("error", errors);
-  }, [btsID, formData, mitraID, isCovered, errors]);
+  // useEffect(() => {
+  //   // console.log("form data", formData);
+  //   // console.log("mitra IDs: ", mitraID);
+  //   // console.log("bts IDs: ", btsID);
+  //   // console.log(isCovered);
+  //   // console.log("error", errors);
+  // }, [btsID, formData, mitraID, isCovered, errors]);
 
   function resetForm() {
     setStep(1);
@@ -1556,6 +1556,7 @@ function RegistrationWizard({
                                 longitude: formData.longitude,
                                 address_gmaps: formData.address_gmaps,
                                 postcode: formData.postal_code,
+                                // address_raw: formData.address_raw,
                               });
                               setIsOpenMapModal(true);
                             }}
@@ -1796,7 +1797,7 @@ function RegistrationWizard({
                   </button>
                   <button
                     type="submit"
-                    disabled={isInvalid}
+                    // disabled={isInvalid}
                     className="flex-1 disabled:cursor-not-allowed px-4 py-3 rounded-xl bg-primary text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
                   >
                     Berlangganan Sekarang
