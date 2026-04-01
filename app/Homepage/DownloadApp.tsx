@@ -13,13 +13,6 @@ const DownloadApp = () => {
   const handleClickBanner = () => {
     if (typeof window === "undefined") return;
 
-    if (typeof (window as any).fbq === "function") {
-      (window as any).fbq("track", "CustomizeProduct");
-    }
-    if (typeof (window as any).ttq === "object") {
-      (window as any).ttq.track("Download");
-    }
-
     const ua = navigator.userAgent.toLowerCase();
     const isApple = /mac|iphone|ipad|ipod/.test(ua);
     handleDownloadClick(isApple ? "apple" : "google");
