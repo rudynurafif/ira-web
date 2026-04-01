@@ -152,13 +152,15 @@ function MapGeoapify({
           (error) => {
             console.error("Gagal dapat lokasi:", error?.message);
             toast.error(
-              "Mohon izinkan akses lokasi dan gunakan browser Google Chrome untuk melakukan pendaftaran.",
+              "Gagal mendeteksi lokasi otomatis. Anda dapat secara manual mencari melalui kolom pencarian di atas.",
             );
+            // Fallback default ke pusat Jakarta agar peta tetap bisa digunakan/dirender
+            setLocation({ lat: -6.2, lng: 106.816666 });
             setIsLoading(false);
           },
           {
             enableHighAccuracy: true,
-            timeout: 10000,
+            timeout: 60000, // Diperlama (15 detik) untuk memberi waktu user jika baru memencet 'Allow'
             maximumAge: 60000,
           },
         );
@@ -599,7 +601,7 @@ function MapGeoapify({
                     toast.error("Gagal mendeteksi lokasi GPS Anda saat ini.");
                     setIsLoading(false);
                   },
-                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+                  { enableHighAccuracy: true, timeout: 60000, maximumAge: 0 },
                 );
               } else {
                 toast.error("Browser tidak mendukung geolocation");
