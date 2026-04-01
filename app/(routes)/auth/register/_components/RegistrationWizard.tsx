@@ -43,7 +43,7 @@ import {
   FaListCheck,
 } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
-import MapGeoapify from "@/app/_components/form/MapGeoapify";
+import MapMapbox from "@/app/_components/form/MapMapbox";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import {
@@ -66,7 +66,7 @@ import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
 import PhoneNumberForm from "@/app/_components/form/PhoneForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
-import MapGeoapifyLite from "@/app/_components/form/MapGeoapifyLite";
+import MapMapboxLite from "@/app/_components/form/MapMapboxLite";
 import Image from "next/image";
 import bannerImageNoCovered from "@/public/assets/Images/banner-out-coverage.png";
 
@@ -475,7 +475,6 @@ function RegistrationWizard({
   const [isLoadingArea, setIsLoadingArea] = useState(false);
 
   // Debounce Kode Pos -> Autofill Lokasi (Koordinat Map)
-  /*
   useEffect(() => {
     // Jalankan jika panjang karakter 3 s/d 5
     if (
@@ -495,42 +494,36 @@ function RegistrationWizard({
         setIsLoadingArea(true);
         if (step === 2) {
           toast(
-            "Pastikan Pin Lokasi sudah sesuai dengan alamat pemasangan anda",
+            "Pastikan Pin Lokasi sudah sesuai dengan alamat pemasangan Anda",
+            { icon: "📍" },
           );
         }
 
-        // Panggil geoapify utk dapetin lat/lng (centering map) berdasarkan kode pos
-        const MAP_KEY =
-          process.env.NEXT_PUBLIC_MAP_API_KEY ||
-          "9babe437b7aa4d84b359813bfdd4ff7a";
-        const resMap = await fetch(
-          `https://api.geoapify.com/v1/geocode/search?postcode=${formData.postal_code}&country=Indonesia&apiKey=${MAP_KEY}`,
-        );
+        // Panggil Mapbox Geocoding V6 utk dapetin lat/lng (centering map) berdasarkan kode pos
+        const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+        // Hardcode proximity sesuai instruksi user
+        const mapboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${formData.postal_code}&proximity=-73.990593%2C40.740121&country=id&access_token=${MAPBOX_TOKEN}`;
+
+        const resMap = await fetch(mapboxUrl);
         const dataMap = await resMap.json();
         if (dataMap?.features?.length > 0) {
-          const { lat, lon } = dataMap.features[0].properties;
+          // Mapbox V6 geometry.coordinates: [longitude, latitude]
+          const [lon, lat] = dataMap.features[0].geometry.coordinates;
           if (lat && lon) {
-            setFormData((prev) => {
-              // BREAK THE LOOP: Jika beda koordinatnya sangat kecil sekali, jangan update lagi
-              // Ini biar kalau map yang men-set Kode Pos, gak balik lagi diserobot sama ini
-              const diffLat = Math.abs(Number(prev.latitude) - lat);
-              const diffLon = Math.abs(Number(prev.longitude) - lon);
-
-              if (diffLat < 0.0001 && diffLon < 0.0001) {
-                return prev;
-              }
-
-              return {
-                ...prev,
-                latitude: String(lat),
-                longitude: String(lon),
-              };
-            });
+            const feature = dataMap.features[0];
+            setFormData((prev) => ({
+              ...prev,
+              latitude: String(lat),
+              longitude: String(lon),
+              address_raw: feature,
+            }));
 
             setTempMapPayload((prev: any) => ({
               ...prev,
               latitude: String(lat),
               longitude: String(lon),
+              address_raw: feature,
             }));
           }
         }
@@ -542,8 +535,8 @@ function RegistrationWizard({
     }, 1_500);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.postal_code]);
-  */
 
   const handleRequestLocation = async () => {
     try {
@@ -1278,22 +1271,20 @@ function RegistrationWizard({
 
                       {isLoadingPackage ? (
                         <PackageCardMobileSkeletonList count={2} />
-                      ) : packages?.length ? (
-                        <div className="max-w-md grid max-sm:p-1 grid-cols-1  gap-4 max-sm:space-y-4">
-                          {packages.map((pkg) => (
-                            <PackageCardMobile
-                              key={pkg.id}
-                              pkg={pkg}
-                              selected={selectedPackage?.id === pkg?.id}
-                              onSelect={handleSelect}
-                              convertToCurrency={convertToCurrency}
-                            />
-                          ))}
-                        </div>
                       ) : (
-                        <div className="text-gray-500 text-sm mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                          Belum ada daftar paket yang tersedia dari sistem.
-                        </div>
+                        packages?.length && (
+                          <div className="max-w-md grid max-sm:p-1 grid-cols-1  gap-4 max-sm:space-y-4">
+                            {packages.map((pkg) => (
+                              <PackageCardMobile
+                                key={pkg.id}
+                                pkg={pkg}
+                                selected={selectedPackage?.id === pkg?.id}
+                                onSelect={handleSelect}
+                                convertToCurrency={convertToCurrency}
+                              />
+                            ))}
+                          </div>
+                        )
                       )}
 
                       {errors.package_id && (
@@ -1303,26 +1294,7 @@ function RegistrationWizard({
                         </p>
                       )}
                     </div>
-                  ) : (
-                    formData.postal_code.length >= 4 && (
-                      <>
-                        <div className="my-6">
-                          <Image
-                            src={bannerImageNoCovered}
-                            className="w-full hidden lg:block"
-                            alt="banner-no-coverage"
-                          />
-                          <div className="block lg:hidden bg-[#FEFCE8] py-2 px-3 border border-[#A16207] rounded-lg">
-                            <p className="text-xs text-[#A16207]">
-                              <strong>Layanan di areamu segera hadir:</strong>{" "}
-                              Jangan khawatir! Silakan daftar sekarang agar
-                              akunmu tersimpan di sistem kami.
-                            </p>
-                          </div>
-                        </div>
-                      </>
-                    )
-                  )}
+                  ) : null}
 
                   {/* Address Select Area */}
                   <div className="mt-3 flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-50">
@@ -1568,11 +1540,9 @@ function RegistrationWizard({
                       </p>
                       <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
                         <div className="w-full h-full pointer-events-none">
-                          <MapGeoapify
-                            mode={mode as any}
+                          <MapMapbox
                             initialLatitude={Number(formData.latitude || 0)}
                             initialLongitude={Number(formData.longitude || 0)}
-                            getAddress={() => {}}
                             isInteractive={false}
                           />
                         </div>
@@ -1600,32 +1570,6 @@ function RegistrationWizard({
                           Lokasi GPS harus dipilih dari peta otomatis.
                         </p>
                       )}
-                    </div>
-
-                    <div className="mb-3">
-                      <p
-                        className={`mt-1 text-gray-500 items-center gap-2 text-sm ${isCheckCoverage ? "flex" : "hidden"}`}
-                      >
-                        <span className="w-4 h-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></span>
-                        <span>Mengecek jangkauan...</span>
-                      </p>
-                      <p
-                        className={`mt-1 text-green-primary items-center gap-1 text-sm ${isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
-                      >
-                        <FaCircleCheck className="text-green-primary" />
-                        <span>
-                          Selamat! Alamat Anda berada di dalam jangkauan kami.
-                        </span>
-                      </p>
-                      {/* <p
-                        className={`mt-1 animate-bounce text-red-primary items-center gap-1 text-sm ${!isCovered && !isCheckCoverage ? "flex" : "hidden"}`}
-                      >
-                        <FaCircleExclamation className="text-red-primary w-6 h-6 sm:w-4 sm:h-4" />
-                        <span>
-                          Lokasi Anda belum berada di jangkauan area kami, dan
-                          kami sedang menuju ke daerah Anda.
-                        </span>
-                      </p> */}
                     </div>
                   </div>
 
@@ -1786,7 +1730,7 @@ function RegistrationWizard({
                           </span>
 
                           <span className="text-gray-500">Alamat Lengkap</span>
-                          <span className="font-medium text-gray-900 leading-snug break-words">
+                          <span className="font-medium text-gray-900 leading-snug wrap-break-word">
                             {formData.actual_address || "-"}
                           </span>
 
@@ -1798,11 +1742,9 @@ function RegistrationWizard({
 
                         {/* Map Mini Preview */}
                         <div className="mt-4 w-full h-[350px] rounded-xl overflow-hidden pointer-events-none opacity-80 border border-gray-200">
-                          <MapGeoapify
-                            mode={mode as any}
+                          <MapMapbox
                             initialLatitude={Number(formData.latitude || 0)}
                             initialLongitude={Number(formData.longitude || 0)}
-                            getAddress={() => {}}
                             isInteractive={false}
                           />
                         </div>
@@ -1869,40 +1811,37 @@ function RegistrationWizard({
       {isModalRegisterSuccess && (
         <ModalTemplate
           closeModal={handleClickBanner}
-          width="max-w-[1000px]"
-          classNameModal="w-[95%] p-0 bg-transparent shadow-none"
+          width="!w-fit"
+          classNameModal="!p-0 !bg-transparent !shadow-none !w-fit !max-w-[95vw]"
           isCloseButton={false}
         >
-          <div className="relative w-full group overflow-hidden rounded-2xl">
-            <div className="w-full cursor-pointer" onClick={handleClickBanner}>
-              {/* Desktop Banner */}
-              <div className="hidden lg:block">
+          <div className="relative w-fit mx-auto group overflow-hidden rounded-2xl">
+            <div className="w-fit cursor-pointer" onClick={handleClickBanner}>
+              {coveredAtSubmit ? (
                 <Image
-                  src="/assets/Images/banner-pop-up-regist.png"
-                  alt="Registrasi Berhasil - Download Aplikasi IRA"
+                  src="/assets/Images/banner-pop-up-regist-covered.png"
+                  alt="Registrasi Berhasil - Tercover"
                   width={1000}
                   height={1000}
-                  className="w-full h-auto drop-shadow-2xl"
+                  className="w-auto h-auto max-w-full max-h-[80vh] object-contain drop-shadow-2xl"
                   priority
                 />
-              </div>
-              {/* Mobile Banner */}
-              <div className="block lg:hidden">
+              ) : (
                 <Image
-                  src="/assets/Images/banner-pop-up-regist-mobile.png"
-                  alt="Registrasi Berhasil - Download Aplikasi IRA"
+                  src="/assets/Images/banner-pop-up-regist-not-covered.png"
+                  alt="Registrasi Berhasil - Masuk Daftar Tunggu"
                   width={1000}
                   height={1000}
-                  className="w-full h-auto drop-shadow-2xl"
+                  className="w-auto h-auto max-w-full max-h-[80vh] object-contain drop-shadow-2xl"
                   priority
                 />
-              </div>
+              )}
             </div>
           </div>
         </ModalTemplate>
       )}
 
-      {isOpenModalReqLoc && status === "denied" && (
+      {/* {isOpenModalReqLoc && status === "denied" && (
         <ModalTemplate
           classNameModal="p-6"
           closeModal={() => {
@@ -1928,7 +1867,7 @@ function RegistrationWizard({
             />
           </div>
         </ModalTemplate>
-      )}
+      )} */}
       {/* Interactive Map Modal */}
       {isOpenMapModal && (
         <ModalTemplate
@@ -1940,10 +1879,10 @@ function RegistrationWizard({
               Sesuaikan Pin Point
             </h2>
             <p className="text-sm text-center text-gray-500">
-              Arahkan Pin Lokasi ke Titik Alamat Anda yang tepat
+              Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda yang tepat
             </p>
             <div className="w-full h-[60vh] rounded-xl overflow-hidden shadow-sm relative border border-gray-200">
-              <MapGeoapifyLite
+              <MapMapboxLite
                 initialLatitude={Number(
                   tempMapPayload?.latitude || formData.latitude || 0,
                 )}
