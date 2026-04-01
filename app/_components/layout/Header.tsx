@@ -32,6 +32,7 @@ import { useAppContext } from "@/app/_shared/context/AppContext";
 function Header() {
   const pathname = usePathname();
   const router = useRouter();
+
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
@@ -187,7 +188,9 @@ function Header() {
           (window as any).fbq("track", "Lead");
         }
         if (typeof (window as any).ttq === "object") {
-          (window as any).ttq.track('Lead', { content_name: "Tombol Registrasi Di Header" });
+          (window as any).ttq.track("Lead", {
+            content_name: "Tombol Registrasi Di Header",
+          });
         }
       }
       router.push("/auth/register");
@@ -288,6 +291,13 @@ function Header() {
       </button>
     );
   };
+
+  const excludedPaths = ["/", "/auth/register", "/check-coverage"];
+  const isExcluded = excludedPaths.includes(pathname || "");
+
+  if (isExcluded) {
+    return null;
+  }
 
   return (
     <div className="relative" ref={headerRef}>

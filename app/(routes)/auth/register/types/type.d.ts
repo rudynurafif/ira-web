@@ -19,6 +19,7 @@ export interface FormType {
   actual_address: string;
   voucher_code: string;
   address_gmaps?: any;
+  address_raw?: any;
   latitude?: string | number;
   longitude?: string | number;
 }

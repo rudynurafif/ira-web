@@ -64,7 +64,7 @@ function DynamicSelectForm({
   const labelId = `${name}-label`;
 
   return (
-    <div>
+    <div id={`scroll-target-${name}`} className="scroll-mt-20">
       <label id={labelId} htmlFor={inputId} className="text-muted">
         {label}
         {isImportant && <span>*</span>}
@@ -82,8 +82,8 @@ function DynamicSelectForm({
         styles={selectStyles}
         value={
           value
-            ? options.find((option) => option.value.toString() === value) ??
-              null
+            ? (options.find((option) => option.value.toString() === value) ??
+              null)
             : null
         }
         onChange={(e: any) => onChange(e)}
