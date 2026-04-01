@@ -303,8 +303,8 @@ function RegistrationWizard({
   }, [formData, step, selectedPackage, otpStatus, PERSIST_KEY]);
 
   useEffect(() => {
-    if (isModalRegisterSuccess && pathname === "/auth/register") {
-      // Masukkan ke history buat GA
+    if (isModalRegisterSuccess) {
+      // Masukkan ke history buat GA (Google Analytics) tracking
       window.history.pushState(null, "", "/auth/register/popup");
 
       // Setelah 5 detik, kembalikan ke URL normal agar kalau di-refresh gak 404
@@ -314,7 +314,7 @@ function RegistrationWizard({
 
       return () => clearTimeout(timeout);
     }
-  }, [isModalRegisterSuccess, pathname]);
+  }, [isModalRegisterSuccess]);
 
   // 3. Clear Storage helper
   const clearPersistance = () => {
@@ -1820,7 +1820,7 @@ function RegistrationWizard({
             <div className="w-fit cursor-pointer" onClick={handleClickBanner}>
               {coveredAtSubmit ? (
                 <Image
-                  src="/assets/Images/banner-pop-up-regist-covered.png"
+                  src="/assets/Images/banner-pop-up-regist-covered.webp"
                   alt="Registrasi Berhasil - Tercover"
                   width={1000}
                   height={1000}
@@ -1829,7 +1829,7 @@ function RegistrationWizard({
                 />
               ) : (
                 <Image
-                  src="/assets/Images/banner-pop-up-regist-not-covered.png"
+                  src="/assets/Images/banner-pop-up-regist-not-covered.webp"
                   alt="Registrasi Berhasil - Masuk Daftar Tunggu"
                   width={1000}
                   height={1000}
