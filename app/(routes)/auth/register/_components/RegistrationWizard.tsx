@@ -1844,6 +1844,7 @@ function RegistrationWizard({
                   height={1000}
                   className="w-auto h-auto max-w-full max-h-[80vh] object-contain drop-shadow-2xl"
                   priority
+                  unoptimized={true}
                 />
               ) : (
                 <Image
@@ -1853,6 +1854,7 @@ function RegistrationWizard({
                   height={1000}
                   className="w-auto h-auto max-w-full max-h-[80vh] object-contain drop-shadow-2xl"
                   priority
+                  unoptimized={true}
                 />
               )}
             </div>
