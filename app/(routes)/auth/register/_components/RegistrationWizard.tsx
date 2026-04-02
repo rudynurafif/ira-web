@@ -370,22 +370,18 @@ function RegistrationWizard({
   }, [formData.package_id, packages]);
 
   useEffect(() => {
-    // auto-select kalau hanya ada 1 paket
-    if (packages.length === 1) {
-      const onlyPkg = packages[0];
-
-      // kalau belum ke-select
-      if (String(formData.package_id) !== String(onlyPkg.id)) {
-        setSelectedPackage(onlyPkg);
-        setFormData((prev) => ({
-          ...prev,
-          package_id: onlyPkg.id,
-        }));
-        setErrors((prev) => ({ ...prev, package_id: "" }));
-      }
+    // Auto-select paket pertama HANYA jika tercover, ada paket, dan BELUM ada paket yang terpilih
+    if (isCovered && packages.length > 0 && !formData.package_id) {
+      const firstPkg = packages[0];
+      setSelectedPackage(firstPkg);
+      setFormData((prev: any) => ({
+        ...prev,
+        package_id: firstPkg.id,
+      }));
+      setErrors((prev: any) => ({ ...prev, package_id: "" }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [packages]);
+  }, [packages, isCovered]);
 
   useEffect(() => {
     const loadProvince = async () => {
