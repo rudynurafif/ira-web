@@ -282,7 +282,13 @@ function RegistrationWizard({
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
-        if (parsed.formData) setFormData(parsed.formData);
+        if (parsed.formData) {
+          setFormData(parsed.formData);
+          // Cegah autofill ulang koordinat dari kode pos saat refresh
+          if (parsed.formData.postal_code) {
+            lastPostcodeFromMap.current = parsed.formData.postal_code;
+          }
+        }
         if (parsed.step) setStep(parsed.step);
         if (parsed.selectedPackage) {
           setSelectedPackage(parsed.selectedPackage);
@@ -303,8 +309,8 @@ function RegistrationWizard({
   }, [formData, step, selectedPackage, otpStatus, PERSIST_KEY]);
 
   useEffect(() => {
-    if (isModalRegisterSuccess && pathname === "/auth/register") {
-      // Masukkan ke history buat GA
+    if (isModalRegisterSuccess) {
+      // Masukkan ke history buat GA (Google Analytics) tracking
       window.history.pushState(null, "", "/auth/register/popup");
 
       // Setelah 5 detik, kembalikan ke URL normal agar kalau di-refresh gak 404
@@ -314,7 +320,7 @@ function RegistrationWizard({
 
       return () => clearTimeout(timeout);
     }
-  }, [isModalRegisterSuccess, pathname]);
+  }, [isModalRegisterSuccess]);
 
   // 3. Clear Storage helper
   const clearPersistance = () => {
@@ -370,22 +376,18 @@ function RegistrationWizard({
   }, [formData.package_id, packages]);
 
   useEffect(() => {
-    // auto-select kalau hanya ada 1 paket
-    if (packages.length === 1) {
-      const onlyPkg = packages[0];
-
-      // kalau belum ke-select
-      if (String(formData.package_id) !== String(onlyPkg.id)) {
-        setSelectedPackage(onlyPkg);
-        setFormData((prev) => ({
-          ...prev,
-          package_id: onlyPkg.id,
-        }));
-        setErrors((prev) => ({ ...prev, package_id: "" }));
-      }
+    // Auto-select paket pertama HANYA jika tercover, ada paket, dan BELUM ada paket yang terpilih
+    if (isCovered && packages.length > 0 && !formData.package_id) {
+      const firstPkg = packages[0];
+      setSelectedPackage(firstPkg);
+      setFormData((prev: any) => ({
+        ...prev,
+        package_id: firstPkg.id,
+      }));
+      setErrors((prev: any) => ({ ...prev, package_id: "" }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [packages]);
+  }, [packages, isCovered]);
 
   useEffect(() => {
     const loadProvince = async () => {
@@ -1749,6 +1751,22 @@ function RegistrationWizard({
                             isInteractive={false}
                           />
                         </div>
+                        <div className="flex justify-center mt-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setStep(2);
+                              // Langsung arahkan ke posisi map biar user gak bingung
+                              setTimeout(() => {
+                                window.scrollTo({ top: 300, behavior: "smooth" });
+                              }, 100);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-primary text-primary rounded-lg font-bold text-sm hover:bg-red-50 transition-all shadow-sm shadow-red-100"
+                          >
+                            <FaLocationDot className="text-xs" />
+                            Ubah / Sesuaikan Ulang Pin Point
+                          </button>
+                        </div>
                       </div>
 
                       {/* Tambahan Info */}
@@ -1820,21 +1838,23 @@ function RegistrationWizard({
             <div className="w-fit cursor-pointer" onClick={handleClickBanner}>
               {coveredAtSubmit ? (
                 <Image
-                  src="/assets/Images/banner-pop-up-regist-covered.png"
+                  src="/assets/Images/banner-pop-up-regist-covered.webp"
                   alt="Registrasi Berhasil - Tercover"
                   width={1000}
                   height={1000}
                   className="w-auto h-auto max-w-full max-h-[80vh] object-contain drop-shadow-2xl"
                   priority
+                  unoptimized={true}
                 />
               ) : (
                 <Image
-                  src="/assets/Images/banner-pop-up-regist-not-covered.png"
+                  src="/assets/Images/banner-pop-up-regist-not-covered.webp"
                   alt="Registrasi Berhasil - Masuk Daftar Tunggu"
                   width={1000}
                   height={1000}
                   className="w-auto h-auto max-w-full max-h-[80vh] object-contain drop-shadow-2xl"
                   priority
+                  unoptimized={true}
                 />
               )}
             </div>

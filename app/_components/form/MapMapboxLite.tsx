@@ -59,9 +59,24 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
       initialLongitude !== 0
     ) {
       const newLoc = { lat: initialLatitude, lng: initialLongitude };
-      setLocation(newLoc);
-      if (mapRef.current) {
-        mapRef.current.flyTo({ center: [initialLongitude, initialLatitude] });
+
+      // If map is not initialized yet, just set location state which will be used in initialization
+      if (!mapRef.current) {
+        setLocation(newLoc);
+      } else {
+        // If map already exists, ONLY flyTo.
+        // IMPORTANT: Do not setLocation() because it might be in dependencies (though we'll remove it)
+        // Check if the coordinates are really different from current center to avoid loops
+        const currentCenter = mapRef.current.getCenter();
+        if (
+          Math.abs(currentCenter.lat - initialLatitude) > 0.00001 ||
+          Math.abs(currentCenter.lng - initialLongitude) > 0.00001
+        ) {
+          mapRef.current.flyTo({
+            center: [initialLongitude, initialLatitude],
+            // DO NOT specify zoom here to preserve user's zoom
+          });
+        }
       }
     }
   }, [initialLatitude, initialLongitude, isInteractive]);
@@ -149,7 +164,7 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
       map.remove();
       mapRef.current = null;
     };
-  }, [location, isInteractive]);
+  }, [isInteractive]);
 
   const handleRefreshLocation = () => {
     if ("geolocation" in navigator) {
@@ -166,7 +181,7 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
           if (error.code === 1) {
             toast.error(
               "Mohon izinkan akses lokasi (GPS) pada pengaturan browser Anda agar titik pen lokasi bisa ditentukan secara otomatis.",
-              { duration: 6000 }
+              { duration: 6000 },
             );
           } else {
             toast.error("Gagal mendeteksi lokasi GPS Anda.");
