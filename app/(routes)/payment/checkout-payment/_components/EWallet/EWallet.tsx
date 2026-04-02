@@ -33,7 +33,11 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
     setIsLoadingStatus(true);
 
     try {
-      const res_status = await getPaymentStatus();
+      const customerId = sessionStorage.getItem("customer_id");
+      const params = {
+        customer_code: customerId,
+      };
+      const res_status = await getPaymentStatus(params);
       const isPaid = res_status?.data?.data;
 
       setPaymentStatus(isPaid);
