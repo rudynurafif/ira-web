@@ -282,7 +282,13 @@ function RegistrationWizard({
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
-        if (parsed.formData) setFormData(parsed.formData);
+        if (parsed.formData) {
+          setFormData(parsed.formData);
+          // Cegah autofill ulang koordinat dari kode pos saat refresh
+          if (parsed.formData.postal_code) {
+            lastPostcodeFromMap.current = parsed.formData.postal_code;
+          }
+        }
         if (parsed.step) setStep(parsed.step);
         if (parsed.selectedPackage) {
           setSelectedPackage(parsed.selectedPackage);
@@ -1744,6 +1750,22 @@ function RegistrationWizard({
                             initialLongitude={Number(formData.longitude || 0)}
                             isInteractive={false}
                           />
+                        </div>
+                        <div className="flex justify-center mt-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setStep(2);
+                              // Langsung arahkan ke posisi map biar user gak bingung
+                              setTimeout(() => {
+                                window.scrollTo({ top: 300, behavior: "smooth" });
+                              }, 100);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-primary text-primary rounded-lg font-bold text-sm hover:bg-red-50 transition-all shadow-sm shadow-red-100"
+                          >
+                            <FaLocationDot className="text-xs" />
+                            Ubah / Sesuaikan Ulang Pin Point
+                          </button>
                         </div>
                       </div>
 
