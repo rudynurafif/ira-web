@@ -146,54 +146,13 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
         const lat = center.lat;
         const lng = center.lng;
 
-        // [SYNC IMMEDIATELY] Kirim koordinat langsung agar tidak telat ke tombol Simpan (Race Condition Fix)
+        // [SYNC IMMEDIATELY] Kirim koordinat saja ke parent (HEMAT API: Jangan hit geocoding di sini)
         if (onPlaceChangeRef.current) {
           onPlaceChangeRef.current({
             latitude: lat,
             longitude: lng,
           });
         }
-
-        // Tampilkan loading segera untuk proses Geocoding-nya
-        setIsLoading(true);
-
-        const timer = setTimeout(async () => {
-          try {
-            // GUARD: Check if outside bbox if provided
-            // [REMOVE SNAP-BACK] Allow user to drag outside boundary if needed due to API limitations
-
-            const res = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=address,postcode&language=id`,
-            );
-            const data = await res.json();
-            const feature = data.features?.[0];
-
-            if (onPlaceChangeRef.current) {
-              const postcodeObj = data.features?.find((f: any) =>
-                f.place_type.includes("postcode"),
-              );
-              const postcode = postcodeObj ? postcodeObj.text : "";
-
-              onPlaceChangeRef.current({
-                latitude: lat,
-                longitude: lng,
-                postcode: postcode,
-                address: feature ? feature.place_name : "",
-                raw_result: feature,
-              });
-            }
-          } catch (err) {
-            console.error("Mapbox Reverse geocoding failed:", err);
-            if (onPlaceChangeRef.current) {
-              onPlaceChangeRef.current({ latitude: lat, longitude: lng });
-            }
-          } finally {
-            setIsLoading(false);
-            reverseGeocodeTimerRef.current = null;
-          }
-        }, 500);
-
-        reverseGeocodeTimerRef.current = timer;
       });
     }
 
