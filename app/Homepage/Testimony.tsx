@@ -47,7 +47,7 @@ const Testimony = () => {
               {displayVideos.map((video, index) => (
                 <div
                   key={`${video.id}-${index}`}
-                  className="relative flex-shrink-0 w-[240px] md:w-[320px] h-[340px] md:h-[450px] rounded-[30px] md:rounded-[40px] overflow-hidden border-2 md:border-4 border-white shadow-2xl group cursor-pointer"
+                  className="relative shrink-0 w-[240px] md:w-[320px] h-[340px] md:h-[450px] rounded-[30px] md:rounded-[40px] overflow-hidden border-2 md:border-4 border-white shadow-2xl group cursor-pointer"
                   onClick={() => setSelectedVideo(video.id)}
                 >
                   <Image
