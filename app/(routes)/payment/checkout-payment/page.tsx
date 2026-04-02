@@ -41,7 +41,11 @@ function Page() {
 
   const getCurrentPaymentData = async () => {
     try {
-      const res = await getCurrentPayment();
+      const customerId = sessionStorage.getItem("customer_id");
+      const params = {
+        customer_code: customerId,
+      };
+      const res = await getCurrentPayment(params);
 
       if (res?.data?.data === null) {
         toast.error("Terjadi kesalahan. Silakan pilih paket kembali");
@@ -59,7 +63,7 @@ function Page() {
 
   useEffect(() => {
     getCurrentPaymentData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const bankFee =

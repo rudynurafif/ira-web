@@ -118,11 +118,12 @@ export const getOTCById = async (id: string) => {
   }
 };
 
-export const getPaymentStatus = async () => {
+export const getPaymentStatus = async (params?: any) => {
   try {
     const data = await FwaAxios({
       url: `/app/transaction/status`,
       method: "GET",
+      params: params,
     });
 
     return data;
@@ -131,11 +132,12 @@ export const getPaymentStatus = async () => {
   }
 };
 
-export const getCurrentPayment = async () => {
+export const getCurrentPayment = async (params?: any) => {
   try {
     const data = await FwaAxios({
       url: `/app/transaction/current-payment`,
       method: "GET",
+      params: params,
     });
 
     return data;

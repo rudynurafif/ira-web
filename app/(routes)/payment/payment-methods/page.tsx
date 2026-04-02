@@ -156,10 +156,19 @@ const PaymentMehods = () => {
     try {
       let createRes;
 
-      const payload = {
+      const customerId = sessionStorage.getItem("customer_id");
+
+      let payload: any = {
         package_id: selectedPackage?.id,
         payment_channel_id: selectedChannel?.id,
       };
+
+      if (customerId) {
+        payload = {
+          ...payload,
+          customer_code: customerId,
+        };
+      }
 
       switch (selectedChannel.category) {
         case "va":
@@ -403,6 +412,7 @@ const PaymentMehods = () => {
         </button>
       </div>
 
+      {/* modal ketika paket masih aktif */}
       {openModalNotAllowed && (
         <ModalTemplate
           closeModal={() => {
