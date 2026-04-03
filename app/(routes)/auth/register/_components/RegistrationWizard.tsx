@@ -146,8 +146,10 @@ function RegistrationWizard({
         province: d.province_id?.id || d.province_id || base.province,
         city: d.city_id?.id || d.city_id || base.city,
         district: d.district_id?.id || d.district_id || base.district,
-        sub_district: d.sub_district_id?.id || d.sub_district_id || base.sub_district,
-        postal_code_id: d.postal_code_id?.id || d.postal_code_id || base.postal_code_id,
+        sub_district:
+          d.sub_district_id?.id || d.sub_district_id || base.sub_district,
+        postal_code_id:
+          d.postal_code_id?.id || d.postal_code_id || base.postal_code_id,
         notes: d.notes !== undefined ? defaultNotes : base.notes,
       };
     }
@@ -466,7 +468,8 @@ function RegistrationWizard({
         rw: d.rw || prev.rw,
         actual_address: d.address || prev.actual_address,
         postal_code: d.postal_code || prev.postal_code,
-        postal_code_id: d.postal_code_id?.id || d.postal_code_id || prev.postal_code_id,
+        postal_code_id:
+          d.postal_code_id?.id || d.postal_code_id || prev.postal_code_id,
         latitude: d.latitude ? String(d.latitude) : prev.latitude,
         longitude: d.longitude ? String(d.longitude) : prev.longitude,
         province: province || prev.province,
@@ -474,6 +477,12 @@ function RegistrationWizard({
         district: district || prev.district,
         sub_district: sub_district || prev.sub_district,
       }));
+
+      // [PENTING] Gembok kordinat agar tidak auto-center pas baru buka halaman Update Address
+      const initialMapPostcode = d.postal_code || d.postal_code_id?.name;
+      if (initialMapPostcode) {
+        lastPostcodeFromMap.current = String(initialMapPostcode);
+      }
 
       // Autofill the province dropdowns
       if (province) {
@@ -535,6 +544,32 @@ function RegistrationWizard({
       // Autofill the sub-district
       if (sub_district) {
         setFormData((prev) => ({ ...prev, sub_district }));
+        const subDistrictId = sub_district;
+        (async () => {
+          try {
+            const res = await getPostalCode({ sub_district_id: subDistrictId });
+            const options = (res.data?.data ?? []).map((it: any) => ({
+              label: it.name,
+              value: String(it.id),
+              name: it.name, // simpan aslinya buat geocoding
+            }));
+            setPostalCodeOptions(options);
+
+            // Jika ada postal_code_id dari API, matikan manual mode agar dropdown muncul
+            const pcId = d.postal_code_id?.id || d.postal_code_id;
+            if (pcId) {
+              setFormData((prev) => ({
+                ...prev,
+                postal_code_id: String(pcId),
+                postal_code: d.postal_code || d.postal_code_id?.name || prev.postal_code,
+              }));
+              setIsPostalCodeManual(false);
+              setLastSyncedPostcode(String(pcId));
+            }
+          } catch (err) {
+            toastErrorFromAPI(err, "Gagal muat data kode pos");
+          }
+        })();
       }
     }
   }, [mode, initialData]);
@@ -973,7 +1008,7 @@ function RegistrationWizard({
           longitude: lngStr,
           postal_code_id: locationFromBackend
             ? String(locationFromBackend.id)
-            : undefined,
+            : prev.postal_code_id,
           postal_code: locationFromBackend
             ? String(locationFromBackend.name)
             : postcode || prev.postal_code,

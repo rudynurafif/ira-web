@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { getUser } from "@/app/store/slice/authSlice";
 import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
+import Loader from "@/app/_components/Loader";
 
 const UpdateAddressPage = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
@@ -32,16 +33,7 @@ const UpdateAddressPage = () => {
   // [PENTING] Gerbang Keamanan: Jangan render Wizard kalau data user di Redux belum siap
   // Supaya initialData tidak kosong pas Wizard pertama kali mounted
   if (!userInfo || !userInfo.id) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white shadow-xl">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-500 font-medium animate-pulse">
-            Memuat data profil...
-          </p>
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
@@ -81,6 +73,9 @@ const UpdateAddressPage = () => {
             rw: userInfo?.rw || "",
             postal_code: userInfo?.postal_code
               ? String(userInfo.postal_code)
+              : "",
+            postal_code_id: userInfo?.postal_code_id?.id
+              ? String(userInfo.postal_code_id.id)
               : "",
             notes: userInfo?.notes || "",
           }}
