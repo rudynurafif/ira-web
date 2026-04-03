@@ -1,13 +1,48 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import RegistrationWizard from "../../auth/register/_components/RegistrationWizard";
-import { useAppSelector } from "@/app/store/store";
-import Header from "@/app/_components/layout/Header";
-import Footer from "@/app/_components/layout/Footer";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { getUser } from "@/app/store/slice/authSlice";
+import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
+import { toastErrorFromAPI } from "@/app/_shared/utils";
 
 const UpdateAddressPage = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+
+  // [NEW] Effect 1: Fetch data user secara manual jika di Redux masih kosong (misal saat refresh halaman)
+  useEffect(() => {
+    const loadUserData = async () => {
+      // Jika belum ada di state, fetch dari API
+      if (!userInfo || !userInfo.id) {
+        try {
+          const res = await getProfileInfo({});
+          const customerData = res.data?.data?.customer ?? {};
+          dispatch(getUser(customerData));
+        } catch (err) {
+          toastErrorFromAPI(err, "Gagal memuat profil");
+        }
+      }
+    };
+
+    loadUserData();
+  }, [dispatch, userInfo]);
+
+  // [PENTING] Gerbang Keamanan: Jangan render Wizard kalau data user di Redux belum siap
+  // Supaya initialData tidak kosong pas Wizard pertama kali mounted
+  if (!userInfo || !userInfo.id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white shadow-xl">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium animate-pulse">
+            Memuat data profil...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main
