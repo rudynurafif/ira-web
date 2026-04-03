@@ -287,7 +287,7 @@ function RegistrationWizard({
     }
   };
 
-  const handleConfirmPostcodeUpdate = (shouldUpdatePostcode: boolean) => {
+  const handleConfirmPostcodeUpdate = (isSnapBack: boolean) => {
     if (!pendingSuggestionData) return;
 
     const {
@@ -299,27 +299,44 @@ function RegistrationWizard({
       exactLng,
     } = pendingSuggestionData;
 
-    // Gunakan koordinat presisi dari Pin, bukan dari hasil Snap API Geocode
-    const lat =
-      exactLat !== undefined
-        ? String(exactLat)
-        : feature.geometry.coordinates[1];
-    const lng =
-      exactLng !== undefined
-        ? String(exactLng)
-        : feature.geometry.coordinates[0];
+    setIsInteractingWithMap(false); // Buka kunci interaksi
 
-    setSearchQuery(suggestionName);
-    setShowSuggestions(false);
-
-    // [OPTIMASI] Gabungkan update koordinat dan wilayah kedalam asinkronus agar tidak terjadi race condition
     (async () => {
-      let regionalData: any = {};
+      if (isSnapBack) {
+        // [SCENARIO 1] "Ya, Sesuaikan Pin" -> Tarik PIN balik ke pusat Kode Pos Lama
+        try {
+          const pcQuery = formData.postal_code;
+          const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+          const mapboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${pcQuery}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
+          const res = await fetch(mapboxUrl);
+          const data = await res.json();
 
-      // [PENTING] Set ref DULUAN sebelum setFormData agar useEffect auto-center tidak terpicu
-      lastPostcodeFromMap.current = suggestionPostcode;
+          if (data.features?.[0]) {
+            const [lngSnap, latSnap] = data.features[0].geometry.coordinates;
+            const newLat = String(latSnap);
+            const newLng = String(lngSnap);
 
-      if (shouldUpdatePostcode) {
+            setFormData((prev) => ({
+              ...prev,
+              latitude: newLat,
+              longitude: newLng,
+            }));
+
+            setTempMapPayload((prev: any) => ({
+              ...prev,
+              latitude: newLat,
+              longitude: newLng,
+            }));
+
+            toast.success("Pin disesuaikan kembali ke area Kode Pos");
+          }
+        } catch (e) {
+          console.error("Gagal snap back pin", e);
+          toast.error("Gagal menyesuaikan pin otomatis");
+        }
+      } else {
+        // [SCENARIO 2] "Gunakan Kode Pos Saat Ini" -> Update Data Wilayah ke yang baru (di titik Pin sekarang)
+        let regionalData: any = {};
         try {
           const resLoc = await getLocationByPostalCode(suggestionPostcode);
           const locData = resLoc.data?.data?.[0];
@@ -342,31 +359,34 @@ function RegistrationWizard({
             setIsPostalCodeManual(true);
             setLastSyncedPostcode(suggestionPostcode);
           }
+
+          // Update BBOX visual ke kode pos baru
+          const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+          const bboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${suggestionPostcode}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
+          const resBbox = await fetch(bboxUrl);
+          const dataBbox = await resBbox.json();
+          if (dataBbox.features?.[0]?.properties?.bbox) {
+            setCurrentBbox(dataBbox.features[0].properties.bbox);
+          }
+
+          setFormData((prev) => ({
+            ...prev,
+            latitude: String(exactLat),
+            longitude: String(exactLng),
+            address_gmaps: fullAddress,
+            ...regionalData,
+          }));
+
+          setTempMapPayload((prev: any) => ({
+            ...prev,
+            latitude: String(exactLat),
+            longitude: String(exactLng),
+          }));
+
+          toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
         } catch (e) {
-          console.error("Gagal sinkron ID lokasi", e);
-          setIsPostalCodeManual(true);
-          setLastSyncedPostcode(suggestionPostcode);
+          console.error("Gagal update data wilayah", e);
         }
-      }
-
-      setTempMapPayload((prev: any) => ({
-        ...prev,
-        latitude: lat,
-        longitude: lng,
-      }));
-
-      setFormData((prev) => ({
-        ...prev,
-        latitude: lat,
-        longitude: lng,
-        address_gmaps: fullAddress,
-        ...regionalData,
-        // Jika tidak update kode pos wilayah, pastikan tetap pakai koordinat baru di kode pos lama
-        ...(shouldUpdatePostcode ? {} : { postal_code: prev.postal_code }),
-      }));
-
-      if (shouldUpdatePostcode) {
-        toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
       }
 
       setIsOpenPostcodeConfirmModal(false);
@@ -2173,7 +2193,6 @@ function RegistrationWizard({
                             onPlaceChange={(p) => {
                               // 1. Tanda sedang interaksi agar Auto-Center tidak menimpa
                               setIsInteractingWithMap(true);
-
                               // 2. Update koordinat segera
                               setFormData((prev) => ({
                                 ...prev,
@@ -2183,8 +2202,24 @@ function RegistrationWizard({
 
                               // 3. Jika ada Kode Pos (Hasil 5s Timer), lakukan pengecekan boundary
                               if (p.postcode) {
-                                // Reset interaksi karena geocode sudah selesai (atau biarkan sampai user klik lain?)
-                                // Kita biarkan true dulu sampai user simpan atau interaksi lain
+                                // [NEW] Selalu update BBOX (Kotak Biru) agar mengikuti pergeseran pin
+                                // Tanpa harus nunggu konfirmasi modal, supaya visual selalu sinkron dengan area di bawah pin
+                                (async () => {
+                                  try {
+                                    const MAPBOX_TOKEN =
+                                      process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+                                    const bboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${p.postcode}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
+                                    const resBbox = await fetch(bboxUrl);
+                                    const dataBbox = await resBbox.json();
+                                    const newBbox =
+                                      dataBbox.features?.[0]?.properties?.bbox;
+                                    if (newBbox) {
+                                      setCurrentBbox(newBbox);
+                                    }
+                                  } catch (e) {
+                                    console.error("Gagal update bbox", e);
+                                  }
+                                })();
 
                                 if (
                                   p.postcode !== formData.postal_code &&
@@ -2552,80 +2587,56 @@ function RegistrationWizard({
         </ModalTemplate>
       )}
 
-      {/* {isOpenModalReqLoc && status === "denied" && (
-        <ModalTemplate
-          classNameModal="p-6"
-          closeModal={() => {
-            setIsOpenModalReqLoc(false);
-            toast(
-              "Mohon izinkan akses lokasi browser dan gunakan browser Google Chrome",
-            );
-            router.push("/");
-          }}
-        >
-          <div className="flex flex-col gap-6 z-60 bg-white">
-            <h2 className="text-[#0D0E10] max-sm:mt-10 text-[24px]/[30px] font-bold text-center">
-              Akses Lokasi Dibutuhkan
-            </h2>
-            <GeoPermissionGate
-              onGotLocation={(lat, lng) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  latitude: String(lat),
-                  longitude: String(lng),
       {/* Modal Konfirmasi Perubahan Kode Pos */}
       {isOpenPostcodeConfirmModal && (
         <ModalTemplate
           closeModal={() => setIsOpenPostcodeConfirmModal(false)}
-          classNameModal="max-w-md w-full p-6"
+          classNameModal="max-w-md p-6"
         >
-          <div className="flex flex-col items-center text-center gap-4">
+          <div className="flex flex-col items-center gap-6">
             <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center">
-              <IoIosInformationCircleOutline className="text-4xl text-amber-500" />
+              <IoIosInformationCircleOutline className="text-amber-500 text-4xl" />
             </div>
 
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-gray-900">
-                Perbedaan Kode Pos Terdeteksi
+            <div className="space-y-2 text-center text-black">
+              <h3 className="text-lg sm:text-xl font-bold">
+                Pin Lokasi Berada di Luar Area Kode Pos
               </h3>
               <p className="text-sm text-gray-500 leading-relaxed">
-                Alamat pencarian yang Anda pilih memiliki kode pos{" "}
+                Titik yang Anda Pilih berada di luar area kode pos{" "}
                 <span className="font-bold text-primary">
-                  {pendingSuggestionData?.suggestionPostcode}
-                </span>
-                , namun Anda saat ini menggunakan kode pos{" "}
-                <span className="font-bold text-gray-800">
                   {postalCodeOptions.find(
                     (o: any) => o.value === formData.postal_code_id,
                   )?.label || formData.postal_code}
                 </span>
-                .
+                . Silahkan kembalikan pin ke dalam area kode pos atau gunakan
+                koordinat ini tetap seperti sekarang.
               </p>
               <p className="text-sm font-medium text-gray-700 py-2 bg-gray-50 rounded-lg">
-                Apakah Anda ingin memperbarui kode pos registrasi sesuai lokasi
-                pencarian Anda?
+                Apakah Anda ingin menyesuaikan kembali pin lokasi ke area kode
+                pos?
               </p>
             </div>
 
             <div className="flex flex-col w-full gap-3 mt-2">
               <button
+                type="button"
                 onClick={() => handleConfirmPostcodeUpdate(true)}
                 className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95"
               >
-                Ya, Perbarui Kode Pos
+                Ya, Sesuaikan Pin
               </button>
               <button
+                type="button"
                 onClick={() => handleConfirmPostcodeUpdate(false)}
                 className="w-full py-3 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all active:scale-95"
               >
-                Gunakan Koordinat Saat Ini
+                Gunakan Kode Pos Saat Ini
               </button>
             </div>
           </div>
         </ModalTemplate>
       )}
-
-      {/* Confirmation Summary Modal */}
     </div>
   );
 }
