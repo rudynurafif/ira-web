@@ -147,6 +147,10 @@ const MapMapbox: React.FC<MapMapboxProps> = ({
         }
 
         geocodeTimerRef.current = setTimeout(async () => {
+          // [SAFETY] Jika sedang loading atau ada modal konfirmasi, 
+          // JANGAN lakukan geocoding otomatis agar pin tetap stabil di posisi user.
+          if (isLoading) return;
+
           try {
             const token = MAPBOX_TOKEN;
             const revUrl = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&access_token=${token}&types=address,postcode&language=id`;

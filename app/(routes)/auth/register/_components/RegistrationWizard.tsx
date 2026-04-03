@@ -303,40 +303,23 @@ function RegistrationWizard({
 
     (async () => {
       if (isSnapBack) {
-        // [SCENARIO 1] "Ya, Sesuaikan Pin" -> Tarik PIN balik ke pusat Kode Pos Lama
-        try {
-          const pcQuery = formData.postal_code;
-          const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-          const mapboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${pcQuery}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
-          const res = await fetch(mapboxUrl);
-          const data = await res.json();
+        // [SCENARIO 1] "Ya, Sesuaikan Pin" -> CUMA update teks kode pos di form
+        setFormData((prev) => ({
+          ...prev,
+          postal_code: suggestionPostcode,
+        }));
 
-          if (data.features?.[0]) {
-            const [lngSnap, latSnap] = data.features[0].geometry.coordinates;
-            const newLat = String(latSnap);
-            const newLng = String(lngSnap);
+        // Maksa ke mode manual agar teks angkanya (misal 12420) MASUK & nampil di inputan form
+        setIsPostalCodeManual(true);
+        setLastSyncedPostcode(suggestionPostcode);
 
-            setFormData((prev) => ({
-              ...prev,
-              latitude: newLat,
-              longitude: newLng,
-            }));
+        // Gembok Ref agar robot auto-center nggak narik pin ke tengah setelah 5 detik
+        lastPostcodeFromMap.current = suggestionPostcode;
 
-            setTempMapPayload((prev: any) => ({
-              ...prev,
-              latitude: newLat,
-              longitude: newLng,
-            }));
-
-            toast.success("Pin disesuaikan kembali ke area Kode Pos");
-          }
-        } catch (e) {
-          console.error("Gagal snap back pin", e);
-          toast.error("Gagal menyesuaikan pin otomatis");
-        }
+        toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
       } else {
         // [SCENARIO 2] "Gunakan Kode Pos Saat Ini" -> Hanya Tutup Modal
-        // Sesuai permintaan: Jangan jalankan fungsi apa-apa, biarkan saja.
+        // Sesuai permintaan terbaru: Jangan jalankan fungsi apa-apa, biarkan saja.
       }
 
       setIsOpenPostcodeConfirmModal(false);
@@ -2556,7 +2539,7 @@ function RegistrationWizard({
             <div className="flex flex-col w-full gap-3 mt-2">
               <button
                 type="button"
-                onClick={() => handleConfirmPostcodeUpdate(false)}
+                onClick={() => handleConfirmPostcodeUpdate(true)}
                 className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95"
               >
                 Ya, Sesuaikan Pin
