@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import toast from "react-hot-toast";
 
 // Hardcoded Token
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 mapboxgl.accessToken = MAPBOX_TOKEN;
+
+// Indonesia Boundary [min_lng, min_lat, max_lng, max_lat]
+const IDN_BOUNDS: [[number, number], [number, number]] = [
+  [94.0, -11.0], // Southwest [lng, lat]
+  [141.0, 10.0], // Northeast [lng, lat]
+];
 
 interface MapMapboxProps {
   initialLatitude?: number;
@@ -14,7 +21,35 @@ interface MapMapboxProps {
   isInteractive?: boolean;
   bbox?: [number, number, number, number] | null;
   isLoading?: boolean;
+  onPlaceChange?: (payload: {
+    latitude: number;
+    longitude: number;
+    postcode?: string;
+    address?: string;
+    raw_result?: any;
+  }) => void;
 }
+
+// Helper to calculate distance in meters (Haversine formula)
+const calculateDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) => {
+  const R = 6371e3; // metres
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // in metres
+};
 
 const MapMapbox: React.FC<MapMapboxProps> = ({
   initialLatitude,
@@ -22,54 +57,159 @@ const MapMapbox: React.FC<MapMapboxProps> = ({
   isInteractive = false,
   bbox,
   isLoading = false,
+  onPlaceChange,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const geocodeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastGeocodedPosRef = useRef<{ lat: number; lng: number } | null>(null);
 
-  // Initial Map Load
+  const [location, setLocation] = useState<{ lat: number; lng: number }>(() => {
+    if (initialLatitude && initialLongitude && initialLatitude !== 0) {
+      return { lat: initialLatitude, lng: initialLongitude };
+    }
+    return { lat: -6.2088, lng: 106.8456 }; // Default Jakarta
+  });
+
+  const onPlaceChangeRef = useRef(onPlaceChange);
   useEffect(() => {
-    if (!mapContainerRef.current) return;
+    onPlaceChangeRef.current = onPlaceChange;
+  }, [onPlaceChange]);
 
-    const lat = initialLatitude || -6.2088;
-    const lng = initialLongitude || 106.8456;
+  // Map Initialization
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
 
-    mapRef.current = new mapboxgl.Map({
+    const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/streets-v11",
-      center: [lng, lat],
+      center: [location.lng, location.lat],
       zoom: 15,
       interactive: isInteractive,
+      maxBounds: IDN_BOUNDS, // Kunci peta agar hanya bisa di geser di Indonesia
     });
 
-    if (isInteractive && mapRef.current) {
-      mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+    if (isInteractive) {
+      map.addControl(new mapboxgl.NavigationControl(), "top-right");
     }
 
-    markerRef.current = new mapboxgl.Marker({ color: "#FF0000" })
-      .setLngLat([lng, lat])
-      .addTo(mapRef.current);
+    const marker = new mapboxgl.Marker({ color: "#FF0000" })
+      .setLngLat([location.lng, location.lat])
+      .addTo(map);
 
-    const map = mapRef.current;
+    if (isInteractive) {
+      // Marker follows center
+      map.on("move", () => {
+        const center = map.getCenter();
+        marker.setLngLat([center.lng, center.lat]);
+
+        // Clear timer if moving
+        if (geocodeTimerRef.current) {
+          clearTimeout(geocodeTimerRef.current);
+          geocodeTimerRef.current = null;
+        }
+      });
+
+      map.on("movestart", () => {
+        if (geocodeTimerRef.current) {
+          clearTimeout(geocodeTimerRef.current);
+          geocodeTimerRef.current = null;
+        }
+      });
+
+      map.on("moveend", () => {
+        const center = map.getCenter();
+        const lat = center.lat;
+        const lng = center.lng;
+
+        // 1. Kirim koordinat segera ke parent (untuk presisi DB) tanpa nunggu geocode
+        if (onPlaceChangeRef.current) {
+          onPlaceChangeRef.current({ latitude: lat, longitude: lng });
+        }
+
+        // 2. CEK JARAK (Hanya hit Geocoding jika geser > 50m)
+        const lastPos = lastGeocodedPosRef.current;
+        const distanceMoved = lastPos
+          ? calculateDistance(lastPos.lat, lastPos.lng, lat, lng)
+          : 99999; // Force hit if no last pos
+
+        if (distanceMoved < 50) {
+          console.log(
+            `[MAP] Geser cuma ${Math.round(distanceMoved)}m. Skip Geocoding.`,
+          );
+          return;
+        }
+
+        // 3. Set Timer Geocoding (Debounce 5s)
+        if (geocodeTimerRef.current) {
+          clearTimeout(geocodeTimerRef.current);
+        }
+
+        geocodeTimerRef.current = setTimeout(async () => {
+          try {
+            const token = MAPBOX_TOKEN;
+            const revUrl = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&access_token=${token}&types=address,postcode&language=id`;
+            const resRev = await fetch(revUrl);
+            const dataRev = await resRev.json();
+            const feature = dataRev.features?.[0];
+
+            if (feature && onPlaceChangeRef.current) {
+              const detectedPostcode =
+                feature?.properties?.context?.postcode?.name ||
+                feature?.properties?.name ||
+                "";
+              const detectedAddress =
+                feature?.properties?.full_address ||
+                feature?.properties?.name ||
+                "";
+
+              // 4. Kirim data lengkap ke parent
+              onPlaceChangeRef.current({
+                latitude: lat,
+                longitude: lng,
+                postcode: detectedPostcode,
+                address: detectedAddress,
+                raw_result: feature,
+              });
+
+              // 5. Update titik hit terakhir sukses
+              lastGeocodedPosRef.current = { lat, lng };
+            }
+          } catch (error) {
+            console.error("Reverse geocoding failed:", error);
+          } finally {
+            geocodeTimerRef.current = null;
+          }
+        }, 5000); // 5 Seconds Countdown for Reverse Geocoding (Hemat Token)
+      });
+    }
+
+    mapRef.current = map;
+    markerRef.current = marker;
+
     const resizeObserver = new ResizeObserver(() => {
       map.resize();
     });
     resizeObserver.observe(mapContainerRef.current);
 
     return () => {
+      if (geocodeTimerRef.current) clearTimeout(geocodeTimerRef.current);
       resizeObserver.disconnect();
       map.remove();
+      mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInteractive]);
 
-  // Update center/marker when initialLatitude/Longitude changes (from outside)
+  // Update center/marker when initialLatitude/Longitude changes (from outside - e.g. Step 1 selection)
   useEffect(() => {
     if (
       mapRef.current &&
       markerRef.current &&
       initialLatitude &&
-      initialLongitude
+      initialLongitude &&
+      initialLatitude !== 0
     ) {
       const center = mapRef.current.getCenter();
       if (
