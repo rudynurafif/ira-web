@@ -665,7 +665,7 @@ function RegistrationWizard({
       } finally {
         setIsCheckCoverage(false);
       }
-    }, 3000); // Tunggu 3 Detik Diam Baru Check Coverage Internal
+    }, 6000); // Tunggu 6 Detik Diam Baru Check Coverage Internal
 
     return () => clearTimeout(timer);
   }, [formData.latitude, formData.longitude]);
@@ -2621,14 +2621,14 @@ function RegistrationWizard({
             <div className="flex flex-col w-full gap-3 mt-2">
               <button
                 type="button"
-                onClick={() => handleConfirmPostcodeUpdate(true)}
+                onClick={() => handleConfirmPostcodeUpdate(false)}
                 className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95"
               >
                 Ya, Sesuaikan Pin
               </button>
               <button
                 type="button"
-                onClick={() => handleConfirmPostcodeUpdate(false)}
+                onClick={() => handleConfirmPostcodeUpdate(true)}
                 className="w-full py-3 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all active:scale-95"
               >
                 Gunakan Kode Pos Saat Ini
