@@ -162,9 +162,14 @@ function CheckCoverage() {
       };
 
       const res = await getCheckCoverage(payload);
-      setIsCoverage(res.data?.result.inside_coverage);
-      setMitraPaket(res.data?.result.mitra_id || null);
-      setModalResult(true);
+      // const isCovered = res.data?.result.inside_coverage;
+      // const mitraId = res.data?.result.mitra_id || null;
+
+      // setIsCoverage(isCovered);
+      // setMitraPaket(mitraId);
+
+      // [UPDATE] Langsung pure lempar ke Register Page (permintaan user agar tidak ribet data)
+      router.push("/auth/register");
     } catch (err: any) {
       toastErrorFromAPI(err);
     } finally {
@@ -483,7 +488,8 @@ function CheckCoverage() {
         </div>
       </div> */}
 
-        {/* Modal Result */}
+        {/*
+        // Modal Result (OLD FLOW)
         {modalResult && (
           <ModalTemplate
             closeModal={() => setModalResult(false)}
@@ -504,6 +510,7 @@ function CheckCoverage() {
             />
           </ModalTemplate>
         )}
+        */}
       </div>
     </>
   );

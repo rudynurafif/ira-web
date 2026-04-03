@@ -57,30 +57,30 @@ const PaymentMehods = () => {
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
     selectedPackageFromSession,
   );
-  const { isLoggedIn } = useAppSelector((state) => state.auth);
+  // const { isLoggedIn } = useAppSelector((state) => state.auth);
   const [isCreatePayment, setIsCreatePayment] = useState(false);
   const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      const currentPath = window.location.pathname;
-      if (currentPath !== "/auth/login") {
-        router.push(
-          `/auth/login?callbackUrl=${encodeURIComponent(currentPath)}`,
-        );
-      } else {
-        toast.error("Silahkan login terlebih dulu");
-        router.push("/auth/login");
-      }
-    }
-  }, [isLoggedIn, router]);
+  // useEffect(() => {
+  //   if (!isLoggedIn) {
+  //     const currentPath = window.location.pathname;
+  //     if (currentPath !== "/auth/login") {
+  //       router.push(
+  //         `/auth/login?callbackUrl=${encodeURIComponent(currentPath)}`,
+  //       );
+  //     } else {
+  //       toast.error("Silahkan login terlebih dulu");
+  //       router.push("/auth/login");
+  //     }
+  //   }
+  // }, [isLoggedIn, router]);
 
   useEffect(() => {
-    if (isLoggedIn && !selectedPackage) {
+    if (!selectedPackage) {
       toast.error("Informasi paket hilang, silakan pilih ulang.");
       router.push("/payment");
     }
-  }, [isLoggedIn, router, selectedPackage]);
+  }, [router, selectedPackage]);
 
   const handleCheckPackage: () => Promise<void> = async () => {
     try {
@@ -94,9 +94,9 @@ const PaymentMehods = () => {
     }
   };
 
-  useEffect(() => {
-    handleCheckPackage();
-  }, []);
+  // useEffect(() => {
+  //   handleCheckPackage();
+  // }, []);
 
   // Filter by category
   const virtualAccounts = paymentChannels.filter(
@@ -138,8 +138,9 @@ const PaymentMehods = () => {
   };
 
   useEffect(() => {
-    if (isLoggedIn) fetchData();
-  }, [isLoggedIn]);
+    // if (isLoggedIn) fetchData();
+    fetchData();
+  }, []);
 
   const handleCreatePayment = async () => {
     if (!selectedChannel) return;
@@ -155,10 +156,19 @@ const PaymentMehods = () => {
     try {
       let createRes;
 
-      const payload = {
+      const customerId = sessionStorage.getItem("customer_id");
+
+      let payload: any = {
         package_id: selectedPackage?.id,
         payment_channel_id: selectedChannel?.id,
       };
+
+      if (customerId) {
+        payload = {
+          ...payload,
+          customer_code: customerId,
+        };
+      }
 
       switch (selectedChannel.category) {
         case "va":
@@ -402,6 +412,7 @@ const PaymentMehods = () => {
         </button>
       </div>
 
+      {/* modal ketika paket masih aktif */}
       {openModalNotAllowed && (
         <ModalTemplate
           closeModal={() => {

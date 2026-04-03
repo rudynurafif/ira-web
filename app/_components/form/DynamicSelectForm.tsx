@@ -87,8 +87,7 @@ function DynamicSelectForm({
             : null
         }
         onChange={(e: any) => onChange(e)}
-        // (opsional) hindari portal saat SSR
-        // menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
+        menuShouldScrollIntoView={false} // Prevent auto-scrolling when menu opens
         {...props}
       />
 

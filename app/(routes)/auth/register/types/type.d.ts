@@ -15,6 +15,7 @@ export interface FormType {
   rw: string;
   rt: string;
   postal_code: string;
+  postal_code_id?: string;
   notes: string;
   actual_address: string;
   voucher_code: string;

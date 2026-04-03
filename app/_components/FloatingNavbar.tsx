@@ -11,7 +11,7 @@ const FloatingNavbar = () => {
 
   return (
     <nav
-      className={`fixed top-6 left-1/2 -translate-x-1/2 z-100 w-[95%] sm:w-[85%] max-w-4xl h-12 md:h-[60px] rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.15)] flex items-stretch border-[1.5px] border-white/60 overflow-hidden bg-[#f2bbba] backdrop-blur-md ${dmSans.className}`}
+      className={`fixed top-2 sm:top-6 left-1/2 -translate-x-1/2 z-100 w-[95%] sm:w-[85%] max-w-4xl h-12 md:h-[60px] rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.15)] flex items-stretch border-[1.5px] border-white/60 overflow-hidden bg-[#f2bbba] backdrop-blur-md ${dmSans.className}`}
     >
       {/* Left Section (Red Block with Logo) */}
       <div className="bg-[#b31b1b] h-full flex items-center justify-center px-2 sm:pl-3 sm:pr-4 md:pl-5 md:pr-6 border-r-[1.5px] border-white/40">
