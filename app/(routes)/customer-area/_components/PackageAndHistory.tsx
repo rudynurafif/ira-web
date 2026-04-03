@@ -44,6 +44,7 @@ import imageFailed from "@/public/assets/check-coverage/check-failed.png";
 import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import PendingPaymentCard from "./PendingPaymentCard";
 import RegistrationForm from "../../auth/register/_components/RegistrationForm";
+import RegistrationWizard from "../../auth/register/_components/RegistrationWizard";
 
 const PAGE_SIZE = 5;
 
@@ -618,7 +619,7 @@ const PackageAndHistory = () => {
                 <button
                   onClick={() => {
                     setModalResult(false);
-                    setShowUpdateAddressForm(true);
+                    router.push("/customer-area/update-address");
                   }}
                   className="w-full cursor-pointer py-3 text-white font-bold bg-primary hover:bg-dark-primary-2 sm:rounded-xl rounded-full mt-6"
                 >
@@ -633,10 +634,13 @@ const PackageAndHistory = () => {
       {showUpdateAddressForm && (
         <ModalTemplate
           closeModal={() => setShowUpdateAddressForm(false)}
-          classNameModal="p-6"
+          classNameModal="p-6 !bg-cover !bg-center"
           width="max-w-[1200px]"
+          styleModal={{
+            backgroundImage: "url('/assets/Images/bg-register.png')",
+          }}
         >
-          <RegistrationForm
+          <RegistrationWizard
             mode="update_address"
             title="Perbarui Alamat"
             showCancelButton={true}
@@ -670,6 +674,40 @@ const PackageAndHistory = () => {
               notes: userInfo?.notes || "",
             }}
           />
+          {/* <RegistrationForm
+            mode="update_address"
+            title="Perbarui Alamat"
+            showCancelButton={true}
+            showBannerCovered={true}
+            initialData={{
+              fullname: userInfo?.name || "",
+              email: userInfo?.email || "",
+              phone: userInfo?.phone_number || "",
+              latitude: userInfo?.latitude
+                ? String(userInfo.latitude)
+                : undefined,
+              longitude: userInfo?.longitude
+                ? String(userInfo.longitude)
+                : undefined,
+              actual_address: userInfo?.address || "",
+              province: userInfo?.province_id?.id
+                ? String(userInfo.province_id?.id)
+                : "",
+              city: userInfo?.city_id?.id ? String(userInfo.city_id?.id) : "",
+              district: userInfo?.district_id?.id
+                ? String(userInfo.district_id?.id)
+                : "",
+              sub_district: userInfo?.sub_district_id?.id
+                ? String(userInfo.sub_district_id?.id)
+                : "",
+              rt: userInfo?.rt || "",
+              rw: userInfo?.rw || "",
+              postal_code: userInfo?.postal_code
+                ? String(userInfo.postal_code)
+                : "",
+              notes: userInfo?.notes || "",
+            }}
+          /> */}
         </ModalTemplate>
       )}
     </>

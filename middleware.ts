@@ -12,6 +12,10 @@ function handleAuthLogic(req: NextRequest, pathname: string) {
     "/refund-policy",
     "/terms-and-condition",
     "/sentry-example-page",
+    "/payment-billing",
+    "/payment",
+    "/payment/payment-methods",
+    "/payment/checkout-payment",
   ];
 
   const isPublic = publicPaths.some(

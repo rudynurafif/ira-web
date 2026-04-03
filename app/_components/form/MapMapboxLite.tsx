@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import toast from "react-hot-toast";
-import { MdMyLocation } from "react-icons/md";
+import { MdMyLocation, MdSearch, MdClose } from "react-icons/md";
 
 // Hardcoded Token
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -21,6 +21,7 @@ interface MapMapboxLiteProps {
   initialLatitude?: number;
   initialLongitude?: number;
   isInteractive?: boolean;
+  bbox?: [number, number, number, number] | null;
 }
 
 const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
@@ -28,11 +29,13 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
   initialLatitude,
   initialLongitude,
   isInteractive = true,
+  bbox,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const reverseGeocodeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [location, setLocation] = useState<{ lat: number; lng: number }>(() => {
     if (initialLatitude && initialLongitude && initialLatitude !== 0) {
@@ -79,7 +82,8 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
         }
       }
     }
-  }, [initialLatitude, initialLongitude, isInteractive]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInteractive]); // Hapus 'initialLatitude', 'initialLongitude' agar tidak terus auto-center
 
   // Map Initialization
   useEffect(() => {
@@ -91,6 +95,7 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
       center: [location.lng, location.lat],
       zoom: 16,
       interactive: isInteractive,
+      // [REMOVE] maxBounds agar map tidak terkunci hanya di area bbox, user bisa scroll bebas ke luar.
     });
 
     if (isInteractive) {
@@ -102,57 +107,51 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
       .addTo(map);
 
     if (isInteractive) {
-      // Marker follows center
+      // Marker follows center (with Clamping if bbox provided)
       map.on("move", () => {
         const center = map.getCenter();
-        marker.setLngLat(center);
+        let lng = center.lng;
+        let lat = center.lat;
+
+        marker.setLngLat([lng, lat]);
+
+        // [PENTING] Sembunyikan loading dan batalkan timer saat sedang digeser
+        // Ini memastikan overlay TIDAK MUNCUL sama sekali selama jari user masih geser-geser
+        setIsLoading(false);
+        if (reverseGeocodeTimerRef.current) {
+          clearTimeout(reverseGeocodeTimerRef.current);
+          reverseGeocodeTimerRef.current = null;
+        }
       });
 
-      // Fetch address on move end
-      map.on("moveend", async () => {
+      // Sembunyikan loading dan batalkan timer jika gerakan dimulai
+      map.on("movestart", () => {
+        setIsLoading(false);
+        if (reverseGeocodeTimerRef.current) {
+          clearTimeout(reverseGeocodeTimerRef.current);
+          reverseGeocodeTimerRef.current = null;
+        }
+      });
+
+      // Fetch address on move end + Cooldown 1.5s
+      // Fetch address on move end + Cooldown 1.5s
+      map.on("moveend", () => {
+        // Clear existing timer
+        if (reverseGeocodeTimerRef.current) {
+          clearTimeout(reverseGeocodeTimerRef.current);
+          reverseGeocodeTimerRef.current = null;
+        }
+
         const center = map.getCenter();
         const lat = center.lat;
         const lng = center.lng;
 
-        // Debounce / Distance check
-        const last = lastReverseCoordsRef.current;
-        if (
-          last &&
-          Math.abs(last.lat - lat) < 0.00005 &&
-          Math.abs(last.lng - lng) < 0.00005
-        ) {
-          return;
-        }
-        lastReverseCoordsRef.current = { lat, lng };
-
-        try {
-          const res = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=address,postcode&language=id`,
-          );
-          const data = await res.json();
-          const feature = data.features?.[0];
-
-          if (onPlaceChangeRef.current) {
-            // Mapbox geocoding structure is different
-            // usually postcode is in context or properties
-            const postcodeObj = data.features?.find((f: any) =>
-              f.place_type.includes("postcode"),
-            );
-            const postcode = postcodeObj ? postcodeObj.text : "";
-
-            onPlaceChangeRef.current({
-              latitude: lat,
-              longitude: lng,
-              postcode: postcode,
-              address: feature ? feature.place_name : "",
-              raw_result: feature, // Send ONLY the first feature, matched backend expectations
-            });
-          }
-        } catch (err) {
-          console.error("Mapbox Reverse geocoding failed:", err);
-          if (onPlaceChangeRef.current) {
-            onPlaceChangeRef.current({ latitude: lat, longitude: lng });
-          }
+        // [SYNC IMMEDIATELY] Kirim koordinat saja ke parent (HEMAT API: Jangan hit geocoding di sini)
+        if (onPlaceChangeRef.current) {
+          onPlaceChangeRef.current({
+            latitude: lat,
+            longitude: lng,
+          });
         }
       });
     }
@@ -161,10 +160,133 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
     markerRef.current = marker;
 
     return () => {
+      if (reverseGeocodeTimerRef.current)
+        clearTimeout(reverseGeocodeTimerRef.current);
       map.remove();
       mapRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInteractive]);
+
+  const drawBbox = useCallback(
+    (map: mapboxgl.Map) => {
+      const sourceId = "bbox-boundary";
+      const lineLayerId = "bbox-line";
+      const maskLayerId = "bbox-mask";
+
+      if (!bbox) {
+        if (map.getLayer(lineLayerId)) map.removeLayer(lineLayerId);
+        if (map.getLayer(maskLayerId)) map.removeLayer(maskLayerId);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+        return;
+      }
+
+      // Regular Polygon for the Line
+      const polygonCoords = [
+        [bbox[0], bbox[1]],
+        [bbox[2], bbox[1]],
+        [bbox[2], bbox[3]],
+        [bbox[0], bbox[3]],
+        [bbox[0], bbox[1]],
+      ];
+
+      const geojson: any = {
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: [polygonCoords],
+        },
+      };
+
+      if (map.getSource(sourceId)) {
+        (map.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(geojson);
+      } else {
+        map.addSource(sourceId, {
+          type: "geojson",
+          data: geojson,
+        });
+
+        // [REMOVE] Dark Overlay Mask (request user: "tanpa overlay hitam")
+        /*
+        map.addLayer({
+          id: maskLayerId,
+          type: "fill",
+          source: sourceId,
+          paint: {
+            "fill-color": "#000000",
+            "fill-opacity": 0.35,
+          },
+        });
+        */
+
+        // Line Layer (Red Dashed Boundary)
+        map.addLayer({
+          id: lineLayerId,
+          type: "line",
+          source: sourceId,
+          layout: {
+            "line-join": "round",
+            "line-cap": "round",
+          },
+          paint: {
+            "line-color": "#2563eb",
+            "line-width": 3,
+            "line-dasharray": [2, 2],
+          },
+        });
+      }
+    },
+    [bbox],
+  );
+
+  // Update Bounds dynamically if changed
+  useEffect(() => {
+    if (mapRef.current) {
+      // [FUTURE IMPLEMENTATION] Boundary Visuals & Snap to bbox
+      if (bbox) {
+        // Hapus MaxBounds agar zoom tidak terkunci, kita pakai Snap-Back di moveend.
+        mapRef.current.setMaxBounds(undefined as any);
+
+        if (mapRef.current.isStyleLoaded()) {
+          drawBbox(mapRef.current);
+
+          // HANYA fitBounds jika TIDAK ADA lokasi awal (lat/lng masih kosong)
+          const hasInitial =
+            initialLatitude && initialLongitude && initialLatitude !== 0;
+          if (!hasInitial) {
+            mapRef.current.fitBounds(
+              [
+                [bbox[0], bbox[1]],
+                [bbox[2], bbox[3]],
+              ],
+              { padding: 100, maxZoom: 18 },
+            );
+          }
+        } else {
+          mapRef.current.once("style.load", () => {
+            if (mapRef.current && bbox) {
+              drawBbox(mapRef.current);
+
+              const hasInitial =
+                initialLatitude && initialLongitude && initialLatitude !== 0;
+              if (!hasInitial) {
+                mapRef.current.fitBounds(
+                  [
+                    [bbox[0], bbox[1]],
+                    [bbox[2], bbox[3]],
+                  ],
+                  { padding: 100, maxZoom: 18 },
+                );
+              }
+            }
+          });
+        }
+      } else {
+        mapRef.current.setMaxBounds(undefined as any);
+        if (mapRef.current.isStyleLoaded()) drawBbox(mapRef.current);
+      }
+    }
+  }, [bbox, drawBbox, initialLatitude, initialLongitude]); // Tambahkan initial agar check valid
 
   const handleRefreshLocation = () => {
     if ("geolocation" in navigator) {
@@ -180,15 +302,15 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
         (error) => {
           if (error.code === 1) {
             toast.error(
-              "Mohon izinkan akses lokasi (GPS) pada pengaturan browser Anda agar titik pen lokasi bisa ditentukan secara otomatis.",
-              { duration: 6000 },
+              "Mohon izinkan akses lokasi (GPS) pada pengaturan browser Anda, agar titik pin lokasi bisa ditentukan secara otomatis.",
+              { duration: 10_000 },
             );
           } else {
             toast.error("Gagal mendeteksi lokasi GPS Anda.");
           }
           setIsLoading(false);
         },
-        { enableHighAccuracy: true, timeout: 15000 },
+        { enableHighAccuracy: true, timeout: 60000 },
       );
     } else {
       toast.error("Browser Anda tidak mendukung fitur deteksi lokasi.");
@@ -218,11 +340,11 @@ const MapMapboxLite: React.FC<MapMapboxLiteProps> = ({
 
       {/* Loading Overlay */}
       {isLoading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/30 backdrop-blur-[1px]">
+        <div className="absolute inset-0 z-9999 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
           <div className="bg-white px-4 py-2 rounded-full shadow-lg border border-gray-100 flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
             <span className="text-sm font-medium text-gray-700 font-secondary">
-              Mendeteksi Lokasi...
+              Mendeteksi Alamat...
             </span>
           </div>
         </div>

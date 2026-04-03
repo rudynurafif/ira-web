@@ -24,6 +24,7 @@ import {
   getLocationByPostalCode,
   getUserLocation,
 } from "@/app/_api/Location/Location";
+import { getSetting } from "@/app/_api/Settings/Settings";
 import toast from "react-hot-toast";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import {
@@ -43,6 +44,7 @@ import {
   FaListCheck,
 } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
+import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
 import MapMapbox from "@/app/_components/form/MapMapbox";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
@@ -69,6 +71,7 @@ import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import MapMapboxLite from "@/app/_components/form/MapMapboxLite";
 import Image from "next/image";
 import bannerImageNoCovered from "@/public/assets/Images/banner-out-coverage.png";
+import { IoIosInformationCircleOutline } from "react-icons/io";
 
 const initialFormData: FormType = {
   package_id: "",
@@ -76,7 +79,6 @@ const initialFormData: FormType = {
   email: "",
   phone: "",
   otp: "",
-
   nik: "",
   nokk: "",
   province: "",
@@ -86,6 +88,7 @@ const initialFormData: FormType = {
   rw: "",
   rt: "",
   postal_code: "",
+  postal_code_id: "",
   actual_address: "",
   notes: "",
   voucher_code: "",
@@ -120,7 +123,7 @@ function RegistrationWizard({
       .trim();
   }
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(mode === "update_address" ? 2 : 1);
   const [formData, setFormData] = useState<FormType>({
     ...initialFormData,
     ...(initialData || {}),
@@ -140,9 +143,234 @@ function RegistrationWizard({
   const [postalCodeOptions, setPostalCodeOptions] = useState<ReactSelectType[]>(
     [],
   );
-  // Ref untuk menandai apakah kode pos baru saja didapat dari Map
-  // (Gunanya biar Map GAK LONCAT balik ke tengah kecamatan setelah kita geser pin-nya)
-  const lastPostcodeFromMap = useRef<string | null>(null);
+  const [isPostalCodeManual, setIsPostalCodeManual] = useState(false);
+
+  // Address Search States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const [searchCooldown, setSearchCooldown] = useState(0);
+  const [isSyncingGPS, setIsSyncingGPS] = useState(false);
+  const [gpsCooldown, setGpsCooldown] = useState(0);
+  const [isSavingMap, setIsSavingMap] = useState(false);
+
+  const handleManualSearch = async () => {
+    if (searchQuery.length < 3 || isSearchingAddress || searchCooldown > 0)
+      return;
+
+    setSearchCooldown(5);
+    const cdTimer = setInterval(() => {
+      setSearchCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(cdTimer);
+          (async () => {
+            try {
+              setIsSearchingAddress(true);
+              const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+              // Pakai token standar saja sesuai permintaan
+              const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(
+                searchQuery,
+              )}&access_token=${token}&session_token=${token}&language=id&country=id&types=address,poi,street`;
+
+              const res = await fetch(url);
+              const data = await res.json();
+              setSearchSuggestions(data.suggestions || []);
+              setShowSuggestions(true);
+              if (data.suggestions?.length === 0) {
+                toast.error("Alamat tidak ditemukan");
+              }
+            } catch (err) {
+              console.error("Search failed:", err);
+              toast.error("Gagal mencari alamat");
+            } finally {
+              setIsSearchingAddress(false);
+            }
+          })();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleSelectSuggestion = async (feat: any) => {
+    if (isSearchingAddress) return;
+    // Search V6 Suggestion tidak punya koordinat, harus RETRIEVE
+    try {
+      setIsSearchingAddress(true);
+      const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+      const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${feat.mapbox_id}?access_token=${token}&session_token=${token}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      const feature = data.features?.[0];
+
+      if (feature) {
+        const [lng, lat] = feature.geometry.coordinates;
+
+        // [UPDATE] Cek apakah kode pos saran berbeda dengan inputan saat ini
+        const suggPostcode =
+          feature.properties?.context?.postcode?.name ||
+          feat.context?.postcode?.name ||
+          "";
+
+        if (
+          suggPostcode &&
+          formData.postal_code &&
+          suggPostcode !== formData.postal_code
+        ) {
+          setPendingSuggestionData({
+            feature,
+            suggestionPostcode: suggPostcode,
+            suggestionName: feat.name,
+            fullAddress: feat.full_address || feat.name,
+          });
+          setIsOpenPostcodeConfirmModal(true);
+          setIsSearchingAddress(false);
+          setShowSuggestions(false);
+          return;
+        }
+
+        // Jika sama atau tidak ada data kode pos, langsung update
+        // Jika sama atau tidak ada data kode pos, langsung update
+        setSearchQuery(feat.name);
+        setShowSuggestions(false);
+
+        // [FIX] Set ref agar tidak jump
+        if (suggPostcode) {
+          lastPostcodeFromMap.current = suggPostcode;
+        }
+
+        // [NEW] Resolve ID dari backend untuk sinkron dropdown
+        if (suggPostcode) {
+          try {
+            const resLoc = await getLocationByPostalCode(suggPostcode);
+            const locData = resLoc.data?.data?.[0]; // Ambil yang pertama jika ada
+            if (locData) {
+              setFormData((prev) => ({
+                ...prev,
+                latitude: lat,
+                longitude: lng,
+                address_gmaps: feat.full_address || feat.name,
+                province: String(locData.province_id),
+                city: String(locData.city_id),
+                district: String(locData.district_id),
+                sub_district: String(locData.sub_district_id),
+                postal_code: String(locData.id), // ID UUID untuk dropdown
+              }));
+              setLastSyncedPostcode(String(locData.id));
+              return; // Selesai
+            }
+          } catch (e) {
+            console.error("Gagal sinkron ID lokasi dari search", e);
+          }
+        }
+        // [FALLBACK] Jika tidak ketemu ID lokasi di backend, jadikan free text
+        setFormData((prev) => ({
+          ...prev,
+          latitude: lat,
+          longitude: lng,
+          address_gmaps: feat.full_address || feat.name,
+          postal_code: suggPostcode || prev.postal_code, // Set string asli
+        }));
+        if (suggPostcode) {
+          setIsPostalCodeManual(true); // Paksa ke mode manual agar teksnya nampil
+          setLastSyncedPostcode(suggPostcode);
+        } else {
+          setLastSyncedPostcode(String(lat)); // Fallback total
+        }
+      }
+    } catch (err) {
+      console.error("Retrieve coordinate failed:", err);
+      toast.error("Gagal memuat detail lokasi");
+    } finally {
+      setIsSearchingAddress(false);
+    }
+  };
+
+  const handleConfirmPostcodeUpdate = (shouldUpdatePostcode: boolean) => {
+    if (!pendingSuggestionData) return;
+
+    const { feature, suggestionPostcode, suggestionName, fullAddress } =
+      pendingSuggestionData;
+    const [lng, lat] = feature.geometry.coordinates;
+
+    setSearchQuery(suggestionName);
+    setShowSuggestions(false);
+
+    setFormData((prev) => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng,
+      address_gmaps: fullAddress,
+      // Jika user setuju, update kode pos-nya juga
+      postal_code: shouldUpdatePostcode ? suggestionPostcode : prev.postal_code,
+    }));
+
+    if (shouldUpdatePostcode) {
+      // [NEW] Resolve ID dari backend agar dropdown sinkron
+      (async () => {
+        try {
+          const resLoc = await getLocationByPostalCode(suggestionPostcode);
+          const locData = resLoc.data?.data?.[0];
+          if (locData) {
+            setFormData((prev) => ({
+              ...prev,
+              province: String(locData.province_id),
+              city: String(locData.city_id),
+              district: String(locData.district_id),
+              sub_district: String(locData.sub_district_id),
+              postal_code: String(locData.name),
+              postal_code_id: String(locData.id), // Set ID UUID
+            }));
+            setIsPostalCodeManual(false); // Pastikan mode dropdown
+            setLastSyncedPostcode(String(locData.id));
+          } else {
+            // [FALLBACK] Jika tidak ditemukan di backend, jadikan FREE TEXT agar tidak reset/kosong
+            setFormData((prev) => ({
+              ...prev,
+              postal_code: suggestionPostcode,
+              postal_code_id: undefined,
+            }));
+            setIsPostalCodeManual(true); // Paksa ke mode manual
+            setLastSyncedPostcode(suggestionPostcode);
+          }
+        } catch (e) {
+          console.error("Gagal sinkron ID lokasi dari modal confirm", e);
+          // Fallback manual jika error
+          setIsPostalCodeManual(true);
+          setLastSyncedPostcode(suggestionPostcode);
+        }
+      })();
+    }
+
+    if (shouldUpdatePostcode) {
+      lastPostcodeFromMap.current = suggestionPostcode;
+
+      // [FIX] Update BBOX untuk kode pos terbaru agar geofencing di MapModal ikut terupdate
+      (async () => {
+        try {
+          const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+          // Ambil BBOX baru untuk kode pos sinkron v6
+          const mapboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${suggestionPostcode}&access_token=${token}&country=id&types=postcode&limit=1`;
+
+          const res = await fetch(mapboxUrl);
+          const data = await res.json();
+          if (data.features?.[0]?.properties?.bbox) {
+            setCurrentBbox(data.features[0].properties.bbox);
+          }
+        } catch (e) {
+          console.error("Gagal update bbox untuk kode pos baru", e);
+        }
+      })();
+
+      toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
+    }
+
+    setIsOpenPostcodeConfirmModal(false);
+    setPendingSuggestionData(null);
+  };
   const hasInitialLocation =
     initialData?.latitude &&
     initialData?.longitude &&
@@ -163,6 +391,11 @@ function RegistrationWizard({
   const [isLoadingPackage, setIsLoadingPackage] = useState(false);
   const [isModalRegisterSuccess, setIsModalRegisterSuccess] =
     useState<boolean>(false);
+
+  // Ref untuk menandai apakah kode pos baru saja didapat dari Map/Search
+  // (Gunanya biar Map GAK LONCAT balik ke tengah kecamatan setelah kita pilih saran/geser pin)
+  const lastPostcodeFromMap = useRef<string | null>(null);
+
   const [otpStatus, setOtpStatus] = useState<
     "idle" | "verifying" | "valid" | "invalid"
   >("idle");
@@ -170,6 +403,35 @@ function RegistrationWizard({
   const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
   const { status, requestLocation, refresh } = useGeoPermission();
   const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
+
+  const [currentBbox, setCurrentBbox] = useState<
+    [number, number, number, number] | null
+  >(null);
+
+  const [isOpenPostcodeConfirmModal, setIsOpenPostcodeConfirmModal] =
+    useState(false);
+  const [pendingSuggestionData, setPendingSuggestionData] = useState<any>(null);
+
+  // [NEW] Track kode pos terakhir yang BERHASIL sinkron (untuk gate banner)
+  const [lastSyncedPostcode, setLastSyncedPostcode] = useState("");
+  const [isPostcodeNotFound, setIsPostcodeNotFound] = useState(false);
+
+  // [NEW] Global Setting: Geofencing Toggle
+  const [isGeofencingEnabled, setIsGeofencingEnabled] = useState(true);
+
+  // Fetch Geofencing Setting
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getSetting("geofencing_register_customer");
+        const settingVal = res?.data?.data?.value;
+        const isEnabled = settingVal === "true" || settingVal === "on";
+        setIsGeofencingEnabled(isEnabled);
+      } catch (err) {
+        console.error("Failed to fetch geofencing setting:", err);
+      }
+    })();
+  }, []);
 
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>();
@@ -181,12 +443,6 @@ function RegistrationWizard({
   useEffect(() => {
     if (status === "denied") {
       setIsOpenModalReqLoc(true);
-    } else if (
-      status === "granted" &&
-      step === 2 &&
-      (!formData.latitude || formData.latitude === "0")
-    ) {
-      handleRequestLocation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, step]);
@@ -283,10 +539,29 @@ function RegistrationWizard({
       try {
         const parsed = JSON.parse(savedData);
         if (parsed.formData) {
-          setFormData(parsed.formData);
-          // Cegah autofill ulang koordinat dari kode pos saat refresh
-          if (parsed.formData.postal_code) {
-            lastPostcodeFromMap.current = parsed.formData.postal_code;
+          // [BUGFIX] Jika user masih di Step 1, sebaiknya kita reset data lokasinya
+          // agar tidak membingungkan (seolah terpilih otomatis padahal sisa data lama)
+          if (parsed.step === 1) {
+            setFormData({
+              ...parsed.formData,
+              province: "",
+              city: "",
+              district: "",
+              sub_district: "",
+              postal_code: "",
+              postal_code_id: "",
+              latitude: "",
+              longitude: "",
+              address_gmaps: "",
+              actual_address: "",
+              address_raw: null,
+            });
+          } else {
+            setFormData(parsed.formData);
+            // Cegah autofill ulang koordinat dari kode pos saat refresh
+            if (parsed.formData.postal_code) {
+              lastPostcodeFromMap.current = parsed.formData.postal_code;
+            }
           }
         }
         if (parsed.step) setStep(parsed.step);
@@ -310,17 +585,24 @@ function RegistrationWizard({
 
   useEffect(() => {
     if (isModalRegisterSuccess) {
-      // Masukkan ke history buat GA (Google Analytics) tracking
-      window.history.pushState(null, "", "/auth/register/popup");
+      const popupUrl =
+        mode === "update_address"
+          ? "/customer-area/update-address"
+          : "/auth/register/popup";
+      const normalUrl =
+        mode === "update_address" ? "/customer-area" : "/auth/register";
 
-      // Setelah 5 detik, kembalikan ke URL normal agar kalau di-refresh gak 404
+      // Masukkan ke history buat GA tracking
+      window.history.pushState(null, "", popupUrl);
+
+      // Setelah 3 detik, kembalikan ke URL normal agar kalau di-refresh gak 404
       const timeout = setTimeout(() => {
-        window.history.replaceState(null, "", "/auth/register");
-      }, 5000);
+        window.history.replaceState(null, "", normalUrl);
+      }, 3000);
 
       return () => clearTimeout(timeout);
     }
-  }, [isModalRegisterSuccess]);
+  }, [isModalRegisterSuccess, mode]);
 
   // 3. Clear Storage helper
   const clearPersistance = () => {
@@ -446,7 +728,6 @@ function RegistrationWizard({
         );
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kecamatan");
-
         setDistrictOptions([]);
       }
     })();
@@ -474,60 +755,146 @@ function RegistrationWizard({
     })();
   }, [formData.district]);
 
+  // Subdistrict -> load Postal Code options (Dropdown)
+  useEffect(() => {
+    if (!formData.sub_district) {
+      setPostalCodeOptions([]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await getPostalCode({
+          sub_district_id: formData.sub_district,
+        });
+        const pcData = res.data?.data ?? [];
+        if (pcData.length === 0) {
+          setIsPostalCodeManual(true);
+        } else {
+          setIsPostalCodeManual(false);
+          setPostalCodeOptions(
+            pcData.map((it: any) => ({
+              label: it.name,
+              value: String(it.id), // Simpan ID untuk pengiriman ke backend
+              name: String(it.name), // Simpan Name untuk keperluan Geocoding Mapbox
+            })),
+          );
+        }
+      } catch (err: any) {
+        console.error("Gagal muat data kode pos", err);
+        setPostalCodeOptions([]);
+        setIsPostalCodeManual(true);
+      }
+    })();
+  }, [formData.sub_district]);
+
   const [isLoadingArea, setIsLoadingArea] = useState(false);
 
   // Debounce Kode Pos -> Autofill Lokasi (Koordinat Map)
   useEffect(() => {
-    // Jalankan jika panjang karakter 3 s/d 5
-    if (
-      !formData.postal_code ||
-      formData.postal_code.length < 3 ||
-      formData.postal_code.length > 5
-    )
+    // Jalankan jika ada value (karena dropdown, pasti sudah 5 digit real-nya)
+    if (!formData.postal_code) {
+      lastPostcodeFromMap.current = "";
       return;
+    }
 
     // JANGAN JALANKAN jika Kode POS ini dikirim oleh Map (Biar Gak Loncat Balik)
+    // (Note: lastPostcodeFromMap.current bisa berisi string "12345" atau UUID,
+    // jadi kita perlu pastikan komparasi ID ke ID atau Name ke Name)
+    // Tapi di sini kita cukup check if selected value is same as before.
     if (formData.postal_code === lastPostcodeFromMap.current) {
       return;
     }
 
+    // Kosongkan sync state segera saat mulai ngetik (sembunyikan banner)
+    if (formData.postal_code !== lastSyncedPostcode) {
+      setLastSyncedPostcode("");
+      setIsPostcodeNotFound(false);
+    }
+
     const timer = setTimeout(async () => {
       try {
-        setIsLoadingArea(true);
-        if (step === 2) {
-          toast(
-            "Pastikan Pin Lokasi sudah sesuai dengan alamat pemasangan Anda",
-            { icon: "📍" },
-          );
+        // [NEW] Resolusi ID ke Nama (Angka Kode Pos) untuk Mapbox
+        const selectedPC = postalCodeOptions.find(
+          (o: any) => o.value === formData.postal_code_id,
+        );
+
+        // [BUGFIX] Jika modenya Dropdown tapi data options belum datang/belum ketemu ID-nya,
+        // Kita jangan proses geocoding (karena pcQuery akan jadi UUID dan hasilnya error 404 dari Mapbox)
+        if (!isPostalCodeManual && !selectedPC) {
+          setIsPostcodeNotFound(false); // Reset biar tidak kedip merah
+          return;
         }
+
+        // Jika tidak ketemu di options (Manual Mode), maka gunakan value langsung (karena itu angka asli)
+        const pcQuery = selectedPC
+          ? (selectedPC as any).name
+          : formData.postal_code;
+
+        // [OPTIMASI] Pindahkan pengecekan panjang di sini, SEBELUM set loading
+        if (!pcQuery || pcQuery.length < 4) {
+          setIsLoadingArea(false); // Pastikan mati
+          return;
+        }
+
+        setIsLoadingArea(true);
+        // Delay 2 detik biar overlay sync sempat keliatan (User UX)
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
         // Panggil Mapbox Geocoding V6 utk dapetin lat/lng (centering map) berdasarkan kode pos
         const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
-        // Hardcode proximity sesuai instruksi user
-        const mapboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${formData.postal_code}&proximity=-73.990593%2C40.740121&country=id&access_token=${MAPBOX_TOKEN}`;
+        // Panggil Mapbox Geocoding V6 utk dapetin lat/lng (centering map) berdasarkan kode pos
+        const mapboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${pcQuery}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
 
         const resMap = await fetch(mapboxUrl);
         const dataMap = await resMap.json();
         if (dataMap?.features?.length > 0) {
-          // Mapbox V6 geometry.coordinates: [longitude, latitude]
-          const [lon, lat] = dataMap.features[0].geometry.coordinates;
+          const feature = dataMap.features[0];
+          const [lon, lat] = feature.geometry.coordinates; // v6 geometry.coordinates
+          const bbox = feature.properties?.bbox; // v6 properties.bbox
+          const pcText = feature.properties?.name || "";
+
           if (lat && lon) {
-            const feature = dataMap.features[0];
             setFormData((prev) => ({
               ...prev,
               latitude: String(lat),
               longitude: String(lon),
               address_raw: feature,
+              address_gmaps: feature.place_name || prev.address_gmaps,
+              postal_code: pcText || prev.postal_code, // Selalu update teksnya
             }));
+
+            if (bbox) {
+              setCurrentBbox(bbox);
+            }
 
             setTempMapPayload((prev: any) => ({
               ...prev,
               latitude: String(lat),
               longitude: String(lon),
               address_raw: feature,
+              address:
+                feature.properties?.full_address ||
+                feature.properties?.name ||
+                prev.address,
             }));
+
+            // Sync Selesai
+            setLastSyncedPostcode(
+              formData.postal_code_id || formData.postal_code,
+            );
+            setIsPostcodeNotFound(false); // [FIX] Reset state error jika ketemu
+
+            /*
+            // [NEW] Sync balik ke inputan search di atas map
+            if (feature.place_name) {
+              setSearchQuery(feature.place_name);
+            }
+            */
           }
+        } else {
+          // [PATCH] Jika feature kosong, berarti kode pos tidak dikenal/ditemukan
+          setIsPostcodeNotFound(true);
         }
       } catch (e) {
         console.error("Gagal mendeteksi koordinat kode pos", e);
@@ -538,26 +905,123 @@ function RegistrationWizard({
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.postal_code]);
+  }, [
+    formData.postal_code,
+    formData.postal_code_id,
+    postalCodeOptions,
+    isPostalCodeManual,
+  ]);
 
   const handleRequestLocation = async () => {
+    if (isSyncingGPS || gpsCooldown > 0) return;
+
     try {
+      setIsSyncingGPS(true);
       const position = await requestLocation();
       const { latitude, longitude } = position.coords;
-      setFormData((prev) => ({
-        ...prev,
-        latitude: String(latitude),
-        longitude: String(longitude),
-      }));
-      toast.success("Lokasi berhasil diambil!");
+
+      const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+      // Mapbox Geocoding V6 Reverse untuk mendapatkan alamat dari koordinat
+      const reverseUrl = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${MAPBOX_TOKEN}&types=address,postcode&language=id`;
+
+      const resReverse = await fetch(reverseUrl);
+      const dataReverse = await resReverse.json();
+      const feature = dataReverse.features?.[0];
+      const postcode =
+        feature?.properties?.context?.postcode?.name ||
+        feature?.properties?.name ||
+        "";
+
+      // Ambil BBOX baru untuk kode pos sinkron (v6)
+      if (postcode) {
+        lastPostcodeFromMap.current = postcode;
+        const bboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${postcode}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
+        const resBbox = await fetch(bboxUrl);
+        const dataBbox = await resBbox.json();
+        if (dataBbox.features?.[0]?.properties?.bbox) {
+          setCurrentBbox(dataBbox.features[0].properties.bbox);
+        }
+      }
+
+      const [latStr, lngStr] = [String(latitude), String(longitude)];
+
+      // [NEW] Resolve ID dari backend agar dropdown sinkron
+      let locationFromBackend: any = null;
+      if (postcode) {
+        try {
+          const resLoc = await getLocationByPostalCode(postcode);
+          locationFromBackend = resLoc.data?.data?.[0];
+        } catch (e) {
+          console.error("Gagal resolve lokasi GPS ke backend ID", e);
+        }
+      }
+
+      setFormData((prev) => {
+        const nextVal = {
+          ...prev,
+          latitude: latStr,
+          longitude: lngStr,
+          postal_code_id: locationFromBackend
+            ? String(locationFromBackend.id)
+            : undefined,
+          postal_code: locationFromBackend
+            ? String(locationFromBackend.name)
+            : postcode || prev.postal_code,
+          address_gmaps: feature
+            ? feature.properties?.full_address || feature.properties?.name
+            : prev.address_gmaps,
+          // Auto sinkron hierarchy jika dapat data backend
+          ...(locationFromBackend
+            ? {
+                province: String(locationFromBackend.province_id),
+                city: String(locationFromBackend.city_id),
+                district: String(locationFromBackend.district_id),
+                sub_district: String(locationFromBackend.sub_district_id),
+              }
+            : {}),
+        };
+
+        // [FIX] Jika tidak ketemu ID backend, paksa ke mode manual agar teksnya nampil
+        if (!locationFromBackend && postcode) {
+          setIsPostalCodeManual(true);
+        } else if (locationFromBackend) {
+          setIsPostalCodeManual(false);
+        }
+
+        return nextVal;
+      });
+
+      if (locationFromBackend) {
+        setLastSyncedPostcode(String(locationFromBackend.id));
+      } else if (postcode) {
+        setLastSyncedPostcode(postcode);
+      }
+
+      toast.success("Lokasi GPS berhasil didapatkan");
+
+      // Aktifkan cooldown (Antispam)
+      setGpsCooldown(5);
+      const cdTimer = setInterval(() => {
+        setGpsCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(cdTimer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (err: any) {
       if (err.code === 1) {
         toast.error(
-          "Izin lokasi ditolak. Silakan aktifkan di pengaturan browser.",
+          "Izin lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.",
         );
       } else {
-        toast.error("Gagal mengambil lokasi.");
+        console.error("GPS Sync Error:", err);
+        toast.error("Gagal sinkronasi lokasi.");
       }
+    } finally {
+      setIsSyncingGPS(false);
     }
   };
 
@@ -739,6 +1203,9 @@ function RegistrationWizard({
           district_id: formData.district ?? "",
           sub_district_id: formData.sub_district ?? "",
           postal_code: formData.postal_code ?? "",
+          ...(formData.postal_code_id && {
+            postal_code_id: formData.postal_code_id,
+          }),
           ...(formData.rw && { rw: formData.rw }),
           ...(formData.rt && { rt: formData.rt }),
           ...(formData.address_raw && { address: [formData.address_raw] }),
@@ -811,13 +1278,13 @@ function RegistrationWizard({
     }
   }
 
-  // useEffect(() => {
-  //   // console.log("form data", formData);
-  //   // console.log("mitra IDs: ", mitraID);
-  //   // console.log("bts IDs: ", btsID);
-  //   // console.log(isCovered);
-  //   // console.log("error", errors);
-  // }, [btsID, formData, mitraID, isCovered, errors]);
+  useEffect(() => {
+    console.log("form data", formData);
+    // console.log("mitra IDs: ", mitraID);
+    // console.log("bts IDs: ", btsID);
+    // console.log(isCovered);
+    // console.log("error", errors);
+  }, [btsID, formData, mitraID, isCovered, errors]);
 
   function resetForm() {
     setStep(1);
@@ -1015,7 +1482,7 @@ function RegistrationWizard({
       {/* Title */}
       <div className="w-full flex justify-center mb-4 md:mb-5">
         <h1 className="text-3xl md:text-[40px] lg:text-[48px] text-white font-extrabold text-center drop-shadow-md">
-          Registrasi IRA
+          {title}
         </h1>
       </div>
 
@@ -1094,7 +1561,7 @@ function RegistrationWizard({
       >
         {/* Person */}
         <div
-          className="w-full lg:w-[60%] left-[5%] sm:left-[3%] relative flex justify-center items-end min-h-[250px] md:min-h-[300px] lg:min-h-[500px] max-lg:mt-40"
+          className="w-full lg:w-[60%] left-[4%] sm:left-[3%] relative flex justify-center items-end min-h-[250px] md:min-h-[300px] lg:min-h-[500px] max-lg:mt-40"
           style={{ clipPath: "inset(-200% -200% 0 -200%)" }}
         >
           <div className="absolute inset-x-0 bottom-0 w-full flex justify-end md:justify-center lg:justify-end items-end h-full z-30 pointer-events-none">
@@ -1299,8 +1766,8 @@ function RegistrationWizard({
                   ) : null}
 
                   {/* Address Select Area */}
-                  <div className="mt-3 flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-50">
-                    <div className="flex-1">
+                  <div className="mt-3 flex flex-col md:flex-row flex-wrap gap-4 md:gap-6 mb-4 relative z-50">
+                    <div className="flex-1 min-w-[250px]">
                       <DynamicSelectForm
                         label="Provinsi"
                         isImportant
@@ -1333,7 +1800,7 @@ function RegistrationWizard({
                         error={errors.province}
                       />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-[250px]">
                       <DynamicSelectForm
                         label="Kota/Kabupaten"
                         isImportant
@@ -1372,8 +1839,8 @@ function RegistrationWizard({
                   </div>
 
                   {/* Kecamatan Kelurahan */}
-                  <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-40">
-                    <div className="flex-1">
+                  <div className="flex flex-col md:flex-row flex-wrap gap-4 md:gap-6 mb-4 relative z-40">
+                    <div className="flex-1 min-w-[250px]">
                       <DynamicSelectForm
                         label="Kecamatan"
                         isImportant
@@ -1407,7 +1874,7 @@ function RegistrationWizard({
                         error={errors.district}
                       />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-[250px]">
                       <DynamicSelectForm
                         label="Kelurahan"
                         isImportant
@@ -1441,39 +1908,66 @@ function RegistrationWizard({
                     </div>
                   </div>
 
-                  {/* RW RT */}
-                  <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-4 relative z-30">
+                  <div className="flex flex-col md:flex-row flex-wrap gap-4 md:gap-6 mb-4 relative z-30">
                     {/* Kode Pos Area */}
-                    <div className="flex-1">
-                      <DynamicForm
-                        label="Kode POS"
-                        isImportant
-                        name="postal_code"
-                        onChange={(value: string) => {
-                          if (/^\d{0,5}$/.test(value)) {
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              postal_code: value,
-                            }));
+                    <div className="flex-1 min-w-[250px]">
+                      {isPostalCodeManual ? (
+                        <DynamicForm
+                          label="Kode POS"
+                          isImportant
+                          name="postal_code"
+                          onChange={(value: string) => {
+                            if (/^\d{0,5}$/.test(value)) {
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                postal_code: value,
+                              }));
+                              setErrors({ ...errors, postal_code: "" });
+                            }
+                          }}
+                          placeholder="Masukkan Kode POS"
+                          value={formData.postal_code}
+                          error={errors.postal_code || ""}
+                        />
+                      ) : (
+                        <DynamicSelectForm
+                          label="Kode POS"
+                          isImportant
+                          name="postal_code"
+                          options={postalCodeOptions}
+                          onChange={(value: any) => {
+                            if (value) {
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                postal_code_id: value.value, // Simpan UUID
+                                postal_code: value.name || value.label, // Simpan Teks (misal 12870)
+                              }));
+                            } else {
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                postal_code_id: "",
+                                postal_code: "",
+                              }));
+                            }
                             setErrors({ ...errors, postal_code: "" });
-                          }
-                        }}
-                        placeholder="Masukkan Kode POS"
-                        value={formData.postal_code}
-                        error={errors.postal_code || ""}
-                        disabled={Boolean(
-                          mode === "update_address" &&
-                          initialData?.postal_code &&
-                          initialData?.postal_code === formData.postal_code,
-                        )}
-                      />
+                          }}
+                          isDisabled={!formData.sub_district}
+                          placeholder={`${
+                            !formData.sub_district
+                              ? "Pilih Kelurahan Dahulu"
+                              : "Pilih Kode POS"
+                          }`}
+                          value={formData.postal_code_id || ""} // Gunakan ID di dropdown agar matching
+                          error={errors.postal_code || ""}
+                        />
+                      )}
                       {isLoadingArea && (
                         <div className="absolute top-[45px] right-4 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                       )}
                     </div>
 
                     {/* RT */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-[150px]">
                       <DynamicForm
                         label="RT (Opsional)"
                         isImportant={false}
@@ -1494,7 +1988,7 @@ function RegistrationWizard({
                     </div>
 
                     {/* RW */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-[150px]">
                       <DynamicForm
                         label="RW (Opsional)"
                         isImportant={false}
@@ -1515,6 +2009,221 @@ function RegistrationWizard({
                     </div>
                   </div>
 
+                  {/* Error Banner: Kode Pos Tidak Ditemukan */}
+                  {isGeofencingEnabled &&
+                    isPostcodeNotFound &&
+                    !isLoadingArea &&
+                    formData.postal_code.length >= 4 && (
+                      <div className="mb-3 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 shadow-sm mt-3">
+                        <div className="mt-0.5 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                          <MdClose className="text-red-600 text-lg" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-lg font-bold text-[#701F26]">
+                            Kode Pos Tidak Ditemukan
+                          </h4>
+                          <p className="text-sm text-[#D6211E] leading-relaxed mt-1">
+                            Kode pos{" "}
+                            <strong>&quot;{formData.postal_code}&quot;</strong>{" "}
+                            belum tersedia di sistem. Silakan periksa kembali
+                            atau klik{" "}
+                            <span className="font-bold">
+                              &quot;Set Pin Point ke Lokasi Saya Sekarang&quot;
+                            </span>{" "}
+                            untuk menentukan lokasi Anda secara manual.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Info Banner: Pengingat Geser Pin Point (Muncul hanya saat IDLE / Sudah Sinkron) */}
+                  {isGeofencingEnabled &&
+                    lastSyncedPostcode &&
+                    (formData.postal_code === lastSyncedPostcode ||
+                      formData.postal_code_id === lastSyncedPostcode) &&
+                    formData.postal_code.length >= 4 &&
+                    !isLoadingArea &&
+                    !isSearchingAddress && (
+                      <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-500 shadow-sm mt-3">
+                        <div className="mt-0.5 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                          <MdLocationOn className="text-blue-600 text-lg" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm sm:text-base font-black text-[#223571] flex items-center gap-1.5">
+                            Periksa & Atur Titik Rumah Anda{" "}
+                          </h4>
+                          <p className="text-xs sm:text-sm text-[#485786] leading-relaxed mt-1">
+                            <span className="font-bold">Kotak biru</span> pada
+                            peta merupakan daerah kode pos terpilih. Pastikan
+                            alamat kamu sesuai dengan kode pos yang dimasukkan.
+                            <br />
+                            <br />
+                            <span className="font-bold italic">
+                              Abaikan jika alamatmu sudah sesuai titik pinpoin.
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Map Area */}
+                  <div>
+                    <div className="mb-6 relative z-10 space-y-2">
+                      <p className="font-bold text-sm text-black mb-2">
+                        Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda
+                      </p>
+
+                      {/* Manual Search Bar (Standalone) */}
+                      <div className="relative mb-4">
+                        <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
+                          {searchQuery && (
+                            <button
+                              onClick={() => {
+                                setSearchQuery("");
+                                setSearchSuggestions([]);
+                                setShowSuggestions(false);
+                              }}
+                              className="pl-3 text-gray-400 hover:text-red-500 transition-colors"
+                              type="button"
+                            >
+                              <MdClose size={18} />
+                            </button>
+                          )}
+                          <input
+                            type="text"
+                            placeholder={"Cari Lokasimu.."}
+                            className="w-full py-3.5 px-3 text-sm text-black bg-transparent border-none focus:ring-0 outline-none"
+                            value={searchQuery}
+                            onFocus={() =>
+                              searchSuggestions.length > 0 &&
+                              setShowSuggestions(true)
+                            }
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) =>
+                              e.key === "Enter" && handleManualSearch()
+                            }
+                          />
+
+                          <div className="flex items-center gap-1 mr-1">
+                            <button
+                              type="button"
+                              onClick={handleManualSearch}
+                              disabled={
+                                searchQuery.length < 3 ||
+                                isSearchingAddress ||
+                                searchCooldown > 0
+                              }
+                              className={`px-3 py-2 mr-1 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center whitespace-nowrap ${
+                                searchCooldown > 0
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                                  : "bg-primary text-white hover:bg-primary/90 active:scale-95"
+                              }`}
+                            >
+                              {searchCooldown > 0 ? (
+                                `Tunggu (${searchCooldown}s)`
+                              ) : (
+                                <span className="flex items-center gap-1">
+                                  <MdSearch size={22} />
+                                  <span className="hidden md:inline">Cari</span>
+                                </span>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Suggestions Dropdown */}
+                        {showSuggestions && searchSuggestions.length > 0 && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-[250px] overflow-y-auto z-60 animate-in fade-in slide-in-from-top-2 duration-200">
+                            {searchSuggestions.map((feat, idx) => (
+                              <div
+                                key={feat.id || idx}
+                                onClick={() => handleSelectSuggestion(feat)}
+                                className="flex flex-col p-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 border-gray-50 group/item"
+                              >
+                                <span className="text-sm font-semibold text-black group-hover/item:text-primary transition-colors">
+                                  {feat.name}
+                                </span>
+                                <span className="text-xs text-gray-500 line-clamp-1 mt-0.5">
+                                  {feat.full_address || feat.place_formatted}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {isSearchingAddress && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white p-4 rounded-xl shadow-lg border border-gray-100 flex items-center justify-center gap-3 z-60">
+                            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-xs font-medium text-gray-600 italic">
+                              Mencari alamat...
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
+                        <div className="w-full h-full pointer-events-none">
+                          <MapMapbox
+                            initialLatitude={Number(formData.latitude || 0)}
+                            initialLongitude={Number(formData.longitude || 0)}
+                            isInteractive={false}
+                            bbox={isGeofencingEnabled ? currentBbox : null}
+                            isLoading={isLoadingArea || isSearchingAddress}
+                          />
+                        </div>
+                        {/* The "Sesuaikan Pin Point" Floating Red Button from design mockup */}
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 w-[90%] md:w-fit">
+                          <button
+                            type="button"
+                            disabled={isSearchingAddress || isLoadingArea}
+                            onClick={() => {
+                              setTempMapPayload({
+                                latitude: formData.latitude,
+                                longitude: formData.longitude,
+                                address_gmaps: formData.address_gmaps,
+                                postcode: formData.postal_code,
+                                // address_raw: formData.address_raw,
+                              });
+                              setIsOpenMapModal(true);
+                            }}
+                            className="w-full md:w-[300px] bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-primary-dark transition text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            Sesuaikan Pin Poin
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-start w-full mt-3">
+                        <button
+                          type="button"
+                          disabled={isSyncingGPS || gpsCooldown > 0}
+                          onClick={handleRequestLocation}
+                          className="flex items-center text-left gap-1 py-2 bg-white underline text-primary font-bold text-sm transition-all active:scale-95 disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed"
+                        >
+                          {isSyncingGPS ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin mr-1"></div>
+                              Mencari Lokasi...
+                            </>
+                          ) : gpsCooldown > 0 ? (
+                            `Tunggu (${gpsCooldown}s)`
+                          ) : (
+                            <>
+                              <MdLocationOn size={18} />
+                              Set Pinpoin Ke Lokasi Saya Sekarang
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {errors.latitude && (
+                        <p className="text-primary text-xs mt-1">
+                          Lokasi GPS harus dipilih dari peta otomatis.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Exact Address */}
                   <div className="mb-4">
                     <DynamicForm
@@ -1532,48 +2241,6 @@ function RegistrationWizard({
                       error={errors.actual_address || ""}
                       rows={3}
                     />
-                  </div>
-
-                  {/* Map Area */}
-                  <div>
-                    <div className="mb-6 relative z-10 space-y-2">
-                      <p className="font-bold text-sm text-black mb-2">
-                        Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda
-                      </p>
-                      <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
-                        <div className="w-full h-full pointer-events-none">
-                          <MapMapbox
-                            initialLatitude={Number(formData.latitude || 0)}
-                            initialLongitude={Number(formData.longitude || 0)}
-                            isInteractive={false}
-                          />
-                        </div>
-                        {/* The "Sesuaikan Pin Point" Floating Red Button from design mockup */}
-                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 w-[90%] md:w-fit">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTempMapPayload({
-                                latitude: formData.latitude,
-                                longitude: formData.longitude,
-                                address_gmaps: formData.address_gmaps,
-                                postcode: formData.postal_code,
-                                // address_raw: formData.address_raw,
-                              });
-                              setIsOpenMapModal(true);
-                            }}
-                            className="w-full md:w-[300px] bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-primary-dark transition text-sm cursor-pointer"
-                          >
-                            Sesuaikan Pin Point
-                          </button>
-                        </div>
-                      </div>
-                      {errors.latitude && (
-                        <p className="text-primary text-xs mt-1">
-                          Lokasi GPS harus dipilih dari peta otomatis.
-                        </p>
-                      )}
-                    </div>
                   </div>
 
                   {/* Patokan */}
@@ -1650,7 +2317,7 @@ function RegistrationWizard({
               <div className="animate-in fade-in duration-500 w-full h-full flex flex-col justify-between">
                 <div>
                   <div className="">
-                    <h2 className="text-xl md:text-2xl font-bold text-center mb-6 text-black">
+                    <h2 className="text-xl md:text-2xl font-bold text-start mb-6 text-black">
                       Konfirmasi Data Pelanggan
                     </h2>
 
@@ -1680,15 +2347,15 @@ function RegistrationWizard({
                         </h4>
                         <div className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-y-2 mt-2">
                           <span className="text-gray-500">Nama Pelanggan</span>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-gray-900 wrap-break-word min-w-0">
                             {formData.fullname}
                           </span>
                           <span className="text-gray-500">Email</span>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-gray-900 wrap-break-word min-w-0">
                             {formData.email || "-"}
                           </span>
                           <span className="text-gray-500">Nomor Handphone</span>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-gray-900 wrap-break-word min-w-0">
                             {formData.phone}
                           </span>
                         </div>
@@ -1728,8 +2395,10 @@ function RegistrationWizard({
                           </span>
 
                           <span className="text-gray-500">Kode Pos</span>
-                          <span className="font-medium text-gray-900">
-                            {formData.postal_code}
+                          <span className="font-medium text-gray-900 wrap-break-word min-w-0">
+                            {postalCodeOptions.find(
+                              (o) => o.value === formData.postal_code,
+                            )?.label || formData.postal_code}
                           </span>
 
                           <span className="text-gray-500">Alamat Lengkap</span>
@@ -1738,7 +2407,7 @@ function RegistrationWizard({
                           </span>
 
                           <span className="text-gray-500">Patokan Alamat</span>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-gray-900 wrap-break-word min-w-0">
                             {formData.notes || "-"}
                           </span>
                         </div>
@@ -1758,13 +2427,16 @@ function RegistrationWizard({
                               setStep(2);
                               // Langsung arahkan ke posisi map biar user gak bingung
                               setTimeout(() => {
-                                window.scrollTo({ top: 300, behavior: "smooth" });
+                                window.scrollTo({
+                                  top: 300,
+                                  behavior: "smooth",
+                                });
                               }, 100);
                             }}
                             className="flex items-center gap-2 px-4 py-2 bg-white border border-primary text-primary rounded-lg font-bold text-sm hover:bg-red-50 transition-all shadow-sm shadow-red-100"
                           >
                             <FaLocationDot className="text-xs" />
-                            Ubah / Sesuaikan Ulang Pin Point
+                            Ubah / Sesuaikan Ulang Titik Lokasi
                           </button>
                         </div>
                       </div>
@@ -1818,7 +2490,9 @@ function RegistrationWizard({
                     // disabled={isInvalid}
                     className="flex-1 disabled:cursor-not-allowed px-4 py-3 rounded-xl bg-primary text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
                   >
-                    Berlangganan Sekarang
+                    {mode === "update_address"
+                      ? "Simpan Alamat"
+                      : "Berlangganan Sekarang"}
                   </button>
                 </div>
               </div>
@@ -1910,20 +2584,31 @@ function RegistrationWizard({
                 initialLongitude={Number(
                   tempMapPayload?.longitude || formData.longitude || 0,
                 )}
+                bbox={isGeofencingEnabled ? currentBbox : null}
                 onPlaceChange={(p: any) => {
                   // Update temp untuk tombol Simpan
                   if (p.postcode) {
                     lastPostcodeFromMap.current = p.postcode;
                   }
 
+                  // [RESOLVE ID] Cari ID-nya jika ada di options agar dropdown gak reset ke string
+                  const foundPC = postalCodeOptions.find(
+                    (o: any) => o.name === p.postcode,
+                  );
+                  const pcValueToSet = foundPC ? foundPC.value : p.postcode;
+
                   setTempMapPayload((prev: any) => ({
                     ...prev,
                     latitude: String(p.latitude),
                     longitude: String(p.longitude),
-                    address: p.address,
-                    // postcode: p.postcode, // <-- DISCONNECT
-                    address_raw: p.raw_result,
+                    ...(p.address ? { address: p.address } : {}),
+                    ...(p.raw_result ? { address_raw: p.raw_result } : {}),
                   }));
+
+                  // [NEW] Sync balik ke inputan search di atas map
+                  if (p.address) {
+                    setSearchQuery(p.address);
+                  }
 
                   // UPDATE REAKTIF KE FORM UTAMA
                   setFormData((prev) => {
@@ -1948,32 +2633,146 @@ function RegistrationWizard({
               <div className="absolute bottom-8 px-6 left-1/2 -translate-x-1/2 z-10 w-full">
                 <button
                   type="button"
-                  onClick={() => {
+                  disabled={isSavingMap}
+                  onClick={async () => {
                     if (tempMapPayload) {
-                      setFormData((prev) => ({
-                        ...prev,
-                        latitude: tempMapPayload.latitude,
-                        longitude: tempMapPayload.longitude,
-                        address_gmaps:
-                          tempMapPayload.address || prev.address_gmaps,
-                        // postal_code: tempMapPayload.postcode || prev.postal_code, // <-- DISCONNECT
-                        address_raw:
-                          tempMapPayload.address_raw || prev.address_raw,
-                      }));
-                      setErrors((prev) => ({
-                        ...prev,
-                        latitude: "",
-                        postal_code: "",
-                        address_gmaps: "",
-                      }));
+                      setIsSavingMap(true);
+                      try {
+                        const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+                        const lat = tempMapPayload.latitude;
+                        const lng = tempMapPayload.longitude;
+
+                        // 1. REVERSE GEOCODING (Ambil Alamat & Kode Pos dari Titik Baru)
+                        const revUrl = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&access_token=${token}&types=address,postcode&language=id`;
+                        const resRev = await fetch(revUrl);
+                        const dataRev = await resRev.json();
+                        const feature = dataRev.features?.[0];
+
+                        const detectedPostcode =
+                          feature?.properties?.context?.postcode?.name ||
+                          feature?.properties?.name ||
+                          "";
+
+                        const finalAddress =
+                          feature?.properties?.full_address ||
+                          feature?.properties?.name ||
+                          "";
+
+                        // 2. SINKRONISASI BBOX (Jika Kode Pos Berubah atau Pindah Wilayah)
+                        if (detectedPostcode) {
+                          const fwdUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${detectedPostcode}&access_token=${token}&country=id&types=postcode&limit=1`;
+                          const resFwd = await fetch(fwdUrl);
+                          const dataFwd = await resFwd.json();
+                          if (dataFwd.features?.[0]?.properties?.bbox) {
+                            setCurrentBbox(dataFwd.features[0].properties.bbox);
+                          }
+                        }
+
+                        // 3. UPDATE FORM UTAMA
+                        setFormData((prev) => ({
+                          ...prev,
+                          latitude: String(lat),
+                          longitude: String(lng),
+                          postal_code: detectedPostcode || prev.postal_code,
+                          address_gmaps: finalAddress || prev.address_gmaps,
+                          address_raw: feature || prev.address_raw,
+                        }));
+
+                        // [FIX] Update ref agar geocoding (centering map) tidak terpicu lagi setelah simpan manual
+                        lastPostcodeFromMap.current =
+                          detectedPostcode || formData.postal_code;
+
+                        // [NEW] Resolve ID Backend untuk sinkronasi dropdown
+                        try {
+                          const resLoc =
+                            await getLocationByPostalCode(detectedPostcode);
+                          const locData = resLoc.data?.data?.[0];
+                          if (locData) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              postal_code_id: String(locData.id),
+                              province: String(locData.province_id),
+                              city: String(locData.city_id),
+                              district: String(locData.district_id),
+                              sub_district: String(locData.sub_district_id),
+                            }));
+                            setLastSyncedPostcode(String(locData.id));
+                          }
+                        } catch (e) {
+                          console.error("Backend ID sync failed", e);
+                        }
+                      } catch (err) {
+                        console.error("Save Pin Point failed:", err);
+                        toast.error("Gagal menyesuaikan titik lokasi");
+                      } finally {
+                        setIsSavingMap(false);
+                        setIsOpenMapModal(false);
+                        setErrors((prev) => ({
+                          ...prev,
+                          latitude: "",
+                          postal_code: "",
+                          address_gmaps: "",
+                        }));
+                      }
                     }
-                    setIsOpenMapModal(false);
                   }}
-                  className="w-full bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-primary-dark transition text-sm cursor-pointer"
+                  className="w-full bg-primary text-white font-bold py-3 rounded-xl shadow-md hover:bg-primary/90 transition-all text-sm cursor-pointer active:scale-95 disabled:bg-gray-400 disabled:animate-pulse"
                 >
-                  Simpan Pin Point
+                  {isSavingMap ? "Mensinkronkan..." : "Simpan Pin Point"}
                 </button>
               </div>
+            </div>
+          </div>
+        </ModalTemplate>
+      )}
+
+      {/* Modal Konfirmasi Perubahan Kode Pos */}
+      {isOpenPostcodeConfirmModal && (
+        <ModalTemplate
+          closeModal={() => setIsOpenPostcodeConfirmModal(false)}
+          classNameModal="max-w-md w-full p-6"
+        >
+          <div className="flex flex-col items-center text-center gap-4">
+            <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center">
+              <IoIosInformationCircleOutline className="text-4xl text-amber-500" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-gray-900">
+                Perbedaan Kode Pos Terdeteksi
+              </h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Alamat pencarian yang Anda pilih memiliki kode pos{" "}
+                <span className="font-bold text-primary">
+                  {pendingSuggestionData?.suggestionPostcode}
+                </span>
+                , namun Anda saat ini menggunakan kode pos{" "}
+                <span className="font-bold text-gray-800">
+                  {postalCodeOptions.find(
+                    (o) => o.value === formData.postal_code,
+                  )?.label || formData.postal_code}
+                </span>
+                .
+              </p>
+              <p className="text-sm font-medium text-gray-700 py-2 bg-gray-50 rounded-lg">
+                Apakah Anda ingin memperbarui kode pos registrasi sesuai lokasi
+                pencarian Anda?
+              </p>
+            </div>
+
+            <div className="flex flex-col w-full gap-3 mt-2">
+              <button
+                onClick={() => handleConfirmPostcodeUpdate(true)}
+                className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95"
+              >
+                Ya, Perbarui Kode Pos
+              </button>
+              <button
+                onClick={() => handleConfirmPostcodeUpdate(false)}
+                className="w-full py-3 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all active:scale-95"
+              >
+                Gunakan Koordinat Saja
+              </button>
             </div>
           </div>
         </ModalTemplate>
