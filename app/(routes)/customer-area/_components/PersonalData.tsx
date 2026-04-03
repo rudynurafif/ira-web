@@ -104,7 +104,7 @@ const PersonalData = () => {
           <ProfileLabel
             showCopyButton={true}
             value={userInfo?.latitude + ", " + userInfo?.longitude || "-"}
-            onCopy={(value) => toast.success(`LatLon berhasil disalin`)}
+            onCopy={(value) => toast.success(`LatLong berhasil disalin`)}
             label="Latitude Longitude"
             data={userInfo?.latitude + ", " + userInfo?.longitude || "-"}
           />

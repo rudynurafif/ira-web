@@ -139,7 +139,7 @@ const Payment = () => {
 
   if (isLoading) return <Loader />;
 
-  if (error && errorStatus !== 404)
+  if (error && errorStatus !== 404 && errorStatus !== 401)
     return <ErrorFallback message={error} onRetry={fetchPackages} />;
 
   return (

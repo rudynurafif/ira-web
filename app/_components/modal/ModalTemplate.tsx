@@ -8,6 +8,7 @@ function ModalTemplate({
   width = "max-w-2xl",
   justify = "justify-center",
   isCloseButton = true,
+  styleModal,
 }: {
   closeModal: () => void;
   classNameModal?: string;
@@ -15,6 +16,7 @@ function ModalTemplate({
   width?: string;
   justify?: string;
   isCloseButton?: boolean;
+  styleModal?: React.CSSProperties;
 }) {
   return (
     <div
@@ -28,6 +30,7 @@ function ModalTemplate({
 
       {/* Modal Container */}
       <div
+        style={styleModal}
         className={`relative bg-white rounded-2xl max-h-[90vh] w-full ${width}  ${
           classNameModal || ""
         }`}
