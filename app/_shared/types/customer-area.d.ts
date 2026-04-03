@@ -24,6 +24,10 @@ export type Customer = {
   reset_count_cell: number | null;
   no_kk: string;
   register_source: string;
+  postal_code_id: {
+    id: string;
+    name: string;
+  } | null;
 };
 
 export type Bts = {
@@ -110,4 +114,8 @@ export type ProfileInfo = {
     id: string;
     name: string;
   };
+  postal_code_id: {
+    id: string;
+    name: string;
+  } | null;
 };

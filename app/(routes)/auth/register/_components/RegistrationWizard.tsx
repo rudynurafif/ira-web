@@ -123,10 +123,37 @@ function RegistrationWizard({
   }
 
   const [step, setStep] = useState(mode === "update_address" ? 2 : 1);
-  const [formData, setFormData] = useState<FormType>({
-    ...initialFormData,
-    ...(initialData || {}),
-    ...(initialData?.notes !== undefined ? { notes: defaultNotes } : {}),
+  const [formData, setFormData] = useState<FormType>(() => {
+    // [OPTIMASI] Mapping awal dari initialData (API) ke FormType
+    const base = { ...initialFormData, ...(initialData || {}) };
+    
+    // Jika data datang dari API Customer Detail, petakan field yang berbeda
+    if (initialData) {
+      const d = initialData as any;
+      return {
+        ...base,
+        fullname: d.name || base.fullname,
+        phone: d.phone_number || base.phone,
+        email: d.email || base.email,
+        nik: d.nik || base.nik,
+        nokk: d.no_kk || d.nokk || base.nokk,
+        rt: d.rt || base.rt,
+        rw: d.rw || base.rw,
+        actual_address: d.address || base.actual_address,
+        postal_code: d.postal_code || base.postal_code,
+        latitude: d.latitude ? String(d.latitude) : base.latitude,
+        longitude: d.longitude ? String(d.longitude) : base.longitude,
+        province: d.province_id?.id || d.province_id || base.province,
+        city: d.city_id?.id || d.city_id || base.city,
+        district: d.district_id?.id || d.district_id || base.district,
+        sub_district:
+          d.sub_district_id?.id || d.sub_district_id || base.sub_district,
+        postal_code_id:
+          d.postal_code_id?.id || d.postal_code_id || base.postal_code_id,
+        notes: d.notes !== undefined ? defaultNotes : base.notes,
+      };
+    }
+    return base;
   });
 
   const [tempMapPayload, setTempMapPayload] = useState<any>(null);
@@ -423,9 +450,41 @@ function RegistrationWizard({
 
   useEffect(() => {
     if ((mode === "reregister" || mode === "update_address") && initialData) {
-      const { province, city, district, sub_district } = initialData;
+      const d = initialData as any;
+      const province = d.province_id?.id || d.province_id;
+      const city = d.city_id?.id || d.city_id;
+      const district = d.district_id?.id || d.district_id;
+      const sub_district = d.sub_district_id?.id || d.sub_district_id;
 
-      // Autofill the province
+      // [NEW] Pastikan semua data user juga masuk jika ini Update Address
+      setFormData((prev) => ({
+        ...prev,
+        fullname: d.name || prev.fullname,
+        phone: d.phone_number || prev.phone,
+        email: d.email || prev.email,
+        nik: d.nik || prev.nik,
+        nokk: d.no_kk || d.nokk || prev.nokk,
+        rt: d.rt || prev.rt,
+        rw: d.rw || prev.rw,
+        actual_address: d.address || prev.actual_address,
+        postal_code: d.postal_code || prev.postal_code,
+        postal_code_id:
+          d.postal_code_id?.id || d.postal_code_id || prev.postal_code_id,
+        latitude: d.latitude ? String(d.latitude) : prev.latitude,
+        longitude: d.longitude ? String(d.longitude) : prev.longitude,
+        province: province || prev.province,
+        city: city || prev.city,
+        district: district || prev.district,
+        sub_district: sub_district || prev.sub_district,
+      }));
+
+      // [PENTING] Gembok kordinat agar tidak auto-center pas baru buka halaman Update Address
+      const initialMapPostcode = d.postal_code || d.postal_code_id?.name;
+      if (initialMapPostcode) {
+        lastPostcodeFromMap.current = String(initialMapPostcode);
+      }
+
+      // Autofill the province dropdowns
       if (province) {
         setFormData((prev) => ({ ...prev, province }));
         const provinceId = province; // ID for province
@@ -485,6 +544,32 @@ function RegistrationWizard({
       // Autofill the sub-district
       if (sub_district) {
         setFormData((prev) => ({ ...prev, sub_district }));
+        const subDistrictId = sub_district;
+        (async () => {
+          try {
+            const res = await getPostalCode({ sub_district_id: subDistrictId });
+            const options = (res.data?.data ?? []).map((it: any) => ({
+              label: it.name,
+              value: String(it.id),
+              name: it.name, // simpan aslinya buat geocoding
+            }));
+            setPostalCodeOptions(options);
+
+            // Jika ada postal_code_id dari API, matikan manual mode agar dropdown muncul
+            const pcId = d.postal_code_id?.id || d.postal_code_id;
+            if (pcId) {
+              setFormData((prev) => ({
+                ...prev,
+                postal_code_id: String(pcId),
+                postal_code: d.postal_code || d.postal_code_id?.name || prev.postal_code,
+              }));
+              setIsPostalCodeManual(false);
+              setLastSyncedPostcode(String(pcId));
+            }
+          } catch (err) {
+            toastErrorFromAPI(err, "Gagal muat data kode pos");
+          }
+        })();
       }
     }
   }, [mode, initialData]);
@@ -492,6 +577,11 @@ function RegistrationWizard({
   // -- Persistence Logic --
   // 1. Load data from localStorage on Mount
   useEffect(() => {
+    // [SAFETY] Jika mode Update Address, prioritaskan initialData daripada localStorage (mencegah data user lama nyangkut)
+    if (mode === "update_address" && initialData) {
+      return;
+    }
+
     const savedData = localStorage.getItem(PERSIST_KEY);
     if (savedData) {
       try {
@@ -918,7 +1008,7 @@ function RegistrationWizard({
           longitude: lngStr,
           postal_code_id: locationFromBackend
             ? String(locationFromBackend.id)
-            : undefined,
+            : prev.postal_code_id,
           postal_code: locationFromBackend
             ? String(locationFromBackend.name)
             : postcode || prev.postal_code,
