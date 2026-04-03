@@ -575,17 +575,29 @@ function RegistrationWizard({
   }, [mode, initialData]);
 
   // -- Persistence Logic --
-  // 1. Load data from localStorage on Mount
+  // 1. Load data from sessionStorage on Mount
   useEffect(() => {
-    // [SAFETY] Jika mode Update Address, prioritaskan initialData daripada localStorage (mencegah data user lama nyangkut)
+    // [SAFETY] Jika mode Update Address, prioritaskan initialData daripada sessionStorage (mencegah data user lama nyangkut)
     if (mode === "update_address" && initialData) {
       return;
     }
 
-    const savedData = localStorage.getItem(PERSIST_KEY);
+    const savedData = sessionStorage.getItem(PERSIST_KEY);
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
+
+        // [NEW] Cek Expiry 60 Menit (3.600.000 ms)
+        const EXPIRY_MS = 60 * 60 * 1000;
+        const isExpired =
+          parsed.updatedAt && Date.now() - parsed.updatedAt > EXPIRY_MS;
+
+        if (isExpired) {
+          console.log("Registration session expired, starting fresh...");
+          clearPersistance();
+          return;
+        }
+
         if (parsed.formData) {
           // [BUGFIX] Jika user masih di Step 1, sebaiknya kita reset data lokasinya
           // agar tidak membingungkan (seolah terpilih otomatis padahal sisa data lama)
@@ -625,11 +637,22 @@ function RegistrationWizard({
     }
   }, []);
 
-  // 2. Save data to localStorage on Change
+  // 2. Save data to sessionStorage on Change
   useEffect(() => {
-    const dataToSave = { formData, step, selectedPackage, otpStatus };
-    localStorage.setItem(PERSIST_KEY, JSON.stringify(dataToSave));
+    const dataToSave = {
+      formData,
+      step,
+      selectedPackage,
+      otpStatus,
+      updatedAt: Date.now(),
+    };
+    sessionStorage.setItem(PERSIST_KEY, JSON.stringify(dataToSave));
   }, [formData, step, selectedPackage, otpStatus, PERSIST_KEY]);
+
+  // 3. Clear Storage helper
+  const clearPersistance = () => {
+    sessionStorage.removeItem(PERSIST_KEY);
+  };
 
   useEffect(() => {
     if (isModalRegisterSuccess) {
@@ -651,11 +674,6 @@ function RegistrationWizard({
       return () => clearTimeout(timeout);
     }
   }, [isModalRegisterSuccess, mode]);
-
-  // 3. Clear Storage helper
-  const clearPersistance = () => {
-    localStorage.removeItem(PERSIST_KEY);
-  };
 
   useEffect(() => {
     const timer = setTimeout(async () => {

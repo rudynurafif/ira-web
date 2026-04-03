@@ -49,7 +49,7 @@ const authSlice = createSlice({
       deleteCookie("token-ira");
       localStorage.removeItem("activation_failed_attempts");
       localStorage.removeItem("fcm_token_stored");
-      localStorage.removeItem("registration_wizard_data");
+      sessionStorage.removeItem("registration_wizard_data");
       sessionStorage.clear();
     },
   },
