@@ -335,58 +335,8 @@ function RegistrationWizard({
           toast.error("Gagal menyesuaikan pin otomatis");
         }
       } else {
-        // [SCENARIO 2] "Gunakan Kode Pos Saat Ini" -> Update Data Wilayah ke yang baru (di titik Pin sekarang)
-        let regionalData: any = {};
-        try {
-          const resLoc = await getLocationByPostalCode(suggestionPostcode);
-          const locData = resLoc.data?.data?.[0];
-          if (locData) {
-            regionalData = {
-              province: String(locData.province_id),
-              city: String(locData.city_id),
-              district: String(locData.district_id),
-              sub_district: String(locData.sub_district_id),
-              postal_code: String(locData.name),
-              postal_code_id: String(locData.id),
-            };
-            setIsPostalCodeManual(false);
-            setLastSyncedPostcode(String(locData.id));
-          } else {
-            regionalData = {
-              postal_code: suggestionPostcode,
-              postal_code_id: undefined,
-            };
-            setIsPostalCodeManual(true);
-            setLastSyncedPostcode(suggestionPostcode);
-          }
-
-          // Update BBOX visual ke kode pos baru
-          const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-          const bboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${suggestionPostcode}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
-          const resBbox = await fetch(bboxUrl);
-          const dataBbox = await resBbox.json();
-          if (dataBbox.features?.[0]?.properties?.bbox) {
-            setCurrentBbox(dataBbox.features[0].properties.bbox);
-          }
-
-          setFormData((prev) => ({
-            ...prev,
-            latitude: String(exactLat),
-            longitude: String(exactLng),
-            address_gmaps: fullAddress,
-            ...regionalData,
-          }));
-
-          setTempMapPayload((prev: any) => ({
-            ...prev,
-            latitude: String(exactLat),
-            longitude: String(exactLng),
-          }));
-
-          toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
-        } catch (e) {
-          console.error("Gagal update data wilayah", e);
-        }
+        // [SCENARIO 2] "Gunakan Kode Pos Saat Ini" -> Hanya Tutup Modal
+        // Sesuai permintaan: Jangan jalankan fungsi apa-apa, biarkan saja.
       }
 
       setIsOpenPostcodeConfirmModal(false);
@@ -2189,7 +2139,11 @@ function RegistrationWizard({
                             initialLongitude={Number(formData.longitude || 0)}
                             isInteractive={true}
                             bbox={isGeofencingEnabled ? currentBbox : null}
-                            isLoading={isLoadingArea || isSearchingAddress}
+                            isLoading={
+                              isLoadingArea ||
+                              isSearchingAddress ||
+                              isOpenPostcodeConfirmModal
+                            }
                             onPlaceChange={(p) => {
                               // 1. Tanda sedang interaksi agar Auto-Center tidak menimpa
                               setIsInteractingWithMap(true);
@@ -2202,25 +2156,6 @@ function RegistrationWizard({
 
                               // 3. Jika ada Kode Pos (Hasil 5s Timer), lakukan pengecekan boundary
                               if (p.postcode) {
-                                // [NEW] Selalu update BBOX (Kotak Biru) agar mengikuti pergeseran pin
-                                // Tanpa harus nunggu konfirmasi modal, supaya visual selalu sinkron dengan area di bawah pin
-                                (async () => {
-                                  try {
-                                    const MAPBOX_TOKEN =
-                                      process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-                                    const bboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${p.postcode}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
-                                    const resBbox = await fetch(bboxUrl);
-                                    const dataBbox = await resBbox.json();
-                                    const newBbox =
-                                      dataBbox.features?.[0]?.properties?.bbox;
-                                    if (newBbox) {
-                                      setCurrentBbox(newBbox);
-                                    }
-                                  } catch (e) {
-                                    console.error("Gagal update bbox", e);
-                                  }
-                                })();
-
                                 if (
                                   p.postcode !== formData.postal_code &&
                                   !hasShownPostcodeConfirmMapMove
@@ -2628,7 +2563,7 @@ function RegistrationWizard({
               </button>
               <button
                 type="button"
-                onClick={() => handleConfirmPostcodeUpdate(true)}
+                onClick={() => handleConfirmPostcodeUpdate(false)}
                 className="w-full py-3 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all active:scale-95"
               >
                 Gunakan Kode Pos Saat Ini
