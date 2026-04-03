@@ -42,9 +42,11 @@ import {
   FaListUl,
   FaLocationDot,
   FaListCheck,
+  FaLock,
 } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
+import { VscSettings } from "react-icons/vsc";
 import MapMapbox from "@/app/_components/form/MapMapbox";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
@@ -126,7 +128,7 @@ function RegistrationWizard({
   const [formData, setFormData] = useState<FormType>(() => {
     // [OPTIMASI] Mapping awal dari initialData (API) ke FormType
     const base = { ...initialFormData, ...(initialData || {}) };
-    
+
     // Jika data datang dari API Customer Detail, petakan field yang berbeda
     if (initialData) {
       const d = initialData as any;
@@ -426,11 +428,10 @@ function RegistrationWizard({
   useBrowserDetection();
 
   useEffect(() => {
-    if (status === "denied") {
-      setIsOpenModalReqLoc(true);
+    if (status === "granted") {
+      setIsOpenModalReqLoc(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, step]);
+  }, [status]);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -561,7 +562,8 @@ function RegistrationWizard({
               setFormData((prev) => ({
                 ...prev,
                 postal_code_id: String(pcId),
-                postal_code: d.postal_code || d.postal_code_id?.name || prev.postal_code,
+                postal_code:
+                  d.postal_code || d.postal_code_id?.name || prev.postal_code,
               }));
               setIsPostalCodeManual(false);
               setLastSyncedPostcode(String(pcId));
@@ -978,6 +980,12 @@ function RegistrationWizard({
   const handleRequestLocation = async () => {
     if (isSyncingGPS || gpsCooldown > 0) return;
 
+    // [NEW] Jika sudah diblokir sebelumnya, langsung arahkan ke modal instruksi
+    if (status === "denied") {
+      setIsOpenModalReqLoc(true);
+      return;
+    }
+
     try {
       setIsSyncingGPS(true);
       const position = await requestLocation();
@@ -1060,7 +1068,7 @@ function RegistrationWizard({
         setLastSyncedPostcode(postcode);
       }
 
-      toast.success("Lokasi GPS berhasil didapatkan");
+      toast.success("Titik lokasi berhasil didapatkan");
 
       // Aktifkan cooldown (Antispam)
       setGpsCooldown(5);
@@ -1075,12 +1083,13 @@ function RegistrationWizard({
       }, 1000);
     } catch (err: any) {
       if (err.code === 1) {
+        // Jika user klik "Block" di pop-up browser, bantu dengan modal instruksi
+        setIsOpenModalReqLoc(true);
         toast.error(
           "Izin lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.",
         );
       } else {
-        console.error("GPS Sync Error:", err);
-        toast.error("Gagal sinkronasi lokasi.");
+        toast.error("Gagal mendapatkan lokasi GPS. Silakan coba lagi.");
       }
     } finally {
       setIsSyncingGPS(false);
@@ -1362,10 +1371,6 @@ function RegistrationWizard({
       window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  useEffect(() => {
-    if (status === "granted") setIsOpenModalReqLoc(true);
-  }, [status]);
-
   const handleSelect = (pkg: PackageData) => {
     // const isSame = selectedPackage?.id === pkg.id;
 
@@ -1383,33 +1388,6 @@ function RegistrationWizard({
     }));
     setErrors((prev) => ({ ...prev, package_id: "" }));
   };
-
-  const isFormDirty = () => {
-    return Object.values(formData).some(
-      (v) => v !== "" && v !== null && v !== undefined,
-    );
-  };
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!isFormDirty() || isLoading) return;
-
-      e.preventDefault();
-      e.returnValue = "";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, formData, step]);
-
-  // const isPasswordMismatch =
-  //   Boolean(formData.password) &&
-  //   Boolean(formData.confirm_password) &&
-  //   formData.password !== formData.confirm_password;
-
-  const isInvalid =
-    isLoading || status === "denied" || isCheckCoverage || isLoadingPackage;
 
   const handleNextStep1 = () => {
     // setStep(2);
@@ -2564,8 +2542,7 @@ function RegistrationWizard({
                   </button>
                   <button
                     type="submit"
-                    // disabled={isInvalid}
-                    className="flex-1 disabled:cursor-not-allowed px-4 py-3 rounded-xl bg-primary text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
+                    className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
                   >
                     {mode === "update_address"
                       ? "Simpan Alamat"
@@ -2609,6 +2586,67 @@ function RegistrationWizard({
                 />
               )}
             </div>
+          </div>
+        </ModalTemplate>
+      )}
+
+      {/* Modal Instruksi Request Location (Jika Denied) */}
+      {isOpenModalReqLoc && (
+        <ModalTemplate
+          closeModal={() => setIsOpenModalReqLoc(false)}
+          classNameModal="max-w-md p-6"
+        >
+          <div className="flex flex-col items-center gap-6">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+              <FaLocationDot className="text-red-500 text-3xl" />
+            </div>
+
+            <div className="space-y-3 text-center text-black">
+              <h3 className="text-xl font-bold">
+                Izin Akses Lokasi Dibutuhkan
+              </h3>
+              <p className="text-sm leading-relaxed">
+                Anda belum mengizinkan akses lokasi di browser. Kami membutuhkan
+                akses lokasi untuk mendeteksi ketersediaan jaringan Internet
+                Rakyat (IRA) di area Anda secara akurat.
+              </p>
+
+              <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 border border-gray-100 mt-2">
+                <p className="text-xs font-bold text-gray-900">
+                  Cara mengizinkan:
+                </p>
+                <ul className="text-xs text-gray-600 list-decimal pl-4 space-y-1">
+                  <li>
+                    Klik ikon{" "}
+                    <span className="font-bold inline-flex items-center gap-1 text-gray-800">
+                      Gembok <FaLock />
+                    </span>{" "}
+                    atau{" "}
+                    <span className="font-bold text-gray-800 inline-flex items-center gap-1">
+                      Setelan <VscSettings className="text-sm" />
+                    </span>{" "}
+                    di sebelah kiri alamat website (URL) browser Anda.
+                  </li>
+                  <li>
+                    Cari bagian{" "}
+                    <span className="font-bold text-gray-800">Lokasi</span>.
+                  </li>
+                  <li>
+                    Ubah setelan menjadi{" "}
+                    <span className="font-bold">Izinkan/Allow</span>.
+                  </li>
+                  <li>Refresh halaman jika diperlukan.</li>
+                </ul>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsOpenModalReqLoc(false)}
+              className="w-full py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 mt-2"
+            >
+              Saya Mengerti
+            </button>
           </div>
         </ModalTemplate>
       )}
