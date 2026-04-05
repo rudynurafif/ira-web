@@ -1948,9 +1948,9 @@ function RegistrationWizard({
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-row flex-wrap gap-4 md:gap-6 mb-4 relative z-30">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 relative z-30">
                     {/* Kode Pos Area */}
-                    <div className="flex-1 min-w-[250px]">
+                    <div className="w-full">
                       {isPostalCodeManual ? (
                         <DynamicForm
                           label="Kode POS"
@@ -2007,7 +2007,7 @@ function RegistrationWizard({
                     </div>
 
                     {/* RT */}
-                    <div className="flex-1 min-w-[150px]">
+                    <div className="w-full">
                       <DynamicForm
                         label="RT (Opsional)"
                         isImportant={false}
@@ -2028,7 +2028,7 @@ function RegistrationWizard({
                     </div>
 
                     {/* RW */}
-                    <div className="flex-1 min-w-[150px]">
+                    <div className="w-full md:col-span-1">
                       <DynamicForm
                         label="RW (Opsional)"
                         isImportant={false}
