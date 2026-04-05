@@ -47,7 +47,9 @@ import {
 import { IoClose } from "react-icons/io5";
 import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
-import MapMapbox from "@/app/_components/form/MapMapbox";
+// import MapMapbox from "@/app/_components/form/MapMapbox";
+import MapLeaflet from "@/app/_components/form/MapLeaflet";
+import GoogleAddressSearch from "@/app/_components/form/GoogleAddressSearch";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import {
@@ -1068,7 +1070,7 @@ function RegistrationWizard({
         setLastSyncedPostcode(postcode);
       }
 
-      toast.success("Titik lokasi berhasil didapatkan");
+      toast.success("Titik lokasimu berhasil didapatkan");
 
       // Aktifkan cooldown (Antispam)
       setGpsCooldown(5);
@@ -2113,7 +2115,26 @@ function RegistrationWizard({
                         Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda
                       </p>
 
-                      {/* Manual Search Bar (Standalone) */}
+                      {/* Google Address Search (New Fitur) */}
+                      <GoogleAddressSearch
+                        onPlaceChange={(p) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            latitude: String(p.latitude),
+                            longitude: String(p.longitude),
+                            address_gmaps: p.address,
+                            // Jika pencarian mengembalikan kode pos, sinkronkan jika diperlukan
+                            postal_code: p.postcode || prev.postal_code,
+                          }));
+
+                          // Jika ada logika boundary, pindahkan center map ke hasil google ini
+                          // Map akan otomatis bergeser karena initialLatitude/Longitude berubah
+                        }}
+                        className="mb-4"
+                      />
+
+                      {/* Manual Search Bar (Standalone) - Commented for now in favor of Google Search */}
+                      {/*
                       <div className="relative mb-4">
                         <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
                           {searchQuery && (
@@ -2153,11 +2174,7 @@ function RegistrationWizard({
                                 isSearchingAddress ||
                                 searchCooldown > 0
                               }
-                              className={`px-3 py-2 mr-1 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center whitespace-nowrap ${
-                                searchCooldown > 0
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                                  : "bg-primary text-white hover:bg-primary/90 active:scale-95"
-                              }`}
+                              className={`px-3 py-2 mr-1 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center whitespace-nowrap`}
                             >
                               {searchCooldown > 0 ? (
                                 `Tunggu (${searchCooldown}s)`
@@ -2171,7 +2188,6 @@ function RegistrationWizard({
                           </div>
                         </div>
 
-                        {/* Suggestions Dropdown */}
                         {showSuggestions && searchSuggestions.length > 0 && (
                           <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-[250px] overflow-y-auto z-60 animate-in fade-in slide-in-from-top-2 duration-200">
                             {searchSuggestions.map((feat, idx) => (
@@ -2200,10 +2216,11 @@ function RegistrationWizard({
                           </div>
                         )}
                       </div>
+                      */}
 
                       <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
                         <div className="w-full h-full">
-                          <MapMapbox
+                          <MapLeaflet
                             initialLatitude={Number(formData.latitude || 0)}
                             initialLongitude={Number(formData.longitude || 0)}
                             isInteractive={true}
@@ -2469,7 +2486,7 @@ function RegistrationWizard({
 
                         {/* Map Mini Preview */}
                         <div className="mt-4 w-full h-[350px] rounded-xl overflow-hidden pointer-events-none opacity-80 border border-gray-200">
-                          <MapMapbox
+                          <MapLeaflet
                             initialLatitude={Number(formData.latitude || 0)}
                             initialLongitude={Number(formData.longitude || 0)}
                             isInteractive={false}
