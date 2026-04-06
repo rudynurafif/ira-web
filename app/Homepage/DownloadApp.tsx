@@ -78,7 +78,7 @@ const DownloadApp = () => {
       >
         <div className="w-full">
           {/* Desktop Banner */}
-          <div className="hidden sm:block">
+          <div className="hidden md:block">
             <Image
               src={desktopBannerDownload}
               alt="Download Aplikasi IRA Desktop"
@@ -89,7 +89,7 @@ const DownloadApp = () => {
             />
           </div>
           {/* Mobile Banner */}
-          <div className="sm:hidden">
+          <div className="md:hidden">
             <Image
               src={mobileBannerSspace}
               alt="Download Aplikasi IRA Mobile"

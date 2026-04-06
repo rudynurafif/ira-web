@@ -42,9 +42,11 @@ import {
   FaListUl,
   FaLocationDot,
   FaListCheck,
+  FaLock,
 } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
+import { VscSettings } from "react-icons/vsc";
 import MapMapbox from "@/app/_components/form/MapMapbox";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
@@ -126,7 +128,7 @@ function RegistrationWizard({
   const [formData, setFormData] = useState<FormType>(() => {
     // [OPTIMASI] Mapping awal dari initialData (API) ke FormType
     const base = { ...initialFormData, ...(initialData || {}) };
-    
+
     // Jika data datang dari API Customer Detail, petakan field yang berbeda
     if (initialData) {
       const d = initialData as any;
@@ -426,11 +428,10 @@ function RegistrationWizard({
   useBrowserDetection();
 
   useEffect(() => {
-    if (status === "denied") {
-      setIsOpenModalReqLoc(true);
+    if (status === "granted") {
+      setIsOpenModalReqLoc(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, step]);
+  }, [status]);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -561,7 +562,8 @@ function RegistrationWizard({
               setFormData((prev) => ({
                 ...prev,
                 postal_code_id: String(pcId),
-                postal_code: d.postal_code || d.postal_code_id?.name || prev.postal_code,
+                postal_code:
+                  d.postal_code || d.postal_code_id?.name || prev.postal_code,
               }));
               setIsPostalCodeManual(false);
               setLastSyncedPostcode(String(pcId));
@@ -575,17 +577,29 @@ function RegistrationWizard({
   }, [mode, initialData]);
 
   // -- Persistence Logic --
-  // 1. Load data from localStorage on Mount
+  // 1. Load data from sessionStorage on Mount
   useEffect(() => {
-    // [SAFETY] Jika mode Update Address, prioritaskan initialData daripada localStorage (mencegah data user lama nyangkut)
+    // [SAFETY] Jika mode Update Address, prioritaskan initialData daripada sessionStorage (mencegah data user lama nyangkut)
     if (mode === "update_address" && initialData) {
       return;
     }
 
-    const savedData = localStorage.getItem(PERSIST_KEY);
+    const savedData = sessionStorage.getItem(PERSIST_KEY);
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
+
+        // [NEW] Cek Expiry 60 Menit (3.600.000 ms)
+        const EXPIRY_MS = 60 * 60 * 1000;
+        const isExpired =
+          parsed.updatedAt && Date.now() - parsed.updatedAt > EXPIRY_MS;
+
+        if (isExpired) {
+          console.log("Registration session expired, starting fresh...");
+          clearPersistance();
+          return;
+        }
+
         if (parsed.formData) {
           // [BUGFIX] Jika user masih di Step 1, sebaiknya kita reset data lokasinya
           // agar tidak membingungkan (seolah terpilih otomatis padahal sisa data lama)
@@ -625,11 +639,22 @@ function RegistrationWizard({
     }
   }, []);
 
-  // 2. Save data to localStorage on Change
+  // 2. Save data to sessionStorage on Change
   useEffect(() => {
-    const dataToSave = { formData, step, selectedPackage, otpStatus };
-    localStorage.setItem(PERSIST_KEY, JSON.stringify(dataToSave));
+    const dataToSave = {
+      formData,
+      step,
+      selectedPackage,
+      otpStatus,
+      updatedAt: Date.now(),
+    };
+    sessionStorage.setItem(PERSIST_KEY, JSON.stringify(dataToSave));
   }, [formData, step, selectedPackage, otpStatus, PERSIST_KEY]);
+
+  // 3. Clear Storage helper
+  const clearPersistance = () => {
+    sessionStorage.removeItem(PERSIST_KEY);
+  };
 
   useEffect(() => {
     if (isModalRegisterSuccess) {
@@ -651,11 +676,6 @@ function RegistrationWizard({
       return () => clearTimeout(timeout);
     }
   }, [isModalRegisterSuccess, mode]);
-
-  // 3. Clear Storage helper
-  const clearPersistance = () => {
-    localStorage.removeItem(PERSIST_KEY);
-  };
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -960,6 +980,12 @@ function RegistrationWizard({
   const handleRequestLocation = async () => {
     if (isSyncingGPS || gpsCooldown > 0) return;
 
+    // [NEW] Jika sudah diblokir sebelumnya, langsung arahkan ke modal instruksi
+    if (status === "denied") {
+      setIsOpenModalReqLoc(true);
+      return;
+    }
+
     try {
       setIsSyncingGPS(true);
       const position = await requestLocation();
@@ -1042,7 +1068,7 @@ function RegistrationWizard({
         setLastSyncedPostcode(postcode);
       }
 
-      toast.success("Lokasi GPS berhasil didapatkan");
+      toast.success("Titik lokasi berhasil didapatkan");
 
       // Aktifkan cooldown (Antispam)
       setGpsCooldown(5);
@@ -1057,12 +1083,13 @@ function RegistrationWizard({
       }, 1000);
     } catch (err: any) {
       if (err.code === 1) {
+        // Jika user klik "Block" di pop-up browser, bantu dengan modal instruksi
+        setIsOpenModalReqLoc(true);
         toast.error(
           "Izin lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.",
         );
       } else {
-        console.error("GPS Sync Error:", err);
-        toast.error("Gagal sinkronasi lokasi.");
+        toast.error("Gagal mendapatkan lokasi GPS. Silakan coba lagi.");
       }
     } finally {
       setIsSyncingGPS(false);
@@ -1344,10 +1371,6 @@ function RegistrationWizard({
       window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  useEffect(() => {
-    if (status === "granted") setIsOpenModalReqLoc(true);
-  }, [status]);
-
   const handleSelect = (pkg: PackageData) => {
     // const isSame = selectedPackage?.id === pkg.id;
 
@@ -1365,33 +1388,6 @@ function RegistrationWizard({
     }));
     setErrors((prev) => ({ ...prev, package_id: "" }));
   };
-
-  const isFormDirty = () => {
-    return Object.values(formData).some(
-      (v) => v !== "" && v !== null && v !== undefined,
-    );
-  };
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!isFormDirty() || isLoading) return;
-
-      e.preventDefault();
-      e.returnValue = "";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, formData, step]);
-
-  // const isPasswordMismatch =
-  //   Boolean(formData.password) &&
-  //   Boolean(formData.confirm_password) &&
-  //   formData.password !== formData.confirm_password;
-
-  const isInvalid =
-    isLoading || status === "denied" || isCheckCoverage || isLoadingPackage;
 
   const handleNextStep1 = () => {
     // setStep(2);
@@ -1952,9 +1948,9 @@ function RegistrationWizard({
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-row flex-wrap gap-4 md:gap-6 mb-4 relative z-30">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 relative z-30">
                     {/* Kode Pos Area */}
-                    <div className="flex-1 min-w-[250px]">
+                    <div className="w-full">
                       {isPostalCodeManual ? (
                         <DynamicForm
                           label="Kode POS"
@@ -2011,7 +2007,7 @@ function RegistrationWizard({
                     </div>
 
                     {/* RT */}
-                    <div className="flex-1 min-w-[150px]">
+                    <div className="w-full">
                       <DynamicForm
                         label="RT (Opsional)"
                         isImportant={false}
@@ -2032,7 +2028,7 @@ function RegistrationWizard({
                     </div>
 
                     {/* RW */}
-                    <div className="flex-1 min-w-[150px]">
+                    <div className="w-full md:col-span-1">
                       <DynamicForm
                         label="RW (Opsional)"
                         isImportant={false}
@@ -2546,8 +2542,7 @@ function RegistrationWizard({
                   </button>
                   <button
                     type="submit"
-                    // disabled={isInvalid}
-                    className="flex-1 disabled:cursor-not-allowed px-4 py-3 rounded-xl bg-primary text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
+                    className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
                   >
                     {mode === "update_address"
                       ? "Simpan Alamat"
@@ -2591,6 +2586,67 @@ function RegistrationWizard({
                 />
               )}
             </div>
+          </div>
+        </ModalTemplate>
+      )}
+
+      {/* Modal Instruksi Request Location (Jika Denied) */}
+      {isOpenModalReqLoc && (
+        <ModalTemplate
+          closeModal={() => setIsOpenModalReqLoc(false)}
+          classNameModal="max-w-md p-6"
+        >
+          <div className="flex flex-col items-center gap-6">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+              <FaLocationDot className="text-red-500 text-3xl" />
+            </div>
+
+            <div className="space-y-3 text-center text-black">
+              <h3 className="text-xl font-bold">
+                Izin Akses Lokasi Dibutuhkan
+              </h3>
+              <p className="text-sm leading-relaxed">
+                Anda belum mengizinkan akses lokasi di browser. Kami membutuhkan
+                akses lokasi untuk mendeteksi ketersediaan jaringan Internet
+                Rakyat (IRA) di area Anda secara akurat.
+              </p>
+
+              <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 border border-gray-100 mt-2">
+                <p className="text-xs font-bold text-gray-900">
+                  Cara mengizinkan:
+                </p>
+                <ul className="text-xs text-gray-600 list-decimal pl-4 space-y-1">
+                  <li>
+                    Klik ikon{" "}
+                    <span className="font-bold inline-flex items-center gap-1 text-gray-800">
+                      Gembok <FaLock />
+                    </span>{" "}
+                    atau{" "}
+                    <span className="font-bold text-gray-800 inline-flex items-center gap-1">
+                      Setelan <VscSettings className="text-sm" />
+                    </span>{" "}
+                    di sebelah kiri alamat website (URL) browser Anda.
+                  </li>
+                  <li>
+                    Cari bagian{" "}
+                    <span className="font-bold text-gray-800">Lokasi</span>.
+                  </li>
+                  <li>
+                    Ubah setelan menjadi{" "}
+                    <span className="font-bold">Izinkan/Allow</span>.
+                  </li>
+                  <li>Refresh halaman jika diperlukan.</li>
+                </ul>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsOpenModalReqLoc(false)}
+              className="w-full py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 mt-2"
+            >
+              Saya Mengerti
+            </button>
           </div>
         </ModalTemplate>
       )}
