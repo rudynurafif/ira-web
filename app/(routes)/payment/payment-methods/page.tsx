@@ -4,10 +4,10 @@ import React, { useEffect, useState } from "react";
 
 import toast from "react-hot-toast";
 import {
-  createPaymentRequestEWallet,
-  createPaymentRequestOTC,
-  createPaymentRequestQRIS,
   createPaymentRequestVA,
+  createPaymentRequestEWallet,
+  createPaymentRequestQRIS,
+  createPaymentRequestOTC,
   getPaymentChannel,
 } from "@/app/_api/Payment/Payment";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,6 +23,12 @@ import { checkPackage } from "@/app/_api/Customer/CustomerArea";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Image from "next/image";
 import limitImage from "@/public/assets/Images/limit-images.png";
+import {
+  createPaymentRequestEWalletMicrosite,
+  createPaymentRequestOTCMicrosite,
+  createPaymentRequestQRISVA,
+  createPaymentRequestVAMicrosite,
+} from "@/app/_api/Payment/Payment-Microsite";
 
 // Mapping code API -> gambar lokal
 
@@ -60,6 +66,9 @@ const PaymentMehods = () => {
   // const { isLoggedIn } = useAppSelector((state) => state.auth);
   const [isCreatePayment, setIsCreatePayment] = useState(false);
   const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
+
+  const { userInfo } = useAppSelector((state) => state.auth);
+  // console.log("user Info: ", userInfo);
 
   // useEffect(() => {
   //   if (!isLoggedIn) {
@@ -172,16 +181,24 @@ const PaymentMehods = () => {
 
       switch (selectedChannel.category) {
         case "va":
-          createRes = createPaymentRequestVA(payload);
-          break;
-        case "qris":
-          createRes = createPaymentRequestQRIS(payload);
+          createRes = userInfo
+            ? createPaymentRequestVA(payload)
+            : createPaymentRequestVAMicrosite(payload);
           break;
         case "ewallet":
-          createRes = createPaymentRequestEWallet(payload);
+          createRes = userInfo
+            ? createPaymentRequestEWallet(payload)
+            : createPaymentRequestEWalletMicrosite(payload);
+          break;
+        case "qris":
+          createRes = userInfo
+            ? createPaymentRequestQRIS(payload)
+            : createPaymentRequestQRISVA(payload);
           break;
         case "otc":
-          createRes = createPaymentRequestOTC(payload);
+          createRes = userInfo
+            ? createPaymentRequestOTC(payload)
+            : createPaymentRequestOTCMicrosite(payload);
           break;
         case "card":
           toast.error(
@@ -406,6 +423,7 @@ const PaymentMehods = () => {
 
         <button
           onClick={handleCreatePayment}
+          disabled={isCreatePayment}
           className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-full sm:rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed! disabled:bg-slate-400"
         >
           <span>{isCreatePayment ? "Mohon menunggu.." : "Bayar"}</span>

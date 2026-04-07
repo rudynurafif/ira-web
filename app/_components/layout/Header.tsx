@@ -292,7 +292,12 @@ function Header() {
     );
   };
 
-  const excludedPaths = ["/", "/auth/register", "/check-coverage"];
+  const excludedPaths = [
+    "/",
+    "/auth/register",
+    "/check-coverage",
+    "/payment-billing",
+  ];
   const isExcluded = excludedPaths.includes(pathname || "");
 
   if (isExcluded) {
