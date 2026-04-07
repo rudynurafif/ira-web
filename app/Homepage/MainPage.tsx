@@ -103,7 +103,7 @@ function MainPage() {
 
   const FirstSlideContent = () => (
     <div
-      className="relative cursor-pointer md:bg-[url('/assets/Images/bg-section-1.webp')] bg-[url('/assets/Images/bg-section-1-mobile.webp')] bg-size-[100%_100%] md:bg-cover bg-top md:bg-center bg-no-repeat text-white max-sm:w-full max-sm:aspect-1170/2205 md:min-h-screen"
+      className="relative cursor-pointer md:bg-[url('/assets/Images/bg-section-1.webp')] bg-[url('/assets/Images/bg-section-1-mobile.webp')] bg-[length:100%_100%] md:bg-[length:100%_auto] bg-top md:bg-center bg-no-repeat text-white max-md:w-full max-md:aspect-1170/2205 md:w-full md:aspect-1920/1080"
       onClick={handleClickBanner}
     >
       {/* Original Section */}

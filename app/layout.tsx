@@ -97,7 +97,7 @@ export default function RootLayout({
           `}
         </Script>
       </body>
-      <GoogleAnalytics gaId={"G-F36SCC718L"} />
+      {/* <GoogleAnalytics gaId={"G-F36SCC718L"} /> */}
     </html>
   );
 }

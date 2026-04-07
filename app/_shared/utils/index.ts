@@ -480,7 +480,7 @@ export const handleDownloadClick = (type: "google" | "apple" | "web"): void => {
         (window as any).fbq("track", "CustomizeProduct");
       }
       if (typeof (window as any).ttq === "object" && type !== "web") {
-        (window as any).ttq.track('Download');
+        (window as any).ttq.track("Download");
       }
     }
 
