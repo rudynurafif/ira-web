@@ -45,6 +45,8 @@ const Page = () => {
     longitude: number | null;
   }>({ latitude: null, longitude: null });
 
+  
+
   const getUserLocation = (): Promise<{
     latitude: number;
     longitude: number;

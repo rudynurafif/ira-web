@@ -8,13 +8,14 @@ import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
 import bannerPanduanMobile from "@/public/assets/Images/bannerPanduanMobile.png";
-import bannerCS from "@/public/assets/Images/bannerCS.png";
+import bannerCS from "@/public/assets/Images/bannerCSnew.png";
 import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import bannerCubmu from "@/public/assets/Images/banner-cubmu.png";
 import bannerCubmuMobile from "@/public/assets/Images/banner-cubmu-mobile.png";
 import ActivePackageCard from "./ActivePackageCard";
 import {
   convertToCurrency2,
+  handleDownloadClick,
   packageCountdown,
   toastErrorFromAPI,
 } from "@/app/_shared/utils";
@@ -92,6 +93,39 @@ const PackageAndHistory = () => {
       console.log("hasPendingPayment: ", hasPendingPayment);
     } catch (err: any) {
       console.error("Gagal get current payment:", err);
+    }
+  };
+
+  const handleClickBanner = () => {
+    if (typeof window === "undefined") return;
+
+    const ua = navigator.userAgent.toLowerCase();
+    const isApple = /mac|iphone|ipad|ipod/.test(ua);
+
+    if (isApple) {
+      // iOS: Ganti 'internetrakyat://' dengan scheme dari dev jika berbeda
+      const appStoreUrl =
+        "https://apps.apple.com/id/app/internet-rakyat/id6758337694";
+      const appScheme = "internetrakyat://";
+
+      window.location.href = appScheme;
+      setTimeout(() => {
+        if (document.hasFocus()) {
+          window.location.href = appStoreUrl;
+        }
+      }, 1500);
+    } else {
+      // Android: Ganti 'internetrakyat://' dengan scheme dari dev jika berbeda
+      const playStoreUrl =
+        "https://play.google.com/store/apps/details?id=com.weave.ira";
+      const appScheme = "internetrakyat://";
+
+      window.location.href = appScheme;
+      setTimeout(() => {
+        if (document.hasFocus()) {
+          window.location.href = playStoreUrl;
+        }
+      }, 1500);
     }
   };
 
@@ -300,7 +334,7 @@ const PackageAndHistory = () => {
           </div>
 
           {/* Desktop Beli Lagi */}
-          {!activePacketData?.billing_id[0]?.invoice_id[0]?.is_free && (
+          {
             <div className="relative min-w-25 cursor-pointer hidden sm:block hover:scale-110 transition-transform">
               <Image
                 src="/assets/Images/button-beli-lagi-home.png"
@@ -326,11 +360,11 @@ const PackageAndHistory = () => {
                 />
               </div>
             </div>
-          )}
+          }
         </div>
 
         {/* Beli Lagi Mobile */}
-        {!activePacketData?.billing_id[0]?.invoice_id[0]?.is_free && (
+        {
           <div className="relative w-full h-15 my-3 sm:hidden">
             <button
               className="relative w-full z-10 cursor-pointer border-white border-3 rounded-xl px-6 py-3 bg-gradient-red-light text-white font-bold text-lg flex justify-center items-center gap-2"
@@ -363,7 +397,7 @@ const PackageAndHistory = () => {
               />
             </div>
           </div>
-        )}
+        }
       </div>
     );
   };
@@ -436,10 +470,10 @@ const PackageAndHistory = () => {
         )}
 
         <Image
-          src={bannerCSMobile}
+          src={bannerCS}
           alt="banner CS"
           className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
-          onClick={() => window.open(`https://wa.me/${phoneCS}`, "_blank")}
+          onClick={() => handleClickBanner()}
         />
 
         {activePacketData?.package_id && <LatestPackage />}
@@ -523,7 +557,7 @@ const PackageAndHistory = () => {
             src={bannerCS}
             alt="banner CS"
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
-            onClick={() => window.open(`https://wa.me/${phoneCS}`, "_blank")}
+            onClick={() => handleClickBanner()}
           />
         </div>
 

@@ -89,7 +89,7 @@ function Page() {
           <div className="space-y-3 text-sm">
             {[
               {
-                label: "Nomor Pelanggan",
+                label: "ID Pelanggan",
                 value: dataPayment?.customer_code ?? "-",
               },
               {
@@ -97,7 +97,7 @@ function Page() {
                 value: dataPayment?.name ?? "-",
               },
               {
-                label: "Nomor Handphone",
+                label: "Nomor Handphone Pelanggan",
                 value: dataPayment?.phone_number ?? "-",
               },
             ].map((row) => (
@@ -112,7 +112,7 @@ function Page() {
         {/* Package Card */}
         <div className="border border-gray-200 rounded-2xl p-5 mb-6 shadow-lg">
           <h2 className="font-bold text-base text-gray-900 mb-4">
-            Paket yang terakhir dibeli
+            Paket yang Terakhir Dibeli
           </h2>
           {listPackage.length > 0 ? (
             <div className="space-y-3">
@@ -123,7 +123,10 @@ function Page() {
                   selected={selectedPackage?.id === item.id}
                   onSelect={(pkg) => {
                     setSelectedPackage(pkg);
-                    sessionStorage.setItem("selectedPackage", JSON.stringify(pkg));
+                    sessionStorage.setItem(
+                      "selectedPackage",
+                      JSON.stringify(pkg),
+                    );
                   }}
                   convertToCurrency={convertToCurrency}
                 />

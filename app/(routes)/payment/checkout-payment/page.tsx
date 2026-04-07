@@ -18,7 +18,6 @@ import Loader from "@/app/_components/Loader";
 import EWallet from "./_components/EWallet/EWallet";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Image from "next/image";
-import { userInfo } from "os";
 import { getCurrentPaymentMicrosite } from "@/app/_api/Payment/Payment-Microsite";
 import { useAppSelector } from "@/app/store/store";
 
@@ -56,7 +55,11 @@ function Page() {
 
       if (res?.data?.data === null) {
         toast.error("Terjadi kesalahan. Silakan pilih paket kembali");
-        router.push("/payment");
+        if (userInfo) {
+          router.push("/payment");
+        } else {
+          router.push("/payment-billing");
+        }
         return;
       }
 
