@@ -6,13 +6,15 @@ import { dmSans } from "@/app/_shared/font/font";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
-import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { getPackageListMicrosite } from "@/app/_api/Payment/Payment-Microsite";
 import Image from "next/image";
 import personPayment from "@/public/assets/Images/person-payment-1.webp";
 
+import { useAppSelector } from "@/app/store/store";
+
 function Page() {
   const router = useRouter();
+  const { isLoggedIn } = useAppSelector((state) => state.auth);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [customerId, setCustomerId] = useState<string>("");
@@ -20,6 +22,16 @@ function Page() {
   const [placeholder, setPlaceholder] = useState(
     "Masukkan ID pelanggan atau Nomor Telepon Pelanggan",
   );
+
+  // Redirect jika user sudah login mencoba akses halaman tamu ini
+  React.useEffect(() => {
+    if (isLoggedIn) {
+      toast.success(
+        "Anda sudah login, silakan lanjutkan pembayaran di halaman ini",
+      );
+      router.push("/payment");
+    }
+  }, [isLoggedIn, router]);
 
   // Deteksi ukuran layar untuk ganti placeholder (Mobile vs Desktop)
   React.useEffect(() => {

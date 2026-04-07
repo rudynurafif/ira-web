@@ -257,7 +257,7 @@ function VA({ data }: { data: UnifiedPaymentData }) {
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className={`${isLoadingStatus ? "opacity-50" : "hover:bg-dark-primary-2"} bg-primary text-white disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-full font-bold w-full max-sm:text-sm py-3`}
+          className={`${isLoadingStatus ? "opacity-50" : "hover:bg-dark-primary-2"} bg-primary text-white disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-full sm:rounded-lg font-bold w-full max-sm:text-sm py-3`}
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>
@@ -270,7 +270,7 @@ function VA({ data }: { data: UnifiedPaymentData }) {
         >
           {paymentStatus ? (
             <>
-              <h2 className="text-xl font-bold text-green-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-green-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Berhasil! 🎉
               </h2>
               <div className="flex justify-center my-4">
@@ -285,7 +285,7 @@ function VA({ data }: { data: UnifiedPaymentData }) {
             </>
           ) : (
             <>
-              <h2 className="text-xl font-bold text-red-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-red-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Belum Berhasil
               </h2>
               <div className="flex justify-center my-4">

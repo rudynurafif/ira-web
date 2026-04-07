@@ -227,7 +227,7 @@ function Outlet({ data }: { data: UnifiedPaymentData }) {
         >
           {paymentStatus ? (
             <>
-              <h2 className="text-xl font-bold text-green-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-green-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Berhasil! 🎉
               </h2>
               <div className="flex justify-center my-4">
@@ -242,7 +242,7 @@ function Outlet({ data }: { data: UnifiedPaymentData }) {
             </>
           ) : (
             <>
-              <h2 className="text-xl font-bold text-red-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-red-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Belum Berhasil
               </h2>
               <div className="flex justify-center my-4">

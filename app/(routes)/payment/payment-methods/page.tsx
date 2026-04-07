@@ -69,7 +69,6 @@ const PaymentMehods = () => {
   const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
   const { userInfo } = useAppSelector((state) => state.auth);
-  console.log("user Info: ", userInfo);
 
   // useEffect(() => {
   //   if (!isLoggedIn) {
