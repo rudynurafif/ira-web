@@ -18,6 +18,9 @@ import Loader from "@/app/_components/Loader";
 import EWallet from "./_components/EWallet/EWallet";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Image from "next/image";
+import { userInfo } from "os";
+import { getCurrentPaymentMicrosite } from "@/app/_api/Payment/Payment-Microsite";
+import { useAppSelector } from "@/app/store/store";
 
 function Page() {
   const router = useRouter();
@@ -39,13 +42,17 @@ function Page() {
     }
   };
 
+  const { userInfo } = useAppSelector((state) => state.auth);
+
   const getCurrentPaymentData = async () => {
     try {
       const customerId = sessionStorage.getItem("customer_id");
       const params = {
         customer_code: customerId,
       };
-      const res = await getCurrentPayment(params);
+      const res = userInfo
+        ? await getCurrentPayment(params)
+        : await getCurrentPaymentMicrosite(params);
 
       if (res?.data?.data === null) {
         toast.error("Terjadi kesalahan. Silakan pilih paket kembali");

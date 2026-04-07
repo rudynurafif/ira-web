@@ -20,6 +20,8 @@ import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Lottie from "lottie-react";
 import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
 import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
+import { useAppSelector } from "@/app/store/store";
+import { getPaymentStatusMicrosite } from "@/app/_api/Payment/Payment-Microsite";
 
 function VA({ data }: { data: UnifiedPaymentData }) {
   const router = useRouter();
@@ -34,6 +36,8 @@ function VA({ data }: { data: UnifiedPaymentData }) {
   const [paymentStatus, setPaymentStatus] = useState<boolean | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
 
+  const { userInfo } = useAppSelector((state) => state.auth);
+
   const checkPaymentStatus = async () => {
     setIsLoadingStatus(true);
 
@@ -42,7 +46,9 @@ function VA({ data }: { data: UnifiedPaymentData }) {
       const params = {
         customer_code: customerId,
       };
-      const res_status = await getPaymentStatus(params);
+      const res_status = userInfo
+        ? await getPaymentStatus(params)
+        : await getPaymentStatusMicrosite(params);
       const isPaid = res_status?.data?.data;
 
       setPaymentStatus(isPaid);
