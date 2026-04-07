@@ -16,8 +16,25 @@ function Page() {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [customerId, setCustomerId] = useState<string>("");
-  const [showId, setShowId] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [placeholder, setPlaceholder] = useState(
+    "Masukkan ID pelanggan atau Nomor Telepon Pelanggan",
+  );
+
+  // Deteksi ukuran layar untuk ganti placeholder (Mobile vs Desktop)
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setPlaceholder("Masukkan ID / No HP pelanggan");
+      } else {
+        setPlaceholder("Masukkan ID pelanggan atau Nomor Telepon Pelanggan");
+      }
+    };
+
+    handleResize(); // Jalankan saat mount
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   async function getListPackage(fetchedDataPayment: any) {
     try {
@@ -78,12 +95,17 @@ function Page() {
       <div className="relative z-10">
         <FloatingNavbar />
 
-        <div className="px-4 md:px-6 pt-28 md:pt-48 pb-10">
+        <div className="px-4 md:px-6 pt-24 md:pt-48 pb-10">
           <div className="w-full max-w-[1200px] mx-auto">
+            {/* Judul khusus mobile (teks putih di atas box) */}
+            <h1 className="lg:hidden text-2xl text-white text-center font-bold mb-6">
+              Pembayaran Manual
+            </h1>
+
             <div className="w-full rounded-3xl md:rounded-[40px] bg-[#a80f0f] shadow-[0_20px_60px_rgba(164,18,18,0.4)] overflow-visible relative flex flex-col lg:flex-row min-h-[500px] border-2 border-white mb-10">
               {/* Person image */}
               <div
-                className="w-full lg:w-[45%] relative flex justify-center items-end min-h-[250px] md:min-h-[320px] lg:min-h-[500px] max-lg:mt-20"
+                className="w-full lg:w-[45%] relative flex justify-center items-end min-h-[300px] md:min-h-[320px] lg:min-h-[500px] max-lg:mt-20"
                 style={{ clipPath: "inset(-200% -200% 0 -200%)" }}
               >
                 <div className="absolute inset-x-0 bottom-0 w-full flex justify-center lg:justify-end items-end h-full z-30 pointer-events-none">
@@ -107,55 +129,40 @@ function Page() {
                     ← Kembali
                   </button>
 
-                  <h1 className="text-2xl text-center font-bold text-old-primary mb-3">
+                  <h1 className="text-2xl text-center font-bold text-old-primary mb-6">
                     Pembayaran Manual
                   </h1>
-                  <p className="text-sm text-center  mb-6">
-                    Masukkan nomor pelanggan untuk melakukan pembayaran
+                  <p className="text-sm mb-3">
+                    Masukkan ID pelanggan atau Nomor Telepon pelanggan untuk
+                    melakukan pembayaran
                   </p>
 
                   <form onSubmit={paymentBilling}>
                     <div>
-                      <label
-                        className="text-gray-500 text-sm font-medium"
-                        htmlFor="customer-id"
-                      >
-                        Nomor Pelanggan / Nomor Telepon Pelanggan
-                      </label>
-                      <div className="relative mt-2">
+                      <div className="relative">
                         <input
                           name="customer-id"
                           id="customer-id"
                           type="text"
                           autoComplete="off"
                           disabled={isLoading}
-                          style={
-                            !showId
-                              ? ({
-                                  WebkitTextSecurity: "disc",
-                                } as React.CSSProperties)
-                              : undefined
-                          }
-                          className={`bg-[#fbfbfb] rounded-xl border text-black w-full py-3 px-4 pr-12 transition-colors focus:outline-none focus:border-primary ${
-                            errors.customerId
-                              ? "border-red-500"
-                              : "border-[#D5D5D5]"
-                          }`}
-                          placeholder="+62 899-9292-9929"
+                          className={`bg-[#fbfbfb] rounded-xl border text-black w-full py-3 px-4 pr-12 transition-colors focus:outline-none focus:border-primary 
+                            placeholder:text-[12px] md:placeholder:text-[16px] ${
+                              errors.customerId
+                                ? "border-red-500"
+                                : "border-[#D5D5D5]"
+                            }`}
+                          maxLength={15}
+                          placeholder={placeholder}
                           value={customerId}
-                          onChange={(e) => setCustomerId(e.target.value)}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(
+                              /[^a-zA-Z0-9]/g,
+                              "",
+                            );
+                            setCustomerId(val);
+                          }}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowId(!showId)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showId ? (
-                            <IoEyeOffOutline size={20} />
-                          ) : (
-                            <IoEyeOutline size={20} />
-                          )}
-                        </button>
                       </div>
                       {errors.customerId && (
                         <p className="text-sm text-red-500 mt-1">
@@ -173,7 +180,7 @@ function Page() {
                           : "bg-primary hover:bg-dark-primary-2"
                       }`}
                     >
-                      {isLoading ? "Loading..." : "Lanjut ke Pembayaran"}
+                      {isLoading ? "Mohon menunggu..." : "Lanjut ke Pembayaran"}
                     </button>
                   </form>
                 </div>

@@ -51,6 +51,22 @@ function VA({ data }: { data: UnifiedPaymentData }) {
         : await getPaymentStatusMicrosite(params);
       const isPaid = res_status?.data?.data;
 
+      // Non-login + success → halaman khusus (bukan modal)
+      if (!userInfo && isPaid === true) {
+        const selectedPkg = JSON.parse(sessionStorage.getItem("selectedPackage") || "{}");
+        const selectedMethod = JSON.parse(sessionStorage.getItem("selectedPaymentMethod") || "{}");
+        sessionStorage.setItem("paymentSuccessData", JSON.stringify({
+          invoiceRef: data.reference_id || data.payment_attempt?.reference_id || data.id || "-",
+          customerId: customerId || data.customer_id?.customer_code || "-",
+          description: selectedPkg?.name || data.package_id?.name || "-",
+          paidAt: new Date().toISOString(),
+          paymentMethod: selectedMethod?.name || data.channel_payment_id?.name || data.channel_code || "-",
+          amount: Number(data.amount) || selectedPkg?.price || 0,
+        }));
+        router.push("/payment-billing/success");
+        return;
+      }
+
       setPaymentStatus(isPaid);
       setShowResultModal(true);
     } catch (err: any) {

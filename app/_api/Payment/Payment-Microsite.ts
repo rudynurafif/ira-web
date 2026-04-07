@@ -13,6 +13,20 @@ export const getPaymentMicrosite = async (body: any) => {
   }
 };
 
+export const checkPackageMicrosite = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: `/app/transaction/check-status-customer-microsite`,
+      method: "POST",
+      data: body,
+    });
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getPackageListMicrosite = async (params: any) => {
   try {
     const data = await FwaAxios({
@@ -27,10 +41,10 @@ export const getPackageListMicrosite = async (params: any) => {
   }
 };
 
-export const getPaymentChannel = async (params: any) => {
+export const getPaymentChannelMicrosite = async (params: any) => {
   try {
     const data = await FwaAxios({
-      url: "/app/transaction/va-bank",
+      url: "/app/transaction/va-bank-microsite",
       method: "GET",
       params: params,
     });

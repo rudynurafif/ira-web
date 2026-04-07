@@ -66,6 +66,21 @@ const Page = () => {
 
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  // ─── Non-login e-wallet redirect ────────────────────────────────────────────
+  // Jika Xendit redirect ke /customer-area?payment-success=true dan user tidak login,
+  // middleware akan melempar ke sini. Kita langsung teruskan ke halaman sukses.
+  useEffect(() => {
+    const paymentSuccess = searchParams.get("payment-success");
+    if (paymentSuccess === "true") {
+      console.log(
+        "Detecting guest payment success, redirecting to success page...",
+      );
+      router.replace("/payment-billing/success");
+    } else if (paymentSuccess === "false") {
+      router.replace("/payment-billing");
+    }
+  }, [searchParams, router]);
+
   const bodyToken = useMemo(
     () => ({
       fcm_token: fcmToken,
