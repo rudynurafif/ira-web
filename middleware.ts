@@ -13,6 +13,7 @@ function handleAuthLogic(req: NextRequest, pathname: string) {
     "/terms-and-condition",
     "/sentry-example-page",
     "/payment-billing",
+    "/payment-billing/success",
     "/payment",
     "/payment/payment-methods",
     "/payment/checkout-payment",

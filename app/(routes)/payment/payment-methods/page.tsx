@@ -4,10 +4,10 @@ import React, { useEffect, useState } from "react";
 
 import toast from "react-hot-toast";
 import {
-  createPaymentRequestEWallet,
-  createPaymentRequestOTC,
-  createPaymentRequestQRIS,
   createPaymentRequestVA,
+  createPaymentRequestEWallet,
+  createPaymentRequestQRIS,
+  createPaymentRequestOTC,
   getPaymentChannel,
 } from "@/app/_api/Payment/Payment";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,6 +23,13 @@ import { checkPackage } from "@/app/_api/Customer/CustomerArea";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Image from "next/image";
 import limitImage from "@/public/assets/Images/limit-images.png";
+import {
+  checkPackageMicrosite,
+  createPaymentRequestEWalletMicrosite,
+  createPaymentRequestOTCMicrosite,
+  createPaymentRequestQRISVA,
+  createPaymentRequestVAMicrosite,
+} from "@/app/_api/Payment/Payment-Microsite";
 
 // Mapping code API -> gambar lokal
 
@@ -61,6 +68,9 @@ const PaymentMehods = () => {
   const [isCreatePayment, setIsCreatePayment] = useState(false);
   const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
+  const { userInfo } = useAppSelector((state) => state.auth);
+  console.log("user Info: ", userInfo);
+
   // useEffect(() => {
   //   if (!isLoggedIn) {
   //     const currentPath = window.location.pathname;
@@ -78,13 +88,22 @@ const PaymentMehods = () => {
   useEffect(() => {
     if (!selectedPackage) {
       toast.error("Informasi paket hilang, silakan pilih ulang.");
-      router.push("/payment");
+      if (userInfo) {
+        router.push("/payment");
+      } else {
+        router.push("/payment-billing");
+      }
     }
-  }, [router, selectedPackage]);
+  }, [router, selectedPackage, userInfo]);
+
+  const customerCode =
+    userInfo?.customer_code || sessionStorage.getItem("customer_id");
 
   const handleCheckPackage: () => Promise<void> = async () => {
     try {
-      const res = await checkPackage();
+      const res = userInfo
+        ? await checkPackage()
+        : await checkPackageMicrosite({ payload: customerCode });
 
       if (res?.data?.data === false) {
         setOpenModalNotAllowed(true);
@@ -94,9 +113,18 @@ const PaymentMehods = () => {
     }
   };
 
-  // useEffect(() => {
-  //   handleCheckPackage();
-  // }, []);
+  useEffect(() => {
+    const initPage = async () => {
+      // Tunggu sampai userInfo stabil (login) atau ada customer_id (microsite)
+      if (userInfo || sessionStorage.getItem("customer_id")) {
+        await handleCheckPackage();
+        fetchData();
+      }
+    };
+
+    initPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo]);
 
   // Filter by category
   const virtualAccounts = paymentChannels.filter(
@@ -137,10 +165,7 @@ const PaymentMehods = () => {
     }
   };
 
-  useEffect(() => {
-    // if (isLoggedIn) fetchData();
-    fetchData();
-  }, []);
+  // fetchData dipicu oleh useEffect inisialisasi di atas secara berurutan
 
   const handleCreatePayment = async () => {
     if (!selectedChannel) return;
@@ -172,16 +197,24 @@ const PaymentMehods = () => {
 
       switch (selectedChannel.category) {
         case "va":
-          createRes = createPaymentRequestVA(payload);
-          break;
-        case "qris":
-          createRes = createPaymentRequestQRIS(payload);
+          createRes = userInfo
+            ? createPaymentRequestVA(payload)
+            : createPaymentRequestVAMicrosite(payload);
           break;
         case "ewallet":
-          createRes = createPaymentRequestEWallet(payload);
+          createRes = userInfo
+            ? createPaymentRequestEWallet(payload)
+            : createPaymentRequestEWalletMicrosite(payload);
+          break;
+        case "qris":
+          createRes = userInfo
+            ? createPaymentRequestQRIS(payload)
+            : createPaymentRequestQRISVA(payload);
           break;
         case "otc":
-          createRes = createPaymentRequestOTC(payload);
+          createRes = userInfo
+            ? createPaymentRequestOTC(payload)
+            : createPaymentRequestOTCMicrosite(payload);
           break;
         case "card":
           toast.error(
@@ -213,6 +246,26 @@ const PaymentMehods = () => {
             `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
           );
         } else if (selectedChannel.category === "ewallet" && url) {
+          // ─── GUEST FLOW SUCCESS DATA ──────────────────────────────────────────
+          // Simpan data pembayaran ke sessionStorage sebelum redirect ke Xendit.
+          // Ini digunakan oleh interseptor di /auth/login untuk meneruskan user
+          // non-login langsung ke halaman sukses pembayaran (/payment-billing/success).
+          if (!userInfo) {
+            const cid = sessionStorage.getItem("customer_id") || "-";
+            sessionStorage.setItem(
+              "paymentSuccessData",
+              JSON.stringify({
+                invoiceRef: data.reference_id || data.id || "-",
+                customerId: cid,
+                description: selectedPackage?.name || "-",
+                paidAt: new Date().toISOString(),
+                paymentMethod: selectedChannel.name || "E-Wallet",
+                amount: Number(data.amount) || selectedPackage?.price || 0,
+              }),
+            );
+            console.log("Guest payment data saved for success redirect.");
+          }
+
           window.location.href = url;
           // window.open(url, "_blank");
         } else {
@@ -234,21 +287,21 @@ const PaymentMehods = () => {
   if (isLoading) return <ChannelsSkeleton />;
 
   return (
-    <div className="container mx-auto my-8 sm:p-6">
-      <div className="flex gap-2 items-center mb-6 max-sm:ml-4">
+    <div className="container mx-auto my-8 sm:p-6 ">
+      <div className="relative flex items-center mb-6 max-sm:mx-4">
         <MdOutlineKeyboardArrowLeft
-          className="cursor-pointer w-fit"
+          className="cursor-pointer shrink-0"
           onClick={() => router.back()}
           size={30}
         />
-        <h2 className="sm:text-3xl text-xl font-bold text-gray-800">
+        <h2 className="absolute left-1/2 -translate-x-1/2 sm:text-3xl text-xl font-bold text-old-primary whitespace-nowrap">
           Metode Pembayaran
         </h2>
       </div>
       {/* Modal Header */}
-      <div className="bg-white sm:rounded-xl sm:shadow-lg p-6 ">
+      <div className="bg-white  max-sm:mx-3">
         {/* Virtual Account */}
-        <div className="mb-6">
+        <div className="mb-6 rounded-xl sm:shadow-lg p-6 border-2 border-gray-200">
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
             Virtual Account
           </h3>
@@ -281,7 +334,7 @@ const PaymentMehods = () => {
         </div>
 
         {/* E-Wallet */}
-        <div className="mb-6">
+        <div className="mb-6 rounded-xl sm:shadow-lg p-6 border-2 border-gray-200">
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
             E-Wallet
           </h3>
@@ -341,7 +394,7 @@ const PaymentMehods = () => {
         </div> */}
 
         {/* QRIS */}
-        <div className="mb-6">
+        <div className="mb-6 rounded-xl sm:shadow-lg p-6 border-2 border-gray-200">
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
             QRIS
           </h3>
@@ -374,7 +427,7 @@ const PaymentMehods = () => {
         </div>
 
         {/* Outlet */}
-        <div className="mb-6">
+        <div className="mb-6  rounded-xl sm:shadow-lg p-6 border-2 border-gray-200">
           <h3 className="text-lg font-semibold text-gray-spectrum-800 mb-3">
             Outlet
           </h3>
@@ -406,6 +459,7 @@ const PaymentMehods = () => {
 
         <button
           onClick={handleCreatePayment}
+          disabled={isCreatePayment}
           className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-full sm:rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed! disabled:bg-slate-400"
         >
           <span>{isCreatePayment ? "Mohon menunggu.." : "Bayar"}</span>
@@ -417,7 +471,11 @@ const PaymentMehods = () => {
         <ModalTemplate
           closeModal={() => {
             setOpenModalNotAllowed(false);
-            router.push("/customer-area");
+            if (userInfo) {
+              router.push("/customer-area");
+            } else {
+              router.push("/payment-billing");
+            }
           }}
         >
           <div className="p-6 mt-6">
@@ -441,9 +499,14 @@ const PaymentMehods = () => {
             </div>
 
             <button
+              className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-full sm:rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed! disabled:bg-slate-400"
               onClick={() => {
                 setOpenModalNotAllowed(false);
-                router.push("/customer-area");
+                if (userInfo) {
+                  router.push("/customer-area");
+                } else {
+                  router.push("/payment-billing");
+                }
               }}
             >
               Oke, Mengerti

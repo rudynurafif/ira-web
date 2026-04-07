@@ -13,6 +13,8 @@ import Lottie from "lottie-react";
 import successAnimation from "@/public/assets/Icons/SuccessAnimation.json";
 import failedAnimation from "@/public/assets/Icons/FailedAnimation.json";
 import toast from "react-hot-toast";
+import { useAppSelector } from "@/app/store/store";
+import { getPaymentStatusMicrosite } from "@/app/_api/Payment/Payment-Microsite";
 
 const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
   const [checkOutUrl, setCheckOutUrl] = useState<string | null>(null);
@@ -29,6 +31,8 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
   const type = params.get("type");
   const selected = params.get("selected_payment");
 
+  const { userInfo } = useAppSelector((state) => state.auth);
+
   const checkPaymentStatus = async () => {
     setIsLoadingStatus(true);
 
@@ -37,8 +41,41 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
       const params = {
         customer_code: customerId,
       };
-      const res_status = await getPaymentStatus(params);
+      const res_status = userInfo
+        ? await getPaymentStatus(params)
+        : await getPaymentStatusMicrosite(params);
       const isPaid = res_status?.data?.data;
+
+      // Non-login + success → halaman khusus (bukan modal)
+      if (!userInfo && isPaid === true) {
+        const selectedPkg = JSON.parse(
+          sessionStorage.getItem("selectedPackage") || "{}",
+        );
+        const selectedMethod = JSON.parse(
+          sessionStorage.getItem("selectedPaymentMethod") || "{}",
+        );
+        sessionStorage.setItem(
+          "paymentSuccessData",
+          JSON.stringify({
+            invoiceRef:
+              data.reference_id ||
+              data.payment_attempt?.reference_id ||
+              data.id ||
+              "-",
+            customerId: customerId || data.customer_id?.customer_code || "-",
+            description: selectedPkg?.name || data.package_id?.name || "-",
+            paidAt: new Date().toISOString(),
+            paymentMethod:
+              selectedMethod?.name ||
+              data.channel_payment_id?.name ||
+              data.channel_code ||
+              "-",
+            amount: Number(data.amount) || selectedPkg?.price || 0,
+          }),
+        );
+        router.push("/payment-billing/success");
+        return;
+      }
 
       setPaymentStatus(isPaid);
       setShowResultModal(true);
@@ -85,8 +122,38 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
     setCheckOutUrl(url ?? null);
 
     if (url) {
-      router.push(url);
-      // window.location.href = url;
+      // Untuk non-login: simpan paymentSuccessData SEBELUM redirect ke Xendit
+      // agar bisa dipakai saat Xendit redirect balik ke /customer-area?payment-success=true
+      const customerId = sessionStorage.getItem("customer_id");
+      const selectedPkg = JSON.parse(
+        sessionStorage.getItem("selectedPackage") || "{}",
+      );
+      const selectedMethod = JSON.parse(
+        sessionStorage.getItem("selectedPaymentMethod") || "{}",
+      );
+      sessionStorage.setItem(
+        "paymentSuccessData",
+        JSON.stringify({
+          invoiceRef:
+            data.reference_id ||
+            data.payment_attempt?.reference_id ||
+            data.id ||
+            "-",
+          customerId: customerId || data.customer_id?.customer_code || "-",
+          description: selectedPkg?.name || data.package_id?.name || "-",
+          paidAt: new Date().toISOString(),
+          paymentMethod:
+            selectedMethod?.name ||
+            data.channel_payment_id?.name ||
+            data.channel_code ||
+            "-",
+          amount: Number(data.amount) || selectedPkg?.price || 0,
+        }),
+      );
+      console.log(
+        "Saving paymentSuccessData for non-login flow before Xendit redirect...",
+      );
+      window.location.href = url;
     } else {
       toast.error("URL tidak ditemukan. Silahkan coba metode pembayaran lain");
     }
