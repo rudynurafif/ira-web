@@ -103,7 +103,7 @@ const PackageAndHistory = () => {
     const isApple = /mac|iphone|ipad|ipod/.test(ua);
 
     if (isApple) {
-      // iOS: Ganti 'internetrakyat://' dengan scheme dari dev jika berbeda
+      // iOS: Ganti 'internetrakyat://' dengan scheme dari mobile dev (deeplink), jika sudah ada
       const appStoreUrl =
         "https://apps.apple.com/id/app/internet-rakyat/id6758337694";
       const appScheme = "internetrakyat://";
@@ -113,9 +113,9 @@ const PackageAndHistory = () => {
         if (document.hasFocus()) {
           window.location.href = appStoreUrl;
         }
-      }, 1500);
+      }, 1000);
     } else {
-      // Android: Ganti 'internetrakyat://' dengan scheme dari dev jika berbeda
+      // Android: Ganti 'internetrakyat://' dengan scheme dari mobile dev (deeplink), jika sudah ada
       const playStoreUrl =
         "https://play.google.com/store/apps/details?id=com.weave.ira";
       const appScheme = "internetrakyat://";
@@ -125,7 +125,7 @@ const PackageAndHistory = () => {
         if (document.hasFocus()) {
           window.location.href = playStoreUrl;
         }
-      }, 1500);
+      }, 1000);
     }
   };
 

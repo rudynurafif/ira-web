@@ -32,7 +32,7 @@ const FloatingNavbar = () => {
       </div>
 
       {/* Center Links */}
-      <div className="flex-1 flex items-center justify-evenly sm:px-2 gap-2 sm:gap-4 text-black font-semibold text-xs sm:text-sm md:text-lg">
+      <div className="flex-1 flex items-center justify-evenly px-2 sm:px-4 gap-1 sm:gap-4 text-black font-semibold text-[11px] sm:text-sm md:text-lg">
         <Link href="/#apps" className="hover:text-red-700 transition">
           Apps
         </Link>
@@ -41,14 +41,14 @@ const FloatingNavbar = () => {
         </Link>
         <Link
           href="/check-coverage"
-          className="hover:text-red-700 transition text-center"
+          className="hover:text-red-700 transition text-center whitespace-nowrap"
         >
           Cek Jangkauan
         </Link>
       </div>
 
       {/* Right Section (Login Button) */}
-      <div className="h-full flex items-center pr-1.5 pl-2">
+      <div className="h-full flex items-center pr-1.5 pl-1.5">
         <button
           className="bg-[#da251c] hover:bg-[#b01e1a] transition-all h-[75%] md:h-[80%] rounded-full flex items-center pl-3 md:pl-6 pr-1 gap-1.5 md:gap-4 shadow-md border border-[#da251c]"
           onClick={() => router.push("/auth/login")}
