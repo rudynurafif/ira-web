@@ -108,13 +108,7 @@ function Footer() {
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-1 items-center">
                     <FaWhatsapp size={14} />
-                    <Link
-                      href={`https://wa.me/${phoneCS}`}
-                      className="hover:underline"
-                      target="_blank"
-                    >
-                      {phoneCS}
-                    </Link>
+                    <div className="hover:underline">{phoneCS}</div>
                   </div>
                   {/* {phoneCSTel && (
                     <div className="flex gap-1 items-center">
@@ -230,7 +224,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.0704.03</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.0704.04</div>
       </div>
     </div>
   );
