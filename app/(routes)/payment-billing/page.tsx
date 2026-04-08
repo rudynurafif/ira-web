@@ -3,8 +3,8 @@ import { getPaymentMicrosite } from "@/app/_api/Payment/Payment";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import FloatingNavbar from "@/app/_components/FloatingNavbar";
 import { dmSans } from "@/app/_shared/font/font";
-import { useRouter } from "next/navigation";
-import React, { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { FormEvent, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { getPackageListMicrosite } from "@/app/_api/Payment/Payment-Microsite";
 import Image from "next/image";
@@ -14,7 +14,17 @@ import { useAppSelector } from "@/app/store/store";
 
 function Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isLoggedIn } = useAppSelector((state) => state.auth);
+
+  const [salesId, setSalesId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const id = searchParams.get("sales_id");
+    if (id) {
+      setSalesId(id);
+    }
+  }, [searchParams]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [customerId, setCustomerId] = useState<string>("");
@@ -24,7 +34,7 @@ function Page() {
   );
 
   // Redirect jika user sudah login mencoba akses halaman tamu ini
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLoggedIn) {
       toast.success(
         "Anda sudah login, silakan lanjutkan pembayaran di halaman ini",
@@ -52,6 +62,7 @@ function Page() {
     try {
       const res_listPackage = await getPackageListMicrosite({
         customer_code: fetchedDataPayment?.customer_code,
+        ...(salesId && { mitra_user_id: salesId }),
       });
       const packages = res_listPackage?.data?.data || [];
       sessionStorage.setItem("listPackage", JSON.stringify(packages));
@@ -77,17 +88,24 @@ function Page() {
     setIsLoading(true);
 
     try {
-      const body = { payload: customerId };
+      const body = {
+        payload: customerId,
+        ...(salesId && { mitra_user_id: salesId }),
+      };
       const res_paymentMicrosite = await getPaymentMicrosite(body);
       const dataPay =
         res_paymentMicrosite.data?.data || res_paymentMicrosite.data;
 
       sessionStorage.setItem("dataPayment", JSON.stringify(dataPay));
-      sessionStorage.setItem("customer_id", dataPay?.customer_code || "");
+      sessionStorage.setItem("customer_code", dataPay?.customer_code || "");
 
       await getListPackage(dataPay);
 
-      router.push("/payment-billing/confirmation");
+      if (salesId) {
+        router.push(`/payment-billing/confirmation?sales_id=${salesId}`);
+      } else {
+        router.push("/payment-billing/confirmation");
+      }
     } catch (error: any) {
       toastErrorFromAPI(error);
     } finally {
@@ -168,10 +186,9 @@ function Page() {
                           placeholder={placeholder}
                           value={customerId}
                           onChange={(e) => {
-                            const val = e.target.value.replace(
-                              /[^a-zA-Z0-9]/g,
-                              "",
-                            );
+                            const val = e.target.value
+                              .replace(/[^a-zA-Z0-9]/g, "")
+                              .toUpperCase();
                             setCustomerId(val);
                           }}
                         />

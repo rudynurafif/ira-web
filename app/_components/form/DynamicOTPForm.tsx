@@ -104,7 +104,7 @@ function Slot(
 ) {
   return (
     <div
-      className={`relative w-9 sm:w-12.5 h-9 sm:h-12.5 text-base flex items-center justify-center 
+      className={`relative w-8 h-8 [400px]:w-9 [400px]:h-9 sm:w-12.5 sm:h-12.5 text-base flex items-center justify-center 
         transition-all duration-300 
         border rounded-xl
         ${props.isInvalid ? "border-red-500" : "border-gray-300"}

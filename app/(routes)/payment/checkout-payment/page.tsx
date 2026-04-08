@@ -25,6 +25,15 @@ function Page() {
   const router = useRouter();
   const params = useSearchParams();
   const type = params.get("type")?.toLowerCase(); // 'va', 'qris', 'ewallet', 'otc'
+  const salesId = params.get("sales_id");
+
+  const [salesIdState, setSalesIdState] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (salesId) {
+      setSalesIdState(salesId);
+    }
+  }, [salesId]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState<
@@ -45,11 +54,12 @@ function Page() {
 
   const getCurrentPaymentData = async () => {
     try {
-      const customerId =
-        userInfo?.customer_code || sessionStorage.getItem("customer_id");
+      const customerCode =
+        userInfo?.customer_code || sessionStorage.getItem("customer_code");
 
       const params = {
-        customer_code: customerId,
+        customer_code: customerCode,
+        ...(salesId && { mitra_user_id: salesId }),
       };
 
       const res = isLoggedIn
@@ -76,7 +86,7 @@ function Page() {
 
   useEffect(() => {
     // Jalankan jika sudah tahu status loginnya (isLoggedIn) atau jika terdeteksi data microsite
-    if (isLoggedIn || sessionStorage.getItem("customer_id")) {
+    if (isLoggedIn || sessionStorage.getItem("customer_code")) {
       getCurrentPaymentData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
