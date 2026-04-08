@@ -216,7 +216,7 @@ const DeliveryTracking = ({
                 width={256}
                 height={256}
                 className="w-64 h-64 object-contain"
-                unoptimized
+                // unoptimized
               />
             </div>
 

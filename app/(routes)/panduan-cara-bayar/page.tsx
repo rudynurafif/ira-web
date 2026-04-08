@@ -132,7 +132,7 @@ const PanduanCaraBayar = () => {
               {/* Image Container (Fixed Width for Balance) */}
               <div className="relative w-40 h-40 shrink-0">
                 <Image
-                  src="/assets/Images/panduanVAdesktop-0.png"
+                  src="/assets/Images/panduanVADesktop-0.png"
                   alt="Bayar Internet Ga Pake Telat!"
                   fill
                   className="object-contain"
@@ -184,7 +184,7 @@ const PanduanCaraBayar = () => {
               >
                 <div className="relative w-full aspect-16/10 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300">
                   <Image
-                    src={`/assets/Images/panduanVAdesktop-${step.id}.png`}
+                    src={`/assets/Images/panduanVADesktop-${step.id}.png`}
                     alt={step.label}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -243,7 +243,7 @@ const PanduanCaraBayar = () => {
                 <Image
                   src={
                     isDesktop
-                      ? `/assets/Images/panduanVAdesktop-${activeStep}-popup.png`
+                      ? `/assets/Images/panduanVADesktop-${activeStep}-popup.png`
                       : `/assets/Images/panduanVAmobile-${activeStep}-popup.png`
                   }
                   alt={activeStepData?.label || ""}
