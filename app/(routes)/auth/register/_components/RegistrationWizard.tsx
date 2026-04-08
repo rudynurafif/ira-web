@@ -637,6 +637,7 @@ function RegistrationWizard({
         console.error("Failed to restore registration data", err);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 2. Save data to sessionStorage on Change
