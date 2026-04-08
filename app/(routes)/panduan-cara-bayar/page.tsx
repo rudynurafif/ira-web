@@ -132,7 +132,7 @@ const PanduanCaraBayar = () => {
               {/* Image Container (Fixed Width for Balance) */}
               <div className="relative w-40 h-40 shrink-0">
                 <Image
-                  src="/assets/Images/panduanVADesktop-0.png"
+                  src="/assets/Images/panduanVADesktop-0-new.png"
                   alt="Bayar Internet Ga Pake Telat!"
                   fill
                   className="object-contain"
@@ -243,7 +243,7 @@ const PanduanCaraBayar = () => {
                 <Image
                   src={
                     isDesktop
-                      ? `/assets/Images/panduanVADesktop-${activeStep}-popup.png`
+                      ? `/assets/Images/panduanVADesktop-${activeStep}-popup-new.png`
                       : `/assets/Images/panduanVAmobile-${activeStep}-popup.png`
                   }
                   alt={activeStepData?.label || ""}
