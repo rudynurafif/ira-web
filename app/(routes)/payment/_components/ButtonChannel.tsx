@@ -12,12 +12,22 @@ type ButtonChannelProps = {
   selected?: boolean;
 };
 
+import SecureImage from "@/app/_components/SecureImage";
+
 const ButtonChannel: React.FC<ButtonChannelProps> = ({
   channel,
   handleClick,
   Logo,
   selected,
 }) => {
+  // Cek apakah Logo adalah path OBS (string) atau static import (object/string http)
+  const isObsPath =
+    typeof Logo === "string" &&
+    !Logo.startsWith("http") &&
+    !Logo.startsWith("/_next");
+
+  console.log("logo : ", Logo);
+
   return (
     <button
       onClick={() => handleClick(channel.id)}
@@ -28,17 +38,25 @@ const ButtonChannel: React.FC<ButtonChannelProps> = ({
       } hover:cursor-pointer hover:bg-blue-50`}
     >
       {Logo ? (
-        <>
-          {/* Uncomment NormalizedLogo di bawah jika logo dari DB tidak seragam paddingnya */}
-          {/* <NormalizedLogo src={Logo} alt={channel.name} targetWidth={72} /> */}
+        <div className="flex items-center justify-center w-[72px] h-10">
+          {/* {isObsPath ? (
+            <SecureImage
+              obsPath={Logo}
+              alt={channel.name}
+              width={72}
+              height={40}
+              className="object-contain w-full h-full"
+            />
+          ) : ( */}
           <Image
             src={Logo}
             alt={channel.name}
             width={72}
             height={40}
-            className="object-contain w-[72px] min-h-10"
+            className="object-contain w-full h-full"
           />
-        </>
+          {/* )} */}
+        </div>
       ) : (
         <span className="text-xs text-gray-500 text-center w-[72px]">
           {channel.name}

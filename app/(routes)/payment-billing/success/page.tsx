@@ -4,7 +4,7 @@ import Footer from "@/app/_components/layout/Footer";
 import { dmSans } from "@/app/_shared/font/font";
 import { convertToCurrency } from "@/app/_shared/utils";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import personPayment from "@/public/assets/Images/person-payment-success.webp";
@@ -28,13 +28,17 @@ function Page() {
   const [data, setData] = useState<SuccessData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const params = useSearchParams();
+
   const { userInfo } = useAppSelector((state) => state.auth);
+
+  const salesId = params.get("sales_id");
 
   useEffect(() => {
     const verifyAndLoadData = async () => {
       setIsLoading(true);
       const raw = sessionStorage.getItem("paymentSuccessData");
-      const customerId = sessionStorage.getItem("customer_id");
+      const customerCode = sessionStorage.getItem("customer_code");
 
       if (!raw) {
         toast.error("Data pembayaran tidak ditemukan");
@@ -55,9 +59,10 @@ function Page() {
         }
 
         // Verifikasi real-time ke BE
-        if (customerId) {
+        if (customerCode) {
           const res = await getPaymentStatusMicrosite({
-            customer_code: customerId,
+            customer_code: customerCode,
+            ...(salesId && { mitra_user_id: salesId }),
           });
           const isPaid = res?.data?.data;
 
@@ -70,7 +75,7 @@ function Page() {
 
         // Jika SUKSES terverifikasi, set expiry jika belum ada (TTL: 10 menit)
         if (!parsedData.expiry) {
-          parsedData.expiry = now + 60 * 60 * 1000; // 10 Menit dalam milliseconds
+          parsedData.expiry = now + 60 * 60 * 1000; // 60 Menit dalam milliseconds
           sessionStorage.setItem(
             "paymentSuccessData",
             JSON.stringify(parsedData),
@@ -87,7 +92,20 @@ function Page() {
     };
 
     verifyAndLoadData();
-  }, [router]);
+
+    // // LOCK: Cegah Back Browser
+    // window.history.pushState(null, "", window.location.href);
+    // const handlePopState = () => {
+    //   window.history.pushState(null, "", window.location.href);
+    //   // Optional: beri toast kecil agar user tau kenapa dia ga bisa back
+    //   toast("Transaksi selesai. Silakan masuk ke Dashboard.", { icon: "ℹ️" });
+    // };
+
+    // window.addEventListener("popstate", handlePopState);
+    // return () => {
+    //   window.removeEventListener("popstate", handlePopState);
+    // };
+  }, [router, salesId]);
 
   const rows = data
     ? [

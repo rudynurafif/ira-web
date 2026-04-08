@@ -5,7 +5,7 @@ import { dmSans } from "@/app/_shared/font/font";
 import { convertToCurrency } from "@/app/_shared/utils";
 import PackageCardMobile from "@/app/(routes)/payment/_components/PackageCardMobile";
 import { LuPackageX } from "react-icons/lu";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -15,6 +15,8 @@ import bannerPerpanjangMobile from "@/public/assets/Images/banner-perpanjangan-p
 
 function Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const salesId = searchParams.get("sales_id");
 
   const [dataPayment, setDataPayment] = useState<any>(null);
   const [listPackage, setListPackage] = useState<any[]>([]);
@@ -39,7 +41,11 @@ function Page() {
 
   function handleNext() {
     // selectedPackage sudah tersimpan di sessionStorage, langsung navigate
-    router.push("/payment/payment-methods");
+    const nextPath = salesId
+      ? `/payment/payment-methods?sales_id=${salesId}`
+      : "/payment/payment-methods";
+
+    router.push(nextPath);
   }
 
   return (

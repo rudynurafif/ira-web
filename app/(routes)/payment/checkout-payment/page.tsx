@@ -25,6 +25,15 @@ function Page() {
   const router = useRouter();
   const params = useSearchParams();
   const type = params.get("type")?.toLowerCase(); // 'va', 'qris', 'ewallet', 'otc'
+  const salesId = params.get("sales_id");
+
+  const [salesIdState, setSalesIdState] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (salesId) {
+      setSalesIdState(salesId);
+    }
+  }, [salesId]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState<
@@ -41,21 +50,25 @@ function Page() {
     }
   };
 
-  const { userInfo } = useAppSelector((state) => state.auth);
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
 
   const getCurrentPaymentData = async () => {
     try {
-      const customerId = sessionStorage.getItem("customer_id");
+      const customerCode =
+        userInfo?.customer_code || sessionStorage.getItem("customer_code");
+
       const params = {
-        customer_code: customerId,
+        customer_code: customerCode,
+        ...(salesId && { mitra_user_id: salesId }),
       };
-      const res = userInfo
+
+      const res = isLoggedIn
         ? await getCurrentPayment(params)
         : await getCurrentPaymentMicrosite(params);
 
       if (res?.data?.data === null) {
         toast.error("Terjadi kesalahan. Silakan pilih paket kembali");
-        if (userInfo) {
+        if (isLoggedIn) {
           router.push("/payment");
         } else {
           router.push("/payment-billing");
@@ -72,9 +85,12 @@ function Page() {
   };
 
   useEffect(() => {
-    getCurrentPaymentData();
+    // Jalankan jika sudah tahu status loginnya (isLoggedIn) atau jika terdeteksi data microsite
+    if (isLoggedIn || sessionStorage.getItem("customer_code")) {
+      getCurrentPaymentData();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLoggedIn, userInfo]);
 
   const bankFee =
     paymentInfo && "channel_payment_id" in paymentInfo
@@ -97,7 +113,7 @@ function Page() {
     <div className="">
       <div className="container mx-auto p-6">
         <div className="flex gap-2 items-center justify-center">
-          <div className="font-bold text-primary-text md:text-3xl text-2xl">
+          <div className="font-bold text-old-primary md:text-3xl text-2xl">
             Pembayaran
           </div>
         </div>

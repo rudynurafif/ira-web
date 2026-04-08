@@ -2,6 +2,7 @@
 
 import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import Image from "next/image";
+import SecureImage from "@/app/_components/SecureImage";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { dataEWallet } from "./Data/dataEWallet";
@@ -33,13 +34,16 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
 
   const { userInfo } = useAppSelector((state) => state.auth);
 
+  const salesId = params.get("sales_id");
+
   const checkPaymentStatus = async () => {
     setIsLoadingStatus(true);
 
     try {
-      const customerId = sessionStorage.getItem("customer_id");
+      const customerCode = sessionStorage.getItem("customer_code");
       const params = {
-        customer_code: customerId,
+        customer_code: customerCode,
+        ...(salesId && { mitra_user_id: salesId }),
       };
       const res_status = userInfo
         ? await getPaymentStatus(params)
@@ -62,7 +66,7 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
               data.payment_attempt?.reference_id ||
               data.id ||
               "-",
-            customerId: customerId || data.customer_id?.customer_code || "-",
+            customerId: customerCode || data.customer_id?.customer_code || "-",
             description: selectedPkg?.name || data.package_id?.name || "-",
             paidAt: new Date().toISOString(),
             paymentMethod:
@@ -73,7 +77,10 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
             amount: Number(data.amount) || selectedPkg?.price || 0,
           }),
         );
-        router.push("/payment-billing/success");
+        const successPath = salesId
+          ? `/payment-billing/success?sales_id=${salesId}`
+          : "/payment-billing/success";
+        router.push(successPath);
         return;
       }
 
@@ -124,7 +131,7 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
     if (url) {
       // Untuk non-login: simpan paymentSuccessData SEBELUM redirect ke Xendit
       // agar bisa dipakai saat Xendit redirect balik ke /customer-area?payment-success=true
-      const customerId = sessionStorage.getItem("customer_id");
+      const customerCode = sessionStorage.getItem("customer_code");
       const selectedPkg = JSON.parse(
         sessionStorage.getItem("selectedPackage") || "{}",
       );
@@ -139,7 +146,7 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
             data.payment_attempt?.reference_id ||
             data.id ||
             "-",
-          customerId: customerId || data.customer_id?.customer_code || "-",
+          customerId: customerCode || data.customer_id?.customer_code || "-",
           description: selectedPkg?.name || data.package_id?.name || "-",
           paidAt: new Date().toISOString(),
           paymentMethod:
@@ -171,16 +178,35 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
       <div className="bg-[#F7F9FD] flex flex-col border border-[#949AA3] w-full rounded-xl p-5 shadow-lg mb-6">
         <div className="flex justify-between items-center">
           <p>E-Wallet</p>
-          {selectedImage && (
+          {data.channel_payment_id?.logo ? (
             <div className="flex sm:justify-end">
+              {/* <SecureImage
+                obsPath={data.channel_payment_id?.logo}
+                alt={data.channel_payment_id?.name || "E-Wallet Logo"}
+                width={100}
+                height={100}
+                className="w-31 h-fit my-3"
+              /> */}
               <Image
-                src={selectedImage}
-                alt={selected ?? "E-Wallet Logo"}
+                src={`${process.env.NEXT_PUBLIC_URL_OBS}${data.channel_payment_id?.logo}`}
+                alt={data.channel_payment_id?.name || "E-Wallet Logo"}
                 width={100}
                 height={100}
                 className="w-31 h-fit my-3"
               />
             </div>
+          ) : (
+            selectedImage && (
+              <div className="flex sm:justify-end">
+                <Image
+                  src={selectedImage}
+                  alt={selected ?? "E-Wallet Logo"}
+                  width={100}
+                  height={100}
+                  className="w-31 h-fit my-3"
+                />
+              </div>
+            )
           )}
         </div>
 
@@ -265,7 +291,7 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
         >
           {paymentStatus ? (
             <>
-              <h2 className="text-xl font-bold text-green-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-green-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Berhasil! 🎉
               </h2>
               <div className="flex justify-center my-4">
@@ -280,7 +306,7 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
             </>
           ) : (
             <>
-              <h2 className="text-xl font-bold text-red-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-red-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Belum Berhasil
               </h2>
               <div className="flex justify-center my-4">

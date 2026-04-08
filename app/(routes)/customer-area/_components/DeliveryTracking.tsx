@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import Image from "next/image";
+import SecureImage from "@/app/_components/SecureImage";
 import qrCodeDummy from "@/public/assets/Images/qr-code.png";
 import {
   copyToClipboard,
@@ -202,6 +203,13 @@ const DeliveryTracking = ({
 
             {/* QR Code */}
             <div className="my-6 flex justify-center">
+              {/* <SecureImage
+                obsPath={packageData?.code_url}
+                alt="QR Code"
+                width={256}
+                height={256}
+                className="w-64 h-64 object-contain"
+              /> */}
               <Image
                 src={`${process.env.NEXT_PUBLIC_URL_OBS}${packageData?.code_url}`}
                 alt="QR Code"
