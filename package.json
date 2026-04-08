@@ -15,7 +15,6 @@
     "@mui/material": "^7.3.1",
     "@next/third-parties": "^16.1.6",
     "@reduxjs/toolkit": "^2.9.2",
-    "@sentry/nextjs": "^10.42.0",
     "@types/mapbox-gl": "^3.4.1",
     "axios": "^1.11.0",
     "cookies-next": "^6.1.0",

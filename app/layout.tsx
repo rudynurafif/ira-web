@@ -9,7 +9,6 @@ import Footer from "./_components/layout/Footer";
 import { Suspense } from "react";
 import ClientProvider from "./_components/ClientProvider";
 import { AppProvider } from "./_shared/context/AppContext";
-import SentryConfigProvider from "./_components/SentryConfigProvider";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import Script from "next/script";
 
@@ -37,26 +36,24 @@ export default function RootLayout({
       >
         <Suspense>
           <AppProvider>
-            <SentryConfigProvider>
-              <ClientProvider>
-                {/* {!maintenanceMode && <Header />} */}
-                <Header />
-                <main className="flex-1">
-                  {/* Non-aktif perubahan consume SSE behaviour */}
-                  {/* <SSEProvider> */}
-                  {children}
-                  {/* <Notification /> */}
-                  {/* </SSEProvider> */}
-                </main>
-                <Footer />
-                <Toaster
-                  position="top-right"
-                  toastOptions={{
-                    duration: 5000,
-                  }}
-                />
-              </ClientProvider>
-            </SentryConfigProvider>
+            <ClientProvider>
+              {/* {!maintenanceMode && <Header />} */}
+              <Header />
+              <main className="flex-1">
+                {/* Non-aktif perubahan consume SSE behaviour */}
+                {/* <SSEProvider> */}
+                {children}
+                {/* <Notification /> */}
+                {/* </SSEProvider> */}
+              </main>
+              <Footer />
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 5000,
+                }}
+              />
+            </ClientProvider>
           </AppProvider>
         </Suspense>
 

@@ -1,6 +1,4 @@
 "use client";
-
-import * as Sentry from "@sentry/nextjs";
 import { useEffect, useState } from "react";
 
 export default function GlobalError({
@@ -13,8 +11,7 @@ export default function GlobalError({
   const [currentRoute, setCurrentRoute] = useState<string>("Unknown Route");
 
   useEffect(() => {
-    // Kirim error ke Sentry
-    Sentry.captureException(error);
+    // Tampilkan di console untuk debug lokal
     console.error(error);
 
     if (typeof window !== "undefined") {

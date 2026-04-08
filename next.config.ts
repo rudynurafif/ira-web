@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
@@ -34,40 +33,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
-
-  org: "ije-ug",
-
-  project: "ira-website",
-
-  // Only print logs for uploading source maps in CI
-  silent: true,
-
-  sourcemaps: {
-    disable: true,
-    filesToDeleteAfterUpload: ["**/*.js.map"],
-  },
-
-  bundleSizeOptimizations: {
-    excludeDebugStatements: true,
-    excludeReplayShadowDom: true,
-    excludeReplayIframe: true,
-    excludeReplayWorker: true,
-  },
-
-  widenClientFileUpload: false,
-
-  tunnelRoute: "/monitoring",
-
-  webpack: {
-    automaticVercelMonitors: false,
-
-    // Tree-shaking options for reducing bundle size
-    treeshake: {
-      // Automatically tree-shake Sentry logger statements to reduce bundle size
-      removeDebugLogging: true,
-    },
-  },
-});
+export default nextConfig;
