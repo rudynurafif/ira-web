@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import FloatingNavbar from "@/app/_components/FloatingNavbar";
-import Footer from "@/app/_components/layout/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 
 const steps = [
@@ -41,12 +39,21 @@ const steps = [
 
 const PanduanCaraBayar = () => {
   const [activeStep, setActiveStep] = useState<number | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // Monitor screen size to switch popup assets
+  React.useEffect(() => {
+    const checkSize = () => setIsDesktop(window.innerWidth >= 1024);
+    checkSize();
+    window.addEventListener("resize", checkSize);
+    return () => window.removeEventListener("resize", checkSize);
+  }, []);
 
   const activeStepData = steps.find((s) => s.id === activeStep);
 
   return (
     <>
-      {/* MOBILE VERSION (Red Background) */}
+      {/* MOBILE VERSION */}
       <div
         className="min-h-screen relative overflow-hidden lg:hidden"
         style={{
@@ -73,7 +80,7 @@ const PanduanCaraBayar = () => {
                   priority
                 />
               </div>
-              <p className="text-white text-lg font-medium max-w-md px-4">
+              <p className="text-white text-lg sm:text-4xl font-medium px-4">
                 Lakukan pembayaran dengan mengikuti langkah berikut
               </p>
             </motion.div>
@@ -104,61 +111,154 @@ const PanduanCaraBayar = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* POPUP OVERLAY */}
-        <AnimatePresence>
-          {activeStep !== null && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setActiveStep(null)}
-              className="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-[340px] flex flex-col items-center max-h-[95vh]"
-              >
-                {/* Close Button above the image */}
-                <button
-                  onClick={() => setActiveStep(null)}
-                  className="mb-4 px-6 py-2 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-lg font-bold border border-white/30 hover:bg-white/40 transition-colors shadow-lg"
+      {/* DESKTOP VERSION (Grid Layout) */}
+      <div
+        className="hidden lg:block min-h-screen bg-cover bg-center bg-no-repeat relative"
+        style={{
+          backgroundImage:
+            "url('/assets/Images/background-check-coverage.png')",
+        }}
+      >
+        <div className="relative z-10 py-24 px-8 max-w-[1440px] mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center mb-16"
+          >
+            <div className="flex flex-row items-center justify-center w-full mb-6">
+              {/* Image Container (Fixed Width for Balance) */}
+              <div className="relative w-40 h-40 shrink-0">
+                <Image
+                  src="/assets/Images/panduanVADesktop-0-new.png"
+                  alt="Bayar Internet Ga Pake Telat!"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+
+              {/* Stylized Figma Text */}
+              <div className="flex flex-col gap-3">
+                <p
+                  style={{
+                    color: "#FFF",
+                    textAlign: "center",
+                    textShadow:
+                      "0 5px 0 #E54B48, 3px 3px 3px rgba(0, 0, 0, 0.4)",
+                    WebkitTextStrokeWidth: "2.5px",
+                    WebkitTextStrokeColor: "#D7201D",
+                    fontFamily: "'Be Vietnam Pro', sans-serif",
+                    fontSize: "56px", // Disesuaikan sedikit agar muat sebaris
+                    fontStyle: "normal",
+                    fontWeight: 900,
+                    lineHeight: "110%",
+                    textTransform: "capitalize",
+                    whiteSpace: "nowrap", // Paksa satu baris
+                  }}
                 >
-                  Tutup &times;
-                </button>
+                  Bayar internet ga pake telat!
+                </p>
 
-                <div className="relative w-full aspect-9/16 max-h-[75vh] mb-4 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                <p className="text-white text-3xl text-center font-bold tracking-tight">
+                  Lakukan pembayaran Via Virtual Account Bank dengan mengikuti
+                  langkah berikut
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Grid Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {steps.map((step, index) => (
+              <motion.div
+                key={step.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                whileHover={{ y: -10, transition: { duration: 0.2 } }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                onClick={() => setActiveStep(step.id)}
+                className="group relative cursor-pointer"
+              >
+                <div className="relative w-full aspect-16/10 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300">
                   <Image
-                    src={`/assets/Images/panduanVAmobile-${activeStep}-popup.png`}
-                    alt={activeStepData?.label || ""}
+                    src={`/assets/Images/panduanVADesktop-${step.id}.png`}
+                    alt={step.label}
                     fill
-                    className="object-contain rounded-3xl"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 bg-white text-black font-bold py-2 px-6 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
+                      Lihat Detail
+                    </div>
+                  </div>
                 </div>
-
-                <h3 className="text-xl font-bold text-white text-center leading-tight px-4 drop-shadow-lg">
-                  {activeStepData?.label}
-                </h3>
+                <div className="mt-4 text-center">
+                  <span className="inline-flex items-center justify-center bg-primary text-white w-8 h-8 rounded-full font-bold mb-2 shadow-lg">
+                    {step.id}
+                  </span>
+                  <h3 className="text-white font-bold text-lg px-4 truncate">
+                    {step.label}
+                  </h3>
+                </div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* DESKTOP VERSION (Simple Full Image) */}
-      <div className="hidden lg:block w-full">
-        <Image
-          src="/assets/Images/panduanVA.png"
-          alt="Panduan Cara Bayar Desktop"
-          width={1920}
-          height={1080}
-          className="w-full h-auto"
-          priority
-        />
-      </div>
+      {/* SHARED POPUP OVERLAY */}
+      <AnimatePresence>
+        {activeStep !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setActiveStep(null)}
+            className="fixed inset-0 z-100 overflow-y-auto flex flex-col items-center justify-start bg-black/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-[340px] sm:max-w-lg lg:max-w-7xl flex flex-col items-center my-3"
+            >
+              {/* Tutup Button Original */}
+              <button
+                onClick={() => setActiveStep(null)}
+                className="mb-4 px-6 py-2 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-lg font-bold border border-white/30 hover:bg-white/40 shadow-lg"
+              >
+                Tutup &times;
+              </button>
+
+              <div
+                className={`relative w-full mb-4 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] ${
+                  isDesktop
+                    ? "aspect-video max-h-[75vh]"
+                    : "aspect-9/16 max-h-[75vh]"
+                }`}
+              >
+                <Image
+                  src={
+                    isDesktop
+                      ? `/assets/Images/panduanVADesktop-${activeStep}-popup-new.png`
+                      : `/assets/Images/panduanVAmobile-${activeStep}-popup.png`
+                  }
+                  alt={activeStepData?.label || ""}
+                  fill
+                  className="object-contain rounded-3xl"
+                />
+              </div>
+
+              <h3 className="text-xl font-bold text-white text-center leading-tight px-4 drop-shadow-lg">
+                {activeStepData?.label}
+              </h3>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

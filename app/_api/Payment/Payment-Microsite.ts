@@ -107,7 +107,7 @@ export const getEWalletById = async (id: string) => {
   }
 };
 
-export const createPaymentRequestQRISVA = async (body: any) => {
+export const createPaymentRequestQRISMicrosite = async (body: any) => {
   try {
     const data = await FwaAxios({
       url: "/app/transaction/create-qris-microsite",

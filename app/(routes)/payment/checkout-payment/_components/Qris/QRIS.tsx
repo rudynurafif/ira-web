@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import checkoutQris from "@/public/assets/checkout-payment/checkout-qris.png";
 import Image from "next/image";
@@ -47,13 +47,18 @@ function QRIS({ data }: { data: UnifiedPaymentData }) {
     generateQR();
   }, [generateQR]);
 
+  const params = useSearchParams();
+
+  const salesId = params.get("sales_id");
+
   const checkPaymentStatus = async () => {
     setIsLoadingStatus(true);
 
     try {
-      const customerId = sessionStorage.getItem("customer_id");
+      const customerCode = sessionStorage.getItem("customer_code");
       const params = {
-        customer_code: customerId,
+        customer_code: customerCode,
+        ...(salesId && { mitra_user_id: salesId }),
       };
       const res_status = userInfo
         ? await getPaymentStatus(params)
@@ -62,17 +67,35 @@ function QRIS({ data }: { data: UnifiedPaymentData }) {
 
       // Non-login + success → halaman khusus (bukan modal)
       if (!userInfo && isPaid === true) {
-        const selectedPkg = JSON.parse(sessionStorage.getItem("selectedPackage") || "{}");
-        const selectedMethod = JSON.parse(sessionStorage.getItem("selectedPaymentMethod") || "{}");
-        sessionStorage.setItem("paymentSuccessData", JSON.stringify({
-          invoiceRef: data.reference_id || data.payment_attempt?.reference_id || data.id || "-",
-          customerId: customerId || data.customer_id?.customer_code || "-",
-          description: selectedPkg?.name || data.package_id?.name || "-",
-          paidAt: new Date().toISOString(),
-          paymentMethod: selectedMethod?.name || data.channel_payment_id?.name || data.channel_code || "-",
-          amount: Number(data.amount) || selectedPkg?.price || 0,
-        }));
-        router.push("/payment-billing/success");
+        const selectedPkg = JSON.parse(
+          sessionStorage.getItem("selectedPackage") || "{}",
+        );
+        const selectedMethod = JSON.parse(
+          sessionStorage.getItem("selectedPaymentMethod") || "{}",
+        );
+        sessionStorage.setItem(
+          "paymentSuccessData",
+          JSON.stringify({
+            invoiceRef:
+              data.reference_id ||
+              data.payment_attempt?.reference_id ||
+              data.id ||
+              "-",
+            customerId: customerCode || data.customer_id?.customer_code || "-",
+            description: selectedPkg?.name || data.package_id?.name || "-",
+            paidAt: new Date().toISOString(),
+            paymentMethod:
+              selectedMethod?.name ||
+              data.channel_payment_id?.name ||
+              data.channel_code ||
+              "-",
+            amount: Number(data.amount) || selectedPkg?.price || 0,
+          }),
+        );
+        const successPath = salesId
+          ? `/payment-billing/success?sales_id=${salesId}`
+          : "/payment-billing/success";
+        router.push(successPath);
         return;
       }
 
@@ -205,7 +228,7 @@ function QRIS({ data }: { data: UnifiedPaymentData }) {
         >
           {paymentStatus ? (
             <>
-              <h2 className="text-xl font-bold text-green-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-green-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Berhasil! 🎉
               </h2>
               <div className="flex justify-center my-4">
@@ -220,7 +243,7 @@ function QRIS({ data }: { data: UnifiedPaymentData }) {
             </>
           ) : (
             <>
-              <h2 className="text-xl font-bold text-red-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-red-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Belum Berhasil
               </h2>
               <div className="flex justify-center my-4">

@@ -27,7 +27,7 @@ import {
   checkPackageMicrosite,
   createPaymentRequestEWalletMicrosite,
   createPaymentRequestOTCMicrosite,
-  createPaymentRequestQRISVA,
+  createPaymentRequestQRISMicrosite,
   createPaymentRequestVAMicrosite,
 } from "@/app/_api/Payment/Payment-Microsite";
 
@@ -36,6 +36,15 @@ import {
 const PaymentMehods = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [salesId, setSalesId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const id = searchParams.get("sales_id");
+    if (id) {
+      setSalesId(id);
+    }
+  }, [searchParams]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [paymentChannels, setPaymentChannels] = useState<PaymentChannel[]>([]);
   const selectedChannelFromLS = (() => {
@@ -64,12 +73,10 @@ const PaymentMehods = () => {
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(
     selectedPackageFromSession,
   );
-  // const { isLoggedIn } = useAppSelector((state) => state.auth);
   const [isCreatePayment, setIsCreatePayment] = useState(false);
   const [openModalNotAllowed, setOpenModalNotAllowed] = useState(false);
 
-  const { userInfo } = useAppSelector((state) => state.auth);
-  console.log("user Info: ", userInfo);
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
 
   // useEffect(() => {
   //   if (!isLoggedIn) {
@@ -88,43 +95,58 @@ const PaymentMehods = () => {
   useEffect(() => {
     if (!selectedPackage) {
       toast.error("Informasi paket hilang, silakan pilih ulang.");
-      if (userInfo) {
+      if (isLoggedIn) {
         router.push("/payment");
       } else {
         router.push("/payment-billing");
       }
     }
-  }, [router, selectedPackage, userInfo]);
+  }, [isLoggedIn, router, selectedPackage]);
 
-  const customerCode =
-    userInfo?.customer_code || sessionStorage.getItem("customer_id");
-
-  const handleCheckPackage: () => Promise<void> = async () => {
+  const handleCheckPackage = async (): Promise<boolean> => {
     try {
-      const res = userInfo
-        ? await checkPackage()
-        : await checkPackageMicrosite({ payload: customerCode });
+      const code = userInfo?.customer_code || sessionStorage.getItem("customer_code");
 
+      if (!code || code === "-") {
+        toast.error("Identitas pelanggan tidak ditemukan. Silakan isi ulang data.");
+        router.push("/payment-billing");
+        return false;
+      }
+
+      const res = isLoggedIn
+        ? await checkPackage()
+        : await checkPackageMicrosite({
+            payload: code,
+            ...(salesId && { mitra_user_id: salesId }),
+          });
+
+      // Jika API mengembalikan false (berarti sedang aktif dan tidak boleh beli baru)
       if (res?.data?.data === false) {
         setOpenModalNotAllowed(true);
+        return false;
       }
+      return true;
     } catch (err) {
       toastErrorFromAPI(err);
+      return false;
     }
   };
 
   useEffect(() => {
     const initPage = async () => {
-      // Tunggu sampai userInfo stabil (login) atau ada customer_id (microsite)
-      if (userInfo || sessionStorage.getItem("customer_id")) {
+      // Tunggu sampai status login stabil (isLoggedIn) atau data guest tersedia
+      if (isLoggedIn || sessionStorage.getItem("customer_code")) {
+        // Mencegah double fetch saat inisialisasi awal (jika data sudah ada atau sedang fetch)
+        if (paymentChannels.length > 0) return;
+
         await handleCheckPackage();
-        fetchData();
+        getPaymentMethods();
       }
     };
 
     initPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo]);
+  }, [isLoggedIn, userInfo]);
 
   // Filter by category
   const virtualAccounts = paymentChannels.filter(
@@ -143,7 +165,7 @@ const PaymentMehods = () => {
     (ch) => ch.category === "otc" && ch.is_active,
   );
 
-  const fetchData = async () => {
+  const getPaymentMethods = async () => {
     try {
       setIsLoading(true);
       const res = await getPaymentChannel({});
@@ -165,8 +187,6 @@ const PaymentMehods = () => {
     }
   };
 
-  // fetchData dipicu oleh useEffect inisialisasi di atas secara berurutan
-
   const handleCreatePayment = async () => {
     if (!selectedChannel) return;
 
@@ -179,40 +199,48 @@ const PaymentMehods = () => {
     setIsCreatePayment(true);
 
     try {
+      // Pengecekan keamanan terakhir sebelum hit API bayar
+      const isAllowed = await handleCheckPackage();
+      if (!isAllowed) {
+        setIsCreatePayment(false);
+        return;
+      }
+
       let createRes;
 
-      const customerId = sessionStorage.getItem("customer_id");
+      const code = userInfo?.customer_code || sessionStorage.getItem("customer_code");
+
+      if (!code || code === "-") {
+        toast.error("Identitas pelanggan tidak ditemukan. Silakan isi ulang data.");
+        router.push("/payment-billing");
+        return;
+      }
 
       let payload: any = {
         package_id: selectedPackage?.id,
         payment_channel_id: selectedChannel?.id,
+        customer_code: code,
+        ...(salesId && { mitra_user_id: salesId }),
       };
-
-      if (customerId) {
-        payload = {
-          ...payload,
-          customer_code: customerId,
-        };
-      }
 
       switch (selectedChannel.category) {
         case "va":
-          createRes = userInfo
+          createRes = isLoggedIn
             ? createPaymentRequestVA(payload)
             : createPaymentRequestVAMicrosite(payload);
           break;
         case "ewallet":
-          createRes = userInfo
+          createRes = isLoggedIn
             ? createPaymentRequestEWallet(payload)
             : createPaymentRequestEWalletMicrosite(payload);
           break;
         case "qris":
-          createRes = userInfo
+          createRes = isLoggedIn
             ? createPaymentRequestQRIS(payload)
-            : createPaymentRequestQRISVA(payload);
+            : createPaymentRequestQRISMicrosite(payload);
           break;
         case "otc":
-          createRes = userInfo
+          createRes = isLoggedIn
             ? createPaymentRequestOTC(payload)
             : createPaymentRequestOTCMicrosite(payload);
           break;
@@ -242,16 +270,20 @@ const PaymentMehods = () => {
           undefined;
 
         if (selectedChannel.category !== "ewallet") {
-          router.push(
-            `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`,
-          );
+          let nextPath = `/payment/checkout-payment?id=${paymentReqID}&type=${selectedChannel?.category}&selected_payment=${selectedChannel?.code}`;
+
+          if (salesId) {
+            nextPath += `&sales_id=${salesId}`;
+          }
+
+          router.push(nextPath);
         } else if (selectedChannel.category === "ewallet" && url) {
           // ─── GUEST FLOW SUCCESS DATA ──────────────────────────────────────────
           // Simpan data pembayaran ke sessionStorage sebelum redirect ke Xendit.
           // Ini digunakan oleh interseptor di /auth/login untuk meneruskan user
           // non-login langsung ke halaman sukses pembayaran (/payment-billing/success).
           if (!userInfo) {
-            const cid = sessionStorage.getItem("customer_id") || "-";
+            const cid = sessionStorage.getItem("customer_code") || "-";
             sessionStorage.setItem(
               "paymentSuccessData",
               JSON.stringify({
@@ -341,7 +373,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-4">
             {ewallets.length > 0 ? (
               ewallets.map((channel) => {
-                const Logo = PAYMENT_LOGOS[channel.code];
+                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}
@@ -374,7 +406,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-2">
             {cardChannel.length > 0 ? (
               cardChannel.map((channel) => {
-                const Logo = PAYMENT_LOGOS[channel.code];
+                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}
@@ -401,7 +433,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-4">
             {qrisChannels.length > 0 ? (
               qrisChannels.map((channel) => {
-                const Logo = PAYMENT_LOGOS[channel.code];
+                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}
@@ -434,7 +466,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-4">
             {outlets.length > 0 ? (
               outlets.map((channel) => {
-                const Logo = PAYMENT_LOGOS[channel.code];
+                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}

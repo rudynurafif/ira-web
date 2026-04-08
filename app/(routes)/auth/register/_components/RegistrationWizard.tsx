@@ -637,6 +637,7 @@ function RegistrationWizard({
         console.error("Failed to restore registration data", err);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 2. Save data to sessionStorage on Change
@@ -2491,7 +2492,9 @@ function RegistrationWizard({
                             className="flex items-center gap-2 px-4 py-2 bg-white border border-primary text-primary rounded-lg font-bold text-sm hover:bg-red-50 transition-all shadow-sm shadow-red-100"
                           >
                             <FaLocationDot className="text-xs" />
-                            Ubah / Sesuaikan Ulang Titik Lokasi
+                            <span className="text-left">
+                              Ubah / Sesuaikan Ulang Titik Lokasi
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -2529,7 +2532,7 @@ function RegistrationWizard({
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-4 pb-4">
+                <div className="flex flex-col sm:flex-row gap-4 pb-4">
                   <button
                     type="button"
                     disabled={isLoading}

@@ -5,6 +5,7 @@ import { IoCopyOutline } from "react-icons/io5";
 import moment from "moment";
 import "moment/locale/id"; // Import locale Indonesia
 import Image from "next/image";
+import SecureImage from "@/app/_components/SecureImage";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -38,13 +39,16 @@ function VA({ data }: { data: UnifiedPaymentData }) {
 
   const { userInfo } = useAppSelector((state) => state.auth);
 
+  const salesId = params.get("sales_id");
+
   const checkPaymentStatus = async () => {
     setIsLoadingStatus(true);
 
     try {
-      const customerId = sessionStorage.getItem("customer_id");
+      const customerCode = sessionStorage.getItem("customer_code");
       const params = {
-        customer_code: customerId,
+        customer_code: customerCode,
+        ...(salesId && { mitra_user_id: salesId }),
       };
       const res_status = userInfo
         ? await getPaymentStatus(params)
@@ -53,17 +57,35 @@ function VA({ data }: { data: UnifiedPaymentData }) {
 
       // Non-login + success → halaman khusus (bukan modal)
       if (!userInfo && isPaid === true) {
-        const selectedPkg = JSON.parse(sessionStorage.getItem("selectedPackage") || "{}");
-        const selectedMethod = JSON.parse(sessionStorage.getItem("selectedPaymentMethod") || "{}");
-        sessionStorage.setItem("paymentSuccessData", JSON.stringify({
-          invoiceRef: data.reference_id || data.payment_attempt?.reference_id || data.id || "-",
-          customerId: customerId || data.customer_id?.customer_code || "-",
-          description: selectedPkg?.name || data.package_id?.name || "-",
-          paidAt: new Date().toISOString(),
-          paymentMethod: selectedMethod?.name || data.channel_payment_id?.name || data.channel_code || "-",
-          amount: Number(data.amount) || selectedPkg?.price || 0,
-        }));
-        router.push("/payment-billing/success");
+        const selectedPkg = JSON.parse(
+          sessionStorage.getItem("selectedPackage") || "{}",
+        );
+        const selectedMethod = JSON.parse(
+          sessionStorage.getItem("selectedPaymentMethod") || "{}",
+        );
+        sessionStorage.setItem(
+          "paymentSuccessData",
+          JSON.stringify({
+            invoiceRef:
+              data.reference_id ||
+              data.payment_attempt?.reference_id ||
+              data.id ||
+              "-",
+            customerId: customerCode || data.customer_id?.customer_code || "-",
+            description: selectedPkg?.name || data.package_id?.name || "-",
+            paidAt: new Date().toISOString(),
+            paymentMethod:
+              selectedMethod?.name ||
+              data.channel_payment_id?.name ||
+              data.channel_code ||
+              "-",
+            amount: Number(data.amount) || selectedPkg?.price || 0,
+          }),
+        );
+        const successPath = salesId
+          ? `/payment-billing/success?sales_id=${salesId}`
+          : "/payment-billing/success";
+        router.push(successPath);
         return;
       }
 
@@ -159,11 +181,15 @@ function VA({ data }: { data: UnifiedPaymentData }) {
             <div className="text-right">
               {data.channel_payment_id?.logo && (
                 <div className="flex justify-end">
+                  {/* <SecureImage
+                    obsPath={data.channel_payment_id?.logo}
+                    alt={data.channel_payment_id?.name}
+                    width={500}
+                    height={500}
+                    className="w-31 h-fit my-3"
+                  /> */}
                   <Image
-                    src={
-                      `${process.env.NEXT_PUBLIC_URL_OBS}${data.channel_payment_id?.logo}` ||
-                      selectedImage
-                    }
+                    src={`${process.env.NEXT_PUBLIC_URL_OBS}${data.channel_payment_id?.logo}`}
                     alt={data.channel_payment_id?.name}
                     width={500}
                     height={500}
@@ -257,7 +283,7 @@ function VA({ data }: { data: UnifiedPaymentData }) {
           type="button"
           onClick={checkPaymentStatus}
           disabled={isLoadingStatus}
-          className={`${isLoadingStatus ? "opacity-50" : "hover:bg-dark-primary-2"} bg-primary text-white disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-full font-bold w-full max-sm:text-sm py-3`}
+          className={`${isLoadingStatus ? "opacity-50" : "hover:bg-dark-primary-2"} bg-primary text-white disabled:cursor-not-allowed! cursor-pointer sm:mt-10 mt-3 rounded-full sm:rounded-lg font-bold w-full max-sm:text-sm py-3`}
         >
           {isLoadingStatus ? "Sedang mengecek.." : "Cek Status Pembayaran"}
         </button>
@@ -270,7 +296,7 @@ function VA({ data }: { data: UnifiedPaymentData }) {
         >
           {paymentStatus ? (
             <>
-              <h2 className="text-xl font-bold text-green-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-green-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Berhasil! 🎉
               </h2>
               <div className="flex justify-center my-4">
@@ -285,7 +311,7 @@ function VA({ data }: { data: UnifiedPaymentData }) {
             </>
           ) : (
             <>
-              <h2 className="text-xl font-bold text-red-600 mb-2 mt-3">
+              <h2 className="text-xl font-bold text-red-600 mb-2 mt-10 sm:mt-3">
                 Pembayaran Belum Berhasil
               </h2>
               <div className="flex justify-center my-4">
