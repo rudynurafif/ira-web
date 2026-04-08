@@ -92,6 +92,19 @@ function Page() {
     };
 
     verifyAndLoadData();
+
+    // // LOCK: Cegah Back Browser
+    // window.history.pushState(null, "", window.location.href);
+    // const handlePopState = () => {
+    //   window.history.pushState(null, "", window.location.href);
+    //   // Optional: beri toast kecil agar user tau kenapa dia ga bisa back
+    //   toast("Transaksi selesai. Silakan masuk ke Dashboard.", { icon: "ℹ️" });
+    // };
+
+    // window.addEventListener("popstate", handlePopState);
+    // return () => {
+    //   window.removeEventListener("popstate", handlePopState);
+    // };
   }, [router, salesId]);
 
   const rows = data
