@@ -21,6 +21,7 @@ interface SuccessData {
   paidAt: string;
   paymentMethod: string;
   amount: number;
+  salesId?: string | null;
 }
 
 function Page() {
@@ -30,9 +31,9 @@ function Page() {
 
   const params = useSearchParams();
 
-  const { userInfo } = useAppSelector((state) => state.auth);
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
 
-  const salesId = params.get("sales_id");
+  const salesIdFromUrl = params.get("sales_id");
 
   useEffect(() => {
     const verifyAndLoadData = async () => {
@@ -48,6 +49,8 @@ function Page() {
 
       try {
         const parsedData = JSON.parse(raw);
+        // Prioritaskan ID dari URL, jika kosong ambil dari session (back-up E-wallet)
+        const finalSalesId = salesIdFromUrl || parsedData.salesId;
 
         // Jika data sudah punya expiry dan sudah lewat waktunya, hapus dan redirect
         const now = new Date().getTime();
@@ -62,7 +65,7 @@ function Page() {
         if (customerCode) {
           const res = await getPaymentStatusMicrosite({
             customer_code: customerCode,
-            ...(salesId && { mitra_user_id: salesId }),
+            ...(finalSalesId && { mitra_user_id: finalSalesId }),
           });
           const isPaid = res?.data?.data;
 
@@ -105,7 +108,7 @@ function Page() {
     // return () => {
     //   window.removeEventListener("popstate", handlePopState);
     // };
-  }, [router, salesId]);
+  }, [router, salesIdFromUrl]);
 
   const rows = data
     ? [
@@ -197,7 +200,7 @@ function Page() {
 
                 <button
                   onClick={() =>
-                    userInfo
+                    isLoggedIn
                       ? router.push("/customer-area")
                       : router.push("/auth/login")
                   }

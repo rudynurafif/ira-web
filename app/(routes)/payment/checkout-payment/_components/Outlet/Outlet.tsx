@@ -34,7 +34,7 @@ function Outlet({ data }: { data: UnifiedPaymentData }) {
   const [paymentStatus, setPaymentStatus] = useState<boolean | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
 
-  const { userInfo } = useAppSelector((state) => state.auth);
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.auth);
 
   const salesId = params.get("sales_id");
 
@@ -49,13 +49,13 @@ function Outlet({ data }: { data: UnifiedPaymentData }) {
         customer_code: customerCode,
         ...(salesId && { mitra_user_id: salesId }),
       };
-      const res_status = userInfo
+      const res_status = isLoggedIn
         ? await getPaymentStatus(params)
         : await getPaymentStatusMicrosite(params);
       const isPaid = res_status?.data?.data;
 
       // Non-login + success → halaman khusus (bukan modal)
-      if (!userInfo && isPaid === true) {
+      if (!isLoggedIn && isPaid === true) {
         const selectedPkg = JSON.parse(
           sessionStorage.getItem("selectedPackage") || "{}",
         );
@@ -81,10 +81,11 @@ function Outlet({ data }: { data: UnifiedPaymentData }) {
             amount: Number(data.amount) || selectedPkg?.price || 0,
           }),
         );
-        const successPath = salesId
-          ? `/payment-billing/success?sales_id=${salesId}`
-          : "/payment-billing/success";
-        router.push(successPath);
+        router.replace(
+          salesId
+            ? `/payment-billing/success?sales_id=${salesId}`
+            : "/payment-billing/success",
+        );
         return;
       }
 
