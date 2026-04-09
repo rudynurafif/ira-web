@@ -168,7 +168,7 @@ const DownloadApp = () => {
               </div>
 
               {/* Download Box */}
-              <div className="max-[399]:mt-3 mt-8 sm:mt-16 flex items-stretch bg-white rounded-2xl overflow-hidden shadow-2xl border-2 border-primary">
+              <div className="max-[399]:mt-1 mt-8 sm:mt-16 flex items-stretch bg-white rounded-2xl overflow-hidden shadow-2xl border-2 border-primary">
                 {/* Logo IRA Square — 1:1 */}
                 <div className="flex items-center justify-center p-2 sm:p-3">
                   <div className="flex flex-col items-center justify-center bg-primary rounded-xl p-3 sm:p-4 aspect-square w-24 sm:w-40 shadow-[0_6px_16px_rgba(193,20,0,0.5)]">
