@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "codify-fwa.obs.ap-southeast-4.myhuaweicloud.com",
+        // hostname: "codify-fwa.obs.ap-southeast-4.myhuaweicloud.com", // old
+        hostname: "fwa-ira.obs.ap-southeast-4.myhuaweicloud.com", // new
         pathname: "/**",
       },
       {

@@ -180,20 +180,20 @@ const EWallet = ({ data }: { data: UnifiedPaymentData }) => {
           <p>E-Wallet</p>
           {data.channel_payment_id?.logo ? (
             <div className="flex sm:justify-end">
-              {/* <SecureImage
+              <SecureImage
                 obsPath={data.channel_payment_id?.logo}
                 alt={data.channel_payment_id?.name || "E-Wallet Logo"}
                 width={100}
                 height={100}
                 className="w-31 h-fit my-3"
-              /> */}
-              <Image
+              />
+              {/* <Image
                 src={`${process.env.NEXT_PUBLIC_URL_OBS}${data.channel_payment_id?.logo}`}
                 alt={data.channel_payment_id?.name || "E-Wallet Logo"}
                 width={100}
                 height={100}
                 className="w-31 h-fit my-3"
-              />
+              /> */}
             </div>
           ) : (
             selectedImage && (

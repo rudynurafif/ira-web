@@ -203,21 +203,21 @@ const DeliveryTracking = ({
 
             {/* QR Code */}
             <div className="my-6 flex justify-center">
-              {/* <SecureImage
+              <SecureImage
                 obsPath={packageData?.code_url}
                 alt="QR Code"
                 width={256}
                 height={256}
                 className="w-64 h-64 object-contain"
-              /> */}
-              <Image
+              />
+              {/* <Image
                 src={`${process.env.NEXT_PUBLIC_URL_OBS}${packageData?.code_url}`}
                 alt="QR Code"
                 width={256}
                 height={256}
                 className="w-64 h-64 object-contain"
                 // unoptimized
-              />
+              /> */}
             </div>
 
             {/* Nomor Pelanggan */}

@@ -141,20 +141,20 @@ function Outlet({ data }: { data: UnifiedPaymentData }) {
         <div className="flex justify-center pt-2">
           {data.channel_payment_id?.logo && (
             <div className="flex justify-end">
-              {/* <SecureImage
+              <SecureImage
                 obsPath={data.channel_payment_id?.logo}
                 alt={data.channel_payment_id?.name}
                 width={500}
                 height={500}
                 className="w-31 h-fit my-3"
-              /> */}
-              <Image
+              />
+              {/* <Image
                 src={`${process.env.NEXT_PUBLIC_URL_OBS}${data.channel_payment_id?.logo}`}
                 alt={data.channel_payment_id?.name}
                 width={500}
                 height={500}
                 className="w-31 h-fit my-3"
-              />
+              /> */}
             </div>
           )}
         </div>

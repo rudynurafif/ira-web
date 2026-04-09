@@ -39,7 +39,7 @@ const ButtonChannel: React.FC<ButtonChannelProps> = ({
     >
       {Logo ? (
         <div className="flex items-center justify-center w-[72px] h-10">
-          {/* {isObsPath ? (
+          {isObsPath ? (
             <SecureImage
               obsPath={Logo}
               alt={channel.name}
@@ -47,15 +47,15 @@ const ButtonChannel: React.FC<ButtonChannelProps> = ({
               height={40}
               className="object-contain w-full h-full"
             />
-          ) : ( */}
-          <Image
-            src={Logo}
-            alt={channel.name}
-            width={72}
-            height={40}
-            className="object-contain w-full h-full"
-          />
-          {/* )} */}
+          ) : (
+            <Image
+              src={Logo}
+              alt={channel.name}
+              width={72}
+              height={40}
+              className="object-contain w-full h-full"
+            />
+          )}
         </div>
       ) : (
         <span className="text-xs text-gray-500 text-center w-[72px]">

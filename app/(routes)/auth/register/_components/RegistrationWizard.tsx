@@ -2476,6 +2476,10 @@ function RegistrationWizard({
                             isInteractive={false}
                           />
                         </div>
+                        <p className="text-xs text-primary mt-1">
+                          *Pastikan titik lokasi pada peta sudah sesuai dengan
+                          lokasi pemasangan Anda.
+                        </p>
                         <div className="flex justify-center mt-3">
                           <button
                             type="button"

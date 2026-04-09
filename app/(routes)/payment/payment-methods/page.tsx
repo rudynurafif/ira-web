@@ -340,7 +340,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-4">
             {virtualAccounts.length > 0 ? (
               virtualAccounts.map((channel) => {
-                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
+                const Logo = channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}
@@ -373,7 +373,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-4">
             {ewallets.length > 0 ? (
               ewallets.map((channel) => {
-                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
+                const Logo = channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}
@@ -406,7 +406,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-2">
             {cardChannel.length > 0 ? (
               cardChannel.map((channel) => {
-                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
+                const Logo = channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}
@@ -433,7 +433,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-4">
             {qrisChannels.length > 0 ? (
               qrisChannels.map((channel) => {
-                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
+                const Logo = channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}
@@ -466,7 +466,7 @@ const PaymentMehods = () => {
           <div className="grid grid-cols-3 gap-4">
             {outlets.length > 0 ? (
               outlets.map((channel) => {
-                const Logo = process.env.NEXT_PUBLIC_URL_OBS + channel.logo;
+                const Logo = channel.logo;
                 return (
                   <ButtonChannel
                     key={channel.id}
