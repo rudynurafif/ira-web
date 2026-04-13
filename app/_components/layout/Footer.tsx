@@ -27,8 +27,10 @@ function Footer() {
   const [mail, setMail] = useState<string | null>("");
   const [address, setAddress] = useState<string | null>("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     try {
       setIsLoading(true);
 
@@ -224,7 +226,9 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center text-[10px] mt-5">ver. 1.0904.01</div>
+        {isMounted && (
+          <div className="text-center text-[10px] mt-5">ver. 1.1304.01</div>
+        )}
       </div>
     </div>
   );

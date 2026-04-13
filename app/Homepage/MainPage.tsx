@@ -49,7 +49,7 @@ function MainPage() {
       const res_banner = await getImageBanner(params);
 
       const staticHero: SlideData = {
-        image: "/assets/Images/bg-section-1.png",
+        image: "/assets/Images/bg-section-1.webp",
         imageMobile: "/assets/Images/hero-ira-new-mobile.webp",
         url: undefined,
         isStatic: true,
@@ -73,7 +73,7 @@ function MainPage() {
       console.error(err.response?.data?.message || err);
       setSlides([
         {
-          image: "/assets/Images/bg-section-1.png",
+          image: "/assets/Images/bg-section-1.webp",
           imageMobile: "/assets/Images/hero-ira-new-mobile.webp",
           url: undefined,
           isStatic: true,
