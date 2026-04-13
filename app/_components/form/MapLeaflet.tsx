@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import Loader from "../Loader";
 
 // Indonesia Boundary
 const IDN_BOUNDS: [[number, number], [number, number]] = [
@@ -87,6 +88,28 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
         "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
     });
   }, []);
+
+  // Update interaction based on isInteractive & isLoading
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (isInteractive && !isLoading) {
+      map.dragging.enable();
+      map.touchZoom.enable();
+      map.doubleClickZoom.enable();
+      map.scrollWheelZoom.enable();
+      map.boxZoom.enable();
+      map.keyboard.enable();
+    } else {
+      map.dragging.disable();
+      map.touchZoom.disable();
+      map.doubleClickZoom.disable();
+      map.scrollWheelZoom.disable();
+      map.boxZoom.disable();
+      map.keyboard.disable();
+    }
+  }, [isInteractive, isLoading]);
 
   // Map Initialization
   useEffect(() => {
