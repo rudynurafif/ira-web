@@ -191,6 +191,74 @@ function RegistrationWizard({
   const [isSyncingGPS, setIsSyncingGPS] = useState(false);
   const [gpsCooldown, setGpsCooldown] = useState(0);
   const [isSavingMap, setIsSavingMap] = useState(false);
+  const [isLoadingArea, setIsLoadingArea] = useState(false);
+
+  const hasInitialLocation =
+    initialData?.latitude &&
+    initialData?.longitude &&
+    String(initialData.latitude) !== "0" &&
+    String(initialData.longitude) !== "0";
+  const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
+  const [syncCountdown, setSyncCountdown] = useState<number>(0);
+  const isInitialMount = useRef(true);
+  const [mitraID, setMitraID] = useState<
+    { id: string | number; [key: string]: any }[]
+  >([]);
+  const [btsID, setBtsID] = useState([]);
+  const [isCovered, setIsCovered] = useState<boolean>(false);
+  const [coveredAtSubmit, setCoveredAtSubmit] = useState<boolean | null>(null);
+
+  const [agreement, setAgreement] = useState<boolean>(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isLoading, setIsLoading] = useState<boolean>();
+  const [isLoadingPackage, setIsLoadingPackage] = useState(false);
+  const [isModalRegisterSuccess, setIsModalRegisterSuccess] =
+    useState<boolean>(false);
+
+  // Ref untuk menandai apakah kode pos baru saja didapat dari Map/Search
+  // (Gunanya biar Map GAK LONCAT balik ke tengah kecamatan setelah kita pilih saran/geser pin)
+  const lastPostcodeFromMap = useRef<string | null>(null);
+
+  const [otpStatus, setOtpStatus] = useState<
+    "idle" | "verifying" | "valid" | "invalid"
+  >("idle");
+
+  const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
+  const { status, requestLocation, refresh } = useGeoPermission();
+  const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
+
+  const [currentBbox, setCurrentBbox] = useState<
+    [number, number, number, number] | null
+  >(null);
+
+  const [isOpenPostcodeConfirmModal, setIsOpenPostcodeConfirmModal] =
+    useState(false);
+  const [pendingSuggestionData, setPendingSuggestionData] = useState<any>(null);
+  const [isInteractingWithMap, setIsInteractingWithMap] = useState(false);
+  const [isMapSyncing, setIsMapSyncing] = useState(false);
+
+  const [hasShownPostcodeConfirmMapMove, setHasShownPostcodeConfirmMapMove] =
+    useState(false);
+
+  // [NEW] Track kode pos terakhir yang BERHASIL sinkron (untuk gate banner)
+  const [lastSyncedPostcode, setLastSyncedPostcode] = useState("");
+  const [isPostcodeNotFound, setIsPostcodeNotFound] = useState(false);
+
+  // [NEW] Global Setting: Geofencing Toggle
+  const [isGeofencingEnabled, setIsGeofencingEnabled] = useState(true);
+
+  // [WATCHDOG] Jaring pengaman agar loading tidak nyangkut selamanya (max 15 detik)
+  useEffect(() => {
+    let watchdog: NodeJS.Timeout;
+    if (isMapSyncing || isLoadingArea) {
+      watchdog = setTimeout(() => {
+        setIsMapSyncing(false);
+        setIsLoadingArea(false);
+        console.warn("Watchdog: Loading state forced to finish after timeout.");
+      }, 15000); // 15 detik
+    }
+    return () => clearTimeout(watchdog);
+  }, [isMapSyncing, isLoadingArea]);
 
   const handleManualSearch = async () => {
     if (searchQuery.length < 3 || isSearchingAddress || searchCooldown > 0)
@@ -376,59 +444,6 @@ function RegistrationWizard({
       setPendingSuggestionData(null);
     })();
   };
-  const hasInitialLocation =
-    initialData?.latitude &&
-    initialData?.longitude &&
-    String(initialData.latitude) !== "0" &&
-    String(initialData.longitude) !== "0";
-  const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
-  const [syncCountdown, setSyncCountdown] = useState<number>(0);
-  const isInitialMount = useRef(true);
-  const [mitraID, setMitraID] = useState<
-    { id: string | number; [key: string]: any }[]
-  >([]);
-  const [btsID, setBtsID] = useState([]);
-  const [isCovered, setIsCovered] = useState<boolean>(false);
-  const [coveredAtSubmit, setCoveredAtSubmit] = useState<boolean | null>(null);
-
-  const [agreement, setAgreement] = useState<boolean>(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isLoading, setIsLoading] = useState<boolean>();
-  const [isLoadingPackage, setIsLoadingPackage] = useState(false);
-  const [isModalRegisterSuccess, setIsModalRegisterSuccess] =
-    useState<boolean>(false);
-
-  // Ref untuk menandai apakah kode pos baru saja didapat dari Map/Search
-  // (Gunanya biar Map GAK LONCAT balik ke tengah kecamatan setelah kita pilih saran/geser pin)
-  const lastPostcodeFromMap = useRef<string | null>(null);
-
-  const [otpStatus, setOtpStatus] = useState<
-    "idle" | "verifying" | "valid" | "invalid"
-  >("idle");
-
-  const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
-  const { status, requestLocation, refresh } = useGeoPermission();
-  const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
-
-  const [currentBbox, setCurrentBbox] = useState<
-    [number, number, number, number] | null
-  >(null);
-
-  const [isOpenPostcodeConfirmModal, setIsOpenPostcodeConfirmModal] =
-    useState(false);
-  const [pendingSuggestionData, setPendingSuggestionData] = useState<any>(null);
-  const [isInteractingWithMap, setIsInteractingWithMap] = useState(false);
-  const [isMapSyncing, setIsMapSyncing] = useState(false);
-
-  const [hasShownPostcodeConfirmMapMove, setHasShownPostcodeConfirmMapMove] =
-    useState(false);
-
-  // [NEW] Track kode pos terakhir yang BERHASIL sinkron (untuk gate banner)
-  const [lastSyncedPostcode, setLastSyncedPostcode] = useState("");
-  const [isPostcodeNotFound, setIsPostcodeNotFound] = useState(false);
-
-  // [NEW] Global Setting: Geofencing Toggle
-  const [isGeofencingEnabled, setIsGeofencingEnabled] = useState(true);
 
   // Fetch Geofencing Setting
   useEffect(() => {
@@ -910,8 +925,6 @@ function RegistrationWizard({
     })();
   }, [formData.sub_district]);
 
-  const [isLoadingArea, setIsLoadingArea] = useState(false);
-
   // Debounce Kode Pos -> Autofill Lokasi (Koordinat Map)
   useEffect(() => {
     // Jalankan jika ada value (karena dropdown, pasti sudah 5 digit real-nya)
@@ -1101,27 +1114,28 @@ function RegistrationWizard({
         try {
           const resLoc = await getLocationByPostalCode(postcode);
           locationFromBackend = resLoc.data?.data?.[0];
+          console.log("kode pos: ", locationFromBackend);
         } catch (e) {
           console.error("Gagal resolve lokasi GPS ke backend ID", e);
         }
       }
 
       setFormData((prev) => {
+        const isSamePostcode = postcode === prev.postal_code;
+
         const nextVal = {
           ...prev,
           latitude: latStr,
           longitude: lngStr,
-          postal_code_id: locationFromBackend
-            ? String(locationFromBackend.id)
-            : "", // [FIX] Wajib kosongkan jika tidak ada di backend agar tidak tertinggal ID lama
-          postal_code: locationFromBackend
-            ? String(locationFromBackend.name)
-            : postcode || prev.postal_code,
+          // [FIX] Simple: Jika pindah kode pos, buang ID! 
+          // ID hanya boleh ada jika masih di area kode pos yang sama.
+          postal_code_id: isSamePostcode ? prev.postal_code_id : "",
+          postal_code: postcode || prev.postal_code,
           address_gmaps: feature
             ? feature.properties?.full_address || feature.properties?.name
             : prev.address_gmaps,
-          // Auto sinkron hierarchy jika dapat data backend
-          ...(locationFromBackend
+          // Auto sinkron hierarchy hanya jika masih di area kode pos yang sama
+          ...(locationFromBackend && isSamePostcode
             ? {
                 province: String(locationFromBackend.province_id),
                 city: String(locationFromBackend.city_id),
@@ -1131,10 +1145,10 @@ function RegistrationWizard({
             : {}),
         };
 
-        // [FIX] Jika tidak ketemu ID backend, paksa ke mode manual agar teksnya nampil
-        if (!locationFromBackend && postcode) {
+        // [FIX] Jika pindah area, langsung aktifkan mode manual (free text)
+        if (postcode && !isSamePostcode) {
           setIsPostalCodeManual(true);
-        } else if (locationFromBackend) {
+        } else if (isSamePostcode && prev.postal_code_id) {
           setIsPostalCodeManual(false);
         }
 
@@ -2512,21 +2526,42 @@ function RegistrationWizard({
                 <div className="flex gap-4">
                   <button
                     type="button"
+                    disabled={
+                      isLoadingArea ||
+                      isMapSyncing ||
+                      searchCooldown > 0 ||
+                      isSearchingAddress
+                    }
                     onClick={() => {
                       setStep(1);
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className="flex-1 bg-white border-2 border-primary text-primary hover:bg-red-50 font-bold py-3 px-4 rounded-xl text-sm md:text-base shadow-sm transition-transform active:scale-95 duration-200"
+                    className="flex-1 bg-white border-2 border-primary text-primary hover:bg-red-50 font-bold py-3 px-4 rounded-xl text-sm md:text-base shadow-sm transition-transform active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Kembali
+                    {isLoadingArea ||
+                    isMapSyncing ||
+                    searchCooldown > 0 ||
+                    isSearchingAddress
+                      ? "Sinkronisasi..."
+                      : "Kembali"}
                   </button>
                   <button
                     type="button"
-                    disabled={isLoadingArea}
+                    disabled={
+                      isLoadingArea ||
+                      isMapSyncing ||
+                      searchCooldown > 0 ||
+                      isSearchingAddress
+                    }
                     onClick={handleProceedToSummary}
                     className="flex-1 bg-primary hover:bg-dark-primary-2 text-white font-bold py-3 px-4 rounded-xl text-sm md:text-base shadow-md transition-transform active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoadingArea ? "Sinkronisasi..." : "Selanjutnya"}
+                    {isLoadingArea ||
+                    isMapSyncing ||
+                    searchCooldown > 0 ||
+                    isSearchingAddress
+                      ? "Sinkronisasi..."
+                      : "Selanjutnya"}
                   </button>
                 </div>
               </div>
