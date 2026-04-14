@@ -418,6 +418,8 @@ function RegistrationWizard({
     useState(false);
   const [pendingSuggestionData, setPendingSuggestionData] = useState<any>(null);
   const [isInteractingWithMap, setIsInteractingWithMap] = useState(false);
+  const [isMapSyncing, setIsMapSyncing] = useState(false);
+
   const [hasShownPostcodeConfirmMapMove, setHasShownPostcodeConfirmMapMove] =
     useState(false);
 
@@ -643,6 +645,15 @@ function RegistrationWizard({
           } else {
             setFormData(parsed.formData);
             // Cegah autofill ulang koordinat dari kode pos saat refresh
+            // [NEW] Tentukan mode input basarkan eksistensi ID kode pos hasil restore
+            if (
+              parsed.formData.postal_code &&
+              !parsed.formData.postal_code_id
+            ) {
+              setIsPostalCodeManual(true);
+            } else if (parsed.formData.postal_code_id) {
+              setIsPostalCodeManual(false);
+            }
             if (parsed.formData.postal_code) {
               lastPostcodeFromMap.current = parsed.formData.postal_code;
               setLastSyncedPostcode(parsed.formData.postal_code);
@@ -878,7 +889,11 @@ function RegistrationWizard({
         if (pcData.length === 0) {
           setIsPostalCodeManual(true);
         } else {
-          setIsPostalCodeManual(false);
+          // [FIX] Hanya paksa ke dropdown jika data manual belum ada (BUKAN saat restore session manual)
+          if (!formData.postal_code || formData.postal_code_id) {
+            setIsPostalCodeManual(false);
+          }
+
           setPostalCodeOptions(
             pcData.map((it: any) => ({
               label: it.name,
@@ -1098,7 +1113,7 @@ function RegistrationWizard({
           longitude: lngStr,
           postal_code_id: locationFromBackend
             ? String(locationFromBackend.id)
-            : prev.postal_code_id,
+            : "", // [FIX] Wajib kosongkan jika tidak ada di backend agar tidak tertinggal ID lama
           postal_code: locationFromBackend
             ? String(locationFromBackend.name)
             : postcode || prev.postal_code,
@@ -2014,7 +2029,7 @@ function RegistrationWizard({
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 relative z-30">
                     {/* Kode Pos Area */}
-                    <div className="w-full">
+                    <div className="w-full relative">
                       {isPostalCodeManual ? (
                         <DynamicForm
                           label="Kode POS"
@@ -2025,13 +2040,21 @@ function RegistrationWizard({
                               setFormData((prev: any) => ({
                                 ...prev,
                                 postal_code: value,
+                                postal_code_id: "", // [FIX] Hapus ID jika input manual agar tidak konflik
                               }));
+
                               if (value.length === 5) setIsLoadingArea(true);
                               setErrors({ ...errors, postal_code: "" });
                             }
                           }}
                           placeholder="Masukkan Kode POS"
                           value={formData.postal_code}
+                          disabled={
+                            isLoadingArea ||
+                            isMapSyncing ||
+                            searchCooldown > 0 ||
+                            isSearchingAddress
+                          }
                           error={errors.postal_code || ""}
                         />
                       ) : (
@@ -2057,7 +2080,13 @@ function RegistrationWizard({
                             }
                             setErrors({ ...errors, postal_code: "" });
                           }}
-                          isDisabled={!formData.sub_district}
+                          isDisabled={
+                            !formData.sub_district ||
+                            isLoadingArea ||
+                            isMapSyncing ||
+                            searchCooldown > 0 ||
+                            isSearchingAddress
+                          }
                           placeholder={`${
                             !formData.sub_district
                               ? "Pilih Kelurahan Dahulu"
@@ -2067,8 +2096,14 @@ function RegistrationWizard({
                           error={errors.postal_code || ""}
                         />
                       )}
-                      {isLoadingArea && (
-                        <div className="absolute top-[45px] right-4 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      {/* Loader */}
+                      {(isLoadingArea ||
+                        isMapSyncing ||
+                        searchCooldown > 0 ||
+                        isSearchingAddress) && (
+                        <div className="absolute top-[48px] right-3 flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        </div>
                       )}
                     </div>
 
@@ -2327,9 +2362,14 @@ function RegistrationWizard({
                               isSearchingAddress ||
                               isOpenPostcodeConfirmModal
                             }
+                            onGeocodeStart={() => {
+                              setIsMapSyncing(true);
+                            }}
                             onPlaceChange={(p) => {
+                              setIsMapSyncing(false);
                               // 1. Tanda sedang interaksi agar Auto-Center tidak menimpa
                               setIsInteractingWithMap(true);
+
                               // 2. Update koordinat segera
                               setFormData((prev) => ({
                                 ...prev,
