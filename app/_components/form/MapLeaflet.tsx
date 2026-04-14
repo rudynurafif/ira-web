@@ -24,7 +24,9 @@ interface MapLeafletProps {
     address?: string;
     raw_result?: any;
   }) => void;
+  onGeocodeStart?: () => void;
 }
+
 
 // Helper to calculate distance in meters (Haversine formula)
 const calculateDistance = (
@@ -54,13 +56,16 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
   bbox,
   isLoading = false,
   onPlaceChange,
+  onGeocodeStart,
 }) => {
+
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const bboxLayerRef = useRef<L.Polygon | null>(null);
   const geocodeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastGeocodedPosRef = useRef<{ lat: number; lng: number } | null>(null);
+  const isProgrammaticMoveRef = useRef(true); // [FIX] Default TRUE agar saat baru mount tidak nimpa data manual
 
   const [location] = useState<{ lat: number; lng: number }>(() => {
     if (initialLatitude && initialLongitude && initialLatitude !== 0) {
@@ -73,6 +78,12 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
   useEffect(() => {
     onPlaceChangeRef.current = onPlaceChange;
   }, [onPlaceChange]);
+
+  const onGeocodeStartRef = useRef(onGeocodeStart);
+  useEffect(() => {
+    onGeocodeStartRef.current = onGeocodeStart;
+  }, [onGeocodeStart]);
+
 
   // Fix Leaflet Default Icon issue in Next.js
   useEffect(() => {
@@ -133,6 +144,11 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
       maxBoundsViscosity: 0.8,
     });
 
+    // Buka gembok setelah map siap (agar pergerakan awal diabaikan)
+    setTimeout(() => {
+      isProgrammaticMoveRef.current = false;
+    }, 1000);
+
     if (isInteractive) {
       L.control.zoom({ position: "topright" }).addTo(map);
     }
@@ -188,7 +204,12 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
           clearTimeout(geocodeTimerRef.current);
         }
 
+        if (onGeocodeStartRef.current) {
+          onGeocodeStartRef.current();
+        }
+
         geocodeTimerRef.current = setTimeout(async () => {
+
           if (isLoading) return;
 
           try {
@@ -250,8 +271,6 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
   }, [isInteractive]);
 
   // Update center when initialLatitude/Longitude changes
-  const isProgrammaticMoveRef = useRef(false);
-
   useEffect(() => {
     if (
       mapRef.current &&
