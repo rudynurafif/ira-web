@@ -105,7 +105,9 @@ const PaymentMehods = () => {
 
   const handleCheckPackage = async (): Promise<boolean> => {
     try {
-      const code = userInfo?.customer_code || sessionStorage.getItem("customer_code");
+      const code = isLoggedIn
+        ? userInfo?.customer_code
+        : sessionStorage.getItem("customer_code");
 
       if (!code || code === "-") {
         toast.error("Identitas pelanggan tidak ditemukan. Silakan isi ulang data.");
@@ -208,7 +210,9 @@ const PaymentMehods = () => {
 
       let createRes;
 
-      const code = userInfo?.customer_code || sessionStorage.getItem("customer_code");
+      const code = isLoggedIn
+        ? userInfo?.customer_code
+        : sessionStorage.getItem("customer_code");
 
       if (!code || code === "-") {
         toast.error("Identitas pelanggan tidak ditemukan. Silakan isi ulang data.");
@@ -293,6 +297,7 @@ const PaymentMehods = () => {
                 paidAt: new Date().toISOString(),
                 paymentMethod: selectedChannel.name || "E-Wallet",
                 amount: Number(data.amount) || selectedPackage?.price || 0,
+                salesId: salesId, // Simpan ID Sales di sini biar gak hilang
               }),
             );
             console.log("Guest payment data saved for success redirect.");
@@ -503,7 +508,7 @@ const PaymentMehods = () => {
         <ModalTemplate
           closeModal={() => {
             setOpenModalNotAllowed(false);
-            if (userInfo) {
+            if (isLoggedIn) {
               router.push("/customer-area");
             } else {
               router.push("/payment-billing");
@@ -534,7 +539,7 @@ const PaymentMehods = () => {
               className="w-full mt-4 text-base sm:text-xl cursor-pointer sm:py-4 py-2 bg-primary text-white font-semibold rounded-full sm:rounded-lg hover:bg-dark-primary-2 transition disabled:cursor-not-allowed! disabled:bg-slate-400"
               onClick={() => {
                 setOpenModalNotAllowed(false);
-                if (userInfo) {
+                if (isLoggedIn) {
                   router.push("/customer-area");
                 } else {
                   router.push("/payment-billing");

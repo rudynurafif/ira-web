@@ -46,7 +46,11 @@ function Page() {
     const confirmed = window.confirm("Apakah Anda Yakin?");
 
     if (confirmed) {
-      window.location.href = "/customer-area";
+      if (isLoggedIn) {
+        router.push("/customer-area");
+      } else {
+        router.push("/payment-billing");
+      }
     }
   };
 
@@ -54,8 +58,9 @@ function Page() {
 
   const getCurrentPaymentData = async () => {
     try {
-      const customerCode =
-        userInfo?.customer_code || sessionStorage.getItem("customer_code");
+      const customerCode = isLoggedIn
+        ? userInfo?.customer_code
+        : sessionStorage.getItem("customer_code");
 
       const params = {
         customer_code: customerCode,
@@ -76,7 +81,34 @@ function Page() {
         return;
       }
 
-      setPaymentInfo(res.data?.data);
+      const paymentData = res.data?.data;
+
+      // Kasus 3: Jika status sudah PAID, langsung lempar ke halaman sukses
+      if (paymentData.status === "paid") {
+        if (!isLoggedIn) {
+          const cid = sessionStorage.getItem("customer_code") || "-";
+          sessionStorage.setItem(
+            "paymentSuccessData",
+            JSON.stringify({
+              invoiceRef: paymentData.reference_id || paymentData.id || "-",
+              customerId: cid,
+              description: paymentData.package_id?.name || "-",
+              paidAt: new Date().toISOString(),
+              paymentMethod: paymentData.channel_code || "Payment",
+              amount: Number(paymentData.amount) || 0,
+              salesId: salesId,
+            }),
+          );
+        }
+        router.replace(
+          salesId
+            ? `/payment-billing/success?sales_id=${salesId}`
+            : "/payment-billing/success",
+        );
+        return;
+      }
+
+      setPaymentInfo(paymentData);
     } catch (err: any) {
       toastErrorFromAPI(err);
     } finally {
@@ -179,7 +211,7 @@ function Page() {
             onClick={handleCancelPayment}
             className="cursor-pointer underline sm:mt-10 mt-3 rounded-lg font-bold text-primary hover:text-dark-primary-2 w-full max-sm:text-sm py-3"
           >
-            Kembali Ke Area Pelanggan
+            {isLoggedIn ? "Kembali Ke Area Pelanggan" : "Kembali ke Halaman Billing"}
           </button>
         </div>
       </div>

@@ -48,6 +48,16 @@ import { IoClose } from "react-icons/io5";
 import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import MapMapbox from "@/app/_components/form/MapMapbox";
+import dynamic from "next/dynamic";
+
+const MapLeaflet = dynamic(() => import("@/app/_components/form/MapLeaflet"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-gray-100 animate-pulse flex items-center justify-center">
+      <span className="text-xs text-gray-400">Memuat Peta...</span>
+    </div>
+  ),
+});
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import {
@@ -186,14 +196,16 @@ function RegistrationWizard({
     if (searchQuery.length < 3 || isSearchingAddress || searchCooldown > 0)
       return;
 
+    // [FIX] Pasang loading instan agar map langsung terdisable
+    setIsSearchingAddress(true);
     setSearchCooldown(5);
+
     const cdTimer = setInterval(() => {
       setSearchCooldown((prev) => {
         if (prev <= 1) {
           clearInterval(cdTimer);
           (async () => {
             try {
-              setIsSearchingAddress(true);
               const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
               // Pakai token standar saja sesuai permintaan
               const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(
@@ -253,13 +265,22 @@ function RegistrationWizard({
             suggestionName: feat.name,
             fullAddress: feat.full_address || feat.name,
           });
+
+          // Update koordinat segera agar map pindah
+          setFormData((prev) => ({
+            ...prev,
+            latitude: lat,
+            longitude: lng,
+            address_gmaps: feat.full_address || feat.name,
+          }));
+
           setIsOpenPostcodeConfirmModal(true);
+
           setIsSearchingAddress(false);
           setShowSuggestions(false);
           return;
         }
 
-        // Jika sama atau tidak ada data kode pos, langsung update
         // Jika sama atau tidak ada data kode pos, langsung update
         setSearchQuery(feat.name);
         setShowSuggestions(false);
@@ -360,8 +381,9 @@ function RegistrationWizard({
     initialData?.longitude &&
     String(initialData.latitude) !== "0" &&
     String(initialData.longitude) !== "0";
-  const [isCheckCoverage, setIsCheckCoverage] =
-    useState<boolean>(!hasInitialLocation);
+  const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
+  const [syncCountdown, setSyncCountdown] = useState<number>(0);
+  const isInitialMount = useRef(true);
   const [mitraID, setMitraID] = useState<
     { id: string | number; [key: string]: any }[]
   >([]);
@@ -396,6 +418,8 @@ function RegistrationWizard({
     useState(false);
   const [pendingSuggestionData, setPendingSuggestionData] = useState<any>(null);
   const [isInteractingWithMap, setIsInteractingWithMap] = useState(false);
+  const [isMapSyncing, setIsMapSyncing] = useState(false);
+
   const [hasShownPostcodeConfirmMapMove, setHasShownPostcodeConfirmMapMove] =
     useState(false);
 
@@ -621,8 +645,18 @@ function RegistrationWizard({
           } else {
             setFormData(parsed.formData);
             // Cegah autofill ulang koordinat dari kode pos saat refresh
+            // [NEW] Tentukan mode input basarkan eksistensi ID kode pos hasil restore
+            if (
+              parsed.formData.postal_code &&
+              !parsed.formData.postal_code_id
+            ) {
+              setIsPostalCodeManual(true);
+            } else if (parsed.formData.postal_code_id) {
+              setIsPostalCodeManual(false);
+            }
             if (parsed.formData.postal_code) {
               lastPostcodeFromMap.current = parsed.formData.postal_code;
+              setLastSyncedPostcode(parsed.formData.postal_code);
             }
           }
         }
@@ -679,7 +713,18 @@ function RegistrationWizard({
   }, [isModalRegisterSuccess, mode]);
 
   useEffect(() => {
+    const delay = isInitialMount.current ? 1000 : 6000;
+    setSyncCountdown(Math.ceil(delay / 1000));
+
+    // Timer untuk visual countdown di tombol
+    const cdInterval = setInterval(() => {
+      setSyncCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
     const timer = setTimeout(async () => {
+      clearInterval(cdInterval);
+      setSyncCountdown(0);
+
       if (
         !formData.latitude ||
         formData.latitude === "0" ||
@@ -709,9 +754,14 @@ function RegistrationWizard({
       } finally {
         setIsCheckCoverage(false);
       }
-    }, 6000); // Tunggu 6 Detik Diam Baru Check Coverage Internal
+    }, delay);
 
-    return () => clearTimeout(timer);
+    isInitialMount.current = false;
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(cdInterval);
+    };
   }, [formData.latitude, formData.longitude]);
 
   // Paket terpilih harus di-reset saat paket list atau lokasi berubah
@@ -839,7 +889,11 @@ function RegistrationWizard({
         if (pcData.length === 0) {
           setIsPostalCodeManual(true);
         } else {
-          setIsPostalCodeManual(false);
+          // [FIX] Hanya paksa ke dropdown jika data manual belum ada (BUKAN saat restore session manual)
+          if (!formData.postal_code || formData.postal_code_id) {
+            setIsPostalCodeManual(false);
+          }
+
           setPostalCodeOptions(
             pcData.map((it: any) => ({
               label: it.name,
@@ -862,12 +916,25 @@ function RegistrationWizard({
   useEffect(() => {
     // Jalankan jika ada value (karena dropdown, pasti sudah 5 digit real-nya)
     // [Gembok Total] Jika sedang interaksi dengan peta, dilarang keras melakukan auto-center
-    if (!formData.postal_code || isInteractingWithMap) {
+    if (isInteractingWithMap) {
       lastPostcodeFromMap.current = "";
       return;
     }
 
+    if (!formData.postal_code) {
+      setIsLoadingArea(false);
+      return;
+    }
     if (formData.postal_code === lastPostcodeFromMap.current) {
+      setIsLoadingArea(false);
+      return;
+    }
+
+    // [SAFETY] Jika sudah ada koordinat (hasil restorasi atau drag sebelumnya),
+    // Jangan paksa center ke tengah kode pos lagi saat refresh/mount.
+    if (formData.latitude && formData.longitude && !lastSyncedPostcode) {
+      // Tandai bahwa kode pos ini sudah "sinkron" dengan koordinat yang ada
+      lastPostcodeFromMap.current = formData.postal_code;
       return;
     }
 
@@ -878,6 +945,17 @@ function RegistrationWizard({
     }
 
     const timer = setTimeout(async () => {
+      // [SAFETY] Tambahan gembok: Jika latitude sudah ada dan kita baru saja mount/refresh,
+      // jangan jalankan geocoding ini karena akan menimpa koordinat custom user.
+      if (
+        formData.latitude &&
+        formData.longitude &&
+        formData.postal_code === lastPostcodeFromMap.current
+      ) {
+        setIsLoadingArea(false);
+        return;
+      }
+
       try {
         // [NEW] Resolusi ID ke Nama (Angka Kode Pos) untuk Mapbox
         const selectedPC = postalCodeOptions.find(
@@ -1035,7 +1113,7 @@ function RegistrationWizard({
           longitude: lngStr,
           postal_code_id: locationFromBackend
             ? String(locationFromBackend.id)
-            : prev.postal_code_id,
+            : "", // [FIX] Wajib kosongkan jika tidak ada di backend agar tidak tertinggal ID lama
           postal_code: locationFromBackend
             ? String(locationFromBackend.name)
             : postcode || prev.postal_code,
@@ -1350,13 +1428,13 @@ function RegistrationWizard({
     }
   }
 
-  useEffect(() => {
-    console.log("form data", formData);
-    // console.log("mitra IDs: ", mitraID);
-    // console.log("bts IDs: ", btsID);
-    // console.log(isCovered);
-    // console.log("error", errors);
-  }, [btsID, formData, mitraID, isCovered, errors]);
+  // useEffect(() => {
+  //   console.log("form data", formData);
+  //   // console.log("mitra IDs: ", mitraID);
+  //   // console.log("bts IDs: ", btsID);
+  //   console.log(isCovered);
+  //   // console.log("error", errors);
+  // }, [btsID, formData, mitraID, isCovered, errors]);
 
   function resetForm() {
     setStep(1);
@@ -1951,7 +2029,7 @@ function RegistrationWizard({
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 relative z-30">
                     {/* Kode Pos Area */}
-                    <div className="w-full">
+                    <div className="w-full relative">
                       {isPostalCodeManual ? (
                         <DynamicForm
                           label="Kode POS"
@@ -1962,12 +2040,21 @@ function RegistrationWizard({
                               setFormData((prev: any) => ({
                                 ...prev,
                                 postal_code: value,
+                                postal_code_id: "", // [FIX] Hapus ID jika input manual agar tidak konflik
                               }));
+
+                              if (value.length === 5) setIsLoadingArea(true);
                               setErrors({ ...errors, postal_code: "" });
                             }
                           }}
                           placeholder="Masukkan Kode POS"
                           value={formData.postal_code}
+                          disabled={
+                            isLoadingArea ||
+                            isMapSyncing ||
+                            searchCooldown > 0 ||
+                            isSearchingAddress
+                          }
                           error={errors.postal_code || ""}
                         />
                       ) : (
@@ -1983,6 +2070,7 @@ function RegistrationWizard({
                                 postal_code_id: value.value, // Simpan UUID
                                 postal_code: value.name || value.label, // Simpan Teks (misal 12870)
                               }));
+                              setIsLoadingArea(true);
                             } else {
                               setFormData((prev: any) => ({
                                 ...prev,
@@ -1992,7 +2080,13 @@ function RegistrationWizard({
                             }
                             setErrors({ ...errors, postal_code: "" });
                           }}
-                          isDisabled={!formData.sub_district}
+                          isDisabled={
+                            !formData.sub_district ||
+                            isLoadingArea ||
+                            isMapSyncing ||
+                            searchCooldown > 0 ||
+                            isSearchingAddress
+                          }
                           placeholder={`${
                             !formData.sub_district
                               ? "Pilih Kelurahan Dahulu"
@@ -2002,8 +2096,14 @@ function RegistrationWizard({
                           error={errors.postal_code || ""}
                         />
                       )}
-                      {isLoadingArea && (
-                        <div className="absolute top-[45px] right-4 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      {/* Loader */}
+                      {(isLoadingArea ||
+                        isMapSyncing ||
+                        searchCooldown > 0 ||
+                        isSearchingAddress) && (
+                        <div className="absolute top-[48px] right-3 flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        </div>
                       )}
                     </div>
 
@@ -2100,7 +2200,8 @@ function RegistrationWizard({
                             <br />
                             <br />
                             <span className="font-bold italic">
-                              Abaikan jika alamatmu sudah sesuai titik pinpoin.
+                              Abaikan jika alamatmu sudah sesuai titik pinpoin
+                              di peta.
                             </span>
                           </p>
                         </div>
@@ -2131,7 +2232,8 @@ function RegistrationWizard({
                             </button>
                           )}
                           <input
-                            type="text"
+                            type="search"
+                            autoComplete="off"
                             placeholder={"Cari Lokasimu.."}
                             className="w-full py-3.5 px-3 text-sm text-black bg-transparent border-none focus:ring-0 outline-none"
                             value={searchQuery}
@@ -2140,9 +2242,13 @@ function RegistrationWizard({
                               setShowSuggestions(true)
                             }
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) =>
-                              e.key === "Enter" && handleManualSearch()
-                            }
+                            enterKeyHint="search"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleManualSearch();
+                              }
+                            }}
                           />
 
                           <div className="flex items-center gap-1 mr-1">
@@ -2204,7 +2310,7 @@ function RegistrationWizard({
 
                       <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
                         <div className="w-full h-full">
-                          <MapMapbox
+                          {/* <MapMapbox
                             initialLatitude={Number(formData.latitude || 0)}
                             initialLongitude={Number(formData.longitude || 0)}
                             isInteractive={true}
@@ -2244,6 +2350,62 @@ function RegistrationWizard({
                                 // Selesai interaksi sinkronisasi
                                 setIsInteractingWithMap(false);
                               }
+                            }}
+                          /> */}
+                          <MapLeaflet
+                            initialLatitude={Number(formData.latitude || 0)}
+                            initialLongitude={Number(formData.longitude || 0)}
+                            isInteractive={true}
+                            bbox={isGeofencingEnabled ? currentBbox : null}
+                            isLoading={
+                              isLoadingArea ||
+                              isSearchingAddress ||
+                              isOpenPostcodeConfirmModal
+                            }
+                            onGeocodeStart={() => {
+                              setIsMapSyncing(true);
+                            }}
+                            onPlaceChange={(p) => {
+                              setIsMapSyncing(false);
+                              // 1. Tanda sedang interaksi agar Auto-Center tidak menimpa
+                              setIsInteractingWithMap(true);
+
+                              // 2. Update koordinat segera
+                              setFormData((prev) => ({
+                                ...prev,
+                                latitude: String(p.latitude),
+                                longitude: String(p.longitude),
+                              }));
+
+                              // 3. Jika ada Kode Pos (Hasil 5s Timer), lakukan pengecekan boundary
+                              const detectedPostcode = p.postcode;
+                              if (
+                                detectedPostcode &&
+                                detectedPostcode !== formData.postal_code
+                              ) {
+                                if (!hasShownPostcodeConfirmMapMove) {
+                                  setPendingSuggestionData({
+                                    feature: p.raw_result,
+                                    suggestionName: p.address || "",
+                                    suggestionPostcode: detectedPostcode,
+                                    exactLat: p.latitude,
+                                    exactLng: p.longitude,
+                                    isFromMapPinpoint: true,
+                                  });
+                                  setIsOpenPostcodeConfirmModal(true);
+                                  setHasShownPostcodeConfirmMapMove(true);
+                                } else {
+                                  // Update otomatis (Silent) jika user sudah pernah lihat modal konfirmasi
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    postal_code: detectedPostcode,
+                                  }));
+                                  lastPostcodeFromMap.current =
+                                    detectedPostcode;
+                                }
+                              }
+                              // Selesai interaksi sinkronisasi
+                              setIsInteractingWithMap(false);
                             }}
                           />
                         </div>
@@ -2360,10 +2522,11 @@ function RegistrationWizard({
                   </button>
                   <button
                     type="button"
+                    disabled={isLoadingArea}
                     onClick={handleProceedToSummary}
-                    className="flex-1 bg-primary hover:bg-dark-primary-2 text-white font-bold py-3 px-4 rounded-xl text-sm md:text-base shadow-md transition-transform active:scale-95 duration-200"
+                    className="flex-1 bg-primary hover:bg-dark-primary-2 text-white font-bold py-3 px-4 rounded-xl text-sm md:text-base shadow-md transition-transform active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Selanjutnya
+                    {isLoadingArea ? "Sinkronisasi..." : "Selanjutnya"}
                   </button>
                 </div>
               </div>
@@ -2470,13 +2633,22 @@ function RegistrationWizard({
 
                         {/* Map Mini Preview */}
                         <div className="mt-4 w-full h-[350px] rounded-xl overflow-hidden pointer-events-none opacity-80 border border-gray-200">
-                          <MapMapbox
+                          {/* <MapMapbox
+                            initialLatitude={Number(formData.latitude || 0)}
+                            initialLongitude={Number(formData.longitude || 0)}
+                            isInteractive={false}
+                          /> */}
+                          <MapLeaflet
                             initialLatitude={Number(formData.latitude || 0)}
                             initialLongitude={Number(formData.longitude || 0)}
                             isInteractive={false}
                           />
                         </div>
-                        <div className="flex justify-center mt-3">
+                        <p className="text-sm sm:text-base text-primary my-2">
+                          *Pastikan titik lokasi pada peta sudah sesuai dengan
+                          lokasi pemasangan Anda.
+                        </p>
+                        <div className="flex justify-center mt-6">
                           <button
                             type="button"
                             onClick={() => {
@@ -2545,11 +2717,16 @@ function RegistrationWizard({
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50"
+                    disabled={isLoading || isCheckCoverage || syncCountdown > 0}
+                    className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-bold text-center text-sm md:text-base shadow-sm hover:bg-[#b01e1a] transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {mode === "update_address"
-                      ? "Simpan Alamat"
-                      : "Berlangganan Sekarang"}
+                    {syncCountdown > 0
+                      ? `Sinkronisasi Lokasi (${syncCountdown}s)`
+                      : isCheckCoverage
+                        ? "Memverifikasi Area Pemasangan..."
+                        : mode === "update_address"
+                          ? "Simpan Alamat"
+                          : "Berlangganan Sekarang"}
                   </button>
                 </div>
               </div>

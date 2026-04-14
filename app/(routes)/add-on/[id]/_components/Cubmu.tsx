@@ -58,7 +58,7 @@ const Cubmu = ({ items }: CubmuProps) => {
         <div className="relative h-155 w-full sm:h-170 md:h-130">
           {/* bg image */}
           <Image
-            src="/assets/Images/cubmu-hero-bg.png"
+            src="/assets/Images/cubmu-hero-bg.webp"
             alt="CubMu Hero"
             fill
             priority

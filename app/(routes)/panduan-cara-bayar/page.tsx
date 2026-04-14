@@ -118,7 +118,7 @@ const PanduanCaraBayar = () => {
         className="hidden lg:block min-h-screen bg-cover bg-center bg-no-repeat relative"
         style={{
           backgroundImage:
-            "url('/assets/Images/background-check-coverage.png')",
+            "url('/assets/check-coverage/background-check-coverage.png')",
         }}
       >
         <div className="relative z-10 py-24 px-8 max-w-[1440px] mx-auto">
