@@ -255,7 +255,7 @@ function RegistrationWizard({
         setIsMapSyncing(false);
         setIsLoadingArea(false);
         console.warn("Watchdog: Loading state forced to finish after timeout.");
-      }, 15000); // 15 detik
+      }, 7000); // 7 detik
     }
     return () => clearTimeout(watchdog);
   }, [isMapSyncing, isLoadingArea]);
@@ -1127,7 +1127,7 @@ function RegistrationWizard({
           ...prev,
           latitude: latStr,
           longitude: lngStr,
-          // [FIX] Simple: Jika pindah kode pos, buang ID! 
+          // [FIX] Simple: Jika pindah kode pos, buang ID!
           // ID hanya boleh ada jika masih di area kode pos yang sama.
           postal_code_id: isSamePostcode ? prev.postal_code_id : "",
           postal_code: postcode || prev.postal_code,
