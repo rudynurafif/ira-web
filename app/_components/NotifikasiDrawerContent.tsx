@@ -375,7 +375,8 @@ export default function NotifikasiDrawerContent({
           </div>
           <button
             onClick={handleReadAll}
-            className="text-primary hover:underline font-bold  ml-auto mt-2 sm:mt-0 sm:ml-0"
+            disabled={counts.semua === 0}
+            className="text-primary hover:underline font-bold  ml-auto mt-2 sm:mt-0 sm:ml-0 disabled:text-gray-400 disabled:cursor-not-allowed"
           >
             Baca Semua
           </button>
