@@ -103,26 +103,42 @@ function MainPage() {
   };
 
   const FirstSlideContent = () => (
-    <div
-      className="relative cursor-pointer md:bg-[url('/assets/Images/bg-section-1.webp')] bg-[url('/assets/Images/bg-section-1-mobile.webp')] bg-size-[100%_100%] bg-top bg-no-repeat text-white max-md:w-full max-md:aspect-1170/2205 md:w-full md:aspect-1920/1080"
-      onClick={(e) => {
-        e.stopPropagation();
-        handleClickBanner();
-      }}
-    >
-      {/* <div
-        className="max-md:hidden md:absolute bottom-65 left-25 z-10 cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleClickBanner();
-        }}
-      >
-        <img
-          src="/assets/Images/download-now.png"
-          alt="Download Now"
-          className="w-auto h-[112px] object-contain"
-        />
-      </div> */}
+    <div className="relative md:bg-[url('/assets/Images/bg-section-1-cropped.webp')] bg-[url('/assets/Images/bg-section-1-mobile.webp')] bg-cover bg-top bg-no-repeat text-white max-md:w-full max-md:aspect-1170/2205 md:w-full md:aspect-1920/1080">
+      <div className="hidden md:absolute inset-0 md:grid md:grid-cols-2 md:grid-rows-2">
+        <div className="w-full h-full"></div>
+        <div className="w-full h-full"></div>
+        <div
+          className="w-full h-full cursor-pointer z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClickBanner();
+          }}
+        ></div>
+        <div className="w-full h-full"></div>
+      </div>
+
+      <div className="md:hidden absolute inset-0 flex flex-col w-full h-full">
+        <div className="flex-1 w-full"></div>
+        <div className="flex-1 w-full"></div>
+        <div
+          className="flex-1 w-full cursor-pointer z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClickBanner();
+          }}
+        ></div>
+        <div
+          className="flex-1 w-full cursor-pointer z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClickBanner();
+          }}
+        ></div>
+        <div className="flex-1 w-full"></div>
+        <div className="flex-1 w-full"></div>
+        <div className="flex-1 w-full"></div>
+        <div className="flex-1 w-full"></div>
+      </div>
 
       {/* Original Section */}
       <div className="hidden">
