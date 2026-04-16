@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -103,9 +104,26 @@ function MainPage() {
 
   const FirstSlideContent = () => (
     <div
-      className="relative cursor-pointer md:bg-[url('/assets/Images/bg-section-1.webp')] bg-[url('/assets/Images/bg-section-1-mobile.webp')] bg-[length:100%_100%] md:bg-[length:100%_auto] bg-top md:bg-center bg-no-repeat text-white max-md:w-full max-md:aspect-1170/2205 md:w-full md:aspect-1920/1080"
-      onClick={handleClickBanner}
+      className="relative cursor-pointer md:bg-[url('/assets/Images/bg-section-1.webp')] bg-[url('/assets/Images/bg-section-1-mobile.webp')] bg-size-[100%_100%] bg-top bg-no-repeat text-white max-md:w-full max-md:aspect-1170/2205 md:w-full md:aspect-1920/1080"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleClickBanner();
+      }}
     >
+      {/* <div
+        className="max-md:hidden md:absolute bottom-65 left-25 z-10 cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleClickBanner();
+        }}
+      >
+        <img
+          src="/assets/Images/download-now.png"
+          alt="Download Now"
+          className="w-auto h-[112px] object-contain"
+        />
+      </div> */}
+
       {/* Original Section */}
       <div className="hidden">
         <div className="absolute bottom-0 left-0 w-full h-96 bg-linear-to-b from-transparent to-white pointer-events-none"></div>
