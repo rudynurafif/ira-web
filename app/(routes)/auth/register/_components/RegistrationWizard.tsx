@@ -247,7 +247,7 @@ function RegistrationWizard({
   // [NEW] Global Setting: Geofencing Toggle
   const [isGeofencingEnabled, setIsGeofencingEnabled] = useState(true);
 
-  // [WATCHDOG] Jaring pengaman agar loading tidak nyangkut selamanya (max 15 detik)
+  // [WATCHDOG] Jaring pengaman agar loading tidak nyangkut selamanya (max 7 detik)
   useEffect(() => {
     let watchdog: NodeJS.Timeout;
     if (isMapSyncing || isLoadingArea) {
