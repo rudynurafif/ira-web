@@ -2225,10 +2225,6 @@ function RegistrationWizard({
                   {/* Map Area */}
                   <div>
                     <div className="mb-6 relative z-10 space-y-2">
-                      <p className="font-bold text-sm text-black mb-2">
-                        Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda
-                      </p>
-
                       {/* Manual Search Bar (Standalone) */}
                       <div className="relative mb-4">
                         <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
@@ -2321,6 +2317,10 @@ function RegistrationWizard({
                           </div>
                         )}
                       </div>
+
+                      <p className="font-bold text-sm text-black mb-2">
+                        Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda
+                      </p>
 
                       <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
                         <div className="w-full h-full">
