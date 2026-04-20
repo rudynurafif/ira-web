@@ -23,7 +23,11 @@ import {
   getSubDistrict,
   getLocationByPostalCode,
   getUserLocation,
+  getMapboxSuggest,
+  getMapboxRetrieve,
+  getMapboxReverse,
 } from "@/app/_api/Location/Location";
+// FwaAxiosMapSearch tidak di-import langsung, gunakan lewat Location.ts
 import { getSetting } from "@/app/_api/Settings/Settings";
 import toast from "react-hot-toast";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
@@ -47,7 +51,6 @@ import {
 import { IoClose } from "react-icons/io5";
 import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
-import MapMapbox from "@/app/_components/form/MapMapbox";
 import dynamic from "next/dynamic";
 
 const MapLeaflet = dynamic(() => import("@/app/_components/form/MapLeaflet"), {
@@ -274,17 +277,10 @@ function RegistrationWizard({
           clearInterval(cdTimer);
           (async () => {
             try {
-              const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-              // Pakai token standar saja sesuai permintaan
-              const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(
-                searchQuery,
-              )}&access_token=${token}&session_token=${token}&language=id&country=id&types=address,poi,street`;
-
-              const res = await fetch(url);
-              const data = await res.json();
-              setSearchSuggestions(data.suggestions || []);
+              const res = await getMapboxSuggest({ q: searchQuery });
+              setSearchSuggestions(res.data || []);
               setShowSuggestions(true);
-              if (data.suggestions?.length === 0) {
+              if (res.data?.length === 0) {
                 toast.error("Alamat tidak ditemukan");
               }
             } catch (err) {
@@ -306,21 +302,14 @@ function RegistrationWizard({
     // Search V6 Suggestion tidak punya koordinat, harus RETRIEVE
     try {
       setIsSearchingAddress(true);
-      const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-      const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${feat.mapbox_id}?access_token=${token}&session_token=${token}`;
 
-      const res = await fetch(url);
-      const data = await res.json();
-      const feature = data.features?.[0];
+      const res = await getMapboxRetrieve(feat.id);
+      const apiData = res.data;
 
-      if (feature) {
-        const [lng, lat] = feature.geometry.coordinates;
-
-        // [UPDATE] Cek apakah kode pos saran berbeda dengan inputan saat ini
-        const suggPostcode =
-          feature.properties?.context?.postcode?.name ||
-          feat.context?.postcode?.name ||
-          "";
+      if (apiData && apiData.latitude && apiData.longitude) {
+        const lat = apiData.latitude;
+        const lng = apiData.longitude;
+        const suggPostcode = apiData.postcode || "";
 
         if (
           suggPostcode &&
@@ -328,10 +317,10 @@ function RegistrationWizard({
           suggPostcode !== formData.postal_code
         ) {
           setPendingSuggestionData({
-            feature,
+            feature: apiData,
             suggestionPostcode: suggPostcode,
-            suggestionName: feat.name,
-            fullAddress: feat.full_address || feat.name,
+            suggestionName: apiData.name,
+            fullAddress: apiData.full_address || apiData.name,
           });
 
           // Update koordinat segera agar map pindah
@@ -339,7 +328,7 @@ function RegistrationWizard({
             ...prev,
             latitude: lat,
             longitude: lng,
-            address_gmaps: feat.full_address || feat.name,
+            address_gmaps: apiData.full_address || apiData.name,
           }));
 
           setIsOpenPostcodeConfirmModal(true);
@@ -1085,16 +1074,12 @@ function RegistrationWizard({
 
       const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
-      const reverseUrl = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${MAPBOX_TOKEN}&types=address,postcode&language=id`;
-      const resReverse = await fetch(reverseUrl);
-      const dataReverse = await resReverse.json();
-      const feature = dataReverse.features?.[0];
+      const resReverse = await getMapboxReverse({ lat: latitude, lng: longitude });
+      const dataReverse = resReverse.data;
 
-      // Ambil BBOX baru untuk kode pos sinkron (v6)
-      const postcode =
-        feature?.properties?.context?.postcode?.name ||
-        feature?.properties?.name ||
-        "";
+      // Ambil kode pos sinkron
+      const postcode = dataReverse?.postcode || "";
+      const addressString = dataReverse?.full_address || dataReverse?.name || "Lokasi saat ini";
 
       if (postcode) {
         lastPostcodeFromMap.current = postcode;
@@ -1131,9 +1116,7 @@ function RegistrationWizard({
           // ID hanya boleh ada jika masih di area kode pos yang sama.
           postal_code_id: isSamePostcode ? prev.postal_code_id : "",
           postal_code: postcode || prev.postal_code,
-          address_gmaps: feature
-            ? feature.properties?.full_address || feature.properties?.name
-            : prev.address_gmaps,
+          address_gmaps: addressString || prev.address_gmaps,
           // Auto sinkron hierarchy hanya jika masih di area kode pos yang sama
           ...(locationFromBackend && isSamePostcode
             ? {
@@ -2324,48 +2307,6 @@ function RegistrationWizard({
 
                       <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
                         <div className="w-full h-full">
-                          {/* <MapMapbox
-                            initialLatitude={Number(formData.latitude || 0)}
-                            initialLongitude={Number(formData.longitude || 0)}
-                            isInteractive={true}
-                            bbox={isGeofencingEnabled ? currentBbox : null}
-                            isLoading={
-                              isLoadingArea ||
-                              isSearchingAddress ||
-                              isOpenPostcodeConfirmModal
-                            }
-                            onPlaceChange={(p) => {
-                              // 1. Tanda sedang interaksi agar Auto-Center tidak menimpa
-                              setIsInteractingWithMap(true);
-                              // 2. Update koordinat segera
-                              setFormData((prev) => ({
-                                ...prev,
-                                latitude: String(p.latitude),
-                                longitude: String(p.longitude),
-                              }));
-
-                              // 3. Jika ada Kode Pos (Hasil 5s Timer), lakukan pengecekan boundary
-                              if (p.postcode) {
-                                if (
-                                  p.postcode !== formData.postal_code &&
-                                  !hasShownPostcodeConfirmMapMove
-                                ) {
-                                  setPendingSuggestionData({
-                                    feature: p.raw_result,
-                                    suggestionName: p.address || "",
-                                    suggestionPostcode: p.postcode,
-                                    exactLat: p.latitude,
-                                    exactLng: p.longitude,
-                                    isFromMapPinpoint: true,
-                                  });
-                                  setIsOpenPostcodeConfirmModal(true);
-                                  setHasShownPostcodeConfirmMapMove(true);
-                                }
-                                // Selesai interaksi sinkronisasi
-                                setIsInteractingWithMap(false);
-                              }
-                            }}
-                          /> */}
                           <MapLeaflet
                             initialLatitude={Number(formData.latitude || 0)}
                             initialLongitude={Number(formData.longitude || 0)}
@@ -2668,11 +2609,6 @@ function RegistrationWizard({
 
                         {/* Map Mini Preview */}
                         <div className="mt-4 w-full h-[350px] rounded-xl overflow-hidden pointer-events-none opacity-80 border border-gray-200">
-                          {/* <MapMapbox
-                            initialLatitude={Number(formData.latitude || 0)}
-                            initialLongitude={Number(formData.longitude || 0)}
-                            isInteractive={false}
-                          /> */}
                           <MapLeaflet
                             initialLatitude={Number(formData.latitude || 0)}
                             initialLongitude={Number(formData.longitude || 0)}

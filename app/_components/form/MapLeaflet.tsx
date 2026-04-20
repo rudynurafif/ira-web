@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Loader from "../Loader";
+import { getMapboxReverse } from "@/app/_api/Location/Location";
 
 // Indonesia Boundary
 const IDN_BOUNDS: [[number, number], [number, number]] = [
@@ -213,19 +214,13 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
           if (isLoading) return;
 
           try {
-            // Menggunakan Mapbox API agar sinkron dengan batasan kode pos
-            const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-            const revUrl = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&access_token=${token}&types=address,postcode&language=id`;
-            const resRev = await fetch(revUrl);
-            const dataRev = await resRev.json();
-            const feature = dataRev.features?.[0];
+            // Menggunakan BE MapSearch API
+            const resRev = await getMapboxReverse({ lat, lng });
+            const dataRev = resRev.data;
 
-            if (feature && onPlaceChangeRef.current) {
-              const detectedPostcode =
-                feature?.properties?.context?.postcode?.name ||
-                feature?.properties?.name ||
-                "";
-              const detectedAddress = feature?.properties?.full_address || "";
+            if (dataRev && onPlaceChangeRef.current) {
+              const detectedPostcode = dataRev.postcode || "";
+              const detectedAddress = dataRev.full_address || dataRev.name || "";
 
               onPlaceChangeRef.current({
                 latitude: lat,

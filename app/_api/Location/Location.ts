@@ -1,5 +1,6 @@
 import axios, { Axios } from "axios";
 import FwaAxios from "../FwaAxios";
+import FwaAxiosMapSearch from "../FwaAxiosMapSearch";
 import { dummyCoveredLocations } from "@/app/_shared/data/location";
 
 export const getProvince = async (params: any = "") => {
@@ -141,6 +142,47 @@ export const getListLocation = async (params: any) => {
     // });
 
     return dummyCoveredLocations;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getMapboxSuggest = async (params: any) => {
+  try {
+    const data = await FwaAxiosMapSearch({
+      url: "/api/mapbox/suggest",
+      method: "GET",
+      params: params,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getMapboxRetrieve = async (id: string) => {
+  try {
+    const data = await FwaAxiosMapSearch({
+      url: `/api/mapbox/retrieve/${id}`,
+      method: "GET",
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getMapboxReverse = async (params: {
+  lat: number | string;
+  lng: number | string;
+}) => {
+  try {
+    const data = await FwaAxiosMapSearch({
+      url: "/api/mapbox/reverse",
+      method: "GET",
+      params: params,
+    });
+    return data;
   } catch (error) {
     throw error;
   }
