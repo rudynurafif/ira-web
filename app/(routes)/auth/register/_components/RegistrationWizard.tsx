@@ -424,6 +424,7 @@ function RegistrationWizard({
         // [SCENARIO 1] "Ya, Sesuaikan Pin" -> CUMA update teks kode pos di form
         setFormData((prev) => ({
           ...prev,
+          postal_code_id: "", // [FIX] Hapus ID lama agar tidak nyangkut ke dropdown sebelumnya
           postal_code: suggestionPostcode,
         }));
 
@@ -606,6 +607,18 @@ function RegistrationWizard({
               }));
               setIsPostalCodeManual(false);
               setLastSyncedPostcode(String(pcId));
+            } else if (
+              mode === "update_address" &&
+              d.postal_code &&
+              !d.postal_code_id
+            ) {
+              setFormData((prev) => ({
+                ...prev,
+                postal_code_id: "",
+                postal_code: d.postal_code,
+              }));
+              setIsPostalCodeManual(true);
+              setLastSyncedPostcode(d.postal_code);
             }
           } catch (err) {
             toastErrorFromAPI(err, "Gagal muat data kode pos");
@@ -905,7 +918,13 @@ function RegistrationWizard({
           setIsPostalCodeManual(true);
         } else {
           // [FIX] Hanya paksa ke dropdown jika data manual belum ada (BUKAN saat restore session manual)
-          if (!formData.postal_code || formData.postal_code_id) {
+          if (
+            mode === "update_address" &&
+            formData.postal_code &&
+            !formData.postal_code_id
+          ) {
+            setIsPostalCodeManual(true);
+          } else if (!formData.postal_code || formData.postal_code_id) {
             setIsPostalCodeManual(false);
           }
 
@@ -945,7 +964,7 @@ function RegistrationWizard({
 
     // [SAFETY] Jika sudah ada koordinat (hasil restorasi atau drag sebelumnya),
     // Jangan paksa center ke tengah kode pos lagi saat refresh/mount.
-    if (formData.latitude && formData.longitude && !lastSyncedPostcode) {
+    if (formData.latitude && formData.longitude && isInitialMount.current) {
       // Tandai bahwa kode pos ini sudah "sinkron" dengan koordinat yang ada
       lastPostcodeFromMap.current = formData.postal_code;
       return;
@@ -2225,10 +2244,6 @@ function RegistrationWizard({
                   {/* Map Area */}
                   <div>
                     <div className="mb-6 relative z-10 space-y-2">
-                      <p className="font-bold text-sm text-black mb-2">
-                        Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda
-                      </p>
-
                       {/* Manual Search Bar (Standalone) */}
                       <div className="relative mb-4">
                         <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
@@ -2322,6 +2337,10 @@ function RegistrationWizard({
                         )}
                       </div>
 
+                      <p className="font-bold text-sm text-black mb-2">
+                        Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda
+                      </p>
+
                       <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
                         <div className="w-full h-full">
                           {/* <MapMapbox
@@ -2412,8 +2431,13 @@ function RegistrationWizard({
                                   // Update otomatis (Silent) jika user sudah pernah lihat modal konfirmasi
                                   setFormData((prev) => ({
                                     ...prev,
+                                    postal_code_id: "", // [FIX] Hapus ID lama agar tidak nyangkut
                                     postal_code: detectedPostcode,
                                   }));
+                                  
+                                  // Maksa ke mode manual juga untuk silent update agar UI berubah jadi teks 
+                                  setIsPostalCodeManual(true);
+                                  
                                   lastPostcodeFromMap.current =
                                     detectedPostcode;
                                 }
