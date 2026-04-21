@@ -12,8 +12,6 @@ import { dmSans } from "@/app/_shared/font/font";
 function Page() {
   const { userInfo } = useAppSelector((state) => state.auth);
 
-  useBrowserDetection();
-
   return (
     <div className={dmSans.className}>
       <CheckCoverage />

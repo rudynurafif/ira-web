@@ -4,7 +4,6 @@ import DynamicForm from "@/app/_components/form/DynamicForm";
 import DynamicSelectForm from "@/app/_components/form/DynamicSelectForm";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { ReactSelectType } from "@/app/_shared/types/form";
-import Link from "next/link";
 import { FormEvent, useEffect, useState, useRef } from "react";
 import {
   getPackagesRegister,
@@ -22,12 +21,11 @@ import {
   getProvince,
   getSubDistrict,
   getLocationByPostalCode,
-  getUserLocation,
   getMapboxSuggest,
   getMapboxRetrieve,
   getMapboxReverse,
+  getBoundaryArea,
 } from "@/app/_api/Location/Location";
-// FwaAxiosMapSearch tidak di-import langsung, gunakan lewat Location.ts
 import { getSetting } from "@/app/_api/Settings/Settings";
 import toast from "react-hot-toast";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
@@ -48,7 +46,6 @@ import {
   FaListCheck,
   FaLock,
 } from "react-icons/fa6";
-import { IoClose } from "react-icons/io5";
 import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import dynamic from "next/dynamic";
@@ -70,21 +67,15 @@ import {
   sanitizeName,
 } from "@/app/_shared/utils/formatter";
 import { FormType } from "../types/type";
-import GeoPermissionGate from "./GeoPermissionGate";
-import ModalRegister from "./ModalRegister";
 import { useAppSelector } from "@/app/store/store";
 import PackageCardMobile from "@/app/(routes)/payment/_components/PackageCardMobile";
 import { PackageData } from "@/app/_shared/types/customer-area";
-import { hardcodedPackages } from "@/app/_shared/data/data";
 import Loader from "@/app/_components/Loader";
 import { PackageCardMobileSkeletonList } from "@/app/(routes)/payment/_components/PackageCardMobileSkeleton";
 import { buildErrorToast, scrollToFirstError } from "../helper";
-import DynamicPasswordForm from "@/app/_components/form/FieldPassword";
-import PhoneNumberForm from "@/app/_components/form/PhoneForm";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import Image from "next/image";
-import bannerImageNoCovered from "@/public/assets/Images/banner-out-coverage.png";
 import { IoIosInformationCircleOutline } from "react-icons/io";
 
 const initialFormData: FormType = {
@@ -172,7 +163,6 @@ function RegistrationWizard({
   });
 
   const [tempMapPayload, setTempMapPayload] = useState<any>(null);
-  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
 
   const [provinceOptions, setProvinceOptions] = useState<ReactSelectType[]>([]);
   const [cityOptions, setCityOptions] = useState<ReactSelectType[]>([]);
@@ -230,9 +220,7 @@ function RegistrationWizard({
   const { status, requestLocation, refresh } = useGeoPermission();
   const [isOpenModalReqLoc, setIsOpenModalReqLoc] = useState(false);
 
-  const [currentBbox, setCurrentBbox] = useState<
-    [number, number, number, number] | null
-  >(null);
+  const [currentBbox, setCurrentBbox] = useState<any>(null);
 
   const [isOpenPostcodeConfirmModal, setIsOpenPostcodeConfirmModal] =
     useState(false);
@@ -258,7 +246,7 @@ function RegistrationWizard({
         setIsMapSyncing(false);
         setIsLoadingArea(false);
         console.warn("Watchdog: Loading state forced to finish after timeout.");
-      }, 7000); // 7 detik
+      }, 3000); // 3 detik
     }
     return () => clearTimeout(watchdog);
   }, [isMapSyncing, isLoadingArea]);
@@ -707,17 +695,17 @@ function RegistrationWizard({
       // Masukkan ke history buat GA tracking
       window.history.pushState(null, "", popupUrl);
 
-      // Setelah 3 detik, kembalikan ke URL normal agar kalau di-refresh gak 404
+      // Setelah 2 detik, kembalikan ke URL normal agar kalau di-refresh gak 404
       const timeout = setTimeout(() => {
         window.history.replaceState(null, "", normalUrl);
-      }, 3000);
+      }, 2000);
 
       return () => clearTimeout(timeout);
     }
   }, [isModalRegisterSuccess, mode]);
 
   useEffect(() => {
-    const delay = isInitialMount.current ? 1000 : 6000;
+    const delay = isInitialMount.current ? 1000 : 3000;
     setSyncCountdown(Math.ceil(delay / 1000));
 
     // Timer untuk visual countdown di tombol
@@ -919,29 +907,20 @@ function RegistrationWizard({
     // Jalankan jika ada value (karena dropdown, pasti sudah 5 digit real-nya)
     // [Gembok Total] Jika sedang interaksi dengan peta, dilarang keras melakukan auto-center
     if (isInteractingWithMap) {
+      console.log("[MAP] Interaksi aktif, skip auto-center.");
       lastPostcodeFromMap.current = "";
       return;
     }
 
     if (!formData.postal_code) {
+      console.log("[MAP] Kode pos kosong, skip.");
       setIsLoadingArea(false);
-      return;
-    }
-    if (formData.postal_code === lastPostcodeFromMap.current) {
-      setIsLoadingArea(false);
-      return;
-    }
-
-    // [SAFETY] Jika sudah ada koordinat (hasil restorasi atau drag sebelumnya),
-    // Jangan paksa center ke tengah kode pos lagi saat refresh/mount.
-    if (formData.latitude && formData.longitude && !lastSyncedPostcode) {
-      // Tandai bahwa kode pos ini sudah "sinkron" dengan koordinat yang ada
-      lastPostcodeFromMap.current = formData.postal_code;
       return;
     }
 
     // Kosongkan sync state segera saat mulai ngetik (sembunyikan banner)
     if (formData.postal_code !== lastSyncedPostcode) {
+      console.log("[MAP] Kode pos berubah, menghapus sinkronisasi lama.");
       setLastSyncedPostcode("");
       setIsPostcodeNotFound(false);
     }
@@ -949,11 +928,9 @@ function RegistrationWizard({
     const timer = setTimeout(async () => {
       // [SAFETY] Tambahan gembok: Jika latitude sudah ada dan kita baru saja mount/refresh,
       // jangan jalankan geocoding ini karena akan menimpa koordinat custom user.
-      if (
-        formData.latitude &&
-        formData.longitude &&
-        formData.postal_code === lastPostcodeFromMap.current
-      ) {
+      // [SAFETY] Kita tetap lanjut untuk ambil Boundary,
+      // tapi ada proteksi di bawah agar tidak menimpa Lat/Lng jika asal perubahannya dari Map.
+      if (!formData.postal_code) {
         setIsLoadingArea(false);
         return;
       }
@@ -986,68 +963,78 @@ function RegistrationWizard({
         // Delay 2 detik biar overlay sync sempat keliatan (User UX)
         await new Promise((resolve) => setTimeout(resolve, 1500));
 
-        // Panggil Mapbox Geocoding V6 utk dapetin lat/lng (centering map) berdasarkan kode pos
-        const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+        try {
+          console.log("[DEBUG] Memulai Sinkronisasi Kode Pos:", pcQuery);
+          // If the user typed manually and they don't have the labels, resolve it from backend!
+          const areaRes = await getBoundaryArea({
+            postal_code: pcQuery,
+          });
 
-        // Panggil Mapbox Geocoding V6 utk dapetin lat/lng (centering map) berdasarkan kode pos
-        const mapboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${pcQuery}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
+          console.log("[DEBUG] Respon API getBoundaryArea:", areaRes);
 
-        const resMap = await fetch(mapboxUrl);
-        const dataMap = await resMap.json();
-        if (dataMap?.features?.length > 0) {
-          const feature = dataMap.features[0];
-          const [lon, lat] = feature.geometry.coordinates; // v6 geometry.coordinates
-          const bbox = feature.properties?.bbox; // v6 properties.bbox
-          const pcText = feature.properties?.name || "";
+          const dataArea = areaRes.data?.data;
+          const feature = dataArea?.geojson;
 
-          if (lat && lon && !isInteractingWithMap) {
-            setFormData((prev) => ({
-              ...prev,
-              latitude: String(lat),
-              longitude: String(lon),
-              address_raw: feature,
-              address_gmaps: feature.place_name || prev.address_gmaps,
-              postal_code: pcText || prev.postal_code, // Selalu update teksnya
-            }));
+          if (feature) {
+            const coords = feature?.geometry?.coordinates;
 
-            if (bbox && !isInteractingWithMap) {
-              setCurrentBbox(bbox);
+            if (coords && coords.length > 0) {
+              // Ambil titik koordinat pertama di dalam Polygon sebagai titik tengah (fallback centroid)
+              let lng = 0;
+              let lat = 0;
+              if (feature.geometry.type === "MultiPolygon") {
+                [lng, lat] = coords[0][0][0]; // nested 4 levels
+              } else if (feature.geometry.type === "Polygon") {
+                [lng, lat] = coords[0][0]; // nested 3 levels
+              }
+
+              // Set Boundary untuk peta (bungkus Feature ke FeatureCollection agar leaflet-geojson happy)
+              setCurrentBbox({
+                type: "FeatureCollection",
+                features: [feature],
+              });
+
+              // HANYA update Latitude/Longitude (Center Map) jika perubahan
+              // BUKAN berasal dari pergeseran Pin Peta oleh user.
+              const isFromMapMove =
+                formData.postal_code === lastPostcodeFromMap.current;
+
+              if (lat && lng && !isFromMapMove) {
+                setFormData((prev) => ({
+                  ...prev,
+                  latitude: String(lat),
+                  longitude: String(lng),
+                  postal_code: pcQuery || prev.postal_code,
+                  province: String(dataArea.province_id?.id || prev.province),
+                  city: String(dataArea.city_id?.id || prev.city),
+                  district: String(dataArea.district_id?.id || prev.district),
+                  sub_district: String(
+                    dataArea.sub_district_id?.id || prev.sub_district,
+                  ),
+                }));
+
+                setTempMapPayload((prev: any) => ({
+                  ...prev,
+                  latitude: String(lat),
+                  longitude: String(lng),
+                }));
+              }
             }
-
-            setTempMapPayload((prev: any) => ({
-              ...prev,
-              latitude: String(lat),
-              longitude: String(lon),
-              address_raw: feature,
-              address:
-                feature.properties?.full_address ||
-                feature.properties?.name ||
-                prev.address,
-            }));
-
-            // Sync Selesai
-            setLastSyncedPostcode(
-              formData.postal_code_id || formData.postal_code,
-            );
-            setIsPostcodeNotFound(false); // [FIX] Reset state error jika ketemu
-
-            /*
-            // [NEW] Sync balik ke inputan search di atas map
-            if (feature.place_name) {
-              setSearchQuery(feature.place_name);
-            }
-            */
           }
-        } else {
-          // [PATCH] Jika feature kosong, berarti kode pos tidak dikenal/ditemukan
-          setIsPostcodeNotFound(true);
+        } catch (e) {
+          console.error("Gagal get boundary/centroid area:", e);
         }
+
+        // Sync Selesai
+        setLastSyncedPostcode(formData.postal_code_id || formData.postal_code);
+        setIsPostcodeNotFound(false); // [FIX] Reset state error jika ketemu
       } catch (e) {
         console.error("Gagal mendeteksi koordinat kode pos", e);
+        setIsPostcodeNotFound(true);
       } finally {
         setIsLoadingArea(false);
       }
-    }, 5000); // 5 Detik Countdown (Hemat Token Mapbox)
+    }, 2000); // 2 Detik Countdown
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1072,36 +1059,39 @@ function RegistrationWizard({
       const position = await requestLocation();
       const { latitude, longitude } = position.coords;
 
-      const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
-      const resReverse = await getMapboxReverse({ lat: latitude, lng: longitude });
+      const resReverse = await getMapboxReverse({
+        lat: latitude,
+        lng: longitude,
+      });
       const dataReverse = resReverse.data;
 
       // Ambil kode pos sinkron
       const postcode = dataReverse?.postcode || "";
-      const addressString = dataReverse?.full_address || dataReverse?.name || "Lokasi saat ini";
-
-      if (postcode) {
-        lastPostcodeFromMap.current = postcode;
-        const bboxUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${postcode}&access_token=${MAPBOX_TOKEN}&country=id&types=postcode&limit=1`;
-        const resBbox = await fetch(bboxUrl);
-        const dataBbox = await resBbox.json();
-        if (dataBbox.features?.[0]?.properties?.bbox && !isInteractingWithMap) {
-          setCurrentBbox(dataBbox.features[0].properties.bbox);
-        }
-      }
+      const addressString =
+        dataReverse?.full_address || dataReverse?.name || "Lokasi saat ini";
 
       const [latStr, lngStr] = [String(latitude), String(longitude)];
 
-      // [NEW] Resolve ID dari backend agar dropdown sinkron
+      // Resolve ID dari backend agar dropdown sinkron & ambil nama untuk boundary
       let locationFromBackend: any = null;
       if (postcode) {
+        lastPostcodeFromMap.current = postcode;
         try {
           const resLoc = await getLocationByPostalCode(postcode);
           locationFromBackend = resLoc.data?.data?.[0];
-          console.log("kode pos: ", locationFromBackend);
         } catch (e) {
           console.error("Gagal resolve lokasi GPS ke backend ID", e);
+        }
+
+        if (!isInteractingWithMap && locationFromBackend) {
+          try {
+            const areaRes = await getBoundaryArea({ postal_code: postcode });
+            if (areaRes.data.data) {
+              setCurrentBbox(areaRes.data.data);
+            }
+          } catch (e) {
+            console.error("Gagal get boundary area via GPS:", e);
+          }
         }
       }
 
@@ -1112,12 +1102,9 @@ function RegistrationWizard({
           ...prev,
           latitude: latStr,
           longitude: lngStr,
-          // [FIX] Simple: Jika pindah kode pos, buang ID!
-          // ID hanya boleh ada jika masih di area kode pos yang sama.
-          postal_code_id: isSamePostcode ? prev.postal_code_id : "",
           postal_code: postcode || prev.postal_code,
+          postal_code_id: isSamePostcode ? prev.postal_code_id : "",
           address_gmaps: addressString || prev.address_gmaps,
-          // Auto sinkron hierarchy hanya jika masih di area kode pos yang sama
           ...(locationFromBackend && isSamePostcode
             ? {
                 province: String(locationFromBackend.province_id),

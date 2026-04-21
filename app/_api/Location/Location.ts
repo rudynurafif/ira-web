@@ -1,6 +1,7 @@
 import axios, { Axios } from "axios";
 import FwaAxios from "../FwaAxios";
 import FwaAxiosMapSearch from "../FwaAxiosMapSearch";
+import FwaAxiosArea from "../FwaAxiosArea";
 import { dummyCoveredLocations } from "@/app/_shared/data/location";
 
 export const getProvince = async (params: any = "") => {
@@ -179,6 +180,32 @@ export const getMapboxReverse = async (params: {
   try {
     const data = await FwaAxiosMapSearch({
       url: "/api/mapbox/reverse",
+      method: "GET",
+      params: params,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// export const getBoundaryArea = async (params: { kota: string; kecamatan: string; kelurahan: string }) => {
+//   try {
+//     const data = await FwaAxiosArea({
+//       url: "/areas",
+//       method: "GET",
+//       params: params,
+//     });
+//     return data;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
+
+export const getBoundaryArea = async (params: { postal_code: string }) => {
+  try {
+    const data = await FwaAxiosArea({
+      url: "/app/location/boundary",
       method: "GET",
       params: params,
     });

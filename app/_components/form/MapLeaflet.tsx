@@ -16,7 +16,7 @@ interface MapLeafletProps {
   initialLatitude?: number;
   initialLongitude?: number;
   isInteractive?: boolean;
-  bbox?: [number, number, number, number] | null;
+  bbox?: any;
   isLoading?: boolean;
   onPlaceChange?: (payload: {
     latitude: number;
@@ -63,9 +63,11 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
-  const bboxLayerRef = useRef<L.Polygon | null>(null);
+  const bboxLayerRef = useRef<any>(null);
   const geocodeTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const lastGeocodedPosRef = useRef<{ lat: number; lng: number } | null>(null);
+  const lastGeocodedPosRef = useRef<{ lat: number; lng: number } | null>(
+    initialLatitude && initialLongitude ? { lat: initialLatitude, lng: initialLongitude } : null
+  );
   const isProgrammaticMoveRef = useRef(true); // [FIX] Default TRUE agar saat baru mount tidak nimpa data manual
 
   const [location] = useState<{ lat: number; lng: number }>(() => {
@@ -240,7 +242,7 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
           } finally {
             geocodeTimerRef.current = null;
           }
-        }, 5000);
+        }, 2000);
       });
     }
 
@@ -307,22 +309,34 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
     }
 
     if (bbox) {
-      // bbox: [minX, minY, maxX, maxY] -> [minLng, minLat, maxLng, maxLat]
-      const latlngs: [number, number][] = [
-        [bbox[1], bbox[0]],
-        [bbox[3], bbox[0]],
-        [bbox[3], bbox[2]],
-        [bbox[1], bbox[2]],
-      ];
+      if (!Array.isArray(bbox) && bbox.type === "FeatureCollection") {
+        const geoJsonLayer = L.geoJSON(bbox, {
+          style: {
+            color: "#2563eb",
+            weight: 3,
+            fill: false,
+            dashArray: "5, 5",
+          },
+        }).addTo(mapRef.current);
+        bboxLayerRef.current = geoJsonLayer;
+      } else if (Array.isArray(bbox) && bbox.length === 4) {
+        // bbox: [minX, minY, maxX, maxY] -> [minLng, minLat, maxLng, maxLat]
+        const latlngs: [number, number][] = [
+          [bbox[1], bbox[0]],
+          [bbox[3], bbox[0]],
+          [bbox[3], bbox[2]],
+          [bbox[1], bbox[2]],
+        ];
 
-      const polygon = L.polygon(latlngs, {
-        color: "#2563eb",
-        weight: 3,
-        fill: false,
-        dashArray: "5, 5",
-      }).addTo(mapRef.current);
+        const polygon = L.polygon(latlngs, {
+          color: "#2563eb",
+          weight: 3,
+          fill: false,
+          dashArray: "5, 5",
+        }).addTo(mapRef.current);
 
-      bboxLayerRef.current = polygon;
+        bboxLayerRef.current = polygon;
+      }
     }
   }, [bbox]);
 
