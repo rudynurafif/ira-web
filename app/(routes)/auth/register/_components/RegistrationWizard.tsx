@@ -402,6 +402,7 @@ function RegistrationWizard({
         setFormData((prev) => ({
           ...prev,
           postal_code: suggestionPostcode,
+          postal_code_id: "", // [FIX] Buang ID lama agar API Boundary pakai angka baru
         }));
 
         // Maksa ke mode manual agar teks angkanya (misal 12420) MASUK & nampil di inputan form
@@ -907,20 +908,17 @@ function RegistrationWizard({
     // Jalankan jika ada value (karena dropdown, pasti sudah 5 digit real-nya)
     // [Gembok Total] Jika sedang interaksi dengan peta, dilarang keras melakukan auto-center
     if (isInteractingWithMap) {
-      console.log("[MAP] Interaksi aktif, skip auto-center.");
       lastPostcodeFromMap.current = "";
       return;
     }
 
     if (!formData.postal_code) {
-      console.log("[MAP] Kode pos kosong, skip.");
       setIsLoadingArea(false);
       return;
     }
 
     // Kosongkan sync state segera saat mulai ngetik (sembunyikan banner)
     if (formData.postal_code !== lastSyncedPostcode) {
-      console.log("[MAP] Kode pos berubah, menghapus sinkronisasi lama.");
       setLastSyncedPostcode("");
       setIsPostcodeNotFound(false);
     }
@@ -959,18 +957,22 @@ function RegistrationWizard({
           return;
         }
 
-        setIsLoadingArea(true);
+        // setIsLoadingArea(true);
         // Delay 2 detik biar overlay sync sempat keliatan (User UX)
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // await new Promise((resolve) => setTimeout(resolve, 1500)); 
 
         try {
-          console.log("[DEBUG] Memulai Sinkronisasi Kode Pos:", pcQuery);
           // If the user typed manually and they don't have the labels, resolve it from backend!
           const areaRes = await getBoundaryArea({
             postal_code: pcQuery,
           });
 
-          console.log("[DEBUG] Respon API getBoundaryArea:", areaRes);
+          // Handle logical 404 inside successful response body (or cached 304)
+          if (areaRes.data?.statusCode === 404) {
+            toast.error(areaRes.data?.message || "Area tidak ditemukan");
+            setIsPostcodeNotFound(true);
+            return;
+          }
 
           const dataArea = areaRes.data?.data;
           const feature = dataArea?.geojson;
@@ -979,13 +981,22 @@ function RegistrationWizard({
             const coords = feature?.geometry?.coordinates;
 
             if (coords && coords.length > 0) {
-              // Ambil titik koordinat pertama di dalam Polygon sebagai titik tengah (fallback centroid)
+              // Kalkulasi Titik Tengah (Centroid) dari koordinat poligon
               let lng = 0;
               let lat = 0;
+              let points: [number, number][] = [];
+
               if (feature.geometry.type === "MultiPolygon") {
-                [lng, lat] = coords[0][0][0]; // nested 4 levels
+                points = coords[0][0]; // nested 4 levels, ambil ring pertama dari polygon pertama
               } else if (feature.geometry.type === "Polygon") {
-                [lng, lat] = coords[0][0]; // nested 3 levels
+                points = coords[0]; // nested 3 levels, ambil ring pertama
+              }
+
+              if (points.length > 0) {
+                const sumLng = points.reduce((acc, p) => acc + p[0], 0);
+                const sumLat = points.reduce((acc, p) => acc + p[1], 0);
+                lng = sumLng / points.length;
+                lat = sumLat / points.length;
               }
 
               // Set Boundary untuk peta (bungkus Feature ke FeatureCollection agar leaflet-geojson happy)
@@ -1021,8 +1032,9 @@ function RegistrationWizard({
               }
             }
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error("Gagal get boundary/centroid area:", e);
+          toastErrorFromAPI(e, "Gagal mendapatkan data area");
         }
 
         // Sync Selesai
@@ -2168,7 +2180,8 @@ function RegistrationWizard({
                       formData.postal_code_id === lastSyncedPostcode) &&
                     formData.postal_code.length >= 4 &&
                     !isLoadingArea &&
-                    !isSearchingAddress && (
+                    !isSearchingAddress &&
+                    !isPostcodeNotFound && (
                       <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-500 shadow-sm mt-3">
                         <div className="mt-0.5 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                           <MdLocationOn className="text-blue-600 text-lg" />
@@ -2341,7 +2354,9 @@ function RegistrationWizard({
                                   setFormData((prev) => ({
                                     ...prev,
                                     postal_code: detectedPostcode,
+                                    postal_code_id: "",
                                   }));
+                                  setIsPostalCodeManual(true);
                                   lastPostcodeFromMap.current =
                                     detectedPostcode;
                                 }

@@ -286,6 +286,11 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
           duration: 1.5,
         });
         markerRef.current.setLatLng([initialLatitude, initialLongitude]);
+        // [FIX] Update posisi terakhir agar saat zoom-out tidak dianggap pindah jauh
+        lastGeocodedPosRef.current = {
+          lat: initialLatitude,
+          lng: initialLongitude,
+        };
 
         // Reset the flag after animation theoretically finishes
         setTimeout(() => {
