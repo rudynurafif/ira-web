@@ -233,6 +233,7 @@ function RegistrationWizard({
 
   // [NEW] Track kode pos terakhir yang BERHASIL sinkron (untuk gate banner)
   const [lastSyncedPostcode, setLastSyncedPostcode] = useState("");
+  const lastSyncedPostcodeRef = useRef("");
   const [isPostcodeNotFound, setIsPostcodeNotFound] = useState(false);
 
   // [NEW] Global Setting: Geofencing Toggle
@@ -271,9 +272,9 @@ function RegistrationWizard({
               if (res.data?.length === 0) {
                 toast.error("Alamat tidak ditemukan");
               }
-            } catch (err) {
+            } catch (err: any) {
+              toastErrorFromAPI(err);
               console.error("Search failed:", err);
-              toast.error("Gagal mencari alamat");
             } finally {
               setIsSearchingAddress(false);
             }
@@ -355,8 +356,8 @@ function RegistrationWizard({
               setLastSyncedPostcode(String(locData.id));
               return; // Selesai
             }
-          } catch (e) {
-            console.error("Gagal sinkron ID lokasi dari search", e);
+          } catch (e: any) {
+            toastErrorFromAPI(e);
           }
         }
         // [FALLBACK] Jika tidak ketemu ID lokasi di backend, jadikan free text
@@ -374,9 +375,8 @@ function RegistrationWizard({
           setLastSyncedPostcode(String(lat)); // Fallback total
         }
       }
-    } catch (err) {
-      console.error("Retrieve coordinate failed:", err);
-      toast.error("Gagal memuat detail lokasi");
+    } catch (err: any) {
+      toastErrorFromAPI(err);
     } finally {
       setIsSearchingAddress(false);
     }
@@ -431,8 +431,8 @@ function RegistrationWizard({
         const settingVal = res?.data?.data?.value;
         const isEnabled = settingVal === "true" || settingVal === "on";
         setIsGeofencingEnabled(isEnabled);
-      } catch (err) {
-        console.error("Failed to fetch geofencing setting:", err);
+      } catch (err: any) {
+        toastErrorFromAPI(err);
       }
     })();
   }, []);
@@ -515,7 +515,7 @@ function RegistrationWizard({
                 value: String(it.id),
               })),
             );
-          } catch (err) {
+          } catch (err: any) {
             toastErrorFromAPI(err, "Gagal muat data kota");
           }
         })();
@@ -896,12 +896,102 @@ function RegistrationWizard({
           );
         }
       } catch (err: any) {
-        console.error("Gagal muat data kode pos", err);
+        toastErrorFromAPI(err, "Gagal muat data kode pos");
         setPostalCodeOptions([]);
         setIsPostalCodeManual(true);
       }
     })();
   }, [formData.sub_district]);
+
+  const fetchAndSyncBoundary = async (pc: string, pcId: string = "") => {
+    if (!pc || pc.length < 4) {
+      setIsLoadingArea(false);
+      return;
+    }
+
+    // [CLAIM] Langsung tandai kode pos ini sedang diproses agar useEffect (debounce) tidak ikutan nembak
+    lastSyncedPostcodeRef.current = pcId || pc;
+
+    try {
+      // If the user typed manually and they don't have the labels, resolve it from backend!
+      const areaRes = await getBoundaryArea({
+        postal_code: pc,
+      });
+
+      // Handle logical 404 inside successful response body (or cached 304)
+      if (areaRes.data?.statusCode === 404) {
+        toast.error(areaRes.data?.message || "Area tidak ditemukan");
+        setIsPostcodeNotFound(true);
+        return;
+      }
+
+      const dataArea = areaRes.data?.data;
+      const feature = dataArea?.geojson;
+
+      if (feature) {
+        const coords = feature?.geometry?.coordinates;
+
+        if (coords && coords.length > 0) {
+          // Kalkulasi Titik Tengah (Centroid) dari koordinat poligon
+          let lng = 0;
+          let lat = 0;
+          let points: [number, number][] = [];
+
+          if (feature.geometry.type === "MultiPolygon") {
+            points = coords[0][0]; // nested 4 levels, ambil ring pertama dari polygon pertama
+          } else if (feature.geometry.type === "Polygon") {
+            points = coords[0]; // nested 3 levels, ambil ring pertama
+          }
+
+          if (points.length > 0) {
+            const sumLng = points.reduce((acc, p) => acc + p[0], 0);
+            const sumLat = points.reduce((acc, p) => acc + p[1], 0);
+            lng = sumLng / points.length;
+            lat = sumLat / points.length;
+          }
+
+          // Set Boundary untuk peta (bungkus Feature ke FeatureCollection agar leaflet-geojson happy)
+          setCurrentBbox({
+            type: "FeatureCollection",
+            features: [feature],
+          });
+
+          // HANYA update Latitude/Longitude (Center Map) jika perubahan
+          // BUKAN berasal dari pergeseran Pin Peta oleh user.
+          const isFromMapMove = pc === lastPostcodeFromMap.current;
+
+          if (lat && lng && !isFromMapMove) {
+            setFormData((prev) => ({
+              ...prev,
+              latitude: String(lat),
+              longitude: String(lng),
+              postal_code: pc || prev.postal_code,
+              province: String(dataArea.province_id?.id || prev.province),
+              city: String(dataArea.city_id?.id || prev.city),
+              district: String(dataArea.district_id?.id || prev.district),
+              sub_district: String(
+                dataArea.sub_district_id?.id || prev.sub_district,
+              ),
+            }));
+
+            setTempMapPayload((prev: any) => ({
+              ...prev,
+              latitude: String(lat),
+              longitude: String(lng),
+            }));
+          }
+        }
+      }
+      // Sync Selesai
+      setLastSyncedPostcode(pcId || pc);
+      setIsPostcodeNotFound(false); // [FIX] Reset state error jika ketemu
+    } catch (e: any) {
+      toastErrorFromAPI(e, "Gagal mendapatkan data area");
+      setIsPostcodeNotFound(true);
+    } finally {
+      setIsLoadingArea(false);
+    }
+  };
 
   // Debounce Kode Pos -> Autofill Lokasi (Koordinat Map)
   useEffect(() => {
@@ -951,100 +1041,16 @@ function RegistrationWizard({
           ? (selectedPC as any).name
           : formData.postal_code;
 
-        // [OPTIMASI] Pindahkan pengecekan panjang di sini, SEBELUM set loading
-        if (!pcQuery || pcQuery.length < 4) {
-          setIsLoadingArea(false); // Pastikan mati
+        const pcId = formData.postal_code_id || "";
+
+        // [PENGAWAN] Jika kode pos ini sudah disinkronkan (oleh Panggilan Instan), jangan jalan lagi
+        if (lastSyncedPostcodeRef.current === (pcId || pcQuery)) {
           return;
         }
 
-        // setIsLoadingArea(true);
-        // Delay 2 detik biar overlay sync sempat keliatan (User UX)
-        // await new Promise((resolve) => setTimeout(resolve, 1500)); 
-
-        try {
-          // If the user typed manually and they don't have the labels, resolve it from backend!
-          const areaRes = await getBoundaryArea({
-            postal_code: pcQuery,
-          });
-
-          // Handle logical 404 inside successful response body (or cached 304)
-          if (areaRes.data?.statusCode === 404) {
-            toast.error(areaRes.data?.message || "Area tidak ditemukan");
-            setIsPostcodeNotFound(true);
-            return;
-          }
-
-          const dataArea = areaRes.data?.data;
-          const feature = dataArea?.geojson;
-
-          if (feature) {
-            const coords = feature?.geometry?.coordinates;
-
-            if (coords && coords.length > 0) {
-              // Kalkulasi Titik Tengah (Centroid) dari koordinat poligon
-              let lng = 0;
-              let lat = 0;
-              let points: [number, number][] = [];
-
-              if (feature.geometry.type === "MultiPolygon") {
-                points = coords[0][0]; // nested 4 levels, ambil ring pertama dari polygon pertama
-              } else if (feature.geometry.type === "Polygon") {
-                points = coords[0]; // nested 3 levels, ambil ring pertama
-              }
-
-              if (points.length > 0) {
-                const sumLng = points.reduce((acc, p) => acc + p[0], 0);
-                const sumLat = points.reduce((acc, p) => acc + p[1], 0);
-                lng = sumLng / points.length;
-                lat = sumLat / points.length;
-              }
-
-              // Set Boundary untuk peta (bungkus Feature ke FeatureCollection agar leaflet-geojson happy)
-              setCurrentBbox({
-                type: "FeatureCollection",
-                features: [feature],
-              });
-
-              // HANYA update Latitude/Longitude (Center Map) jika perubahan
-              // BUKAN berasal dari pergeseran Pin Peta oleh user.
-              const isFromMapMove =
-                formData.postal_code === lastPostcodeFromMap.current;
-
-              if (lat && lng && !isFromMapMove) {
-                setFormData((prev) => ({
-                  ...prev,
-                  latitude: String(lat),
-                  longitude: String(lng),
-                  postal_code: pcQuery || prev.postal_code,
-                  province: String(dataArea.province_id?.id || prev.province),
-                  city: String(dataArea.city_id?.id || prev.city),
-                  district: String(dataArea.district_id?.id || prev.district),
-                  sub_district: String(
-                    dataArea.sub_district_id?.id || prev.sub_district,
-                  ),
-                }));
-
-                setTempMapPayload((prev: any) => ({
-                  ...prev,
-                  latitude: String(lat),
-                  longitude: String(lng),
-                }));
-              }
-            }
-          }
-        } catch (e: any) {
-          console.error("Gagal get boundary/centroid area:", e);
-          toastErrorFromAPI(e, "Gagal mendapatkan data area");
-        }
-
-        // Sync Selesai
-        setLastSyncedPostcode(formData.postal_code_id || formData.postal_code);
-        setIsPostcodeNotFound(false); // [FIX] Reset state error jika ketemu
+        await fetchAndSyncBoundary(pcQuery, pcId);
       } catch (e) {
         console.error("Gagal mendeteksi koordinat kode pos", e);
-        setIsPostcodeNotFound(true);
-      } finally {
-        setIsLoadingArea(false);
       }
     }, 2000); // 2 Detik Countdown
 
@@ -1091,7 +1097,8 @@ function RegistrationWizard({
         try {
           const resLoc = await getLocationByPostalCode(postcode);
           locationFromBackend = resLoc.data?.data?.[0];
-        } catch (e) {
+        } catch (e: any) {
+          toastErrorFromAPI(e);
           console.error("Gagal resolve lokasi GPS ke backend ID", e);
         }
 
@@ -1101,8 +1108,8 @@ function RegistrationWizard({
             if (areaRes.data.data) {
               setCurrentBbox(areaRes.data.data);
             }
-          } catch (e) {
-            console.error("Gagal get boundary area via GPS:", e);
+          } catch (e: any) {
+            toastErrorFromAPI(e);
           }
         }
       }
@@ -2146,28 +2153,29 @@ function RegistrationWizard({
                     </div>
                   </div>
 
-                  {/* Error Banner: Kode Pos Tidak Ditemukan */}
+                  {/* Warning Banner: Kode Pos Tidak Ditemukan */}
                   {isGeofencingEnabled &&
                     isPostcodeNotFound &&
                     !isLoadingArea &&
                     formData.postal_code.length >= 4 && (
-                      <div className="mb-3 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 shadow-sm mt-3">
-                        <div className="mt-0.5 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center shrink-0">
-                          <MdClose className="text-red-600 text-lg" />
+                      <div className="mb-3 p-3 bg-yellow-warning border border-brown-primary rounded-xl flex items-start gap-3 shadow-sm mt-3">
+                        <div className="mt-0.5 w-8 h-8 bg-yellow-200 rounded-full flex items-center justify-center shrink-0">
+                          <FaLocationDot className="text-brown-primary text-lg" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-lg font-bold text-[#701F26]">
+                          <h4 className="text-lg font-bold text-brown-primary">
                             Kode Pos Tidak Ditemukan
                           </h4>
-                          <p className="text-sm text-[#D6211E] leading-relaxed mt-1">
+                          <p className="text-sm text-brown-primary leading-relaxed mt-1">
                             Kode pos{" "}
                             <strong>&quot;{formData.postal_code}&quot;</strong>{" "}
-                            belum tersedia di sistem. Silakan periksa kembali
-                            atau klik{" "}
+                            belum tersedia di sistem. Silakan Cari Lokasimu di
+                            kolom pencarian di bawah, atau klik{" "}
                             <span className="font-bold">
                               &quot;Set Pin Point ke Lokasi Saya Sekarang&quot;
                             </span>{" "}
-                            untuk menentukan lokasi Anda secara manual.
+                            untuk menentukan lokasi pemasangan Anda secara
+                            manual.
                           </p>
                         </div>
                       </div>
@@ -2191,7 +2199,7 @@ function RegistrationWizard({
                             Periksa & Atur Titik Rumah Anda{" "}
                           </h4>
                           <p className="text-xs sm:text-sm text-[#485786] leading-relaxed mt-1">
-                            <span className="font-bold">Kotak biru</span> pada
+                            <span className="font-bold">Garis biru</span> pada
                             peta merupakan daerah kode pos terpilih. Pastikan
                             alamat kamu sesuai dengan kode pos yang dimasukkan.
                             <br />
@@ -2359,6 +2367,8 @@ function RegistrationWizard({
                                   setIsPostalCodeManual(true);
                                   lastPostcodeFromMap.current =
                                     detectedPostcode;
+                                  // [INSTAN] Langsung panggil api boundary tanpa nunggu 2 detik debounce
+                                  fetchAndSyncBoundary(detectedPostcode, "");
                                 }
                               }
                               // Selesai interaksi sinkronisasi

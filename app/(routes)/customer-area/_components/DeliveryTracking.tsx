@@ -245,7 +245,7 @@ const DeliveryTracking = ({
 
             <div className="my-5 border border-b border-gray-border"></div>
 
-            <div className="w-full flex justify-center gap-4 items-center py-3 px-4 bg-[#FEFCE8] border border-[#A16207] rounded-lg text-sm text-[#A16207]">
+            <div className="w-full flex justify-center gap-4 items-center py-3 px-4 bg-yellow-warning border border-brown-primary rounded-lg text-sm text-brown-primary">
               <BsExclamationTriangle size={38} />
               <p className="text-start">
                 Tips Keamanan: Jangan bagikan Kode Booking ke pihak lain selain
