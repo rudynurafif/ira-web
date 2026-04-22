@@ -35,7 +35,7 @@ import {
   toastErrorFromAPI,
   handleDownloadClick,
 } from "@/app/_shared/utils";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   FaCircleCheck,
   FaCircleExclamation,
@@ -474,7 +474,9 @@ function RegistrationWizard({
   }, [status]);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
+  const registerSource = searchParams.get("from");
 
   const STORAGE_KEY = `otp:register:phone`;
   const PERSIST_KEY = `registration_wizard_data`;
@@ -1397,7 +1399,7 @@ function RegistrationWizard({
           ...(formData.longitude && { longitude: formData.longitude }),
           ...(formData.notes && { notes: formData.notes }),
           ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
-          // type,
+          // ...(registerSource && { register_source: registerSource }),
         };
 
         let res;
@@ -2434,10 +2436,10 @@ function RegistrationWizard({
                                     postal_code_id: "", // [FIX] Hapus ID lama agar tidak nyangkut
                                     postal_code: detectedPostcode,
                                   }));
-                                  
-                                  // Maksa ke mode manual juga untuk silent update agar UI berubah jadi teks 
+
+                                  // Maksa ke mode manual juga untuk silent update agar UI berubah jadi teks
                                   setIsPostalCodeManual(true);
-                                  
+
                                   lastPostcodeFromMap.current =
                                     detectedPostcode;
                                 }
