@@ -944,6 +944,7 @@ function RegistrationWizard({
         setIsPostalCodeManual(true);
       }
     })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.sub_district]);
 
   // Debounce Kode Pos -> Autofill Lokasi (Koordinat Map)
