@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 import { FaRegUserCircle } from "react-icons/fa";
 import { PiUserCircleFill } from "react-icons/pi";
@@ -8,13 +8,15 @@ import { dmSans } from "@/app/_shared/font/font";
 
 const FloatingNavbar = () => {
   const router = useRouter();
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   return (
     <nav
       className={`fixed top-2 sm:top-6 left-1/2 -translate-x-1/2 z-100 w-[95%] sm:w-[85%] max-w-4xl h-12 md:h-[60px] rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.15)] flex items-stretch border-[1.5px] border-white/60 overflow-hidden bg-[rgba(255,255,255,0.70)] backdrop-blur-md ${dmSans.className}`}
     >
       {/* Left Section (Red Block with Logo) */}
-      <div className="bg-[#b31b1b] sm:bg-[#7A0604] h-full flex items-center justify-center px-2 sm:pl-3 sm:pr-4 md:pl-5 md:pr-6 border-r-[1.5px] border-white/40">
+      <div className={`bg-[#b31b1b] ${isHome ? "sm:bg-[#7A0604]" : "sm:bg-[#b31b1b]"} h-full flex items-center justify-center px-2 sm:pl-3 sm:pr-4 md:pl-5 md:pr-6 border-r-[1.5px] border-white/40`}>
         <div className="flex items-center gap-1 md:gap-2">
           <Image
             src="/assets/Icons/IraWhiteIcon.svg"

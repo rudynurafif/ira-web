@@ -1,14 +1,17 @@
+// BASE URL REZA (OLD)
+
 "use client";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 
 const baseURL =
   typeof window === "undefined"
-    ? process.env.NEXT_PUBLIC_INTERNAL_MAP_SEARCH_API_BASE_URL || process.env.NEXT_PUBLIC_MAP_SEARCH_API_BASE_URL
+    ? process.env.NEXT_PUBLIC_INTERNAL_MAP_SEARCH_API_BASE_URL ||
+      process.env.NEXT_PUBLIC_MAP_SEARCH_API_BASE_URL
     : process.env.NEXT_PUBLIC_MAP_SEARCH_API_BASE_URL || "/api-mapsearch";
 
 const FwaAxiosMapSearch = axios.create({
-  baseURL: baseURL, 
+  baseURL: baseURL,
   headers: {
     "x-api-key": "280999!FTTH",
   },

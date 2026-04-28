@@ -1,6 +1,4 @@
-import axios, { Axios } from "axios";
 import FwaAxios from "../FwaAxios";
-import FwaAxiosMapSearch from "../FwaAxiosMapSearch";
 import FwaAxiosArea from "../FwaAxiosArea";
 import { dummyCoveredLocations } from "@/app/_shared/data/location";
 
@@ -150,7 +148,7 @@ export const getListLocation = async (params: any) => {
 
 export const getMapboxSuggest = async (params: any) => {
   try {
-    const data = await FwaAxiosMapSearch({
+    const data = await FwaAxiosArea({
       url: "/api/mapbox/suggest",
       method: "GET",
       params: params,
@@ -163,7 +161,7 @@ export const getMapboxSuggest = async (params: any) => {
 
 export const getMapboxRetrieve = async (id: string) => {
   try {
-    const data = await FwaAxiosMapSearch({
+    const data = await FwaAxiosArea({
       url: `/api/mapbox/retrieve/${id}`,
       method: "GET",
     });
@@ -178,7 +176,7 @@ export const getMapboxReverse = async (params: {
   lng: number | string;
 }) => {
   try {
-    const data = await FwaAxiosMapSearch({
+    const data = await FwaAxiosArea({
       url: "/api/mapbox/reverse",
       method: "GET",
       params: params,
@@ -189,20 +187,13 @@ export const getMapboxReverse = async (params: {
   }
 };
 
-// export const getBoundaryArea = async (params: { kota: string; kecamatan: string; kelurahan: string }) => {
-//   try {
-//     const data = await FwaAxiosArea({
-//       url: "/areas",
-//       method: "GET",
-//       params: params,
-//     });
-//     return data;
-//   } catch (error) {
-//     throw error;
-//   }
-// };
-
-export const getBoundaryArea = async (params: { postal_code: string }) => {
+export const getBoundaryArea = async (params: {
+  province_id: string;
+  city_id: string;
+  district_id: string;
+  sub_district_id: string;
+  postal_code: string;
+}) => {
   try {
     const data = await FwaAxiosArea({
       url: "/app/location/boundary",

@@ -163,6 +163,7 @@ function RegistrationWizard({
   });
 
   const [tempMapPayload, setTempMapPayload] = useState<any>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const [provinceOptions, setProvinceOptions] = useState<ReactSelectType[]>([]);
   const [cityOptions, setCityOptions] = useState<ReactSelectType[]>([]);
@@ -239,7 +240,7 @@ function RegistrationWizard({
   // [NEW] Global Setting: Geofencing Toggle
   const [isGeofencingEnabled, setIsGeofencingEnabled] = useState(true);
 
-  // [WATCHDOG] Jaring pengaman agar loading tidak nyangkut selamanya (max 7 detik)
+  // [WATCHDOG] Jaring pengaman agar loading tidak nyangkut selamanya (max 3 detik)
   useEffect(() => {
     let watchdog: NodeJS.Timeout;
     if (isMapSyncing || isLoadingArea) {
@@ -251,6 +252,11 @@ function RegistrationWizard({
     }
     return () => clearTimeout(watchdog);
   }, [isMapSyncing, isLoadingArea]);
+
+  // [CENTRALIZED] Auto Scroll to Top on Step Change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
 
   const handleManualSearch = async () => {
     if (searchQuery.length < 3 || isSearchingAddress || searchCooldown > 0)
@@ -270,7 +276,7 @@ function RegistrationWizard({
               setSearchSuggestions(res.data || []);
               setShowSuggestions(true);
               if (res.data?.length === 0) {
-                toast.error("Alamat tidak ditemukan");
+                toast("Alamat tidak ditemukan");
               }
             } catch (err: any) {
               toastErrorFromAPI(err);
@@ -409,7 +415,7 @@ function RegistrationWizard({
         setIsPostalCodeManual(true);
         setLastSyncedPostcode(suggestionPostcode);
 
-        // Gembok Ref agar robot auto-center nggak narik pin ke tengah setelah 5 detik
+        // Gembok Ref agar robot auto-center nggak narik pin ke tengah
         lastPostcodeFromMap.current = suggestionPostcode;
 
         toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
@@ -891,7 +897,7 @@ function RegistrationWizard({
             pcData.map((it: any) => ({
               label: it.name,
               value: String(it.id), // Simpan ID untuk pengiriman ke backend
-              name: String(it.name), // Simpan Name untuk keperluan Geocoding Mapbox
+              name: String(it.name), // Simpan Name untuk keperluan Geocoding
             })),
           );
         }
@@ -901,6 +907,7 @@ function RegistrationWizard({
         setIsPostalCodeManual(true);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.sub_district]);
 
   const fetchAndSyncBoundary = async (pc: string, pcId: string = "") => {
@@ -915,12 +922,16 @@ function RegistrationWizard({
     try {
       // If the user typed manually and they don't have the labels, resolve it from backend!
       const areaRes = await getBoundaryArea({
+        province_id: formData.province,
+        city_id: formData.city,
+        district_id: formData.district,
+        sub_district_id: formData.sub_district,
         postal_code: pc,
       });
 
       // Handle logical 404 inside successful response body (or cached 304)
       if (areaRes.data?.statusCode === 404) {
-        toast.error(areaRes.data?.message || "Area tidak ditemukan");
+        toast(areaRes.data?.message || "Area tidak ditemukan");
         setIsPostcodeNotFound(true);
         return;
       }
@@ -986,7 +997,7 @@ function RegistrationWizard({
       setLastSyncedPostcode(pcId || pc);
       setIsPostcodeNotFound(false); // [FIX] Reset state error jika ketemu
     } catch (e: any) {
-      toastErrorFromAPI(e, "Gagal mendapatkan data area");
+      // toast(e.response?.data?.message || "Gagal mendapatkan data area");
       setIsPostcodeNotFound(true);
     } finally {
       setIsLoadingArea(false);
@@ -1010,27 +1021,22 @@ function RegistrationWizard({
     // Kosongkan sync state segera saat mulai ngetik (sembunyikan banner)
     if (formData.postal_code !== lastSyncedPostcode) {
       setLastSyncedPostcode("");
+      lastPostcodeFromMap.current = ""; // [CLEANUP] Buang ingatan map agar input manual selalu bikin map terbang
       setIsPostcodeNotFound(false);
     }
 
     const timer = setTimeout(async () => {
-      // [SAFETY] Tambahan gembok: Jika latitude sudah ada dan kita baru saja mount/refresh,
-      // jangan jalankan geocoding ini karena akan menimpa koordinat custom user.
-      // [SAFETY] Kita tetap lanjut untuk ambil Boundary,
-      // tapi ada proteksi di bawah agar tidak menimpa Lat/Lng jika asal perubahannya dari Map.
       if (!formData.postal_code) {
         setIsLoadingArea(false);
         return;
       }
 
       try {
-        // [NEW] Resolusi ID ke Nama (Angka Kode Pos) untuk Mapbox
+        // [NEW] Resolusi ID ke Nama (Angka Kode Pos)
         const selectedPC = postalCodeOptions.find(
           (o: any) => o.value === formData.postal_code_id,
         );
 
-        // [BUGFIX] Jika modenya Dropdown tapi data options belum datang/belum ketemu ID-nya,
-        // Kita jangan proses geocoding (karena pcQuery akan jadi UUID dan hasilnya error 404 dari Mapbox)
         if (!isPostalCodeManual && !selectedPC) {
           setIsPostcodeNotFound(false); // Reset biar tidak kedip merah
           return;
@@ -1104,12 +1110,19 @@ function RegistrationWizard({
 
         if (!isInteractingWithMap && locationFromBackend) {
           try {
-            const areaRes = await getBoundaryArea({ postal_code: postcode });
+            const payload = {
+              province_id: locationFromBackend.province_id?.id,
+              city_id: locationFromBackend.city_id?.id,
+              district_id: locationFromBackend.district_id?.id,
+              sub_district_id: locationFromBackend.sub_district_id?.id,
+              postal_code: postcode,
+            };
+            const areaRes = await getBoundaryArea(payload);
             if (areaRes.data.data) {
               setCurrentBbox(areaRes.data.data);
             }
           } catch (e: any) {
-            toastErrorFromAPI(e);
+            // toastErrorFromAPI(e);
           }
         }
       }
@@ -1171,7 +1184,10 @@ function RegistrationWizard({
           "Izin lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.",
         );
       } else {
-        toast.error("Gagal mendapatkan lokasi GPS. Silakan coba lagi.");
+        toast.error(
+          `${err.message}: Gagal mendapatkan lokasi GPS. Silakan coba lagi.` ||
+            "Gagal mendapatkan lokasi GPS. Silakan coba lagi.",
+        );
       }
     } finally {
       setIsSyncingGPS(false);
@@ -1449,8 +1465,9 @@ function RegistrationWizard({
     setOtpStatus("idle");
     localStorage.removeItem(STORAGE_KEY);
 
-    if (typeof window !== "undefined")
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window !== "undefined") {
+      // scrollTo handled by useEffect
+    }
   }
 
   const handleSelect = (pkg: PackageData) => {
@@ -1512,7 +1529,6 @@ function RegistrationWizard({
 
     if (!hasError) {
       setStep(2);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       scrollToFirstError(newErrors);
     }
@@ -1590,7 +1606,6 @@ function RegistrationWizard({
     }
 
     setStep(3);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -2313,7 +2328,10 @@ function RegistrationWizard({
                         Arahkan Pin Lokasi ke Titik Alamat Pemasangan Anda
                       </p>
 
-                      <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200">
+                      <div
+                        ref={mapContainerRef}
+                        className="w-full h-[400px] rounded-2xl overflow-hidden shadow-sm relative border border-gray-200"
+                      >
                         <div className="w-full h-full">
                           <MapLeaflet
                             initialLatitude={Number(formData.latitude || 0)}
@@ -2487,7 +2505,6 @@ function RegistrationWizard({
                     }
                     onClick={() => {
                       setStep(1);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                     className="flex-1 bg-white border-2 border-primary text-primary hover:bg-red-50 font-bold py-3 px-4 rounded-xl text-sm md:text-base shadow-sm transition-transform active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -2636,13 +2653,15 @@ function RegistrationWizard({
                             type="button"
                             onClick={() => {
                               setStep(2);
-                              // Langsung arahkan ke posisi map biar user gak bingung
+                              // Beri waktu render step 2 selesai, lalu scroll ke elemen target
                               setTimeout(() => {
-                                window.scrollTo({
-                                  top: 300,
-                                  behavior: "smooth",
-                                });
-                              }, 100);
+                                if (mapContainerRef.current) {
+                                  mapContainerRef.current.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "center",
+                                  });
+                                }
+                              }, 350);
                             }}
                             className="flex items-center gap-2 px-4 py-2 bg-white border border-primary text-primary rounded-lg font-bold text-sm hover:bg-red-50 transition-all shadow-sm shadow-red-100"
                           >

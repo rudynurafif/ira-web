@@ -29,10 +29,11 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         destination: `${process.env.NEXT_PUBLIC_INTERNAL_API_BASE_URL}/:path*`,
       },
-      {
-        source: "/api-mapsearch/:path*",
-        destination: `${process.env.NEXT_PUBLIC_INTERNAL_MAP_SEARCH_API_BASE_URL || process.env.NEXT_PUBLIC_MAP_SEARCH_API_BASE_URL}/:path*`,
-      },
+      // rejot - OLD
+      // {
+      //   source: "/api-mapsearch/:path*",
+      //   destination: `${process.env.NEXT_PUBLIC_INTERNAL_MAP_SEARCH_API_BASE_URL || process.env.NEXT_PUBLIC_MAP_SEARCH_API_BASE_URL}/:path*`,
+      // },
       {
         source: "/api-area/:path*",
         destination: `${process.env.NEXT_PUBLIC_INTERNAL_AREA_API_BASE_URL || process.env.NEXT_PUBLIC_AREA_API_BASE_URL}/:path*`,
