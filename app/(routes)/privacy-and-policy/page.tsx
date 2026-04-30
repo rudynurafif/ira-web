@@ -2,6 +2,7 @@
 
 import { getPrivacyPolicy } from "@/app/_api/Settings/Settings";
 import ErrorFallback from "@/app/_components/ErrorFallback";
+import FloatingContactCS from "@/app/_components/FloatingContactCS";
 import Loader from "@/app/_components/Loader";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
 import { useRouter } from "next/navigation";
@@ -67,6 +68,8 @@ function Page() {
       <div className="container mx-auto py-10 px-5 sm:px-6 overflow-hidden">
         <div dangerouslySetInnerHTML={{ __html: content }}></div>
       </div>
+
+      <FloatingContactCS />
     </div>
   );
 }
