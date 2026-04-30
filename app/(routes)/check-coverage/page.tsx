@@ -8,6 +8,7 @@ import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import toast from "react-hot-toast";
 import MapCoverageArea from "./_components/MapCoverageArea";
 import { dmSans } from "@/app/_shared/font/font";
+import FloatingContactCS from "@/app/_components/FloatingContactCS";
 
 function Page() {
   const { userInfo } = useAppSelector((state) => state.auth);
@@ -19,6 +20,9 @@ function Page() {
       <CheckCoverage />
       <MapCoverageArea />
       <ListCoverageArea />
+
+      <FloatingContactCS />
+
       {/* <ListComingSoon /> */}
     </div>
   );

@@ -11,6 +11,7 @@ import Image from "next/image";
 import personPayment from "@/public/assets/Images/person-payment-1.webp";
 
 import { useAppSelector } from "@/app/store/store";
+import FloatingContactCS from "@/app/_components/FloatingContactCS";
 
 function Page() {
   const router = useRouter();
@@ -218,6 +219,8 @@ function Page() {
           </div>
         </div>
       </div>
+
+      <FloatingContactCS />
     </div>
   );
 }

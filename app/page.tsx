@@ -11,10 +11,10 @@ import DownloadApp from "./Homepage/DownloadApp";
 import { Notification } from "./_components/Notification";
 import { useAppContext } from "./_shared/context/AppContext";
 import { useBrowserDetection } from "./hooks/useBrowserDetection";
-import { FaRegUserCircle } from "react-icons/fa";
 import FloatingNavbar from "./_components/FloatingNavbar";
 import Testimony from "./Homepage/Testimony";
 import { dmSans } from "./_shared/font/font";
+import FloatingContactCS from "./_components/FloatingContactCS";
 
 export default function Home() {
   const router = useRouter();
@@ -110,6 +110,8 @@ export default function Home() {
           <Testimony />
         </div>
       </div>
+
+      <FloatingContactCS />
     </div>
   );
 }
