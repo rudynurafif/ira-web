@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
+import FloatingContactCS from "@/app/_components/FloatingContactCS";
 
 const steps = [
   {
@@ -259,6 +260,8 @@ const PanduanCaraBayar = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <FloatingContactCS />
     </>
   );
 };

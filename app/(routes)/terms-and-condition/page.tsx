@@ -2,6 +2,7 @@
 
 import { getDataTNC } from "@/app/_api/Settings/Settings";
 import ErrorFallback from "@/app/_components/ErrorFallback";
+import FloatingContactCS from "@/app/_components/FloatingContactCS";
 import Loader from "@/app/_components/Loader";
 import { content_terms } from "@/app/_shared/data/data";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
@@ -69,6 +70,8 @@ function Page() {
       <div className="container mx-auto py-10 px-5 sm:px-6 overflow-hidden">
         <div dangerouslySetInnerHTML={{ __html: content }}></div>
       </div>
+
+      <FloatingContactCS />
     </div>
   );
 }
