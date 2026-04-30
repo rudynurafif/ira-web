@@ -37,7 +37,7 @@ import {
   toastErrorFromAPI,
   handleDownloadClick,
 } from "@/app/_shared/utils";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   FaCircleCheck,
   FaCircleExclamation,
@@ -49,15 +49,6 @@ import {
 import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import dynamic from "next/dynamic";
-
-const MapLeaflet = dynamic(() => import("@/app/_components/form/MapLeaflet"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full bg-gray-100 animate-pulse flex items-center justify-center">
-      <span className="text-xs text-gray-400">Memuat Peta...</span>
-    </div>
-  ),
-});
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
 import { useGeoPermission } from "@/app/hooks/useGeoPermission";
 import {
@@ -77,6 +68,15 @@ import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import Image from "next/image";
 import { IoIosInformationCircleOutline } from "react-icons/io";
+
+const MapLeaflet = dynamic(() => import("@/app/_components/form/MapLeaflet"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-gray-100 animate-pulse flex items-center justify-center">
+      <span className="text-xs text-gray-400">Memuat Peta...</span>
+    </div>
+  ),
+});
 
 const initialFormData: FormType = {
   package_id: "",
@@ -457,7 +457,9 @@ function RegistrationWizard({
   }, [status]);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
+  const registerSource = searchParams.get("from");
 
   const STORAGE_KEY = `otp:register:phone`;
   const PERSIST_KEY = `registration_wizard_data`;
@@ -910,7 +912,11 @@ function RegistrationWizard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.sub_district]);
 
-  const fetchAndSyncBoundary = async (pc: string, pcId: string = "") => {
+  const fetchAndSyncBoundary = async (
+    pc: string,
+    pcId: string = "",
+    mapMove: boolean | null = null,
+  ) => {
     if (!pc || pc.length < 4) {
       setIsLoadingArea(false);
       return;
@@ -927,6 +933,9 @@ function RegistrationWizard({
         district_id: formData.district,
         sub_district_id: formData.sub_district,
         postal_code: pc,
+        ...(mapMove && { is_map_moving: mapMove }),
+        ...(formData.latitude && { latitude: formData.latitude }),
+        ...(formData.longitude && { longitude: formData.longitude }),
       });
 
       // Handle logical 404 inside successful response body (or cached 304)
@@ -1069,6 +1078,7 @@ function RegistrationWizard({
     isPostalCodeManual,
   ]);
 
+  // Refresh Map
   const handleRequestLocation = async () => {
     if (isSyncingGPS || gpsCooldown > 0) return;
 
@@ -1382,8 +1392,8 @@ function RegistrationWizard({
           ...(formData.latitude && { latitude: formData.latitude }),
           ...(formData.longitude && { longitude: formData.longitude }),
           ...(formData.notes && { notes: formData.notes }),
-          ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
-          // type,
+          // ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
+          ...(registerSource && { register_source: registerSource }),
         };
 
         let res;
@@ -1611,7 +1621,7 @@ function RegistrationWizard({
   return (
     <div className="w-full relative text-black pt-2 md:pt-4 flex flex-col items-center pb-20">
       {isLoading && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-white bg-opacity-70">
+        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-white bg-opacity-70">
           <Loader />
         </div>
       )}
@@ -1638,7 +1648,7 @@ function RegistrationWizard({
               onClick={() => {
                 if (step > 1) setStep(1);
               }}
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-300 ${
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 z-10 transition-all duration-300 ${
                 step >= 1
                   ? "bg-[#b61515] text-white shadow-md cursor-pointer active:scale-90"
                   : "bg-gray-400 text-white"
@@ -1658,7 +1668,7 @@ function RegistrationWizard({
                 if (step === 1) handleNextStep1();
                 else if (step > 2) setStep(2);
               }}
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-300 ${
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 z-10 transition-all duration-300 ${
                 step >= 1 // Selalu cursor-pointer karena step 1 pasti dilewati
                   ? "bg-[#b61515] text-white shadow-md cursor-pointer active:scale-90"
                   : "bg-gray-400 text-white"
@@ -1678,7 +1688,7 @@ function RegistrationWizard({
                 if (step === 2) handleProceedToSummary();
                 // Jika ingin user bisa loncat dari 1 ke 3 jika sudah valid, bisa dikembangkan lagi
               }}
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-300 ${
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 z-10 transition-all duration-300 ${
                 step >= 2
                   ? "bg-[#b61515] text-white shadow-md cursor-pointer active:scale-90"
                   : "bg-gray-400 text-white"
@@ -2386,7 +2396,11 @@ function RegistrationWizard({
                                   lastPostcodeFromMap.current =
                                     detectedPostcode;
                                   // [INSTAN] Langsung panggil api boundary tanpa nunggu 2 detik debounce
-                                  fetchAndSyncBoundary(detectedPostcode, "");
+                                  fetchAndSyncBoundary(
+                                    detectedPostcode,
+                                    "",
+                                    true,
+                                  );
                                 }
                               }
                               // Selesai interaksi sinkronisasi

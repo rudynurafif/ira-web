@@ -1,5 +1,6 @@
 import FwaAxios from "../FwaAxios";
 import FwaAxiosArea from "../FwaAxiosArea";
+import FwaAxiosMapSearch from "../FwaAxiosMapSearch";
 import { dummyCoveredLocations } from "@/app/_shared/data/location";
 
 export const getProvince = async (params: any = "") => {
@@ -146,9 +147,13 @@ export const getListLocation = async (params: any) => {
   }
 };
 
+// ==========================================================================
+// MAP
+// ==========================================================================
+
 export const getMapboxSuggest = async (params: any) => {
   try {
-    const data = await FwaAxiosArea({
+    const data = await FwaAxiosMapSearch({
       url: "/api/mapbox/suggest",
       method: "GET",
       params: params,
@@ -161,7 +166,7 @@ export const getMapboxSuggest = async (params: any) => {
 
 export const getMapboxRetrieve = async (id: string) => {
   try {
-    const data = await FwaAxiosArea({
+    const data = await FwaAxiosMapSearch({
       url: `/api/mapbox/retrieve/${id}`,
       method: "GET",
     });
@@ -176,7 +181,7 @@ export const getMapboxReverse = async (params: {
   lng: number | string;
 }) => {
   try {
-    const data = await FwaAxiosArea({
+    const data = await FwaAxiosMapSearch({
       url: "/api/mapbox/reverse",
       method: "GET",
       params: params,
@@ -193,6 +198,9 @@ export const getBoundaryArea = async (params: {
   district_id: string;
   sub_district_id: string;
   postal_code: string;
+  is_map_moving?: boolean;
+  latitude?: number | string;
+  longitude?: number | string;
 }) => {
   try {
     const data = await FwaAxiosArea({
