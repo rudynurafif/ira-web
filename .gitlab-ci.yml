@@ -187,7 +187,7 @@ deploy-production:
         git pull origin main; \
         docker compose -f $COMPOSE_FILE down fwa-website; \
         docker rmi fwa_website:$PROD_VER; \
-        bash /apps/ira_stop_secondary_balancer.sh; \
+        docker stop fwa_mitra_app_2 fwa_crm_app_2 fwa_cms_app_2 fwa_sales_app_2; \
         docker compose -f $COMPOSE_FILE build --no-cache fwa-website; \
         docker compose -f $COMPOSE_FILE up -d fwa-website; \
         docker ps -a | grep fwa_website_app; \
@@ -205,7 +205,7 @@ deploy-production:
         docker image prune -a -f; \
         docker exec -it fwa_website_app_2 sh -c 'npm ls && npm outdate && npm audit'; \
         echo 'Production - Container fwa_website_app_2 has been updated.'; \
-        bash /apps/ira_start_secondary_balancer.sh; \
+        docker start fwa_mitra_app_2 fwa_crm_app_2 fwa_cms_app_2 fwa_sales_app_2; \
         echo 'Production - Docker Deployment Completed.'; \
       "
   artifacts:
