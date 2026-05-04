@@ -182,6 +182,12 @@ function RegistrationWizard({
   );
   const [isPostalCodeManual, setIsPostalCodeManual] = useState(false);
 
+  const [isLoadingProvince, setIsLoadingProvince] = useState(false);
+  const [isLoadingCity, setIsLoadingCity] = useState(false);
+  const [isLoadingDistrict, setIsLoadingDistrict] = useState(false);
+  const [isLoadingSubDistrict, setIsLoadingSubDistrict] = useState(false);
+  const [isLoadingPostalCode, setIsLoadingPostalCode] = useState(false);
+
   // Address Search States
   const [searchQuery, setSearchQuery] = useState("");
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
@@ -822,6 +828,7 @@ function RegistrationWizard({
 
   useEffect(() => {
     const loadProvince = async () => {
+      setIsLoadingProvince(true);
       try {
         const res = await getProvince();
         const options: ReactSelectType[] = (res.data?.data ?? []).map(
@@ -833,6 +840,8 @@ function RegistrationWizard({
         setProvinceOptions(options);
       } catch (error: any) {
         toastErrorFromAPI(error, "Gagal muat data provinsi");
+      } finally {
+        setIsLoadingProvince(false);
       }
     };
     loadProvince();
@@ -845,6 +854,7 @@ function RegistrationWizard({
       return;
     }
     (async () => {
+      setIsLoadingCity(true);
       try {
         const res = await getCity({ province_id: formData.province });
         setCityOptions(
@@ -856,6 +866,8 @@ function RegistrationWizard({
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kota");
         setCityOptions([]);
+      } finally {
+        setIsLoadingCity(false);
       }
     })();
   }, [formData.province]);
@@ -867,6 +879,7 @@ function RegistrationWizard({
       return;
     }
     (async () => {
+      setIsLoadingDistrict(true);
       try {
         const res = await getDistrict({ city_id: formData.city });
         setDistrictOptions(
@@ -878,6 +891,8 @@ function RegistrationWizard({
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kecamatan");
         setDistrictOptions([]);
+      } finally {
+        setIsLoadingDistrict(false);
       }
     })();
   }, [formData.city]);
@@ -889,6 +904,7 @@ function RegistrationWizard({
       return;
     }
     (async () => {
+      setIsLoadingSubDistrict(true);
       try {
         const res = await getSubDistrict({ district_id: formData.district });
         setSubdistrictOptions(
@@ -900,6 +916,8 @@ function RegistrationWizard({
       } catch (err: any) {
         toastErrorFromAPI(err, "Gagal muat data kelurahan");
         setSubdistrictOptions([]);
+      } finally {
+        setIsLoadingSubDistrict(false);
       }
     })();
   }, [formData.district]);
@@ -911,6 +929,7 @@ function RegistrationWizard({
       return;
     }
     (async () => {
+      setIsLoadingPostalCode(true);
       try {
         const res = await getPostalCode({
           sub_district_id: formData.sub_district,
@@ -942,9 +961,11 @@ function RegistrationWizard({
         console.error("Gagal muat data kode pos", err);
         setPostalCodeOptions([]);
         setIsPostalCodeManual(true);
+      } finally {
+        setIsLoadingPostalCode(false);
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.sub_district]);
 
   // Debounce Kode Pos -> Autofill Lokasi (Koordinat Map)
@@ -1950,6 +1971,7 @@ function RegistrationWizard({
                           }
                           setErrors({ ...errors, province: "" });
                         }}
+                        isLoading={isLoadingProvince}
                         placeholder="Pilih Provinsi"
                         value={formData.province}
                         error={errors.province}
@@ -1981,7 +2003,8 @@ function RegistrationWizard({
                           }
                           setErrors({ ...errors, city: "" });
                         }}
-                        isDisabled={!formData.province}
+                        isLoading={isLoadingCity}
+                        isDisabled={!formData.province || isLoadingCity}
                         placeholder={`${
                           !formData.province
                             ? "Pilih Provinsi  Dahulu"
@@ -2019,7 +2042,8 @@ function RegistrationWizard({
                           }
                           setErrors({ ...errors, district: "" });
                         }}
-                        isDisabled={!formData.city}
+                        isLoading={isLoadingDistrict}
+                        isDisabled={!formData.city || isLoadingDistrict}
                         placeholder={`${
                           !formData.city
                             ? "Pilih Kota/Kab  Dahulu"
@@ -2051,7 +2075,8 @@ function RegistrationWizard({
                           }
                           setErrors({ ...errors, sub_district: "" });
                         }}
-                        isDisabled={!formData.district}
+                        isLoading={isLoadingSubDistrict}
+                        isDisabled={!formData.district || isLoadingSubDistrict}
                         placeholder={`${
                           !formData.district
                             ? "Pilih Kecamatan  Dahulu"
@@ -2076,7 +2101,7 @@ function RegistrationWizard({
                               setFormData((prev: any) => ({
                                 ...prev,
                                 postal_code: value,
-                                postal_code_id: "", // [FIX] Hapus ID jika input manual agar tidak konflik
+                                postal_code_id: "",
                               }));
 
                               if (value.length === 5) setIsLoadingArea(true);
@@ -2103,8 +2128,8 @@ function RegistrationWizard({
                             if (value) {
                               setFormData((prev: any) => ({
                                 ...prev,
-                                postal_code_id: value.value, // Simpan UUID
-                                postal_code: value.name || value.label, // Simpan Teks (misal 12870)
+                                postal_code_id: value.value,
+                                postal_code: value.name || value.label,
                               }));
                               setIsLoadingArea(true);
                             } else {
@@ -2116,19 +2141,21 @@ function RegistrationWizard({
                             }
                             setErrors({ ...errors, postal_code: "" });
                           }}
+                          isLoading={isLoadingPostalCode}
                           isDisabled={
                             !formData.sub_district ||
                             isLoadingArea ||
                             isMapSyncing ||
                             searchCooldown > 0 ||
-                            isSearchingAddress
+                            isSearchingAddress ||
+                            isLoadingPostalCode
                           }
                           placeholder={`${
                             !formData.sub_district
                               ? "Pilih Kelurahan Dahulu"
                               : "Pilih Kode POS"
                           }`}
-                          value={formData.postal_code_id || ""} // Gunakan ID di dropdown agar matching
+                          value={formData.postal_code_id || ""}
                           error={errors.postal_code || ""}
                         />
                       )}
