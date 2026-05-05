@@ -54,7 +54,7 @@ function Page() {
         {/* Header row */}
         <div className="relative flex items-center mb-6">
           <button
-            onClick={() => router.push("/payment-billing")}
+            onClick={() => router.back()}
             className="flex items-center gap-1 text-sm hover:text-primary transition-colors"
           >
             ← <span className="hidden md:block">Kembali</span>

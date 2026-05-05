@@ -1,6 +1,7 @@
 import FwaAxios from "../FwaAxios";
 import FwaAxiosArea from "../FwaAxiosArea";
 import FwaAxiosMapSearch from "../FwaAxiosMapSearch";
+import { getSetting } from "../Settings/Settings";
 import { dummyCoveredLocations } from "@/app/_shared/data/location";
 
 export const getProvince = async (params: any = "") => {
@@ -151,6 +152,11 @@ export const getListLocation = async (params: any) => {
 // MAP
 // ==========================================================================
 
+/**
+ * Get dropdown location suggest
+ * @param params {q: string}
+ * @returns id, name, full_address
+ */
 export const getMapboxSuggest = async (params: any) => {
   try {
     const data = await FwaAxiosMapSearch({
@@ -164,6 +170,11 @@ export const getMapboxSuggest = async (params: any) => {
   }
 };
 
+/**
+ * Get mapbox retrieve
+ * @param id string
+ * @returns lat, lng, postcode
+ */
 export const getMapboxRetrieve = async (id: string) => {
   try {
     const data = await FwaAxiosMapSearch({
@@ -176,15 +187,23 @@ export const getMapboxRetrieve = async (id: string) => {
   }
 };
 
-export const getMapboxReverse = async (params: {
+/**
+ * Get location reverse
+ * @param params {lat: number | string, lng: number | string}
+ * @returns postcode
+ */
+export const getLocationReverse = async (params: {
   lat: number | string;
   lng: number | string;
 }) => {
   try {
     const data = await FwaAxiosMapSearch({
-      url: "/api/mapbox/reverse",
+      url: `/api/location/reverse`,
       method: "GET",
-      params: params,
+      params: {
+        latitude: params.lat,
+        longitude: params.lng,
+      },
     });
     return data;
   } catch (error) {
@@ -192,6 +211,11 @@ export const getMapboxReverse = async (params: {
   }
 };
 
+/**
+ * Get boundary area
+ * @param params {province_id, city_id, district_id, sub_district_id, postal_code, is_map_moving, latitude, longitude}
+ * @returns bbox area boundary
+ */
 export const getBoundaryArea = async (params: {
   province_id: string;
   city_id: string;

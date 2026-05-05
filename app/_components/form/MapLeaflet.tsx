@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Loader from "../Loader";
-import { getMapboxReverse } from "@/app/_api/Location/Location";
+import { getLocationReverse } from "@/app/_api/Location/Location";
 
 // Indonesia Boundary
 const IDN_BOUNDS: [[number, number], [number, number]] = [
@@ -27,7 +27,6 @@ interface MapLeafletProps {
   }) => void;
   onGeocodeStart?: () => void;
 }
-
 
 // Helper to calculate distance in meters (Haversine formula)
 const calculateDistance = (
@@ -59,14 +58,15 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
   onPlaceChange,
   onGeocodeStart,
 }) => {
-
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const bboxLayerRef = useRef<any>(null);
   const geocodeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastGeocodedPosRef = useRef<{ lat: number; lng: number } | null>(
-    initialLatitude && initialLongitude ? { lat: initialLatitude, lng: initialLongitude } : null
+    initialLatitude && initialLongitude
+      ? { lat: initialLatitude, lng: initialLongitude }
+      : null,
   );
   const isProgrammaticMoveRef = useRef(true); // [FIX] Default TRUE agar saat baru mount tidak nimpa data manual
 
@@ -86,7 +86,6 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
   useEffect(() => {
     onGeocodeStartRef.current = onGeocodeStart;
   }, [onGeocodeStart]);
-
 
   // Fix Leaflet Default Icon issue in Next.js
   useEffect(() => {
@@ -212,17 +211,17 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
         }
 
         geocodeTimerRef.current = setTimeout(async () => {
-
           if (isLoading) return;
 
           try {
             // Menggunakan BE MapSearch API
-            const resRev = await getMapboxReverse({ lat, lng });
-            const dataRev = resRev.data;
+            const resRev = await getLocationReverse({ lat, lng });
+            const dataRev = resRev.data.data;
 
             if (dataRev && onPlaceChangeRef.current) {
               const detectedPostcode = dataRev.postcode || "";
-              const detectedAddress = dataRev.full_address || dataRev.name || "";
+              const detectedAddress =
+                dataRev.full_address || dataRev.name || "";
 
               onPlaceChangeRef.current({
                 latitude: lat,

@@ -23,7 +23,7 @@ import {
   getLocationByPostalCode,
   getMapboxSuggest,
   getMapboxRetrieve,
-  getMapboxReverse,
+  getLocationReverse,
   getBoundaryArea,
 } from "@/app/_api/Location/Location";
 import { getSetting } from "@/app/_api/Settings/Settings";
@@ -294,23 +294,29 @@ function RegistrationWizard({
 
   const handleSelectSuggestion = async (feat: any) => {
     if (isSearchingAddress) return;
-    // Search V6 Suggestion tidak punya koordinat, harus RETRIEVE
+    
     try {
       setIsSearchingAddress(true);
 
       const res = await getMapboxRetrieve(feat.id);
       const apiData = res.data;
 
+      console.log("masuk sini yow 0");
+
       if (apiData && apiData.latitude && apiData.longitude) {
         const lat = apiData.latitude;
         const lng = apiData.longitude;
         const suggPostcode = apiData.postcode || "";
+
+        console.log("masuk sini yow 1");
 
         if (
           suggPostcode &&
           formData.postal_code &&
           suggPostcode !== formData.postal_code
         ) {
+          console.log("masuk sini yow 2");
+
           setPendingSuggestionData({
             feature: apiData,
             suggestionPostcode: suggPostcode,
@@ -344,22 +350,41 @@ function RegistrationWizard({
 
         // [NEW] Resolve ID dari backend untuk sinkron dropdown
         if (suggPostcode) {
+          console.log("masuk sini y");
           try {
             const resLoc = await getLocationByPostalCode(suggPostcode);
-            const locData = resLoc.data?.data?.[0]; // Ambil yang pertama jika ada
+            const locData = resLoc.data?.data;
             if (locData) {
+              // [DRY] Update form dan boundary sekaligus secara instan
+              await fetchAndSyncBoundary(
+                suggPostcode,
+                locData.postal_code?.id,
+                true,
+                {
+                  ...locData,
+                  latitude: lat,
+                  longitude: lng,
+                },
+              );
+
               setFormData((prev) => ({
                 ...prev,
                 latitude: lat,
                 longitude: lng,
                 address_gmaps: feat.full_address || feat.name,
-                province: String(locData.province_id),
-                city: String(locData.city_id),
-                district: String(locData.district_id),
-                sub_district: String(locData.sub_district_id),
-                postal_code: String(locData.id), // ID UUID untuk dropdown
+                province: String(locData.province?.id || prev.province),
+                city: String(locData.city?.id || prev.city),
+                district: String(locData.district?.id || prev.district),
+                sub_district: String(
+                  locData.sub_district?.id || prev.sub_district,
+                ),
+                postal_code: String(
+                  locData.postal_code?.name || prev.postal_code,
+                ),
+                postal_code_id: String(
+                  locData.postal_code?.id || prev.postal_code_id,
+                ),
               }));
-              setLastSyncedPostcode(String(locData.id));
               return; // Selesai
             }
           } catch (e: any) {
@@ -404,21 +429,45 @@ function RegistrationWizard({
 
     (async () => {
       if (isSnapBack) {
-        // [SCENARIO 1] "Ya, Sesuaikan Pin" -> CUMA update teks kode pos di form
-        setFormData((prev) => ({
-          ...prev,
-          postal_code: suggestionPostcode,
-          postal_code_id: "", // [FIX] Buang ID lama agar API Boundary pakai angka baru
-        }));
+        // [SCENARIO 1] "Ya, Sesuaikan Pin" -> Update Kode Pos & Sync Hierarchy
+        try {
+          const resLoc = await getLocationByPostalCode(suggestionPostcode);
+          const locData = resLoc.data?.data;
 
-        // Maksa ke mode manual agar teks angkanya (misal 12420) MASUK & nampil di inputan form
-        setIsPostalCodeManual(true);
-        setLastSyncedPostcode(suggestionPostcode);
+          if (locData) {
+            // [INSTAN] Pemicu sinkronisasi data lokasi & Boundary secara terpusat
+            await fetchAndSyncBoundary(suggestionPostcode, locData.postal_code?.id, true, {
+              ...locData,
+              latitude: feature.latitude || feature.center?.[1],
+              longitude: feature.longitude || feature.center?.[0],
+            });
 
-        // Gembok Ref agar robot auto-center nggak narik pin ke tengah
-        lastPostcodeFromMap.current = suggestionPostcode;
+            setFormData((prev) => ({
+              ...prev,
+              postal_code: suggestionPostcode,
+              postal_code_id: locData.postal_code?.id || "",
+              province: String(locData.province?.id || prev.province),
+              city: String(locData.city?.id || prev.city),
+              district: String(locData.district?.id || prev.district),
+              sub_district: String(locData.sub_district?.id || prev.sub_district),
+            }));
 
-        toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
+            setLastSyncedPostcode(String(locData.postal_code?.id || suggestionPostcode));
+            lastPostcodeFromMap.current = suggestionPostcode;
+            toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
+          } else {
+            // Fallback jika database kita tidak punya data kode pos tersebut
+            setFormData((prev) => ({
+              ...prev,
+              postal_code: suggestionPostcode,
+              postal_code_id: "",
+            }));
+            setIsPostalCodeManual(true);
+            fetchAndSyncBoundary(suggestionPostcode, "", true);
+          }
+        } catch (e) {
+          console.error("Gagal sync lokasi saat konfirmasi kode pos:", e);
+        }
       } else {
         // [SCENARIO 2] "Gunakan Kode Pos Saat Ini" -> Hanya Tutup Modal
         // Sesuai permintaan terbaru: Jangan jalankan fungsi apa-apa, biarkan saja.
@@ -916,6 +965,7 @@ function RegistrationWizard({
     pc: string,
     pcId: string = "",
     mapMove: boolean | null = null,
+    manualLocation: any = null, // [NEW] Untuk data GPS instan
   ) => {
     if (!pc || pc.length < 4) {
       setIsLoadingArea(false);
@@ -926,16 +976,18 @@ function RegistrationWizard({
     lastSyncedPostcodeRef.current = pcId || pc;
 
     try {
-      // If the user typed manually and they don't have the labels, resolve it from backend!
       const areaRes = await getBoundaryArea({
-        province_id: formData.province,
-        city_id: formData.city,
-        district_id: formData.district,
-        sub_district_id: formData.sub_district,
+        province_id: manualLocation?.province?.id || formData.province,
+        city_id: manualLocation?.city?.id || formData.city,
+        district_id: manualLocation?.district?.id || formData.district,
+        sub_district_id:
+          manualLocation?.sub_district?.id || formData.sub_district,
         postal_code: pc,
         ...(mapMove && { is_map_moving: mapMove }),
-        ...(formData.latitude && { latitude: formData.latitude }),
-        ...(formData.longitude && { longitude: formData.longitude }),
+        latitude: manualLocation ? manualLocation.latitude : formData.latitude,
+        longitude: manualLocation
+          ? manualLocation.longitude
+          : formData.longitude,
       });
 
       // Handle logical 404 inside successful response body (or cached 304)
@@ -1093,11 +1145,11 @@ function RegistrationWizard({
       const position = await requestLocation();
       const { latitude, longitude } = position.coords;
 
-      const resReverse = await getMapboxReverse({
+      const resReverse = await getLocationReverse({
         lat: latitude,
         lng: longitude,
       });
-      const dataReverse = resReverse.data;
+      const dataReverse = resReverse.data.data;
 
       // Ambil kode pos sinkron
       const postcode = dataReverse?.postcode || "";
@@ -1112,28 +1164,20 @@ function RegistrationWizard({
         lastPostcodeFromMap.current = postcode;
         try {
           const resLoc = await getLocationByPostalCode(postcode);
-          locationFromBackend = resLoc.data?.data?.[0];
+          locationFromBackend = resLoc.data?.data;
         } catch (e: any) {
           toastErrorFromAPI(e);
           console.error("Gagal resolve lokasi GPS ke backend ID", e);
         }
 
-        if (!isInteractingWithMap && locationFromBackend) {
-          try {
-            const payload = {
-              province_id: locationFromBackend.province_id?.id,
-              city_id: locationFromBackend.city_id?.id,
-              district_id: locationFromBackend.district_id?.id,
-              sub_district_id: locationFromBackend.sub_district_id?.id,
-              postal_code: postcode,
-            };
-            const areaRes = await getBoundaryArea(payload);
-            if (areaRes.data.data) {
-              setCurrentBbox(areaRes.data.data);
-            }
-          } catch (e: any) {
-            // toastErrorFromAPI(e);
-          }
+        if (locationFromBackend) {
+          const pcId = locationFromBackend.postal_code?.id || postcode;
+          // [DRY] Gunakan fungsi terpusat agar sinkronisasi seragam di semua tempat
+          await fetchAndSyncBoundary(postcode, pcId, true, {
+            ...locationFromBackend,
+            latitude: latStr,
+            longitude: lngStr,
+          });
         }
       }
 
@@ -1145,14 +1189,23 @@ function RegistrationWizard({
           latitude: latStr,
           longitude: lngStr,
           postal_code: postcode || prev.postal_code,
-          postal_code_id: isSamePostcode ? prev.postal_code_id : "",
+          postal_code_id:
+            locationFromBackend?.postal_code?.id ||
+            (isSamePostcode ? prev.postal_code_id : ""),
           address_gmaps: addressString || prev.address_gmaps,
-          ...(locationFromBackend && isSamePostcode
+          // [FIX] Selalu update hierarchy agar tidak loncat balik ke lokasi lama
+          ...(locationFromBackend
             ? {
-                province: String(locationFromBackend.province_id),
-                city: String(locationFromBackend.city_id),
-                district: String(locationFromBackend.district_id),
-                sub_district: String(locationFromBackend.sub_district_id),
+                province: String(
+                  locationFromBackend.province?.id || prev.province,
+                ),
+                city: String(locationFromBackend.city?.id || prev.city),
+                district: String(
+                  locationFromBackend.district?.id || prev.district,
+                ),
+                sub_district: String(
+                  locationFromBackend.sub_district?.id || prev.sub_district,
+                ),
               }
             : {}),
         };
@@ -1175,7 +1228,6 @@ function RegistrationWizard({
 
       toast.success("Titik lokasi berhasil didapatkan");
 
-      // Aktifkan cooldown (Antispam)
       setGpsCooldown(5);
       const cdTimer = setInterval(() => {
         setGpsCooldown((prev) => {
@@ -1187,6 +1239,7 @@ function RegistrationWizard({
         });
       }, 1000);
     } catch (err: any) {
+      console.log("err", err);
       if (err.code === 1) {
         // Jika user klik "Block" di pop-up browser, bantu dengan modal instruksi
         setIsOpenModalReqLoc(true);
@@ -1194,10 +1247,7 @@ function RegistrationWizard({
           "Izin lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.",
         );
       } else {
-        toast.error(
-          `${err.message}: Gagal mendapatkan lokasi GPS. Silakan coba lagi.` ||
-            "Gagal mendapatkan lokasi GPS. Silakan coba lagi.",
-        );
+        toastErrorFromAPI(err);
       }
     } finally {
       setIsSyncingGPS(false);
