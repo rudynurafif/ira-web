@@ -121,19 +121,6 @@ export const GetListGeocode = async (body: any) => {
   }
 };
 
-export const getLocationByPostalCode = async (postalCode: string) => {
-  try {
-    const data = await FwaAxios({
-      url: "/app/location/location-by-postal-code",
-      method: "GET",
-      params: { postal_code: postalCode },
-    });
-    return data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const getListLocation = async (params: any) => {
   try {
     // const data = await FwaAxios({
@@ -151,6 +138,19 @@ export const getListLocation = async (params: any) => {
 // ==========================================================================
 // MAP
 // ==========================================================================
+
+export const getLocationByPostalCode = async (postalCode: string) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/location/location-by-postal-code",
+      method: "GET",
+      params: { postal_code: postalCode },
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 /**
  * Get dropdown location suggest
