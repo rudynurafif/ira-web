@@ -157,10 +157,10 @@ export const getListLocation = async (params: any) => {
  * @param params {q: string}
  * @returns id, name, full_address
  */
-export const getMapboxSuggest = async (params: any) => {
+export const getLocationSuggest = async (params: any) => {
   try {
     const data = await FwaAxiosMapSearch({
-      url: "/api/mapbox/suggest",
+      url: "/api/location/suggest",
       method: "GET",
       params: params,
     });
@@ -175,10 +175,10 @@ export const getMapboxSuggest = async (params: any) => {
  * @param id string
  * @returns lat, lng, postcode
  */
-export const getMapboxRetrieve = async (id: string) => {
+export const getLocationRetrieve = async (id: string) => {
   try {
     const data = await FwaAxiosMapSearch({
-      url: `/api/mapbox/retrieve/${id}`,
+      url: `/api/location/retrieve/${id}`,
       method: "GET",
     });
     return data;

@@ -21,8 +21,8 @@ import {
   getProvince,
   getSubDistrict,
   getLocationByPostalCode,
-  getMapboxSuggest,
-  getMapboxRetrieve,
+  getLocationSuggest,
+  getLocationRetrieve,
   getLocationReverse,
   getBoundaryArea,
 } from "@/app/_api/Location/Location";
@@ -164,6 +164,7 @@ function RegistrationWizard({
 
   const [tempMapPayload, setTempMapPayload] = useState<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const [provinceOptions, setProvinceOptions] = useState<ReactSelectType[]>([]);
   const [cityOptions, setCityOptions] = useState<ReactSelectType[]>([]);
@@ -195,6 +196,7 @@ function RegistrationWizard({
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
   const [syncCountdown, setSyncCountdown] = useState<number>(0);
   const isInitialMount = useRef(true);
+  const [isSyncingPostcode, setIsSyncingPostcode] = useState(false);
   const [mitraID, setMitraID] = useState<
     { id: string | number; [key: string]: any }[]
   >([]);
@@ -253,6 +255,25 @@ function RegistrationWizard({
     return () => clearTimeout(watchdog);
   }, [isMapSyncing, isLoadingArea]);
 
+  // [NEW] Close suggestions on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
+
   // [CENTRALIZED] Auto Scroll to Top on Step Change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -272,10 +293,10 @@ function RegistrationWizard({
           clearInterval(cdTimer);
           (async () => {
             try {
-              const res = await getMapboxSuggest({ q: searchQuery });
-              setSearchSuggestions(res.data || []);
+              const res = await getLocationSuggest({ search: searchQuery });
+              setSearchSuggestions(res.data.data || []);
               setShowSuggestions(true);
-              if (res.data?.length === 0) {
+              if (res.data?.data?.length === 0) {
                 toast("Alamat tidak ditemukan");
               }
             } catch (err: any) {
@@ -294,29 +315,29 @@ function RegistrationWizard({
 
   const handleSelectSuggestion = async (feat: any) => {
     if (isSearchingAddress) return;
-    
+
     try {
       setIsSearchingAddress(true);
 
-      const res = await getMapboxRetrieve(feat.id);
-      const apiData = res.data;
+      // [OPTIMIZED] Langsung gunakan data dari suggestion jika lengkap
+      let apiData = feat;
 
-      console.log("masuk sini yow 0");
+      // [NEW] Jika di suggestion tidak ada lat/long, ambil dari retrieve
+      if (!apiData.latitude || !apiData.longitude) {
+        const res = await getLocationRetrieve(feat.id);
+        apiData = res.data.data;
+      }
 
       if (apiData && apiData.latitude && apiData.longitude) {
         const lat = apiData.latitude;
         const lng = apiData.longitude;
         const suggPostcode = apiData.postcode || "";
 
-        console.log("masuk sini yow 1");
-
         if (
           suggPostcode &&
           formData.postal_code &&
           suggPostcode !== formData.postal_code
         ) {
-          console.log("masuk sini yow 2");
-
           setPendingSuggestionData({
             feature: apiData,
             suggestionPostcode: suggPostcode,
@@ -350,7 +371,6 @@ function RegistrationWizard({
 
         // [NEW] Resolve ID dari backend untuk sinkron dropdown
         if (suggPostcode) {
-          console.log("masuk sini y");
           try {
             const resLoc = await getLocationByPostalCode(suggPostcode);
             const locData = resLoc.data?.data;
@@ -414,7 +434,7 @@ function RegistrationWizard({
   };
 
   const handleConfirmPostcodeUpdate = (isSnapBack: boolean) => {
-    if (!pendingSuggestionData) return;
+    if (!pendingSuggestionData || isSyncingPostcode) return;
 
     const {
       feature,
@@ -428,53 +448,68 @@ function RegistrationWizard({
     setIsInteractingWithMap(false); // Buka kunci interaksi
 
     (async () => {
-      if (isSnapBack) {
-        // [SCENARIO 1] "Ya, Sesuaikan Pin" -> Update Kode Pos & Sync Hierarchy
-        try {
-          const resLoc = await getLocationByPostalCode(suggestionPostcode);
-          const locData = resLoc.data?.data;
+      try {
+        setIsSyncingPostcode(true);
+        if (isSnapBack) {
+          // [SCENARIO 1] "Ya, Sesuaikan Pin" -> Update Kode Pos & Sync Hierarchy
+          try {
+            const resLoc = await getLocationByPostalCode(suggestionPostcode);
+            const locData = resLoc.data?.data;
 
-          if (locData) {
-            // [INSTAN] Pemicu sinkronisasi data lokasi & Boundary secara terpusat
-            await fetchAndSyncBoundary(suggestionPostcode, locData.postal_code?.id, true, {
-              ...locData,
-              latitude: feature.latitude || feature.center?.[1],
-              longitude: feature.longitude || feature.center?.[0],
-            });
+            if (locData) {
+              // [INSTAN] Pemicu sinkronisasi data lokasi & Boundary secara terpusat
+              await fetchAndSyncBoundary(
+                suggestionPostcode,
+                locData.postal_code?.id,
+                true,
+                {
+                  ...locData,
+                  latitude: exactLat || feature.latitude || feature.center?.[1],
+                  longitude:
+                    exactLng || feature.longitude || feature.center?.[0],
+                },
+              );
 
-            setFormData((prev) => ({
-              ...prev,
-              postal_code: suggestionPostcode,
-              postal_code_id: locData.postal_code?.id || "",
-              province: String(locData.province?.id || prev.province),
-              city: String(locData.city?.id || prev.city),
-              district: String(locData.district?.id || prev.district),
-              sub_district: String(locData.sub_district?.id || prev.sub_district),
-            }));
+              setFormData((prev) => ({
+                ...prev,
+                postal_code: suggestionPostcode,
+                postal_code_id: locData.postal_code?.id || "",
+                province: String(locData.province?.id || prev.province),
+                city: String(locData.city?.id || prev.city),
+                district: String(locData.district?.id || prev.district),
+                sub_district: String(
+                  locData.sub_district?.id || prev.sub_district,
+                ),
+              }));
 
-            setLastSyncedPostcode(String(locData.postal_code?.id || suggestionPostcode));
-            lastPostcodeFromMap.current = suggestionPostcode;
-            toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
-          } else {
-            // Fallback jika database kita tidak punya data kode pos tersebut
-            setFormData((prev) => ({
-              ...prev,
-              postal_code: suggestionPostcode,
-              postal_code_id: "",
-            }));
-            setIsPostalCodeManual(true);
-            fetchAndSyncBoundary(suggestionPostcode, "", true);
+              setLastSyncedPostcode(
+                String(locData.postal_code?.id || suggestionPostcode),
+              );
+              lastPostcodeFromMap.current = suggestionPostcode;
+              toast.success(`Kode pos diperbarui ke ${suggestionPostcode}`);
+            } else {
+              // Fallback jika database kita tidak punya data kode pos tersebut
+              setFormData((prev) => ({
+                ...prev,
+                postal_code: suggestionPostcode,
+                postal_code_id: "",
+              }));
+              setIsPostalCodeManual(true);
+              fetchAndSyncBoundary(suggestionPostcode, "", true);
+            }
+          } catch (e) {
+            console.error("Gagal sync lokasi saat konfirmasi kode pos:", e);
           }
-        } catch (e) {
-          console.error("Gagal sync lokasi saat konfirmasi kode pos:", e);
+        } else {
+          // [SCENARIO 2] "Gunakan Kode Pos Saat Ini" -> Hanya Tutup Modal
+          // Sesuai permintaan terbaru: Jangan jalankan fungsi apa-apa, biarkan saja.
         }
-      } else {
-        // [SCENARIO 2] "Gunakan Kode Pos Saat Ini" -> Hanya Tutup Modal
-        // Sesuai permintaan terbaru: Jangan jalankan fungsi apa-apa, biarkan saja.
-      }
 
-      setIsOpenPostcodeConfirmModal(false);
-      setPendingSuggestionData(null);
+        setIsOpenPostcodeConfirmModal(false);
+        setPendingSuggestionData(null);
+      } finally {
+        setIsSyncingPostcode(false);
+      }
     })();
   };
 
@@ -1028,24 +1063,32 @@ function RegistrationWizard({
             features: [feature],
           });
 
-          // HANYA update Latitude/Longitude (Center Map) jika perubahan
-          // BUKAN berasal dari pergeseran Pin Peta oleh user.
+          // Update data area ke form (Hierarchy Dropdown)
+          // Lat/Lng (Center Map) hanya diupdate jika BUKAN dari map move dan BUKAN manual
           const isFromMapMove = pc === lastPostcodeFromMap.current;
+          const isManual = !!manualLocation;
 
-          if (lat && lng && !isFromMapMove) {
-            setFormData((prev) => ({
-              ...prev,
-              latitude: String(lat),
-              longitude: String(lng),
-              postal_code: pc || prev.postal_code,
-              province: String(dataArea.province_id?.id || prev.province),
-              city: String(dataArea.city_id?.id || prev.city),
-              district: String(dataArea.district_id?.id || prev.district),
-              sub_district: String(
-                dataArea.sub_district_id?.id || prev.sub_district,
-              ),
-            }));
+          setFormData((prev) => ({
+            ...prev,
+            // Update Lat/Lng hanya jika diperlukan (Auto-Center)
+            ...(!isFromMapMove &&
+              !isManual && {
+                latitude: String(lat),
+                longitude: String(lng),
+              }),
+            postal_code: pc || prev.postal_code,
+            postal_code_id:
+              pcId || dataArea.postal_code_id?.id || prev.postal_code_id,
+            province: String(dataArea.province_id?.id || prev.province),
+            city: String(dataArea.city_id?.id || prev.city),
+            district: String(dataArea.district_id?.id || prev.district),
+            sub_district: String(
+              dataArea.sub_district_id?.id || prev.sub_district,
+            ),
+          }));
 
+          // Temp payload juga hanya diupdate jika auto-center
+          if (!isFromMapMove && !isManual) {
             setTempMapPayload((prev: any) => ({
               ...prev,
               latitude: String(lat),
@@ -2292,7 +2335,7 @@ function RegistrationWizard({
                   <div>
                     <div className="mb-6 relative z-10 space-y-2">
                       {/* Manual Search Bar (Standalone) */}
-                      <div className="relative mb-4">
+                      <div ref={searchRef} className="relative mb-4">
                         <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
                           {searchQuery && (
                             <button
@@ -2406,7 +2449,7 @@ function RegistrationWizard({
                             onGeocodeStart={() => {
                               setIsMapSyncing(true);
                             }}
-                            onPlaceChange={(p) => {
+                            onPlaceChange={async (p) => {
                               setIsMapSyncing(false);
                               // 1. Tanda sedang interaksi agar Auto-Center tidak menimpa
                               setIsInteractingWithMap(true);
@@ -2418,13 +2461,32 @@ function RegistrationWizard({
                                 longitude: String(p.longitude),
                               }));
 
-                              // 3. Jika ada Kode Pos (Hasil 5s Timer), lakukan pengecekan boundary
+                              // 3. Jika ada Kode Pos dari hasil reverse geocode
                               const detectedPostcode = p.postcode;
-                              if (
-                                detectedPostcode &&
-                                detectedPostcode !== formData.postal_code
-                              ) {
-                                if (!hasShownPostcodeConfirmMapMove) {
+                              if (detectedPostcode) {
+                                // Gembok ref agar tidak terjadi jump saat sync
+                                lastPostcodeFromMap.current = detectedPostcode;
+
+                                // [PENTING] Selalu panggil boundary agar visual (polygon) & dropdown ter-update
+                                try {
+                                  await fetchAndSyncBoundary(
+                                    detectedPostcode,
+                                    "",
+                                    true,
+                                    {
+                                      latitude: p.latitude,
+                                      longitude: p.longitude,
+                                    },
+                                  );
+                                } catch (e) {
+                                  console.error("Boundary sync failed:", e);
+                                }
+
+                                // 4. Tampilkan modal HANYA jika kode pos BEDA dan belum pernah konfirmasi
+                                if (
+                                  detectedPostcode !== formData.postal_code &&
+                                  !hasShownPostcodeConfirmMapMove
+                                ) {
                                   setPendingSuggestionData({
                                     feature: p.raw_result,
                                     suggestionName: p.address || "",
@@ -2435,22 +2497,6 @@ function RegistrationWizard({
                                   });
                                   setIsOpenPostcodeConfirmModal(true);
                                   setHasShownPostcodeConfirmMapMove(true);
-                                } else {
-                                  // Update otomatis (Silent) jika user sudah pernah lihat modal konfirmasi
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    postal_code: detectedPostcode,
-                                    postal_code_id: "",
-                                  }));
-                                  setIsPostalCodeManual(true);
-                                  lastPostcodeFromMap.current =
-                                    detectedPostcode;
-                                  // [INSTAN] Langsung panggil api boundary tanpa nunggu 2 detik debounce
-                                  fetchAndSyncBoundary(
-                                    detectedPostcode,
-                                    "",
-                                    true,
-                                  );
                                 }
                               }
                               // Selesai interaksi sinkronisasi
@@ -2931,15 +2977,25 @@ function RegistrationWizard({
             <div className="flex flex-col w-full gap-3 mt-2">
               <button
                 type="button"
+                disabled={isSyncingPostcode}
                 onClick={() => handleConfirmPostcodeUpdate(true)}
-                className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95"
+                className={`w-full py-3 bg-primary text-white font-bold rounded-xl shadow-sm transition-all active:scale-95 ${
+                  isSyncingPostcode
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-primary/90"
+                }`}
               >
-                Ya, Sesuaikan Pin
+                {isSyncingPostcode ? "Menyinkronkan..." : "Ya, Sesuaikan Pin"}
               </button>
               <button
                 type="button"
+                disabled={isSyncingPostcode}
                 onClick={() => handleConfirmPostcodeUpdate(false)}
-                className="w-full py-3 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all active:scale-95"
+                className={`w-full py-3 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl transition-all active:scale-95 ${
+                  isSyncingPostcode
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-50"
+                }`}
               >
                 Gunakan Kode Pos Saat Ini
               </button>
