@@ -174,6 +174,10 @@ function RegistrationWizard({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const lastValidCoordsRef = useRef<{ lat: string; lng: string } | null>(null);
+  const boundaryCenterCoordsRef = useRef<{
+    lat: string;
+    lng: string;
+  } | null>(null);
 
   // [NEW] State untuk Modal Peringatan Boundary Detail
   const [isBoundaryViolationModalOpen, setIsBoundaryViolationModalOpen] =
@@ -551,16 +555,23 @@ function RegistrationWizard({
   };
 
   // [NEW] Fungsi untuk memantulkan kembali pin ke posisi terakhir yang valid jika user mencoba keluar
-  const handleSnapBack = (postcode: string, lat: number, lng: number) => {
-    handleShowBoundaryViolation(postcode, lat, lng);
+  const handleSnapBack = (
+    postcode: string,
+    lat: number,
+    lng: number,
+    forcedFullAddress?: string,
+  ) => {
+    handleShowBoundaryViolation(postcode, lat, lng, forcedFullAddress);
 
-    if (lastValidCoordsRef.current) {
-      // [SCENARIO] Cukup kembalikan koordinat ke titik terakhir yang valid.
-      // JANGAN panggil fetchAndSyncBoundary agar garis batas (polygon) tidak berubah/berkedip.
+    // [NEW] Cari titik untuk memantul balik (utamakan titik aman terakhir, fallback ke center boundary)
+    const targetCoords =
+      lastValidCoordsRef.current || boundaryCenterCoordsRef.current;
+
+    if (targetCoords) {
       setFormData((prev) => ({
         ...prev,
-        latitude: lastValidCoordsRef.current!.lat,
-        longitude: lastValidCoordsRef.current!.lng,
+        latitude: targetCoords.lat,
+        longitude: targetCoords.lng,
       }));
     }
   };
@@ -1115,6 +1126,12 @@ function RegistrationWizard({
             const sumLat = points.reduce((acc, p) => acc + p[1], 0);
             lng = sumLng / points.length;
             lat = sumLat / points.length;
+
+            // [NEW] Simpan titik tengah boundary untuk pengaman snap-back
+            boundaryCenterCoordsRef.current = {
+              lat: String(lat),
+              lng: String(lng),
+            };
           }
 
           // Set Boundary untuk peta (bungkus Feature ke FeatureCollection agar leaflet-geojson happy)
@@ -2531,6 +2548,7 @@ function RegistrationWizard({
                                       detectedPostcode,
                                       p.latitude,
                                       p.longitude,
+                                      p.full_address,
                                     );
                                   }, 0);
                                   return;
@@ -3241,8 +3259,8 @@ function RegistrationWizard({
                 pilihan {getViolationRangeText()}.
               </p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Untuk sekarang, pin poin akan otomatis kembali ke titik terakhir yang
-                sesuai.
+                Untuk sekarang, pin poin akan otomatis kembali ke titik terakhir
+                yang sesuai.
               </p>
             </div>
 

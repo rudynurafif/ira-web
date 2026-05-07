@@ -22,7 +22,7 @@ interface MapLeafletProps {
     latitude: number;
     longitude: number;
     postcode?: string;
-    address?: string;
+    full_address?: string;
     raw_result?: any;
   }) => void;
   onGeocodeStart?: () => void;
@@ -227,7 +227,7 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
                 latitude: lat,
                 longitude: lng,
                 postcode: detectedPostcode,
-                address: detectedAddress,
+                full_address: detectedAddress,
                 raw_result: dataRev,
               });
 
