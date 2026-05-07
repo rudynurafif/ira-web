@@ -364,8 +364,8 @@ function RegistrationWizard({
             suggPostcode,
             lat,
             lng,
-            // `${apiData.name}\n${apiData.full_address}`,
             `${apiData.full_address}`,
+            apiData,
           );
           setIsSearchingAddress(false);
           setShowSuggestions(false);
@@ -449,87 +449,107 @@ function RegistrationWizard({
     lat: number,
     lng: number,
     forcedFullAddress?: string,
+    fallbackData?: any, // [NEW] Data cadangan dari reverse geocode / search result
   ) => {
     setIsFetchingInvalidInfo(true);
     setIsBoundaryViolationModalOpen(true);
 
     try {
-      // 1. Resolve ID wilayah dari kode pos dulu via getLocationByPostalCode
-      // Agar parameter ke getBoundaryArea tidak kosong
-      const resLoc = await getLocationByPostalCode(postcode);
-      const locData = resLoc.data?.data;
-
-      if (!locData) throw new Error("Lokasi tidak ditemukan");
-
-      // 2. Ambil info detail area yang "salah" dari backend dengan parameter lengkap
-      const res = await getBoundaryArea({
-        postal_code: postcode,
-        latitude: lat,
-        longitude: lng,
-        province_id: locData.province?.id || "",
-        city_id: locData.city?.id || "",
-        district_id: locData.district?.id || "",
-        sub_district_id: locData.sub_district?.id || "",
-      });
-
-      if (res?.data?.data) {
-        const dataArea = res.data.data;
-
-        // Cari label teks dari pilihan yang ada di form saat ini untuk ditampilkan di modal
-        const getLabel = (options: any[], value: string) =>
-          options.find((opt) => String(opt.value) === String(value))?.label ||
-          value;
-
-        setInvalidLocationData({
-          fullAddress: forcedFullAddress || dataArea.full_address || "",
-          province: dataArea.province_id?.name || locData.province?.name || "",
-          city: dataArea.city_id?.name || locData.city?.name || "",
-          district: dataArea.district_id?.name || locData.district?.name || "",
-          sub_district:
-            dataArea.sub_district_id?.name || locData.sub_district?.name || "",
-          postal_code:
-            dataArea.postal_code_id?.name ||
-            locData.postal_code?.name ||
-            postcode,
-
-          // Data yang diinput user di form (Labelnya)
-          formValues: {
-            province: getLabel(provinceOptions, formData.province),
-            city: getLabel(cityOptions, formData.city),
-            district: getLabel(districtOptions, formData.district),
-            sub_district: getLabel(subdistrictOptions, formData.sub_district),
-            postal_code: formData.postal_code,
-          },
-
-          // Flag perbedaan per tingkat
-          diffs: {
-            province:
-              String(dataArea.province_id?.id || locData.province?.id) !==
-              String(formData.province),
-            city:
-              String(dataArea.city_id?.id || locData.city?.id) !==
-              String(formData.city),
-            district:
-              String(dataArea.district_id?.id || locData.district?.id) !==
-              String(formData.district),
-            sub_district:
-              String(
-                dataArea.sub_district_id?.id || locData.sub_district?.id,
-              ) !== String(formData.sub_district),
-            postal_code:
-              String(
-                dataArea.postal_code_id?.name || locData.postal_code?.name,
-              ) !== String(formData.postal_code),
-          },
-        });
+      // 1. Coba Resolve ID wilayah dari kode pos dulu via getLocationByPostalCode
+      let locData = null;
+      try {
+        const resLoc = await getLocationByPostalCode(postcode);
+        locData = resLoc.data?.data;
+      } catch (e) {
+        console.warn("Postcode resolve failed, falling back to geocode data");
       }
-    } catch (e) {
-      console.error("Gagal mengambil info boundary detail:", e);
-      // Fallback data jika API gagal (setidaknya tampilkan kode pos)
+
+      // 2. Ambil info detail area (Boundary API) hanya jika ID tersedia
+      let dataArea = null;
+      if (locData) {
+        try {
+          const res = await getBoundaryArea({
+            postal_code: postcode,
+            latitude: lat,
+            longitude: lng,
+            province_id: locData.province?.id || "",
+            city_id: locData.city?.id || "",
+            district_id: locData.district?.id || "",
+            sub_district_id: locData.sub_district?.id || "",
+          });
+          dataArea = res?.data?.data;
+        } catch (e) {
+          console.warn("Boundary Area API failed");
+        }
+      }
+
+      // 3. Gabungkan data dengan hirarki: Official API > Backend Resolver > Fallback Geocode
+      const detected = {
+        province:
+          dataArea?.province_id?.name ||
+          locData?.province?.name ||
+          fallbackData?.province ||
+          "",
+        city:
+          dataArea?.city_id?.name ||
+          locData?.city?.name ||
+          fallbackData?.city ||
+          "",
+        district:
+          dataArea?.district_id?.name ||
+          locData?.district?.name ||
+          fallbackData?.district ||
+          "",
+        sub_district:
+          dataArea?.sub_district_id?.name ||
+          locData?.sub_district?.name ||
+          fallbackData?.sub_district ||
+          "",
+        postal_code:
+          dataArea?.postal_code_id?.name ||
+          locData?.postal_code?.name ||
+          fallbackData?.postcode ||
+          postcode,
+      };
+
+      // Cari label teks dari pilihan yang ada di form saat ini untuk ditampilkan di modal
+      const getLabel = (options: any[], value: string) =>
+        options.find((opt) => String(opt.value) === String(value))?.label ||
+        value;
+
+      const formLabels = {
+        province: getLabel(provinceOptions, formData.province),
+        city: getLabel(cityOptions, formData.city),
+        district: getLabel(districtOptions, formData.district),
+        sub_district: getLabel(subdistrictOptions, formData.sub_district),
+        postal_code: formData.postal_code,
+      };
+
       setInvalidLocationData({
-        postal_code: postcode,
-        diffs: { postal_code: true },
+        fullAddress:
+          forcedFullAddress ||
+          dataArea?.full_address ||
+          fallbackData?.full_address ||
+          "",
+        ...detected,
+        formValues: formLabels,
+        // Deteksi perbedaan berdasarkan perbandingan string (case insensitive)
+        diffs: {
+          province:
+            formLabels.province.toUpperCase() !==
+            detected.province.toUpperCase(),
+          city: formLabels.city.toUpperCase() !== detected.city.toUpperCase(),
+          district:
+            formLabels.district.toUpperCase() !==
+            detected.district.toUpperCase(),
+          sub_district:
+            formLabels.sub_district.toUpperCase() !==
+            detected.sub_district.toUpperCase(),
+          postal_code: formLabels.postal_code !== detected.postal_code,
+        },
       });
+    } catch (err: any) {
+      console.error("Critical error in boundary violation handler:", err);
     } finally {
       setIsFetchingInvalidInfo(false);
     }
@@ -560,8 +580,16 @@ function RegistrationWizard({
     lat: number,
     lng: number,
     forcedFullAddress?: string,
+    fallbackData?: any,
   ) => {
-    handleShowBoundaryViolation(postcode, lat, lng, forcedFullAddress);
+    // Tampilkan modal peringatan dulu
+    handleShowBoundaryViolation(
+      postcode,
+      lat,
+      lng,
+      forcedFullAddress,
+      fallbackData,
+    );
 
     // [NEW] Cari titik untuk memantul balik (utamakan titik aman terakhir, fallback ke center boundary)
     const targetCoords =
@@ -2549,6 +2577,7 @@ function RegistrationWizard({
                                       p.latitude,
                                       p.longitude,
                                       p.full_address,
+                                      p.raw_result,
                                     );
                                   }, 0);
                                   return;
@@ -3110,8 +3139,8 @@ function RegistrationWizard({
                 Lokasi Pin Tidak Sesuai
               </h3>
               <p className="text-gray-900 text-sm leading-relaxed mb-1 px-4">
-                Titik pin yang Anda pilih berada di wilayah yang berbeda dengan
-                alamat yang Anda isi pada formulir registrasi.
+                Titik pin poin yang Anda pilih berada di wilayah yang berbeda
+                dengan alamat yang Anda isi pada formulir registrasi.
               </p>
               <p className="text-gray-900 text-sm leading-relaxed">
                 Berikut perbedaannya:
@@ -3121,7 +3150,7 @@ function RegistrationWizard({
             {/* Kotak Alamat Saat Ini (Grey) */}
             <div className="bg-gray-100 rounded-2xl p-4 mb-4 border border-gray-100">
               <p className="text-sm text-gray-500 font-bold mb-1">
-                Alamat di tempat pin Anda saat ini
+                Alamat di tempat pin poin Anda saat ini
               </p>
               <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
                 {isFetchingInvalidInfo
@@ -3254,7 +3283,7 @@ function RegistrationWizard({
             {/* Instruksi Bawah */}
             <div className="space-y-4 mb-8 text-center px-2">
               <p className="text-sm text-gray-900 leading-relaxed">
-                Jika Anda memang ingin memasang pin di tempat ini, silakan
+                Jika Anda memang ingin memasang pin poin di tempat ini, silakan
                 kembali ke halaman registrasi terlebih dahulu, lalu sesuaikan
                 pilihan {getViolationRangeText()}.
               </p>
