@@ -46,8 +46,15 @@ import {
   FaListCheck,
   FaLock,
   FaCircleInfo,
+  FaInfo,
 } from "react-icons/fa6";
-import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
+import {
+  MdSearch,
+  MdClose,
+  MdMyLocation,
+  MdLocationOn,
+  MdInfoOutline,
+} from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import dynamic from "next/dynamic";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
@@ -173,6 +180,8 @@ function RegistrationWizard({
     useState(false);
   const [invalidLocationData, setInvalidLocationData] = useState<any>(null);
   const [isFetchingInvalidInfo, setIsFetchingInvalidInfo] = useState(false);
+
+  const provinceRef = useRef<HTMLDivElement>(null);
 
   const [provinceOptions, setProvinceOptions] = useState<ReactSelectType[]>([]);
   const [cityOptions, setCityOptions] = useState<ReactSelectType[]>([]);
@@ -329,7 +338,6 @@ function RegistrationWizard({
 
       // [OPTIMIZED] Langsung gunakan data dari suggestion jika lengkap
       let apiData = feat;
-      console.log(apiData);
 
       // [NEW] Jika di suggestion tidak ada lat/long, ambil dari retrieve
       if (!apiData.latitude || !apiData.longitude) {
@@ -348,7 +356,13 @@ function RegistrationWizard({
           suggPostcode !== formData.postal_code
         ) {
           // [NEW LOGIC] Blokir pencarian yang keluar dari boundary saat ini
-          handleShowBoundaryViolation(suggPostcode, lat, lng);
+          handleShowBoundaryViolation(
+            suggPostcode,
+            lat,
+            lng,
+            // `${apiData.name}\n${apiData.full_address}`,
+            `${apiData.full_address}`,
+          );
           setIsSearchingAddress(false);
           setShowSuggestions(false);
           return;
@@ -430,6 +444,7 @@ function RegistrationWizard({
     postcode: string,
     lat: number,
     lng: number,
+    forcedFullAddress?: string,
   ) => {
     setIsFetchingInvalidInfo(true);
     setIsBoundaryViolationModalOpen(true);
@@ -455,7 +470,14 @@ function RegistrationWizard({
 
       if (res?.data?.data) {
         const dataArea = res.data.data;
+
+        // Cari label teks dari pilihan yang ada di form saat ini untuk ditampilkan di modal
+        const getLabel = (options: any[], value: string) =>
+          options.find((opt) => String(opt.value) === String(value))?.label ||
+          value;
+
         setInvalidLocationData({
+          fullAddress: forcedFullAddress || dataArea.full_address || "",
           province: dataArea.province_id?.name || locData.province?.name || "",
           city: dataArea.city_id?.name || locData.city?.name || "",
           district: dataArea.district_id?.name || locData.district?.name || "",
@@ -465,6 +487,15 @@ function RegistrationWizard({
             dataArea.postal_code_id?.name ||
             locData.postal_code?.name ||
             postcode,
+
+          // Data yang diinput user di form (Labelnya)
+          formValues: {
+            province: getLabel(provinceOptions, formData.province),
+            city: getLabel(cityOptions, formData.city),
+            district: getLabel(districtOptions, formData.district),
+            sub_district: getLabel(subdistrictOptions, formData.sub_district),
+            postal_code: formData.postal_code,
+          },
 
           // Flag perbedaan per tingkat
           diffs: {
@@ -514,7 +545,9 @@ function RegistrationWizard({
 
     if (levels.length === 0) return "data lokasi";
     if (levels.length === 1) return levels[0];
-    return `${levels[0]} s/d ${levels[levels.length - 1]}`;
+
+    const last = levels.pop();
+    return `${levels.join(", ")}, atau ${last}`;
   };
 
   // [NEW] Fungsi untuk memantulkan kembali pin ke posisi terakhir yang valid jika user mencoba keluar
@@ -1233,6 +1266,12 @@ function RegistrationWizard({
 
         if (locationFromBackend) {
           const pcId = locationFromBackend.postal_code?.id || postcode;
+
+          // [NEW] Jika lokasi GPS ternyata ada di dalam boundary saat ini, rekam sebagai titik aman
+          if (postcode === formData.postal_code) {
+            lastValidCoordsRef.current = { lat: latStr, lng: lngStr };
+          }
+
           // [DRY] Gunakan fungsi terpusat agar sinkronisasi seragam di semua tempat
           await fetchAndSyncBoundary(postcode, pcId, true, {
             ...locationFromBackend,
@@ -2024,7 +2063,10 @@ function RegistrationWizard({
                   ) : null}
 
                   {/* Address Select Area */}
-                  <div className="mt-3 flex flex-col md:flex-row flex-wrap gap-4 md:gap-6 mb-4 relative z-50">
+                  <div
+                    ref={provinceRef}
+                    className="mt-3 flex flex-col md:flex-row flex-wrap gap-4 md:gap-6 mb-4 relative z-50"
+                  >
                     <div className="flex-1 min-w-[250px]">
                       <DynamicSelectForm
                         label="Provinsi"
@@ -2357,12 +2399,13 @@ function RegistrationWizard({
                         <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
                           {searchQuery && (
                             <button
+                              disabled={isSearchingAddress}
                               onClick={() => {
                                 setSearchQuery("");
                                 setSearchSuggestions([]);
                                 setShowSuggestions(false);
                               }}
-                              className="pl-3 text-gray-400 hover:text-red-500 transition-colors"
+                              className="pl-3 text-gray-400 hover:text-red-500 transition-colors disabled:cursor-not-allowed"
                               type="button"
                             >
                               <MdClose size={18} />
@@ -2393,18 +2436,16 @@ function RegistrationWizard({
                               type="button"
                               onClick={handleManualSearch}
                               disabled={
-                                searchQuery.length < 3 ||
-                                isSearchingAddress ||
-                                searchCooldown > 0
+                                searchQuery.length < 3 || isSearchingAddress
                               }
                               className={`px-3 py-2 mr-1 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center whitespace-nowrap ${
-                                searchCooldown > 0
+                                isSearchingAddress
                                   ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
                                   : "bg-primary text-white hover:bg-primary/90 active:scale-95"
                               }`}
                             >
-                              {searchCooldown > 0 ? (
-                                `Tunggu (${searchCooldown}s)`
+                              {isSearchingAddress ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
                               ) : (
                                 <span className="flex items-center gap-1">
                                   <MdSearch size={22} />
@@ -2970,7 +3011,7 @@ function RegistrationWizard({
               onClick={() => setIsOpenModalReqLoc(false)}
               className="w-full py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 mt-2"
             >
-              Saya Mengerti
+              Mengerti
             </button>
           </div>
         </ModalTemplate>
@@ -3040,122 +3081,187 @@ function RegistrationWizard({
       {isBoundaryViolationModalOpen && (
         <ModalTemplate
           closeModal={() => setIsBoundaryViolationModalOpen(false)}
-          classNameModal="max-w-md p-6"
+          classNameModal="max-w-lg p-6"
         >
           <div className="p-1">
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mb-4 border border-amber-100 shadow-inner">
-                <FaLocationDot className="text-3xl text-amber-500" />
+              <div className="w-16 h-16 bg-[#FFF9E6] rounded-full flex items-center justify-center mb-6 border border-amber-100">
+                <MdInfoOutline size={32} className="text-brown-primary/60" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Batas Wilayah Terdeteksi
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Lokasi Pin Tidak Sesuai
               </h3>
-              <p className="text-gray-700 text-sm leading-relaxed max-w-[320px]">
-                Lokasi yang Anda pilih berada di luar wilayah cakupan yang telah
-                Anda tentukan sebelumnya.
+              <p className="text-gray-900 text-sm leading-relaxed mb-1 px-4">
+                Titik pin yang Anda pilih berada di wilayah yang berbeda dengan
+                alamat yang Anda isi pada formulir registrasi.
+              </p>
+              <p className="text-gray-900 text-sm leading-relaxed">
+                Berikut perbedaannya:
               </p>
             </div>
 
-            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 mb-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-3 opacity-10">
-                <span className="text-4xl italic font-black text-gray-300">
-                  INFO
-                </span>
-              </div>
+            {/* Kotak Alamat Saat Ini (Grey) */}
+            <div className="bg-gray-100 rounded-2xl p-4 mb-4 border border-gray-100">
+              <p className="text-sm text-gray-500 font-bold mb-1">
+                Alamat di tempat pin Anda saat ini
+              </p>
+              <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
+                {isFetchingInvalidInfo
+                  ? "Memuat alamat..."
+                  : invalidLocationData?.fullAddress || "-"}
+              </p>
+            </div>
 
-              <div className="relative z-10">
-                <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
-                  Lokasi Terdeteksi Saat Ini:
-                </p>
-
-                {isFetchingInvalidInfo ? (
-                  <div className="space-y-2 animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                ) : invalidLocationData ? (
-                  <div className="grid grid-cols-1 gap-y-3">
-                    {invalidLocationData.diffs?.province && (
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-400 uppercase font-medium">
-                          Provinsi
+            {/* Kotak Perbandingan (Yellow Warning) */}
+            <div className="bg-[#FFF9E6] rounded-2xl p-5 border border-[#E6D5A3] mb-6">
+              {isFetchingInvalidInfo ? (
+                <div className="space-y-4 animate-pulse">
+                  <div className="h-4 bg-amber-100 rounded w-1/3"></div>
+                  <div className="h-10 bg-amber-100/50 rounded w-full"></div>
+                </div>
+              ) : invalidLocationData ? (
+                <div className="space-y-5">
+                  {/* Provinsi */}
+                  {invalidLocationData.diffs?.province && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
+                        Provinsi
+                      </span>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                        <span className="text-gray-700">Yang Anda isi</span>
+                        <span className="text-gray-900 font-bold uppercase">
+                          {invalidLocationData.formValues?.province}
                         </span>
-                        <span className="text-gray-800 font-semibold leading-tight">
+                      </div>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                        <span className="text-gray-700">Tempat pin Anda</span>
+                        <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.province}
                         </span>
                       </div>
-                    )}
-                    {invalidLocationData.diffs?.city && (
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-400 uppercase font-medium">
-                          Kota / Kabupaten
+                    </div>
+                  )}
+
+                  {/* Kota */}
+                  {invalidLocationData.diffs?.city && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
+                        Kota / Kabupaten
+                      </span>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                        <span className="text-gray-700">Yang Anda isi</span>
+                        <span className="text-gray-900 font-bold uppercase">
+                          {invalidLocationData.formValues?.city}
                         </span>
-                        <span className="text-gray-800 font-semibold leading-tight">
+                      </div>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                        <span className="text-gray-700">Tempat pin Anda</span>
+                        <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.city}
                         </span>
                       </div>
-                    )}
-                    {invalidLocationData.diffs?.district && (
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-400 uppercase font-medium">
-                          Kecamatan
+                    </div>
+                  )}
+
+                  {/* Kecamatan */}
+                  {invalidLocationData.diffs?.district && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
+                        Kecamatan
+                      </span>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                        <span className="text-gray-700">Yang Anda isi</span>
+                        <span className="text-gray-900 font-bold uppercase">
+                          {invalidLocationData.formValues?.district}
                         </span>
-                        <span className="text-gray-800 font-semibold leading-tight">
+                      </div>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                        <span className="text-gray-700">Tempat pin Anda</span>
+                        <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.district}
                         </span>
                       </div>
-                    )}
-                    {invalidLocationData.diffs?.sub_district && (
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-400 uppercase font-medium">
-                          Kelurahan
+                    </div>
+                  )}
+
+                  {/* Kelurahan */}
+                  {invalidLocationData.diffs?.sub_district && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
+                        Kelurahan
+                      </span>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                        <span className="text-gray-700">Yang Anda isi</span>
+                        <span className="text-gray-900 font-bold uppercase">
+                          {invalidLocationData.formValues?.sub_district}
                         </span>
-                        <span className="text-gray-800 font-semibold leading-tight">
+                      </div>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                        <span className="text-gray-700">Tempat pin Anda</span>
+                        <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.sub_district}
                         </span>
                       </div>
-                    )}
-                    {invalidLocationData.diffs?.postal_code && (
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-400 uppercase font-medium">
-                          Kode Pos
+                    </div>
+                  )}
+
+                  {/* Kode Pos */}
+                  {invalidLocationData.diffs?.postal_code && (
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
+                        Kode Pos
+                      </span>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                        <span className="text-gray-700">Yang Anda isi</span>
+                        <span className="text-gray-900 font-bold uppercase">
+                          {invalidLocationData.formValues?.postal_code}
                         </span>
-                        <span className="text-gray-800 font-semibold leading-tight">
+                      </div>
+                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                        <span className="text-gray-700">Tempat pin Anda</span>
+                        <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.postal_code}
                         </span>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-700 font-medium italic">
-                    Gagal memuat detail lokasi.
-                  </p>
-                )}
-              </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-amber-800 font-medium italic text-center text-sm">
+                  Gagal memuat detail perbedaan.
+                </p>
+              )}
             </div>
 
-            <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50 mb-6">
-              <p className="text-xs text-blue-700 flex items-start gap-2 leading-relaxed">
-                <FaCircleInfo
-                  size={18}
-                  className="mt-1 text-blue-500 shrink-0"
-                />
-                <span>
-                  Silakan sesuaikan kembali data{" "}
-                  <b>{getViolationRangeText()}</b> di form jika Anda memang
-                  ingin mendaftar di lokasi tersebut.
-                </span>
+            {/* Instruksi Bawah */}
+            <div className="space-y-4 mb-8 text-center px-2">
+              <p className="text-sm text-gray-900 leading-relaxed">
+                Jika Anda memang ingin memasang pin di tempat ini, silakan
+                kembali ke halaman registrasi terlebih dahulu, lalu sesuaikan
+                pilihan {getViolationRangeText()}.
+              </p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Untuk sekarang, pin poin akan otomatis kembali ke titik terakhir yang
+                sesuai.
               </p>
             </div>
 
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => setIsBoundaryViolationModalOpen(false)}
-                className="w-full py-3.5 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-gray-200 hover:bg-dark-primary-2 active:scale-[0.98] transition-all"
+                disabled={isFetchingInvalidInfo}
+                onClick={() => {
+                  setIsBoundaryViolationModalOpen(false);
+                  setTimeout(() => {
+                    provinceRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    });
+                  }, 100);
+                }}
+                className="w-full py-4 bg-primary text-white rounded-xl font-bold text-base hover:bg-dark-primary-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Saya Mengerti
+                Mengerti
               </button>
             </div>
           </div>
