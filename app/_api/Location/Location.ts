@@ -139,18 +139,18 @@ export const getListLocation = async (params: any) => {
 // MAP
 // ==========================================================================
 
-export const getLocationByPostalCode = async (postalCode: string) => {
-  try {
-    const data = await FwaAxios({
-      url: "/app/location/location-by-postal-code",
-      method: "GET",
-      params: { postal_code: postalCode },
-    });
-    return data;
-  } catch (error) {
-    throw error;
-  }
-};
+// export const getLocationByPostalCode = async (postalCode: string) => {
+//   try {
+//     const data = await FwaAxios({
+//       url: "/app/location/location-by-postal-code",
+//       method: "GET",
+//       params: { postal_code: postalCode },
+//     });
+//     return data;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 
 /**
  * Get dropdown location suggest
@@ -217,10 +217,10 @@ export const getLocationReverse = async (params: {
  * @returns bbox area boundary
  */
 export const getBoundaryArea = async (params: {
-  province_id: string;
-  city_id: string;
-  district_id: string;
-  sub_district_id: string;
+  province_id?: string;
+  city_id?: string;
+  district_id?: string;
+  sub_district_id?: string;
   postal_code: string;
   is_map_moving?: boolean;
   latitude?: number | string;

@@ -20,7 +20,6 @@ import {
   getPostalCode,
   getProvince,
   getSubDistrict,
-  getLocationByPostalCode,
   getLocationSuggest,
   getLocationRetrieve,
   getLocationReverse,
@@ -45,16 +44,8 @@ import {
   FaLocationDot,
   FaListCheck,
   FaLock,
-  FaCircleInfo,
-  FaInfo,
 } from "react-icons/fa6";
-import {
-  MdSearch,
-  MdClose,
-  MdMyLocation,
-  MdLocationOn,
-  MdInfoOutline,
-} from "react-icons/md";
+import { MdSearch, MdClose, MdLocationOn, MdInfoOutline } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import dynamic from "next/dynamic";
 import { useBrowserDetection } from "@/app/hooks/useBrowserDetection";
@@ -75,7 +66,6 @@ import { buildErrorToast, scrollToFirstError } from "../helper";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import Image from "next/image";
-import { IoIosInformationCircleOutline } from "react-icons/io";
 
 const MapLeaflet = dynamic(() => import("@/app/_components/form/MapLeaflet"), {
   ssr: false,
@@ -217,7 +207,6 @@ function RegistrationWizard({
   const [isCheckCoverage, setIsCheckCoverage] = useState<boolean>(false);
   const [syncCountdown, setSyncCountdown] = useState<number>(0);
   const isInitialMount = useRef(true);
-  const [isSyncingPostcode, setIsSyncingPostcode] = useState(false);
   const [mitraID, setMitraID] = useState<
     { id: string | number; [key: string]: any }[]
   >([]);
@@ -246,14 +235,8 @@ function RegistrationWizard({
 
   const [currentBbox, setCurrentBbox] = useState<any>(null);
 
-  const [isOpenPostcodeConfirmModal, setIsOpenPostcodeConfirmModal] =
-    useState(false);
-  const [pendingSuggestionData, setPendingSuggestionData] = useState<any>(null);
   const [isInteractingWithMap, setIsInteractingWithMap] = useState(false);
   const [isMapSyncing, setIsMapSyncing] = useState(false);
-
-  const [hasShownPostcodeConfirmMapMove, setHasShownPostcodeConfirmMapMove] =
-    useState(false);
 
   // [NEW] Track kode pos terakhir yang BERHASIL sinkron (untuk gate banner)
   const [lastSyncedPostcode, setLastSyncedPostcode] = useState("");
@@ -406,41 +389,12 @@ function RegistrationWizard({
           }
         }
         return; // Selesai
-        /*
-        // [LEGACY] Resolve ID dari backend untuk sinkron dropdown
-        if (suggPostcode) {
-          ...
-        }
-        */
-        // [FALLBACK] Jika tidak ketemu ID lokasi di backend, jadikan free text
-        setFormData((prev) => ({
-          ...prev,
-          latitude: lat,
-          longitude: lng,
-          address_gmaps: feat.full_address || feat.name,
-          postal_code: suggPostcode || prev.postal_code, // Set string asli
-        }));
-        if (suggPostcode) {
-          setIsPostalCodeManual(true); // Paksa ke mode manual agar teksnya nampil
-          setLastSyncedPostcode(suggPostcode);
-        } else {
-          setLastSyncedPostcode(String(lat)); // Fallback total
-        }
       }
     } catch (err: any) {
       toastErrorFromAPI(err);
     } finally {
       setIsSearchingAddress(false);
     }
-  };
-
-  const handleConfirmPostcodeUpdate = (isSnapBack: boolean) => {
-    // [DISABLED] Logic lama sekarang hanya untuk dokumentasi
-    return;
-    /*
-    if (!pendingSuggestionData || isSyncingPostcode) return;
-    ... (logic lama)
-    */
   };
 
   // [NEW] Fungsi untuk menampilkan Modal Peringatan Boundary secara detail
@@ -455,61 +409,28 @@ function RegistrationWizard({
     setIsBoundaryViolationModalOpen(true);
 
     try {
-      // 1. Coba Resolve ID wilayah dari kode pos dulu via getLocationByPostalCode
-      let locData = null;
-      try {
-        const resLoc = await getLocationByPostalCode(postcode);
-        locData = resLoc.data?.data;
-      } catch (e) {
-        console.warn("Postcode resolve failed, falling back to geocode data");
-      }
-
-      // 2. Ambil info detail area (Boundary API) hanya jika ID tersedia
+      // [OPTIMIZED] Langsung ambil info detail area (Boundary API)
+      // Backend akan otomatis me-resolve ID provinsi s/d kelurahan dari kode pos
       let dataArea = null;
-      if (locData) {
-        try {
-          const res = await getBoundaryArea({
-            postal_code: postcode,
-            latitude: lat,
-            longitude: lng,
-            province_id: locData.province?.id || "",
-            city_id: locData.city?.id || "",
-            district_id: locData.district?.id || "",
-            sub_district_id: locData.sub_district?.id || "",
-          });
-          dataArea = res?.data?.data;
-        } catch (e) {
-          console.warn("Boundary Area API failed");
-        }
+      try {
+        const res = await getBoundaryArea({
+          postal_code: postcode,
+          is_map_moving: true, // Beritahu backend ini pergerakan dari peta
+        });
+        dataArea = res?.data?.data;
+      } catch (e) {
+        console.warn("Boundary Area API failed");
       }
 
-      // 3. Gabungkan data dengan hirarki: Official API > Backend Resolver > Fallback Geocode
+      // Gabungkan data dengan hirarki: Official API > Fallback Geocode
       const detected = {
-        province:
-          dataArea?.province_id?.name ||
-          locData?.province?.name ||
-          fallbackData?.province ||
-          "",
-        city:
-          dataArea?.city_id?.name ||
-          locData?.city?.name ||
-          fallbackData?.city ||
-          "",
-        district:
-          dataArea?.district_id?.name ||
-          locData?.district?.name ||
-          fallbackData?.district ||
-          "",
+        province: dataArea?.province_id?.name || fallbackData?.province || "",
+        city: dataArea?.city_id?.name || fallbackData?.city || "",
+        district: dataArea?.district_id?.name || fallbackData?.district || "",
         sub_district:
-          dataArea?.sub_district_id?.name ||
-          locData?.sub_district?.name ||
-          fallbackData?.sub_district ||
-          "",
+          dataArea?.sub_district_id?.name || fallbackData?.sub_district || "",
         postal_code:
-          dataArea?.postal_code_id?.name ||
-          locData?.postal_code?.name ||
-          fallbackData?.postcode ||
-          postcode,
+          dataArea?.postal_code_id?.name || fallbackData?.postcode || postcode,
       };
 
       // Cari label teks dari pilihan yang ada di form saat ini untuk ditampilkan di modal
@@ -1118,10 +1039,15 @@ function RegistrationWizard({
           manualLocation?.sub_district?.id || formData.sub_district,
         postal_code: pc,
         ...(mapMove && { is_map_moving: mapMove }),
-        latitude: manualLocation ? manualLocation.latitude : formData.latitude,
-        longitude: manualLocation
-          ? manualLocation.longitude
-          : formData.longitude,
+        // [STRICT] Jangan kirim lat/lng jika sedang mode free text (ID kode pos kosong)
+        ...(!isPostalCodeManual && {
+          latitude: manualLocation
+            ? manualLocation.latitude
+            : formData.latitude,
+          longitude: manualLocation
+            ? manualLocation.longitude
+            : formData.longitude,
+        }),
       });
 
       // Handle logical 404 inside successful response body (or cached 304)
@@ -1297,77 +1223,34 @@ function RegistrationWizard({
 
       const [latStr, lngStr] = [String(latitude), String(longitude)];
 
-      // Resolve ID dari backend agar dropdown sinkron & ambil nama untuk boundary
-      let locationFromBackend: any = null;
       if (postcode) {
         lastPostcodeFromMap.current = postcode;
-        try {
-          const resLoc = await getLocationByPostalCode(postcode);
-          locationFromBackend = resLoc.data?.data;
-        } catch (e: any) {
-          toastErrorFromAPI(e);
-          console.error("Gagal resolve lokasi GPS ke backend ID", e);
+
+        // [NEW] Jika lokasi GPS ternyata ada di dalam boundary saat ini, rekam sebagai titik aman
+        if (postcode === formData.postal_code) {
+          lastValidCoordsRef.current = { lat: latStr, lng: lngStr };
         }
 
-        if (locationFromBackend) {
-          const pcId = locationFromBackend.postal_code?.id || postcode;
-
-          // [NEW] Jika lokasi GPS ternyata ada di dalam boundary saat ini, rekam sebagai titik aman
-          if (postcode === formData.postal_code) {
-            lastValidCoordsRef.current = { lat: latStr, lng: lngStr };
-          }
-
-          // [DRY] Gunakan fungsi terpusat agar sinkronisasi seragam di semua tempat
-          await fetchAndSyncBoundary(postcode, pcId, true, {
-            ...locationFromBackend,
-            latitude: latStr,
-            longitude: lngStr,
-          });
-        }
+        // [DRY] Cukup panggil fetchAndSyncBoundary, API ini sudah auto-resolve ID wilayah
+        await fetchAndSyncBoundary(postcode, postcode, true, {
+          latitude: latStr,
+          longitude: lngStr,
+        });
       }
 
       setFormData((prev) => {
         const isSamePostcode = postcode === prev.postal_code;
 
-        const nextVal = {
+        return {
           ...prev,
           latitude: latStr,
           longitude: lngStr,
           postal_code: postcode || prev.postal_code,
-          postal_code_id:
-            locationFromBackend?.postal_code?.id ||
-            (isSamePostcode ? prev.postal_code_id : ""),
           address_gmaps: addressString || prev.address_gmaps,
-          // [FIX] Selalu update hierarchy agar tidak loncat balik ke lokasi lama
-          ...(locationFromBackend
-            ? {
-                province: String(
-                  locationFromBackend.province?.id || prev.province,
-                ),
-                city: String(locationFromBackend.city?.id || prev.city),
-                district: String(
-                  locationFromBackend.district?.id || prev.district,
-                ),
-                sub_district: String(
-                  locationFromBackend.sub_district?.id || prev.sub_district,
-                ),
-              }
-            : {}),
         };
-
-        // [FIX] Jika pindah area, langsung aktifkan mode manual (free text)
-        if (postcode && !isSamePostcode) {
-          setIsPostalCodeManual(true);
-        } else if (isSamePostcode && prev.postal_code_id) {
-          setIsPostalCodeManual(false);
-        }
-
-        return nextVal;
       });
 
-      if (locationFromBackend) {
-        setLastSyncedPostcode(String(locationFromBackend.id));
-      } else if (postcode) {
+      if (postcode) {
         setLastSyncedPostcode(postcode);
       }
 
@@ -1464,7 +1347,6 @@ function RegistrationWizard({
   }, [formData.latitude, formData.longitude, mitraID]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    // console.log("masuk");
     e.preventDefault();
 
     setIsLoading(true);
@@ -1676,15 +1558,6 @@ function RegistrationWizard({
   }
 
   const handleSelect = (pkg: PackageData) => {
-    // const isSame = selectedPackage?.id === pkg.id;
-
-    // if (isSame) {
-    //   // ✅ unselect
-    //   setSelectedPackage(null);
-    //   setFormData((prev) => ({ ...prev, package_id: "" }));
-    //   return;
-    // }
-
     setSelectedPackage(pkg);
     setFormData((prev) => ({
       ...prev,
@@ -1694,8 +1567,6 @@ function RegistrationWizard({
   };
 
   const handleNextStep1 = () => {
-    // setStep(2);
-
     let newErrors = { ...errors };
     let hasError = false;
 
@@ -1750,17 +1621,6 @@ function RegistrationWizard({
       deleteCookie("token-ira");
       window.location.href = "/auth/login";
     }
-  };
-
-  const handleCloseModalSuccess = () => {
-    setIsModalRegisterSuccess(false);
-    if (pathname === "/auth/register") {
-      window.history.replaceState(null, "", "/auth/register");
-    }
-    if (mode === "update_address") {
-      window.location.href = "/customer-area";
-    }
-    setCoveredAtSubmit(null);
   };
 
   const handleProceedToSummary = () => {
@@ -2545,11 +2405,7 @@ function RegistrationWizard({
                             initialLongitude={Number(formData.longitude || 0)}
                             isInteractive={true}
                             bbox={isGeofencingEnabled ? currentBbox : null}
-                            isLoading={
-                              isLoadingArea ||
-                              isSearchingAddress ||
-                              isOpenPostcodeConfirmModal
-                            }
+                            isLoading={isLoadingArea || isSearchingAddress}
                             onGeocodeStart={() => {
                               setIsMapSyncing(true);
                             }}
@@ -3064,71 +2920,11 @@ function RegistrationWizard({
         </ModalTemplate>
       )}
 
-      {/* Modal Konfirmasi Perubahan Kode Pos */}
-      {isOpenPostcodeConfirmModal && (
-        <ModalTemplate
-          closeModal={() => setIsOpenPostcodeConfirmModal(false)}
-          classNameModal="max-w-md p-6"
-        >
-          <div className="flex flex-col items-center gap-6">
-            <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center">
-              <IoIosInformationCircleOutline className="text-amber-500 text-4xl" />
-            </div>
-
-            <div className="space-y-2 text-center text-black">
-              <h3 className="text-lg sm:text-xl font-bold">
-                Pin Lokasi Berada di Luar Area Kode Pos
-              </h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                Titik yang Anda Pilih berada di luar area kode pos{" "}
-                <span className="font-bold text-primary">
-                  {postalCodeOptions.find(
-                    (o: any) => o.value === formData.postal_code_id,
-                  )?.label || formData.postal_code}
-                </span>
-                . Silahkan kembalikan pin ke dalam area kode pos atau gunakan
-                koordinat ini tetap seperti sekarang.
-              </p>
-              <p className="text-sm font-medium text-gray-700 py-2 bg-gray-50 rounded-lg">
-                Apakah Anda ingin menyesuaikan kembali pin lokasi ke area kode
-                pos?
-              </p>
-            </div>
-
-            <div className="flex flex-col w-full gap-3 mt-2">
-              <button
-                type="button"
-                disabled={isSyncingPostcode}
-                onClick={() => handleConfirmPostcodeUpdate(true)}
-                className={`w-full py-3 bg-primary text-white font-bold rounded-xl shadow-sm transition-all active:scale-95 ${
-                  isSyncingPostcode
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-primary/90"
-                }`}
-              >
-                {isSyncingPostcode ? "Menyinkronkan..." : "Ya, Sesuaikan Pin"}
-              </button>
-              <button
-                type="button"
-                disabled={isSyncingPostcode}
-                onClick={() => handleConfirmPostcodeUpdate(false)}
-                className={`w-full py-3 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl transition-all active:scale-95 ${
-                  isSyncingPostcode
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                Gunakan Kode Pos Saat Ini
-              </button>
-            </div>
-          </div>
-        </ModalTemplate>
-      )}
       {/* [NEW] Modal Peringatan Boundary Detail */}
       {isBoundaryViolationModalOpen && (
         <ModalTemplate
           closeModal={() => setIsBoundaryViolationModalOpen(false)}
-          classNameModal="max-w-lg p-6"
+          classNameModal="max-w-xl p-4"
         >
           <div className="p-1">
             <div className="flex flex-col items-center text-center mb-6">
@@ -3150,7 +2946,7 @@ function RegistrationWizard({
             {/* Kotak Alamat Saat Ini (Grey) */}
             <div className="bg-gray-100 rounded-2xl p-4 mb-4 border border-gray-100">
               <p className="text-sm text-gray-500 font-bold mb-1">
-                Alamat di tempat pin poin Anda saat ini
+                Alamat di tempat pin Anda saat ini
               </p>
               <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
                 {isFetchingInvalidInfo
@@ -3174,13 +2970,13 @@ function RegistrationWizard({
                       <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
                         Provinsi
                       </span>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm mb-1">
                         <span className="text-gray-700">Yang Anda isi</span>
                         <span className="text-gray-900 font-bold uppercase">
                           {invalidLocationData.formValues?.province}
                         </span>
                       </div>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm">
                         <span className="text-gray-700">Tempat pin Anda</span>
                         <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.province}
@@ -3195,13 +2991,13 @@ function RegistrationWizard({
                       <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
                         Kota / Kabupaten
                       </span>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm mb-1">
                         <span className="text-gray-700">Yang Anda isi</span>
                         <span className="text-gray-900 font-bold uppercase">
                           {invalidLocationData.formValues?.city}
                         </span>
                       </div>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm">
                         <span className="text-gray-700">Tempat pin Anda</span>
                         <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.city}
@@ -3216,13 +3012,13 @@ function RegistrationWizard({
                       <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
                         Kecamatan
                       </span>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm mb-1">
                         <span className="text-gray-700">Yang Anda isi</span>
                         <span className="text-gray-900 font-bold uppercase">
                           {invalidLocationData.formValues?.district}
                         </span>
                       </div>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm">
                         <span className="text-gray-700">Tempat pin Anda</span>
                         <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.district}
@@ -3237,13 +3033,13 @@ function RegistrationWizard({
                       <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
                         Kelurahan
                       </span>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm mb-1">
                         <span className="text-gray-700">Yang Anda isi</span>
                         <span className="text-gray-900 font-bold uppercase">
                           {invalidLocationData.formValues?.sub_district}
                         </span>
                       </div>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm">
                         <span className="text-gray-700">Tempat pin Anda</span>
                         <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.sub_district}
@@ -3258,13 +3054,13 @@ function RegistrationWizard({
                       <span className="text-xs font-bold text-brown-primary mb-2 uppercase tracking-wide">
                         Kode Pos
                       </span>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm mb-1">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm mb-1">
                         <span className="text-gray-700">Yang Anda isi</span>
                         <span className="text-gray-900 font-bold uppercase">
                           {invalidLocationData.formValues?.postal_code}
                         </span>
                       </div>
-                      <div className="grid grid-cols-[120px_1fr] gap-2 items-start text-sm">
+                      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-2 items-start text-sm">
                         <span className="text-gray-700">Tempat pin Anda</span>
                         <span className="text-red-600 font-bold uppercase">
                           {invalidLocationData.postal_code}
