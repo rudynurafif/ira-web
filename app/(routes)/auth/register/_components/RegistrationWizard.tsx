@@ -409,13 +409,19 @@ function RegistrationWizard({
     setIsBoundaryViolationModalOpen(true);
 
     try {
-      // [OPTIMIZED] Langsung ambil info detail area (Boundary API)
-      // Backend akan otomatis me-resolve ID provinsi s/d kelurahan dari kode pos
       let dataArea = null;
       try {
         const res = await getBoundaryArea({
+          // province_id: formData.province,
+          // city_id: formData.city,
+          // district_id: formData.district,
+          // sub_district_id: formData.sub_district,
           postal_code: postcode,
-          is_map_moving: true, // Beritahu backend ini pergerakan dari peta
+          // is_map_moving: true,
+          // [STRICT] Jangan kirim lat/lng jika sedang mode free text
+          latitude: lat,
+          longitude: lng,
+          is_map_moving: true,
         });
         dataArea = res?.data?.data;
       } catch (e) {
