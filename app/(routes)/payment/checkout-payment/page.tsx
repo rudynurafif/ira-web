@@ -49,7 +49,8 @@ function Page() {
       if (isLoggedIn) {
         router.push("/customer-area");
       } else {
-        router.push("/payment-billing");
+        const nextPath = salesId ? `/payment-billing?sales_id=${salesId}` : "/payment-billing";
+        router.replace(nextPath);
       }
     }
   };
@@ -76,7 +77,8 @@ function Page() {
         if (isLoggedIn) {
           router.push("/payment");
         } else {
-          router.push("/payment-billing");
+          const nextPath = salesId ? `/payment-billing?sales_id=${salesId}` : "/payment-billing";
+          router.push(nextPath);
         }
         return;
       }
