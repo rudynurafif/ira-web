@@ -1,5 +1,7 @@
-import axios, { Axios } from "axios";
 import FwaAxios from "../FwaAxios";
+import FwaAxiosArea from "../FwaAxiosArea";
+import FwaAxiosMapSearch from "../FwaAxiosMapSearch";
+import { getSetting } from "../Settings/Settings";
 import { dummyCoveredLocations } from "@/app/_shared/data/location";
 
 export const getProvince = async (params: any = "") => {
@@ -119,19 +121,6 @@ export const GetListGeocode = async (body: any) => {
   }
 };
 
-export const getLocationByPostalCode = async (postalCode: string) => {
-  try {
-    const data = await FwaAxios({
-      url: "/app/location/location-by-postal-code",
-      method: "GET",
-      params: { postal_code: postalCode },
-    });
-    return data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const getListLocation = async (params: any) => {
   try {
     // const data = await FwaAxios({
@@ -141,6 +130,109 @@ export const getListLocation = async (params: any) => {
     // });
 
     return dummyCoveredLocations;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// ==========================================================================
+// MAP
+// ==========================================================================
+
+// export const getLocationByPostalCode = async (postalCode: string) => {
+//   try {
+//     const data = await FwaAxios({
+//       url: "/app/location/location-by-postal-code",
+//       method: "GET",
+//       params: { postal_code: postalCode },
+//     });
+//     return data;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
+
+/**
+ * Get dropdown location suggest
+ * @param params {q: string}
+ * @returns id, name, full_address
+ */
+export const getLocationSuggest = async (params: any) => {
+  try {
+    const data = await FwaAxiosMapSearch({
+      url: "/api/location/suggest",
+      method: "GET",
+      params: params,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get mapbox retrieve
+ * @param id string
+ * @returns lat, lng, postcode
+ */
+export const getLocationRetrieve = async (id: string) => {
+  try {
+    const data = await FwaAxiosMapSearch({
+      url: `/api/location/retrieve/${id}`,
+      method: "GET",
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get location reverse
+ * @param params {lat: number | string, lng: number | string}
+ * @returns postcode
+ */
+export const getLocationReverse = async (params: {
+  lat: number | string;
+  lng: number | string;
+}) => {
+  try {
+    const data = await FwaAxiosMapSearch({
+      url: `/api/location/reverse`,
+      method: "GET",
+      params: {
+        latitude: params.lat,
+        longitude: params.lng,
+      },
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get boundary area
+ * @param params {province_id, city_id, district_id, sub_district_id, postal_code, is_map_moving, latitude, longitude}
+ * @returns bbox area boundary
+ */
+export const getBoundaryArea = async (params: {
+  province_id?: string;
+  city_id?: string;
+  district_id?: string;
+  sub_district_id?: string;
+  postal_code: string;
+  is_map_moving?: boolean;
+  latitude?: number | string;
+  longitude?: number | string;
+}) => {
+  try {
+    const data = await FwaAxiosArea({
+      url: "/app/location/boundary",
+      method: "GET",
+      params: params,
+    });
+    return data;
   } catch (error) {
     throw error;
   }

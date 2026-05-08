@@ -902,8 +902,8 @@ function RegistrationForm({
               className="w-full hidden sm:block"
               alt="banner-no-coverage"
             />
-            <div className="block sm:hidden bg-[#FEFCE8] py-2 px-3 border border-[#A16207] rounded-lg">
-              <p className="text-xs text-[#A16207]">
+            <div className="block sm:hidden bg-yellow-warning py-2 px-3 border border-brown-primary rounded-lg">
+              <p className="text-xs text-brown-primary">
                 <strong>Layanan di areamu segera hadir:</strong> Jangan
                 khawatir! Silakan daftar sekarang agar akunmu tersimpan di
                 sistem kami.
