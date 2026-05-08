@@ -30,7 +30,7 @@ function Page() {
 
     if (!raw) {
       toast.error("Data tidak ditemukan. Silakan ulangi.");
-      router.replace("/payment-billing");
+      router.back();
       return;
     }
 

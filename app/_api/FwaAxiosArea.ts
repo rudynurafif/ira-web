@@ -4,8 +4,8 @@ import { getCookie } from "cookies-next";
 
 const baseURL =
   typeof window === "undefined"
-    ? process.env.NEXT_PUBLIC_INTERNAL_AREA_API_BASE_URL || process.env.NEXT_PUBLIC_AREA_API_BASE_URL
-    : process.env.NEXT_PUBLIC_AREA_API_BASE_URL || "/api-area";
+    ? process.env.NEXT_PUBLIC_INTERNAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL
+    : process.env.NEXT_PUBLIC_API_BASE_URL || "/api-area";
 
 const FwaAxiosArea = axios.create({
   baseURL: baseURL,

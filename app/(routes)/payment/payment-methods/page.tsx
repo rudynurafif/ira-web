@@ -9,6 +9,7 @@ import {
   createPaymentRequestQRIS,
   createPaymentRequestOTC,
   getPaymentChannel,
+  createPaymentRequestMidtrans,
 } from "@/app/_api/Payment/Payment";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PaymentChannel } from "@/app/_shared/types/payment";
@@ -44,6 +45,10 @@ const PaymentMehods = () => {
       setSalesId(id);
     }
   }, [searchParams]);
+
+  const backToBillingUrl = salesId
+    ? `/payment-billing?sales_id=${salesId}`
+    : "/payment-billing";
 
   const [isLoading, setIsLoading] = useState(true);
   const [paymentChannels, setPaymentChannels] = useState<PaymentChannel[]>([]);
@@ -98,7 +103,7 @@ const PaymentMehods = () => {
       if (isLoggedIn) {
         router.push("/payment");
       } else {
-        router.push("/payment-billing");
+        router.replace(backToBillingUrl);
       }
     }
   }, [isLoggedIn, router, selectedPackage]);
@@ -109,9 +114,11 @@ const PaymentMehods = () => {
         ? userInfo?.customer_code
         : sessionStorage.getItem("customer_code");
 
-      if (!code || code === "-") {
-        toast.error("Identitas pelanggan tidak ditemukan. Silakan isi ulang data.");
-        router.push("/payment-billing");
+      if (!isLoggedIn && (!code || code === "-")) {
+        toast.error(
+          "Identitas pelanggan tidak ditemukan. Silakan isi ulang data.",
+        );
+        router.replace(backToBillingUrl);
         return false;
       }
 
@@ -148,7 +155,7 @@ const PaymentMehods = () => {
 
     initPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, userInfo]);
+  }, [isLoggedIn]);
 
   // Filter by category
   const virtualAccounts = paymentChannels.filter(
@@ -215,8 +222,10 @@ const PaymentMehods = () => {
         : sessionStorage.getItem("customer_code");
 
       if (!code || code === "-") {
-        toast.error("Identitas pelanggan tidak ditemukan. Silakan isi ulang data.");
-        router.push("/payment-billing");
+        toast.error(
+          "Identitas pelanggan tidak ditemukan. Silakan isi ulang data.",
+        );
+        router.replace(backToBillingUrl);
         return;
       }
 
@@ -227,34 +236,39 @@ const PaymentMehods = () => {
         ...(salesId && { mitra_user_id: salesId }),
       };
 
-      switch (selectedChannel.category) {
-        case "va":
-          createRes = isLoggedIn
-            ? createPaymentRequestVA(payload)
-            : createPaymentRequestVAMicrosite(payload);
-          break;
-        case "ewallet":
-          createRes = isLoggedIn
-            ? createPaymentRequestEWallet(payload)
-            : createPaymentRequestEWalletMicrosite(payload);
-          break;
-        case "qris":
-          createRes = isLoggedIn
-            ? createPaymentRequestQRIS(payload)
-            : createPaymentRequestQRISMicrosite(payload);
-          break;
-        case "otc":
-          createRes = isLoggedIn
-            ? createPaymentRequestOTC(payload)
-            : createPaymentRequestOTCMicrosite(payload);
-          break;
-        case "card":
-          toast.error(
-            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`,
-          );
-          return;
-        default:
-          throw new Error("Metode Pembayaran Tidak Didukung");
+      // [NEW] Khusus untuk channel yang menggunakan gateway MIDTRANS
+      if (selectedChannel.payment_gateway_id?.code === "MIDTRANS") {
+        createRes = createPaymentRequestMidtrans(payload);
+      } else {
+        switch (selectedChannel.category) {
+          case "va":
+            createRes = isLoggedIn
+              ? createPaymentRequestVA(payload)
+              : createPaymentRequestVAMicrosite(payload);
+            break;
+          case "ewallet":
+            createRes = isLoggedIn
+              ? createPaymentRequestEWallet(payload)
+              : createPaymentRequestEWalletMicrosite(payload);
+            break;
+          case "qris":
+            createRes = isLoggedIn
+              ? createPaymentRequestQRIS(payload)
+              : createPaymentRequestQRISMicrosite(payload);
+            break;
+          case "otc":
+            createRes = isLoggedIn
+              ? createPaymentRequestOTC(payload)
+              : createPaymentRequestOTCMicrosite(payload);
+            break;
+          case "card":
+            toast.error(
+              `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`,
+            );
+            return;
+          default:
+            throw new Error("Metode Pembayaran Tidak Didukung");
+        }
       }
 
       const paymentReqID = (await createRes)?.data?.data?.id;
@@ -286,7 +300,7 @@ const PaymentMehods = () => {
           // Simpan data pembayaran ke sessionStorage sebelum redirect ke Xendit.
           // Ini digunakan oleh interseptor di /auth/login untuk meneruskan user
           // non-login langsung ke halaman sukses pembayaran (/payment-billing/success).
-          if (!userInfo) {
+          if (!isLoggedIn) {
             const cid = sessionStorage.getItem("customer_code") || "-";
             sessionStorage.setItem(
               "paymentSuccessData",
@@ -306,7 +320,9 @@ const PaymentMehods = () => {
           window.location.href = url;
           // window.open(url, "_blank");
         } else {
-          toast.error("Terjadi kesalahan, silakan coba metode pembayaran lain");
+          toast.error(
+            "Terjadi kesalahan, gagal mendapatkan checkout URL e-wallet",
+          );
         }
       }
 
@@ -511,7 +527,7 @@ const PaymentMehods = () => {
             if (isLoggedIn) {
               router.push("/customer-area");
             } else {
-              router.push("/payment-billing");
+              router.replace(backToBillingUrl);
             }
           }}
         >
@@ -542,7 +558,7 @@ const PaymentMehods = () => {
                 if (isLoggedIn) {
                   router.push("/customer-area");
                 } else {
-                  router.push("/payment-billing");
+                  router.replace(backToBillingUrl);
                 }
               }}
             >

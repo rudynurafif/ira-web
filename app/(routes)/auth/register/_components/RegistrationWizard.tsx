@@ -2963,7 +2963,7 @@ function RegistrationWizard({
             <button
               type="button"
               onClick={() => setIsOpenModalReqLoc(false)}
-              className="w-full py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 mt-2"
+              className="w-full hover:cursor-pointer py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 mt-2"
             >
               Mengerti
             </button>
@@ -3153,7 +3153,7 @@ function RegistrationWizard({
                     });
                   }, 100);
                 }}
-                className="w-full py-4 bg-primary text-white rounded-xl font-bold text-base hover:bg-dark-primary-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full hover:cursor-pointer py-4 bg-primary text-white rounded-xl font-bold text-base hover:bg-dark-primary-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Mengerti
               </button>

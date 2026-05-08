@@ -53,6 +53,19 @@ export const createPaymentRequestEWallet = async (body: any) => {
   }
 };
 
+export const createPaymentRequestMidtrans = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/midtrans/gopay",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getEWalletById = async (id: string) => {
   try {
     const data = await FwaAxios({

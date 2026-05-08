@@ -221,7 +221,7 @@ export const getBoundaryArea = async (params: {
   city_id?: string;
   district_id?: string;
   sub_district_id?: string;
-  postal_code: string;
+  postal_code?: string | null;
   is_map_moving?: boolean;
   latitude?: number | string;
   longitude?: number | string;
