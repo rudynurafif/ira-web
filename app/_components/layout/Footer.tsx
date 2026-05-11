@@ -227,7 +227,11 @@ function Footer() {
         </div>
 
         {isMounted && (
+<<<<<<< HEAD
           <div className="text-center text-[10px] mt-5">ver. 1.1105.06</div>
+=======
+          <div className="text-center text-[10px] mt-5">ver. 1.1105.04</div>
+>>>>>>> 8cb60c4 (feat: add banner open app referral code if not auto open app)
         )}
       </div>
     </div>
