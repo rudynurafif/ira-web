@@ -67,6 +67,7 @@ import { buildErrorToast, scrollToFirstError } from "../helper";
 import GroupedOTP from "@/app/_components/form/DynamicOTPForm";
 import PhoneOTPForm from "@/app/_components/form/PhoneOTPForm";
 import Image from "next/image";
+import AppOpenBanner from "./AppOpenBanner";
 
 const MapLeaflet = dynamic(() => import("@/app/_components/form/MapLeaflet"), {
   ssr: false,
@@ -1783,7 +1784,6 @@ function RegistrationWizard({
           <Loader />
         </div>
       )}
-
       {/* Title */}
       <div className="w-full flex justify-center mb-4 md:mb-5">
         <h1 className="text-3xl md:text-[40px] lg:text-[48px] text-white font-extrabold text-center drop-shadow-md">
@@ -1791,6 +1791,7 @@ function RegistrationWizard({
         </h1>
       </div>
 
+      {mode === "register" && <AppOpenBanner />}
       {/* Stepper */}
       <div className="flex flex-col items-center md:mb-0 w-full px-1 sm:px-2 relative z-20">
         <div className="bg-white rounded-t-[30px] flex items-center justify-center px-2 sm:px-4 md:px-5 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.15)] gap-1.5 sm:gap-4 md:gap-5 border-2 border-b-0 border-[#A50E0E]">
@@ -1858,7 +1859,6 @@ function RegistrationWizard({
           </div>
         </div>
       </div>
-
       {/* Form */}
       <form
         onSubmit={handleSubmit}
@@ -2981,7 +2981,6 @@ function RegistrationWizard({
           </div>
         </div>
       </form>
-
       {isModalRegisterSuccess && (
         <ModalTemplate
           closeModal={handleClickBanner}
@@ -3016,7 +3015,6 @@ function RegistrationWizard({
           </div>
         </ModalTemplate>
       )}
-
       {/* Modal Instruksi Request Location (Jika Denied) */}
       {isOpenModalReqLoc && (
         <ModalTemplate
@@ -3077,7 +3075,6 @@ function RegistrationWizard({
           </div>
         </ModalTemplate>
       )}
-
       {/* [NEW] Modal Peringatan Boundary Detail */}
       {isBoundaryViolationModalOpen && (
         <ModalTemplate
