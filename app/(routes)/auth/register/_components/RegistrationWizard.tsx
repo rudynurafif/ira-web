@@ -171,7 +171,23 @@ function RegistrationWizard({
   });
 
   const [tempMapPayload, setTempMapPayload] = useState<any>(null);
-  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const lastValidCoordsRef = useRef<{ lat: string; lng: string } | null>(null);
+  const boundaryCenterCoordsRef = useRef<{
+    lat: string;
+    lng: string;
+  } | null>(null);
+
+  const [showOpenApp, setShowOpenApp] = useState("false");
+
+  // [NEW] State untuk Modal Peringatan Boundary Detail
+  const [isBoundaryViolationModalOpen, setIsBoundaryViolationModalOpen] =
+    useState(false);
+  const [invalidLocationData, setInvalidLocationData] = useState<any>(null);
+  const [isFetchingInvalidInfo, setIsFetchingInvalidInfo] = useState(false);
+
+  const provinceRef = useRef<HTMLDivElement>(null);
 
   const [provinceOptions, setProvinceOptions] = useState<ReactSelectType[]>([]);
   const [cityOptions, setCityOptions] = useState<ReactSelectType[]>([]);
@@ -1277,6 +1293,22 @@ function RegistrationWizard({
     getPackageListReg();
   }, [formData.latitude, formData.longitude, mitraID]);
 
+  const loadShowOpenApp = async () => {
+    try {
+      const resSetting = await getSetting("show_open_app_referral_code");
+
+      if (resSetting?.data?.statusCode === 200) {
+        setShowOpenApp(resSetting?.data?.data?.value || "false");
+      }
+    } catch (error) {
+      console.error("Failed to load Show OpenApp:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadShowOpenApp();
+  }, []);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     // console.log("masuk");
     e.preventDefault();
@@ -1643,7 +1675,7 @@ function RegistrationWizard({
         </h1>
       </div>
 
-      {/* {mode === "register" && <AppOpenBanner />} */}
+      {mode === "register" && showOpenApp === "true" && <AppOpenBanner />}
 
       {/* Stepper */}
       <div className="flex flex-col items-center md:mb-0 w-full px-1 sm:px-2 relative z-20">
