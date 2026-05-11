@@ -1267,24 +1267,82 @@ function RegistrationWizard({
 
       const [latStr, lngStr] = [String(latitude), String(longitude)];
 
+      // 1. CEK BOUNDARY & GEOFENCING (Mirip dengan onPlaceChange)
+      let isViolation = false;
+      let areaDataForFallback = null;
+      
+      if (formData.postal_code) {
+        try {
+          // [ULTIMATE FIX] Kita tetap kirim postcode (dari Geoapify) agar backend tidak me-return object kosong {}.
+          // Backend akan otomatis mengkoreksi data wilayah berdasarkan latitude & longitude.
+          const resArea = await getBoundaryArea({
+            postal_code: postcode || formData.postal_code,
+            latitude: latitude,
+            longitude: longitude,
+            is_map_moving: true,
+          });
+          const d = resArea?.data?.data;
+          areaDataForFallback = d;
+          
+          // Pastikan backend mengenali wilayah ini (city_id tidak kosong)
+          if (d && Object.keys(d.city_id || {}).length > 0) {
+            if (
+              (d.sub_district_id?.id && formData.sub_district && String(d.sub_district_id.id) !== String(formData.sub_district)) ||
+              (d.district_id?.id && formData.district && String(d.district_id.id) !== String(formData.district)) ||
+              (d.city_id?.id && formData.city && String(d.city_id.id) !== String(formData.city)) ||
+              (d.province_id?.id && formData.province && String(d.province_id.id) !== String(formData.province))
+            ) {
+              isViolation = true;
+            }
+          } else {
+            // Jika backend membalas kosong (tidak terdaftar sama sekali di database)
+            isViolation = true;
+          }
+        } catch (e: any) {
+          console.error("Boundary check failed", e);
+          toastErrorFromAPI(e);
+        }
+      }
+
+      if (isViolation) {
+        // [INVALID] GPS Location keluar batas!
+        setFormData((prev) => ({
+          ...prev,
+          latitude: latStr,
+          longitude: lngStr,
+        }));
+
+        setTimeout(() => {
+          handleSnapBack(
+            postcode,
+            latitude,
+            longitude,
+            addressString,
+            areaDataForFallback || dataReverse?.raw_result,
+          );
+        }, 0);
+        
+        setIsSyncingGPS(false);
+        return; // Hentikan proses, jangan simpan sebagai titik valid
+      }
+
+      // [VALID] Lokasi GPS aman
       if (postcode) {
         lastPostcodeFromMap.current = postcode;
 
-        // [NEW] Jika lokasi GPS ternyata ada di dalam boundary saat ini, rekam sebagai titik aman
+        // Rekam sebagai titik aman
         if (postcode === formData.postal_code) {
           lastValidCoordsRef.current = { lat: latStr, lng: lngStr };
         }
 
-        // [DRY] Cukup panggil fetchAndSyncBoundary, API ini sudah auto-resolve ID wilayah
-        await fetchAndSyncBoundary(postcode, postcode, true, {
+        // Sinkronisasi wilayah
+        await fetchAndSyncBoundary(postcode, formData.postal_code_id, true, {
           latitude: latStr,
           longitude: lngStr,
         });
       }
 
       setFormData((prev) => {
-        const isSamePostcode = postcode === prev.postal_code;
-
         return {
           ...prev,
           latitude: latStr,
@@ -1298,7 +1356,7 @@ function RegistrationWizard({
         setLastSyncedPostcode(postcode);
       }
 
-      toast.success("Titik lokasi berhasil didapatkan");
+      toast.success("Titik lokasi GPS berhasil didapatkan");
 
       setGpsCooldown(5);
       const cdTimer = setInterval(() => {
@@ -2484,17 +2542,12 @@ function RegistrationWizard({
                               let isViolation = false;
                               let areaDataForFallback = null;
 
-                              if (detectedPostcode && formData.postal_code) {
-                                isViolation =
-                                  detectedPostcode !== formData.postal_code;
-                              } else if (
-                                !detectedPostcode &&
-                                formData.postal_code
-                              ) {
-                                // Hit API boundary with long/lat to check if it's still in the same hierarchy
+                              if (formData.postal_code) {
                                 try {
+                                  // [ULTIMATE FIX] Kita tetap kirim postcode (dari Geoapify) agar backend tidak me-return object kosong {}.
+                                  // Backend akan otomatis mengkoreksi data wilayah berdasarkan latitude & longitude.
                                   const resArea = await getBoundaryArea({
-                                    postal_code: null,
+                                    postal_code: detectedPostcode || formData.postal_code,
                                     latitude: p.latitude,
                                     longitude: p.longitude,
                                     is_map_moving: true,
@@ -2502,9 +2555,8 @@ function RegistrationWizard({
                                   const d = resArea?.data?.data;
                                   areaDataForFallback = d;
 
-                                  if (d) {
-                                    // Bandingkan hirarki administratif terdalam yang tersedia
-                                    // Gunakan String() untuk membandingkan ID
+                                  // Pastikan backend mengenali wilayah ini (city_id tidak kosong)
+                                  if (d && Object.keys(d.city_id || {}).length > 0) {
                                     if (
                                       (d.sub_district_id?.id &&
                                         formData.sub_district &&
@@ -2525,6 +2577,9 @@ function RegistrationWizard({
                                     ) {
                                       isViolation = true;
                                     }
+                                  } else {
+                                    // Jika backend membalas kosong (tidak terdaftar sama sekali di database)
+                                    isViolation = true;
                                   }
                                 } catch (e) {
                                   console.error("Boundary check failed", e);
