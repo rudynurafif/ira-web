@@ -422,7 +422,7 @@ function RegistrationWizard({
           // city_id: formData.city,
           // district_id: formData.district,
           // sub_district_id: formData.sub_district,
-          postal_code: postcode,
+          postal_code: postcode || null,
           // is_map_moving: true,
           // [STRICT] Jangan kirim lat/lng jika sedang mode free text
           latitude: lat,
@@ -748,38 +748,36 @@ function RegistrationWizard({
         if (parsed.formData) {
           // [BUGFIX] Jika user masih di Step 1, sebaiknya kita reset data lokasinya
           // agar tidak membingungkan (seolah terpilih otomatis padahal sisa data lama)
-          if (parsed.step === 1) {
-            setFormData({
-              ...parsed.formData,
-              province: "",
-              city: "",
-              district: "",
-              sub_district: "",
-              postal_code: "",
-              postal_code_id: "",
-              latitude: "",
-              longitude: "",
-              address_gmaps: "",
-              actual_address: "",
-              address_raw: null,
-            });
-          } else {
-            setFormData(parsed.formData);
-            // Cegah autofill ulang koordinat dari kode pos saat refresh
-            // [NEW] Tentukan mode input basarkan eksistensi ID kode pos hasil restore
-            if (
-              parsed.formData.postal_code &&
-              !parsed.formData.postal_code_id
-            ) {
-              setIsPostalCodeManual(true);
-            } else if (parsed.formData.postal_code_id) {
-              setIsPostalCodeManual(false);
-            }
-            if (parsed.formData.postal_code) {
-              lastPostcodeFromMap.current = parsed.formData.postal_code;
-              setLastSyncedPostcode(parsed.formData.postal_code);
-            }
+          // if (parsed.step === 1) {
+          //   setFormData({
+          //     ...parsed.formData,
+          //     province: "",
+          //     city: "",
+          //     district: "",
+          //     sub_district: "",
+          //     postal_code: "",
+          //     postal_code_id: "",
+          //     latitude: "",
+          //     longitude: "",
+          //     address_gmaps: "",
+          //     actual_address: "",
+          //     address_raw: null,
+          //   });
+          // }
+          //  else {
+          setFormData(parsed.formData);
+          // Cegah autofill ulang koordinat dari kode pos saat refresh
+          // [NEW] Tentukan mode input basarkan eksistensi ID kode pos hasil restore
+          if (parsed.formData.postal_code && !parsed.formData.postal_code_id) {
+            setIsPostalCodeManual(true);
+          } else if (parsed.formData.postal_code_id) {
+            setIsPostalCodeManual(false);
           }
+          if (parsed.formData.postal_code) {
+            lastPostcodeFromMap.current = parsed.formData.postal_code;
+            setLastSyncedPostcode(parsed.formData.postal_code);
+          }
+          // }
         }
         if (parsed.step) setStep(parsed.step);
         if (parsed.selectedPackage) {
@@ -2464,71 +2462,123 @@ function RegistrationWizard({
                               setIsMapSyncing(false);
                               const detectedPostcode = p.postcode;
 
-                              // 1. CEK BOUNDARY (Hanya jika data kode pos sudah tersedia dari API reverse)
-                              if (detectedPostcode) {
-                                if (
-                                  formData.postal_code &&
-                                  detectedPostcode !== formData.postal_code
-                                ) {
-                                  // [INVALID] Keluar batas! Pentalin balik ke titik aman terakhir
-                                  // Kita pakai setTimeout agar Map mendeteksi perubahan prop dari "Luar" ke "Dalam"
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    latitude: String(p.latitude),
-                                    longitude: String(p.longitude),
-                                  }));
+                              // Deteksi apakah ini panggilan final (API reverse sudah selesai)
+                              // Panggilan pending biasanya hanya membawa koordinat tanpa raw_result / full_address
+                              const isFinalCall =
+                                detectedPostcode || p.raw_result;
 
-                                  setTimeout(() => {
-                                    handleSnapBack(
-                                      detectedPostcode,
-                                      p.latitude,
-                                      p.longitude,
-                                      p.full_address,
-                                      p.raw_result,
-                                    );
-                                  }, 0);
-                                  return;
-                                }
-
-                                // [VALID] Kode pos cocok! Update data dan simpan sebagai titik aman baru
-                                setIsInteractingWithMap(true);
+                              if (!isFinalCall) {
+                                // [PENDING] Panggilan pertama onPlaceChange (reverse geocoding belum selesai)
+                                // Update koordinat agar visual pin mengikuti jari user.
                                 setFormData((prev) => ({
                                   ...prev,
                                   latitude: String(p.latitude),
                                   longitude: String(p.longitude),
                                 }));
-
-                                lastValidCoordsRef.current = {
-                                  lat: String(p.latitude),
-                                  lng: String(p.longitude),
-                                };
-
-                                // Sync visual boundary (polygon)
-                                lastPostcodeFromMap.current = detectedPostcode;
-                                try {
-                                  await fetchAndSyncBoundary(
-                                    detectedPostcode,
-                                    formData.postal_code_id,
-                                    true,
-                                    {
-                                      latitude: p.latitude,
-                                      longitude: p.longitude,
-                                    },
-                                  );
-                                } catch (e) {
-                                  console.error("Boundary sync failed:", e);
-                                }
-                                setIsInteractingWithMap(false);
-                              } else {
-                                // [PENDING] Kode pos belum ada (panggilan pertama onPlaceChange)
-                                // Update koordinat agar visual pin mengikuti jari user,
-                                // tapi JANGAN simpan sebagai lastValidCoordsRef (titik aman) dulu.
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  latitude: String(p.latitude),
-                                  longitude: String(p.longitude),
-                                }));
+                                return;
                               }
+
+                              // 1. CEK BOUNDARY & GEOFENCING (Hanya dijalankan SETELAH API reverse selesai)
+                              let isViolation = false;
+                              let areaDataForFallback = null;
+
+                              if (detectedPostcode && formData.postal_code) {
+                                isViolation =
+                                  detectedPostcode !== formData.postal_code;
+                              } else if (
+                                !detectedPostcode &&
+                                formData.postal_code
+                              ) {
+                                // Hit API boundary with long/lat to check if it's still in the same hierarchy
+                                try {
+                                  const resArea = await getBoundaryArea({
+                                    postal_code: null,
+                                    latitude: p.latitude,
+                                    longitude: p.longitude,
+                                    is_map_moving: true,
+                                  });
+                                  const d = resArea?.data?.data;
+                                  areaDataForFallback = d;
+
+                                  if (d) {
+                                    // Bandingkan hirarki administratif terdalam yang tersedia
+                                    // Gunakan String() untuk membandingkan ID
+                                    if (
+                                      (d.sub_district_id?.id &&
+                                        formData.sub_district &&
+                                        String(d.sub_district_id.id) !==
+                                          String(formData.sub_district)) ||
+                                      (d.district_id?.id &&
+                                        formData.district &&
+                                        String(d.district_id.id) !==
+                                          String(formData.district)) ||
+                                      (d.city_id?.id &&
+                                        formData.city &&
+                                        String(d.city_id.id) !==
+                                          String(formData.city)) ||
+                                      (d.province_id?.id &&
+                                        formData.province &&
+                                        String(d.province_id.id) !==
+                                          String(formData.province))
+                                    ) {
+                                      isViolation = true;
+                                    }
+                                  }
+                                } catch (e) {
+                                  console.error("Boundary check failed", e);
+                                }
+                              }
+
+                              if (isViolation) {
+                                // [INVALID] Keluar batas! Pentalin balik ke titik aman terakhir
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  latitude: String(p.latitude),
+                                  longitude: String(p.longitude),
+                                }));
+
+                                setTimeout(() => {
+                                  handleSnapBack(
+                                    detectedPostcode || "",
+                                    p.latitude,
+                                    p.longitude,
+                                    p.full_address,
+                                    areaDataForFallback || p.raw_result,
+                                  );
+                                }, 0);
+                                return;
+                              }
+
+                              // [VALID] Koordinat atau kode pos cocok! Update data dan simpan sebagai titik aman baru
+                              setIsInteractingWithMap(true);
+                              setFormData((prev) => ({
+                                ...prev,
+                                latitude: String(p.latitude),
+                                longitude: String(p.longitude),
+                              }));
+
+                              lastValidCoordsRef.current = {
+                                lat: String(p.latitude),
+                                lng: String(p.longitude),
+                              };
+
+                              // Sync visual boundary (polygon)
+                              lastPostcodeFromMap.current =
+                                detectedPostcode || "";
+                              try {
+                                await fetchAndSyncBoundary(
+                                  detectedPostcode || "",
+                                  formData.postal_code_id,
+                                  true,
+                                  {
+                                    latitude: p.latitude,
+                                    longitude: p.longitude,
+                                  },
+                                );
+                              } catch (e) {
+                                console.error("Boundary sync failed:", e);
+                              }
+                              setIsInteractingWithMap(false);
                             }}
                           />
                         </div>
