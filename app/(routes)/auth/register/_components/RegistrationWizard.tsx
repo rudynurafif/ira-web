@@ -34,6 +34,7 @@ import {
   regexEmail,
   toastErrorFromAPI,
   handleDownloadClick,
+  resetUrlParam,
 } from "@/app/_shared/utils";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
@@ -476,7 +477,7 @@ function RegistrationWizard({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const registerSource = searchParams.get("from");
+  const registerSource = searchParams.get("referral_code");
 
   const STORAGE_KEY = `otp:register:phone`;
   const PERSIST_KEY = `registration_wizard_data`;
@@ -1400,7 +1401,7 @@ function RegistrationWizard({
           ...(formData.longitude && { longitude: formData.longitude }),
           ...(formData.notes && { notes: formData.notes }),
           ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
-          // ...(registerSource && { register_source: registerSource }),
+          ...(registerSource && { referral_code: registerSource }),
         };
 
         let res;
@@ -1451,6 +1452,7 @@ function RegistrationWizard({
         setOtpStatus("idle");
         clearPersistance(); // Clear on success
         resetForm();
+        resetUrlParam("referral_code");
       } catch (error: any) {
         // error konflik 409
         if (error?.response?.data?.statusCode === 409) {

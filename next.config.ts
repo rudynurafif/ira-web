@@ -23,6 +23,43 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // ─────────────────────────────────────────────────────
+  // [iOS DEEP LINK] Redirect .well-known ke API route
+  // ─────────────────────────────────────────────────────
+  async redirects() {
+    return [
+      {
+        source: "/.well-known/apple-app-site-association",
+        destination: "/api/.well-known/apple-app-site-association",
+        permanent: false,
+      },
+    ];
+  },
+
+  // ─────────────────────────────────────────────────────
+  // [iOS DEEP LINK] Headers wajib untuk AASA file
+  // ─────────────────────────────────────────────────────
+  async headers() {
+    return [
+      {
+        source: "/.well-known/:path*",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/json",
+          },
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
+
+  // ─────────────────────────────────────────────────────
+  // [EXISTING] Rewrites untuk API proxy (tetap sama)
+  // ─────────────────────────────────────────────────────
   async rewrites() {
     return [
       {
