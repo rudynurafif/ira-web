@@ -1271,7 +1271,7 @@ function RegistrationWizard({
       // 1. CEK BOUNDARY & GEOFENCING (Mirip dengan onPlaceChange)
       let isViolation = false;
       let areaDataForFallback = null;
-      
+
       if (formData.postal_code) {
         try {
           // [ULTIMATE FIX] Kita tetap kirim postcode (dari Geoapify) agar backend tidak me-return object kosong {}.
@@ -1284,14 +1284,23 @@ function RegistrationWizard({
           });
           const d = resArea?.data?.data;
           areaDataForFallback = d;
-          
+
           // Pastikan backend mengenali wilayah ini (city_id tidak kosong)
           if (d && Object.keys(d.city_id || {}).length > 0) {
             if (
-              (d.sub_district_id?.id && formData.sub_district && String(d.sub_district_id.id) !== String(formData.sub_district)) ||
-              (d.district_id?.id && formData.district && String(d.district_id.id) !== String(formData.district)) ||
-              (d.city_id?.id && formData.city && String(d.city_id.id) !== String(formData.city)) ||
-              (d.province_id?.id && formData.province && String(d.province_id.id) !== String(formData.province))
+              (d.sub_district_id?.id &&
+                formData.sub_district &&
+                String(d.sub_district_id.id) !==
+                  String(formData.sub_district)) ||
+              (d.district_id?.id &&
+                formData.district &&
+                String(d.district_id.id) !== String(formData.district)) ||
+              (d.city_id?.id &&
+                formData.city &&
+                String(d.city_id.id) !== String(formData.city)) ||
+              (d.province_id?.id &&
+                formData.province &&
+                String(d.province_id.id) !== String(formData.province))
             ) {
               isViolation = true;
             }
@@ -1322,7 +1331,7 @@ function RegistrationWizard({
             areaDataForFallback || dataReverse?.raw_result,
           );
         }, 0);
-        
+
         setIsSyncingGPS(false);
         return; // Hentikan proses, jangan simpan sebagai titik valid
       }
@@ -1791,7 +1800,8 @@ function RegistrationWizard({
         </h1>
       </div>
 
-      {mode === "register" && <AppOpenBanner />}
+      {/* {mode === "register" && <AppOpenBanner />} */}
+
       {/* Stepper */}
       <div className="flex flex-col items-center md:mb-0 w-full px-1 sm:px-2 relative z-20">
         <div className="bg-white rounded-t-[30px] flex items-center justify-center px-2 sm:px-4 md:px-5 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.15)] gap-1.5 sm:gap-4 md:gap-5 border-2 border-b-0 border-[#A50E0E]">
@@ -2547,7 +2557,8 @@ function RegistrationWizard({
                                   // [ULTIMATE FIX] Kita tetap kirim postcode (dari Geoapify) agar backend tidak me-return object kosong {}.
                                   // Backend akan otomatis mengkoreksi data wilayah berdasarkan latitude & longitude.
                                   const resArea = await getBoundaryArea({
-                                    postal_code: detectedPostcode || formData.postal_code,
+                                    postal_code:
+                                      detectedPostcode || formData.postal_code,
                                     latitude: p.latitude,
                                     longitude: p.longitude,
                                     is_map_moving: true,
@@ -2556,7 +2567,10 @@ function RegistrationWizard({
                                   areaDataForFallback = d;
 
                                   // Pastikan backend mengenali wilayah ini (city_id tidak kosong)
-                                  if (d && Object.keys(d.city_id || {}).length > 0) {
+                                  if (
+                                    d &&
+                                    Object.keys(d.city_id || {}).length > 0
+                                  ) {
                                     if (
                                       (d.sub_district_id?.id &&
                                         formData.sub_district &&
