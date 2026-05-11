@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "NLKYF87QRJ.com.weave.ira",
+        "paths": [
+          "/auth/register",
+          "/auth/register/*",
+          "/auth/register?*"
+        ]
+      }
+    ]
+  }
+}
