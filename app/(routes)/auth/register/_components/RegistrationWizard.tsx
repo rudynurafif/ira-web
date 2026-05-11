@@ -748,38 +748,36 @@ function RegistrationWizard({
         if (parsed.formData) {
           // [BUGFIX] Jika user masih di Step 1, sebaiknya kita reset data lokasinya
           // agar tidak membingungkan (seolah terpilih otomatis padahal sisa data lama)
-          if (parsed.step === 1) {
-            setFormData({
-              ...parsed.formData,
-              province: "",
-              city: "",
-              district: "",
-              sub_district: "",
-              postal_code: "",
-              postal_code_id: "",
-              latitude: "",
-              longitude: "",
-              address_gmaps: "",
-              actual_address: "",
-              address_raw: null,
-            });
-          } else {
-            setFormData(parsed.formData);
-            // Cegah autofill ulang koordinat dari kode pos saat refresh
-            // [NEW] Tentukan mode input basarkan eksistensi ID kode pos hasil restore
-            if (
-              parsed.formData.postal_code &&
-              !parsed.formData.postal_code_id
-            ) {
-              setIsPostalCodeManual(true);
-            } else if (parsed.formData.postal_code_id) {
-              setIsPostalCodeManual(false);
-            }
-            if (parsed.formData.postal_code) {
-              lastPostcodeFromMap.current = parsed.formData.postal_code;
-              setLastSyncedPostcode(parsed.formData.postal_code);
-            }
+          // if (parsed.step === 1) {
+          //   setFormData({
+          //     ...parsed.formData,
+          //     province: "",
+          //     city: "",
+          //     district: "",
+          //     sub_district: "",
+          //     postal_code: "",
+          //     postal_code_id: "",
+          //     latitude: "",
+          //     longitude: "",
+          //     address_gmaps: "",
+          //     actual_address: "",
+          //     address_raw: null,
+          //   });
+          // }
+          //  else {
+          setFormData(parsed.formData);
+          // Cegah autofill ulang koordinat dari kode pos saat refresh
+          // [NEW] Tentukan mode input basarkan eksistensi ID kode pos hasil restore
+          if (parsed.formData.postal_code && !parsed.formData.postal_code_id) {
+            setIsPostalCodeManual(true);
+          } else if (parsed.formData.postal_code_id) {
+            setIsPostalCodeManual(false);
           }
+          if (parsed.formData.postal_code) {
+            lastPostcodeFromMap.current = parsed.formData.postal_code;
+            setLastSyncedPostcode(parsed.formData.postal_code);
+          }
+          // }
         }
         if (parsed.step) setStep(parsed.step);
         if (parsed.selectedPackage) {
@@ -2466,7 +2464,8 @@ function RegistrationWizard({
 
                               // Deteksi apakah ini panggilan final (API reverse sudah selesai)
                               // Panggilan pending biasanya hanya membawa koordinat tanpa raw_result / full_address
-                              const isFinalCall = detectedPostcode || p.raw_result;
+                              const isFinalCall =
+                                detectedPostcode || p.raw_result;
 
                               if (!isFinalCall) {
                                 // [PENDING] Panggilan pertama onPlaceChange (reverse geocoding belum selesai)
@@ -2484,8 +2483,12 @@ function RegistrationWizard({
                               let areaDataForFallback = null;
 
                               if (detectedPostcode && formData.postal_code) {
-                                isViolation = detectedPostcode !== formData.postal_code;
-                              } else if (!detectedPostcode && formData.postal_code) {
+                                isViolation =
+                                  detectedPostcode !== formData.postal_code;
+                              } else if (
+                                !detectedPostcode &&
+                                formData.postal_code
+                              ) {
                                 // Hit API boundary with long/lat to check if it's still in the same hierarchy
                                 try {
                                   const resArea = await getBoundaryArea({
@@ -2496,15 +2499,27 @@ function RegistrationWizard({
                                   });
                                   const d = resArea?.data?.data;
                                   areaDataForFallback = d;
-                                  
+
                                   if (d) {
                                     // Bandingkan hirarki administratif terdalam yang tersedia
                                     // Gunakan String() untuk membandingkan ID
                                     if (
-                                      (d.sub_district_id?.id && formData.sub_district && String(d.sub_district_id.id) !== String(formData.sub_district)) ||
-                                      (d.district_id?.id && formData.district && String(d.district_id.id) !== String(formData.district)) ||
-                                      (d.city_id?.id && formData.city && String(d.city_id.id) !== String(formData.city)) ||
-                                      (d.province_id?.id && formData.province && String(d.province_id.id) !== String(formData.province))
+                                      (d.sub_district_id?.id &&
+                                        formData.sub_district &&
+                                        String(d.sub_district_id.id) !==
+                                          String(formData.sub_district)) ||
+                                      (d.district_id?.id &&
+                                        formData.district &&
+                                        String(d.district_id.id) !==
+                                          String(formData.district)) ||
+                                      (d.city_id?.id &&
+                                        formData.city &&
+                                        String(d.city_id.id) !==
+                                          String(formData.city)) ||
+                                      (d.province_id?.id &&
+                                        formData.province &&
+                                        String(d.province_id.id) !==
+                                          String(formData.province))
                                     ) {
                                       isViolation = true;
                                     }
@@ -2548,7 +2563,8 @@ function RegistrationWizard({
                               };
 
                               // Sync visual boundary (polygon)
-                              lastPostcodeFromMap.current = detectedPostcode || "";
+                              lastPostcodeFromMap.current =
+                                detectedPostcode || "";
                               try {
                                 await fetchAndSyncBoundary(
                                   detectedPostcode || "",
