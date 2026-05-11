@@ -1643,7 +1643,8 @@ function RegistrationWizard({
         </h1>
       </div>
 
-      {mode === "register" && <AppOpenBanner />}
+      {/* {mode === "register" && <AppOpenBanner />} */}
+
       {/* Stepper */}
       <div className="flex flex-col items-center md:mb-0 w-full px-1 sm:px-2 relative z-20">
         <div className="bg-white rounded-t-[30px] flex items-center justify-center px-2 sm:px-4 md:px-5 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.15)] gap-1.5 sm:gap-4 md:gap-5 border-2 border-b-0 border-[#A50E0E]">
