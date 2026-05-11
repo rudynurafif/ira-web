@@ -171,6 +171,8 @@ function RegistrationWizard({
     lng: string;
   } | null>(null);
 
+  const [showOpenApp, setShowOpenApp] = useState("false");
+
   // [NEW] State untuk Modal Peringatan Boundary Detail
   const [isBoundaryViolationModalOpen, setIsBoundaryViolationModalOpen] =
     useState(false);
@@ -1458,6 +1460,22 @@ function RegistrationWizard({
     getPackageListReg();
   }, [formData.latitude, formData.longitude, mitraID]);
 
+  const loadShowOpenApp = async () => {
+    try {
+      const resSetting = await getSetting("show_open_app_referral_code");
+
+      if (resSetting?.data?.statusCode === 200) {
+        setShowOpenApp(resSetting?.data?.data?.value || "false");
+      }
+    } catch (error) {
+      console.error("Failed to load Show OpenApp:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadShowOpenApp();
+  }, []);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -1800,7 +1818,7 @@ function RegistrationWizard({
         </h1>
       </div>
 
-      {/* {mode === "register" && <AppOpenBanner />} */}
+      {mode === "register" && showOpenApp === "true" && <AppOpenBanner />}
 
       {/* Stepper */}
       <div className="flex flex-col items-center md:mb-0 w-full px-1 sm:px-2 relative z-20">
