@@ -1,6 +1,14 @@
 import { NextResponse, NextRequest } from "next/server";
 
 function handleAuthLogic(req: NextRequest, pathname: string) {
+  // ─────────────────────────────────────────────────────
+  // [NEW] SKIP auth untuk .well-known (deep link verification)
+  // ─────────────────────────────────────────────────────
+  if (pathname.startsWith("/.well-known")) {
+    return NextResponse.next();
+  }
+  // ─────────────────────────────────────────────────────
+
   const publicPaths = [
     "/",
     "/auth/login",
