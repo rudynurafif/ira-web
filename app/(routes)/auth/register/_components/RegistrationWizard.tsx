@@ -34,6 +34,7 @@ import {
   regexEmail,
   toastErrorFromAPI,
   handleDownloadClick,
+  resetUrlParam,
 } from "@/app/_shared/utils";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
@@ -49,6 +50,7 @@ import { MdSearch, MdClose, MdMyLocation, MdLocationOn } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import MapMapbox from "@/app/_components/form/MapMapbox";
 import dynamic from "next/dynamic";
+import AppOpenBanner from "./AppOpenBanner";
 
 const MapLeaflet = dynamic(() => import("@/app/_components/form/MapLeaflet"), {
   ssr: false,
@@ -169,7 +171,23 @@ function RegistrationWizard({
   });
 
   const [tempMapPayload, setTempMapPayload] = useState<any>(null);
-  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const lastValidCoordsRef = useRef<{ lat: string; lng: string } | null>(null);
+  const boundaryCenterCoordsRef = useRef<{
+    lat: string;
+    lng: string;
+  } | null>(null);
+
+  const [showOpenApp, setShowOpenApp] = useState("false");
+
+  // [NEW] State untuk Modal Peringatan Boundary Detail
+  const [isBoundaryViolationModalOpen, setIsBoundaryViolationModalOpen] =
+    useState(false);
+  const [invalidLocationData, setInvalidLocationData] = useState<any>(null);
+  const [isFetchingInvalidInfo, setIsFetchingInvalidInfo] = useState(false);
+
+  const provinceRef = useRef<HTMLDivElement>(null);
 
   const [provinceOptions, setProvinceOptions] = useState<ReactSelectType[]>([]);
   const [cityOptions, setCityOptions] = useState<ReactSelectType[]>([]);
@@ -476,7 +494,7 @@ function RegistrationWizard({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const registerSource = searchParams.get("from");
+  const registerSource = searchParams.get("referral_code");
 
   const STORAGE_KEY = `otp:register:phone`;
   const PERSIST_KEY = `registration_wizard_data`;
@@ -1275,6 +1293,22 @@ function RegistrationWizard({
     getPackageListReg();
   }, [formData.latitude, formData.longitude, mitraID]);
 
+  const loadShowOpenApp = async () => {
+    try {
+      const resSetting = await getSetting("show_open_app_referral_code");
+
+      if (resSetting?.data?.statusCode === 200) {
+        setShowOpenApp(resSetting?.data?.data?.value || "false");
+      }
+    } catch (error) {
+      console.error("Failed to load Show OpenApp:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadShowOpenApp();
+  }, []);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     // console.log("masuk");
     e.preventDefault();
@@ -1400,7 +1434,7 @@ function RegistrationWizard({
           ...(formData.longitude && { longitude: formData.longitude }),
           ...(formData.notes && { notes: formData.notes }),
           ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
-          // ...(registerSource && { register_source: registerSource }),
+          ...(registerSource && { referral_code: registerSource }),
         };
 
         let res;
@@ -1451,6 +1485,7 @@ function RegistrationWizard({
         setOtpStatus("idle");
         clearPersistance(); // Clear on success
         resetForm();
+        resetUrlParam("referral_code");
       } catch (error: any) {
         // error konflik 409
         if (error?.response?.data?.statusCode === 409) {
@@ -1633,13 +1668,14 @@ function RegistrationWizard({
           <Loader />
         </div>
       )}
-
       {/* Title */}
       <div className="w-full flex justify-center mb-4 md:mb-5">
         <h1 className="text-3xl md:text-[40px] lg:text-[48px] text-white font-extrabold text-center drop-shadow-md">
           {title}
         </h1>
       </div>
+
+      {mode === "register" && showOpenApp === "true" && <AppOpenBanner />}
 
       {/* Stepper */}
       <div className="flex flex-col items-center md:mb-0 w-full px-1 sm:px-2 relative z-20">
@@ -1708,7 +1744,6 @@ function RegistrationWizard({
           </div>
         </div>
       </div>
-
       {/* Form */}
       <form
         onSubmit={handleSubmit}
@@ -2796,7 +2831,6 @@ function RegistrationWizard({
           </div>
         </div>
       </form>
-
       {isModalRegisterSuccess && (
         <ModalTemplate
           closeModal={handleClickBanner}
@@ -2831,7 +2865,6 @@ function RegistrationWizard({
           </div>
         </ModalTemplate>
       )}
-
       {/* Modal Instruksi Request Location (Jika Denied) */}
       {isOpenModalReqLoc && (
         <ModalTemplate
@@ -2892,7 +2925,6 @@ function RegistrationWizard({
           </div>
         </ModalTemplate>
       )}
-
       {/* Modal Konfirmasi Perubahan Kode Pos */}
       {isOpenPostcodeConfirmModal && (
         <ModalTemplate
