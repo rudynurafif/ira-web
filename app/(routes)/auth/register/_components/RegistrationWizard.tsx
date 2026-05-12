@@ -1276,10 +1276,8 @@ function RegistrationWizard({
 
       if (formData.postal_code) {
         try {
-          // [ULTIMATE FIX] Kita tetap kirim postcode (dari Geoapify) agar backend tidak me-return object kosong {}.
-          // Backend akan otomatis mengkoreksi data wilayah berdasarkan latitude & longitude.
           const resArea = await getBoundaryArea({
-            postal_code: postcode || formData.postal_code,
+            postal_code: postcode || null,
             latitude: latitude,
             longitude: longitude,
             is_map_moving: true,
@@ -2572,11 +2570,8 @@ function RegistrationWizard({
 
                               if (formData.postal_code) {
                                 try {
-                                  // [ULTIMATE FIX] Kita tetap kirim postcode (dari Geoapify) agar backend tidak me-return object kosong {}.
-                                  // Backend akan otomatis mengkoreksi data wilayah berdasarkan latitude & longitude.
                                   const resArea = await getBoundaryArea({
-                                    postal_code:
-                                      detectedPostcode || formData.postal_code,
+                                    postal_code: detectedPostcode || null,
                                     latitude: p.latitude,
                                     longitude: p.longitude,
                                     is_map_moving: true,
