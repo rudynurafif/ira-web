@@ -9,7 +9,7 @@ import {
   createPaymentRequestQRIS,
   createPaymentRequestOTC,
   getPaymentChannel,
-  createPaymentRequestMidtrans,
+  createPaymentRequestGopay,
 } from "@/app/_api/Payment/Payment";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PaymentChannel } from "@/app/_shared/types/payment";
@@ -27,6 +27,7 @@ import limitImage from "@/public/assets/Images/limit-images.png";
 import {
   checkPackageMicrosite,
   createPaymentRequestEWalletMicrosite,
+  createPaymentRequestGopayMicrosite,
   createPaymentRequestOTCMicrosite,
   createPaymentRequestQRISMicrosite,
   createPaymentRequestVAMicrosite,
@@ -233,12 +234,14 @@ const PaymentMehods = () => {
         package_id: selectedPackage?.id,
         payment_channel_id: selectedChannel?.id,
         customer_code: code,
-        ...(salesId && { mitra_user_id: salesId }),
+        ...(!isLoggedIn && salesId && { mitra_user_id: salesId }),
       };
 
-      // [NEW] Khusus untuk channel yang menggunakan gateway MIDTRANS
+      // Khusus untuk channel yang menggunakan gateway MIDTRANS
       if (selectedChannel.payment_gateway_id?.code === "MIDTRANS") {
-        createRes = createPaymentRequestMidtrans(payload);
+        createRes = isLoggedIn
+          ? createPaymentRequestGopay(payload)
+          : createPaymentRequestGopayMicrosite(payload);
       } else {
         switch (selectedChannel.category) {
           case "va":
