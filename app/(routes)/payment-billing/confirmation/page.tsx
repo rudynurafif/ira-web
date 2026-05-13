@@ -118,7 +118,7 @@ function Page() {
         {/* Package Card */}
         <div className="border border-gray-200 rounded-2xl p-5 mb-6 shadow-lg">
           <h2 className="font-bold text-base text-gray-900 mb-4">
-            Paket yang Terakhir Dibeli
+            Daftar Paket yang Tersedia
           </h2>
           {listPackage.length > 0 ? (
             <div className="space-y-3">
