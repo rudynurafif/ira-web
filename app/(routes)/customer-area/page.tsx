@@ -67,7 +67,7 @@ export default function AreaPelanggan() {
     fcmCheckNotificationPermission,
     fcmRequestPermissionIfNeeded,
     fcmShowPermissionGuide,
-    fcmNotification, // [NEW] Ambil state notifikasi foreground dari Context
+    fcmNotification,
   } = useAppContext();
 
   const bodyToken = useMemo(

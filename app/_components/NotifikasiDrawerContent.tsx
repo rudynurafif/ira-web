@@ -1,4 +1,3 @@
-// app/_components/NotifikasiDrawerContent.tsx
 "use client";
 
 import Image from "next/image";
