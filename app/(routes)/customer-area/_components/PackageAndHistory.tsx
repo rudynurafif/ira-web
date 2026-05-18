@@ -41,7 +41,7 @@ import { getCheckCoverageLogin } from "@/app/_api/Location/Location";
 import { getUser } from "@/app/store/slice/authSlice";
 import toast from "react-hot-toast";
 import RegistrationSummary from "./Modal/RegistrationSummary";
-import imageFailed from "@/public/assets/check-coverage/check-failed.png";
+import imageFailed from "@/public/assets/check-coverage/not-covered-banner.webp";
 import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import PendingPaymentCard from "./PendingPaymentCard";
 import RegistrationForm from "../../auth/register/_components/RegistrationForm";
@@ -618,7 +618,7 @@ const PackageAndHistory = () => {
           closeModal={() => setModalResult(false)}
           classNameModal={isCoverage && showRegistrationModal ? "p-8" : ""}
           width={
-            isCoverage && showRegistrationModal ? "max-w-[1200px]" : "max-w-2xl"
+            isCoverage && showRegistrationModal ? "max-w-[1200px]" : "max-w-md"
           }
         >
           {isCoverage && showRegistrationModal ? (
@@ -629,8 +629,14 @@ const PackageAndHistory = () => {
               }}
             />
           ) : (
-            <div className="rounded-xl overflow-hidden">
+            <div
+              className="rounded-xl overflow-hidden"
+              onClick={handleClickBanner}
+            >
               <div className="w-full">
+                <Image alt="image-status" src={imageFailed} className="" />
+              </div>
+              {/* <div className="w-full">
                 <Image
                   alt="image-status"
                   src={imageFailed}
@@ -659,7 +665,7 @@ const PackageAndHistory = () => {
                 >
                   Perbarui Alamat
                 </button>
-              </div>
+              </div> */}
             </div>
           )}
         </ModalTemplate>
