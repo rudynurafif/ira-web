@@ -1,4 +1,3 @@
-// hooks/useFCM.ts
 import { useEffect, useState } from "react";
 import {
   getMessagingSafe,

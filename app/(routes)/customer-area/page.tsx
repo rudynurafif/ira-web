@@ -67,6 +67,7 @@ export default function AreaPelanggan() {
     fcmCheckNotificationPermission,
     fcmRequestPermissionIfNeeded,
     fcmShowPermissionGuide,
+    fcmNotification,
   } = useAppContext();
 
   const bodyToken = useMemo(
@@ -82,27 +83,35 @@ export default function AreaPelanggan() {
   const isReactivation =
     userInfo?.status === "active" && userInfo?.cpe_sim_binding_id;
 
+  const loadUnreadCount = async () => {
+    try {
+      const res = await countAllNotif();
+
+      const count =
+        res?.data?.result ??
+        res?.data?.count ??
+        res?.data?.data?.result ??
+        res?.data?.data?.count ??
+        0;
+
+      setUnreadCount(Number(count) || 0);
+    } catch (error) {
+      console.error("Gagal ambil unread notif:", error);
+      setUnreadCount(0);
+    }
+  };
+
+  // 1. Refetch saat drawer dibuka/ditutup
   useEffect(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const res = await countAllNotif();
-
-        const count =
-          res?.data?.result ??
-          res?.data?.count ??
-          res?.data?.data?.result ??
-          res?.data?.data?.count ??
-          0;
-
-        setUnreadCount(Number(count) || 0);
-      } catch (error) {
-        console.error("Gagal ambil unread notif:", error);
-        setUnreadCount(0);
-      }
-    };
-
-    fetchUnreadCount();
+    loadUnreadCount();
   }, [drawerOpen]);
+
+  // 2. Refetch OTOMATIS saat ada notifikasi FCM baru masuk di foreground
+  useEffect(() => {
+    if (fcmNotification) {
+      loadUnreadCount();
+    }
+  }, [fcmNotification]);
 
   // ✅ Tambah useEffect untuk detect status change
   useEffect(() => {
