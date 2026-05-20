@@ -47,6 +47,11 @@ export default function AppOpenBannerRedeem() {
   }
 
   useEffect(() => {
+    const currentOrigin =
+      typeof window !== "undefined" ? window.location.origin : "";
+    const universalLinkPath = "/launch"; // ✅ Path sesuai AASA
+    const universalLink = `${currentOrigin}${universalLinkPath}`;
+    console.log(universalLink);
     showActiveCampaignRedeem();
   }, []);
 
