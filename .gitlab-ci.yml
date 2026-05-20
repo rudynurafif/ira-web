@@ -33,6 +33,8 @@ cache:
 
 devel-job:       # This job runs in the build stage, which runs first.
   stage: Build
+  tags:
+    - ira-runner
   rules:
     - if: '$CI_COMMIT_BRANCH == "development"'
       changes:
@@ -45,9 +47,7 @@ devel-job:       # This job runs in the build stage, which runs first.
     - if: '$CI_COMMIT_BRANCH == "development"'
       when: always # Pipeline akan berjalan jika file ada perubahan.
   before_script:
-    - apt update && apt install -y git
-    - apt install -y curl vim
-    - apt install -y openssh-client
+    - apk update && apk add --no-cache git curl vim openssh-client
     - mkdir -p ~/.ssh
     - echo "$FWA_DEV_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
@@ -89,6 +89,8 @@ devel-job:       # This job runs in the build stage, which runs first.
 
 staging-job:       # This job runs in the build stage, which runs first.
   stage: Build
+  tags:
+    - ira-runner
   rules:
     - if: '$CI_COMMIT_BRANCH == "stage"'
       changes:
@@ -101,9 +103,7 @@ staging-job:       # This job runs in the build stage, which runs first.
     - if: '$CI_COMMIT_BRANCH == "stage"'
       when: always # Pipeline akan berjalan jika file ada perubahan.
   before_script:
-    - apt update && apt install -y git
-    - apt install -y curl vim
-    - apt install -y openssh-client
+    - apk update && apk add --no-cache git curl vim openssh-client
     - mkdir -p ~/.ssh
     - echo "$FWA_STAGE_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
@@ -145,6 +145,8 @@ staging-job:       # This job runs in the build stage, which runs first.
 
 deploy-production:
   stage: Deploy
+  tags:
+    - ira-runner
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
@@ -157,9 +159,7 @@ deploy-production:
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: always # Pipeline akan berjalan jika file ada perubahan.
   before_script:
-    - apt update && apt install -y git
-    - apt install -y curl vim
-    - apt install -y openssh-client
+    - apk update && apk add --no-cache git curl vim openssh-client
     - mkdir -p ~/.ssh
     - echo "$FWA_PROD_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
