@@ -141,7 +141,7 @@ function VA({ data }: { data: UnifiedPaymentData }) {
             Nomor Virtual Account
           </span>
           <span className="font-bold text-dark-primary-2 text-[20px] sm:text-[23px] block pt-2">
-            {formatPaymentNumber(data.va ?? "-")}
+            {formatPaymentNumber(data.va ?? data.payment_number ?? "-")}
           </span>
 
           <div className="flex justify-between items-center gap-2">

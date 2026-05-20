@@ -119,8 +119,12 @@ function Page() {
   };
 
   useEffect(() => {
-    // Jalankan jika sudah tahu status loginnya (isLoggedIn) atau jika terdeteksi data microsite
-    if (isLoggedIn || sessionStorage.getItem("customer_code")) {
+    // Pastikan customer_code sudah siap sebelum hit API
+    const customerCodeReady = isLoggedIn
+      ? !!userInfo?.customer_code
+      : !!sessionStorage.getItem("customer_code");
+
+    if (customerCodeReady) {
       getCurrentPaymentData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

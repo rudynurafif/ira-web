@@ -10,6 +10,7 @@ import {
   createPaymentRequestOTC,
   getPaymentChannel,
   createPaymentRequestGopay,
+  createPaymentRequestVAMidtrans,
 } from "@/app/_api/Payment/Payment";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PaymentChannel } from "@/app/_shared/types/payment";
@@ -31,6 +32,7 @@ import {
   createPaymentRequestOTCMicrosite,
   createPaymentRequestQRISMicrosite,
   createPaymentRequestVAMicrosite,
+  createPaymentRequestVAMidtransMicrosite,
 } from "@/app/_api/Payment/Payment-Microsite";
 
 // Mapping code API -> gambar lokal
@@ -149,8 +151,10 @@ const PaymentMehods = () => {
         // Mencegah double fetch saat inisialisasi awal (jika data sudah ada atau sedang fetch)
         if (paymentChannels.length > 0) return;
 
-        await handleCheckPackage();
-        getPaymentMethods();
+        const isAllowed = await handleCheckPackage();
+        if (isAllowed) {
+          await getPaymentMethods();
+        }
       }
     };
 
@@ -170,7 +174,7 @@ const PaymentMehods = () => {
   );
   const qrisChannels = paymentChannels.filter(
     (ch) => ch.category === "qris" && ch.is_active,
-  );
+  ); 
   const outlets = paymentChannels.filter(
     (ch) => ch.category === "otc" && ch.is_active,
   );
@@ -239,9 +243,20 @@ const PaymentMehods = () => {
 
       // Khusus untuk channel yang menggunakan gateway MIDTRANS
       if (selectedChannel.payment_gateway_id?.code === "MIDTRANS") {
-        createRes = isLoggedIn
-          ? createPaymentRequestGopay(payload)
-          : createPaymentRequestGopayMicrosite(payload);
+        switch (selectedChannel.category) {
+          case "va":
+            createRes = isLoggedIn
+              ? createPaymentRequestVAMidtrans(payload)
+              : createPaymentRequestVAMidtransMicrosite(payload);
+            break;
+          case "ewallet":
+            createRes = isLoggedIn
+              ? createPaymentRequestGopay(payload)
+              : createPaymentRequestGopayMicrosite(payload);
+            break;
+          default:
+            throw new Error("Metode Pembayaran MIDTRANS Tidak Didukung");
+        }
       } else {
         switch (selectedChannel.category) {
           case "va":
