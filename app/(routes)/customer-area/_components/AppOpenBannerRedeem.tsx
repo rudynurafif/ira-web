@@ -52,11 +52,56 @@ export default function AppOpenBannerRedeem() {
 
   if (dismissed) return null;
 
-  // ✅ Fungsi inti untuk membuka aplikasi (tanpa pengecekan hasRedeemCode)
+  // ✅ Fungsi inti untuk membuka aplikasi (dengan penanganan macOS)
+  // const executeOpenInApp = () => {
+  //   const ua = navigator.userAgent || "";
+  //   const platform = navigator.platform || "";
+
+  //   const isAndroid = /Android/i.test(ua);
+  //   const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  //   const isMac = /Macintosh|MacIntel|MacPPC|Mac68K/i.test(platform); // ✅ Deteksi macOS
+
+  //   if (isAndroid) {
+  //     const intentUrl = `intent://launch#Intent;scheme=ira;package=com.weave.ira;S.browser_fallback_url=${encodeURIComponent(ANDROID_STORE)};end`;
+  //     window.location.href = intentUrl;
+  //   } else if (isIOS) {
+  //     let appOpened = false;
+  //     const onVisibilityChange = () => {
+  //       if (document.hidden) appOpened = true;
+  //     };
+  //     document.addEventListener("visibilitychange", onVisibilityChange);
+
+  //     window.location.href = "ira://launch";
+
+  //     setTimeout(() => {
+  //       document.removeEventListener("visibilitychange", onVisibilityChange);
+  //       if (!appOpened && !document.hidden) {
+  //         window.location.href = IOS_STORE;
+  //       }
+  //     }, 1500);
+  //   } else if (isMac) {
+  //     // ✅ macOS: langsung arahkan ke App Store iOS
+  //     window.location.href = IOS_STORE;
+  //   } else {
+  //     // ✅ Desktop lain (Windows/Linux): tetap ke Play Store atau bisa disesuaikan
+  //     window.location.href = ANDROID_STORE;
+  //   }
+  // };
+
   const executeOpenInApp = () => {
     const ua = navigator.userAgent || "";
+    const platform = navigator.platform || "";
+
     const isAndroid = /Android/i.test(ua);
     const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isMac = /Macintosh|MacIntel|MacPPC|Mac68K/i.test(platform);
+
+    // ✅ Detect domain secara dinamis dari browser
+    const currentOrigin =
+      typeof window !== "undefined" ? window.location.origin : "";
+    const universalLinkPath = "/launch"; // ✅ Path sesuai AASA
+    const universalLink = `${currentOrigin}${universalLinkPath}`;
+    // console.log(universalLink);
 
     if (isAndroid) {
       const intentUrl = `intent://launch#Intent;scheme=ira;package=com.weave.ira;S.browser_fallback_url=${encodeURIComponent(ANDROID_STORE)};end`;
@@ -68,7 +113,8 @@ export default function AppOpenBannerRedeem() {
       };
       document.addEventListener("visibilitychange", onVisibilityChange);
 
-      window.location.href = "ira://launch";
+      // ✅ Gunakan universal link dengan domain dinamis
+      window.location.href = universalLink;
 
       setTimeout(() => {
         document.removeEventListener("visibilitychange", onVisibilityChange);
@@ -76,6 +122,8 @@ export default function AppOpenBannerRedeem() {
           window.location.href = IOS_STORE;
         }
       }, 1500);
+    } else if (isMac) {
+      window.location.href = IOS_STORE;
     } else {
       window.location.href = ANDROID_STORE;
     }
