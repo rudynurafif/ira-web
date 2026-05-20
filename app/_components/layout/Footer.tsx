@@ -228,7 +228,7 @@ function Footer() {
 
         {isMounted && (
           // VERSION
-          <div className="text-center text-[10px] mt-5">ver. 1.2005.04</div>
+          <div className="text-center text-[10px] mt-5">ver. 1.2005.05</div>
         )}
       </div>
     </div>
