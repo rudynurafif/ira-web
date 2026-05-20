@@ -8,7 +8,7 @@ import Image from "next/image";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import { motion } from "framer-motion";
 import imageFailed from "@/public/assets/Images/voucher-modal.webp";
-import checkIcon from "@/public/assets/Icons/check-green-icon.png";
+import checkIcon from "@/public/assets/Icons/check-icon.svg";
 import moment from "moment";
 import "moment/locale/id";
 
