@@ -41,11 +41,12 @@ import { getCheckCoverageLogin } from "@/app/_api/Location/Location";
 import { getUser } from "@/app/store/slice/authSlice";
 import toast from "react-hot-toast";
 import RegistrationSummary from "./Modal/RegistrationSummary";
-import imageFailed from "@/public/assets/check-coverage/check-failed.png";
+import imageFailed from "@/public/assets/check-coverage/not-covered-banner.webp";
 import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import PendingPaymentCard from "./PendingPaymentCard";
 import RegistrationForm from "../../auth/register/_components/RegistrationForm";
 import RegistrationWizard from "../../auth/register/_components/RegistrationWizard";
+import AppOpenBannerRedeem from "./AppOpenBannerRedeem";
 
 const PAGE_SIZE = 5;
 
@@ -404,6 +405,8 @@ const PackageAndHistory = () => {
 
   return (
     <>
+      <AppOpenBannerRedeem />
+
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
         {
@@ -487,7 +490,6 @@ const PackageAndHistory = () => {
 
         <HistorySection />
       </div>
-
       {/* DESKTOP (≥ sm) */}
       <div className="hidden sm:grid grid-cols-12 gap-6">
         <div className="lg:col-span-5 col-span-12 space-y-5">
@@ -575,7 +577,6 @@ const PackageAndHistory = () => {
           <HistorySection />
         </div>
       </div>
-
       {openModalNotAllowed && (
         <ModalTemplate
           closeModal={() => {
@@ -612,13 +613,12 @@ const PackageAndHistory = () => {
           </div>
         </ModalTemplate>
       )}
-
       {modalResult && (
         <ModalTemplate
           closeModal={() => setModalResult(false)}
           classNameModal={isCoverage && showRegistrationModal ? "p-8" : ""}
           width={
-            isCoverage && showRegistrationModal ? "max-w-[1200px]" : "max-w-2xl"
+            isCoverage && showRegistrationModal ? "max-w-[1200px]" : "max-w-md"
           }
         >
           {isCoverage && showRegistrationModal ? (
@@ -629,8 +629,14 @@ const PackageAndHistory = () => {
               }}
             />
           ) : (
-            <div className="rounded-xl overflow-hidden">
+            <div
+              className="rounded-xl overflow-hidden"
+              onClick={handleClickBanner}
+            >
               <div className="w-full">
+                <Image alt="image-status" src={imageFailed} className="" />
+              </div>
+              {/* <div className="w-full">
                 <Image
                   alt="image-status"
                   src={imageFailed}
@@ -659,12 +665,11 @@ const PackageAndHistory = () => {
                 >
                   Perbarui Alamat
                 </button>
-              </div>
+              </div> */}
             </div>
           )}
         </ModalTemplate>
       )}
-
       {showUpdateAddressForm && (
         <ModalTemplate
           closeModal={() => setShowUpdateAddressForm(false)}

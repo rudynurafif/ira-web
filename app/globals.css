@@ -260,6 +260,12 @@ button {
   /* filter: drop-shadow(0px 0px 21.349px #ffaae3); */
 }
 
+.bg-redeem {
+  background: linear-gradient(180deg, #520201 6.25%, #B80502 100%);
+  box-shadow: 0 0 10px 0 #FFF;
+  /* filter: drop-shadow(0px 0px 21.349px #ffaae3); */
+}
+
 .bg-subs-expired {
   background: linear-gradient(
     173.48deg,
@@ -276,6 +282,15 @@ button {
     #ff6bb7 -78.1%,
     rgba(255, 147, 202, 0) 101.42%
   );
+  /* background: linear-gradient(
+    189.83deg,
+    #ff3ba0 -78.1%,
+    rgba(255, 147, 202, 0) 101.42%
+  ); */
+}
+
+.fancy-redeem {
+background: linear-gradient(0deg, #520201 -15.38%, #B80502 105.77%);
   /* background: linear-gradient(
     189.83deg,
     #ff3ba0 -78.1%,
