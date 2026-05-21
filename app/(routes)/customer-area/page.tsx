@@ -67,6 +67,7 @@ export default function AreaPelanggan() {
     fcmCheckNotificationPermission,
     fcmRequestPermissionIfNeeded,
     fcmShowPermissionGuide,
+    fcmNotification,
   } = useAppContext();
 
   const bodyToken = useMemo(
