@@ -46,6 +46,7 @@ import { UnifiedPaymentData } from "@/app/_shared/types/payment";
 import PendingPaymentCard from "./PendingPaymentCard";
 import RegistrationForm from "../../auth/register/_components/RegistrationForm";
 import RegistrationWizard from "../../auth/register/_components/RegistrationWizard";
+import AppOpenBannerRedeem from "./AppOpenBannerRedeem";
 
 const PAGE_SIZE = 5;
 
@@ -404,6 +405,8 @@ const PackageAndHistory = () => {
 
   return (
     <>
+      <AppOpenBannerRedeem />
+
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
         {
@@ -487,7 +490,6 @@ const PackageAndHistory = () => {
 
         <HistorySection />
       </div>
-
       {/* DESKTOP (≥ sm) */}
       <div className="hidden sm:grid grid-cols-12 gap-6">
         <div className="lg:col-span-5 col-span-12 space-y-5">
@@ -575,7 +577,6 @@ const PackageAndHistory = () => {
           <HistorySection />
         </div>
       </div>
-
       {openModalNotAllowed && (
         <ModalTemplate
           closeModal={() => {
@@ -612,7 +613,6 @@ const PackageAndHistory = () => {
           </div>
         </ModalTemplate>
       )}
-
       {modalResult && (
         <ModalTemplate
           closeModal={() => setModalResult(false)}
@@ -670,7 +670,6 @@ const PackageAndHistory = () => {
           )}
         </ModalTemplate>
       )}
-
       {showUpdateAddressForm && (
         <ModalTemplate
           closeModal={() => setShowUpdateAddressForm(false)}
