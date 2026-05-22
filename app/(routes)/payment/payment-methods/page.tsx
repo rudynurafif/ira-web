@@ -211,12 +211,12 @@ const PaymentMehods = () => {
     }
 
     setIsCreatePayment(true);
+    let navigated = false;
 
     try {
       // Pengecekan keamanan terakhir sebelum hit API bayar
       const isAllowed = await handleCheckPackage();
       if (!isAllowed) {
-        setIsCreatePayment(false);
         return;
       }
 
@@ -231,6 +231,7 @@ const PaymentMehods = () => {
           "Identitas pelanggan tidak ditemukan. Silakan isi ulang data.",
         );
         router.replace(backToBillingUrl);
+        navigated = true;
         return;
       }
 
@@ -313,6 +314,7 @@ const PaymentMehods = () => {
           }
 
           router.push(nextPath);
+          navigated = true;
         } else if (selectedChannel.category === "ewallet" && url) {
           // ─── GUEST FLOW SUCCESS DATA ──────────────────────────────────────────
           // Simpan data pembayaran ke sessionStorage sebelum redirect ke Xendit.
@@ -336,6 +338,7 @@ const PaymentMehods = () => {
           }
 
           window.location.href = url;
+          navigated = true;
           // window.open(url, "_blank");
         } else {
           toast.error(
@@ -349,9 +352,10 @@ const PaymentMehods = () => {
       }
     } catch (error: any) {
       toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
-      setIsCreatePayment(false);
     } finally {
-      setIsCreatePayment(false);
+      if (!navigated) {
+        setIsCreatePayment(false);
+      }
     }
   };
 
