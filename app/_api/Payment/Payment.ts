@@ -27,6 +27,19 @@ export const createPaymentRequestVA = async (body: any) => {
   }
 };
 
+export const createPaymentRequestVAMidtrans = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/midtrans/va-bank",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getVaById = async (id: string) => {
   try {
     const data = await FwaAxios({

@@ -46,6 +46,7 @@ const Payment = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
+  const [isCheckingPackage, setIsCheckingPackage] = useState(false);
 
   const fetchPackages = async () => {
     try {
@@ -122,6 +123,9 @@ const Payment = () => {
   };
 
   const handleCheckPackage: () => Promise<void> = async () => {
+    if (isCheckingPackage) return;
+    setIsCheckingPackage(true);
+
     try {
       const res = await checkPackage();
 
@@ -130,10 +134,12 @@ const Payment = () => {
         router.push("/payment/payment-methods");
       } else {
         setOpenModalNotAllowed(true);
+        setIsCheckingPackage(false);
         return;
       }
     } catch (err) {
       toastErrorFromAPI(err);
+      setIsCheckingPackage(false);
     }
   };
 
@@ -224,9 +230,9 @@ const Payment = () => {
         <button
           className="rounded-full sm:rounded-lg shadow-lg sm:text-xl mt-6 disabled:cursor-not-allowed! disabled:bg-slate-400 text-white font-bold w-full bg-primary hover:bg-dark-primary-2 cursor-pointer py-4"
           onClick={handleCheckPackage}
-          disabled={!selectedPackage}
+          disabled={!selectedPackage || isCheckingPackage}
         >
-          Pilih Metode Pembayaran
+          {isCheckingPackage ? "Mohon menunggu..." : "Pilih Metode Pembayaran"}
         </button>
       </div>
 

@@ -16,15 +16,15 @@ function handleAuthLogic(req: NextRequest, pathname: string) {
     "/check-coverage",
     "/forgot-password",
     "/panduan-cara-bayar",
-    "/privacy-and-policy",
-    "/refund-policy",
-    "/terms-and-condition",
-    "/sentry-example-page",
-    "/payment-billing",
-    "/payment-billing/success",
     "/payment",
+    "/payment-billing",
     "/payment/payment-methods",
     "/payment/checkout-payment",
+    "/payment-billing/success",
+    "/privacy-and-policy",
+    "/refund-policy",
+    "/sentry-example-page",
+    "/terms-and-condition",
   ];
 
   const isPublic = publicPaths.some(
