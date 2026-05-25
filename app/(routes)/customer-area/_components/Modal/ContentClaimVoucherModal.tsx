@@ -9,10 +9,12 @@ const IOS_STORE = "https://apps.apple.com/id/app/internet-rakyat/id6758337694";
 
 interface AppOpenBannerRedeemProps {
   setShowConfirmModal: (val: boolean) => void;
+  userInfo?: any;
 }
 
 function ContentClaimVoucherModal({
   setShowConfirmModal,
+  userInfo,
 }: AppOpenBannerRedeemProps) {
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.95, y: 10 },
@@ -66,6 +68,7 @@ function ContentClaimVoucherModal({
     setShowConfirmModal(false);
     executeOpenInApp();
   };
+
   return (
     <div>
       <motion.div
@@ -96,6 +99,7 @@ function ContentClaimVoucherModal({
             Voucher Bola Gembira 2026 hanya dapat diklaim melalui aplikasi IRA.
             Silakan buka aplikasi IRA dan klaim voucher Anda untuk mendapatkan
             akses nonton Bola Gembira 2026
+            {/* {userInfo && userInfo?.is_coverage !== false && " Gratis"}. */}
           </p>
           {/* ✅ Tombol aksi */}
           <div className="flex flex-col gap-3 mt-6">

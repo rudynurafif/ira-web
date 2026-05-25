@@ -48,6 +48,7 @@ import RegistrationForm from "../../auth/register/_components/RegistrationForm";
 import RegistrationWizard from "../../auth/register/_components/RegistrationWizard";
 import AppOpenBannerRedeem from "./AppOpenBannerRedeem";
 import { getActiveCampaign } from "@/app/_api/Redeem/Redeem";
+import AppOpenBannerRedeemPotensial from "./AppOpenBannerRedeemPotensial";
 
 const PAGE_SIZE = 5;
 
@@ -437,15 +438,16 @@ const PackageAndHistory = () => {
 
   return (
     <>
-      {userInfo?.is_coverage !== false && (
+      {/* {userInfo?.is_coverage !== false && (
         <AppOpenBannerRedeem
+          userInfo={userInfo}
           dismissed={dismissedBanner}
           setDismissed={setDismissedBanner}
           redeemCode={redeemCode}
           endDate={endDate}
           hasRedeemCode={hasRedeemCode}
         />
-      )}
+      )} */}
 
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
@@ -520,6 +522,17 @@ const PackageAndHistory = () => {
         />
 
         {activePacketData?.package_id && <LatestPackage />}
+
+        {/* {userInfo?.is_coverage === false && ( */}
+        <AppOpenBannerRedeemPotensial
+          userInfo={userInfo}
+          dismissed={dismissedBanner}
+          setDismissed={setDismissedBanner}
+          redeemCode={redeemCode}
+          endDate={endDate}
+          hasRedeemCode={hasRedeemCode}
+        />
+        {/* )} */}
 
         <Image
           src={bannerPanduanMobile}
@@ -607,13 +620,23 @@ const PackageAndHistory = () => {
           {/* Paket terakhir dibeli */}
           {activePacketData?.package_id && <LatestPackage />}
 
+          {/* {userInfo?.is_coverage === false && ( */}
+          <AppOpenBannerRedeemPotensial
+            userInfo={userInfo}
+            dismissed={dismissedBanner}
+            setDismissed={setDismissedBanner}
+            redeemCode={redeemCode}
+            endDate={endDate}
+            hasRedeemCode={hasRedeemCode}
+          />
+          {/* )} */}
+
           <Image
             src={bannerPanduan}
             alt="Banner Panduan"
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
-
           <HistorySection />
         </div>
       </div>
