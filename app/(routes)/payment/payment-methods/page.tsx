@@ -109,6 +109,7 @@ const PaymentMehods = () => {
         router.replace(backToBillingUrl);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, router, selectedPackage]);
 
   const handleCheckPackage = async (): Promise<boolean> => {
