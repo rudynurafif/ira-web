@@ -16,6 +16,7 @@ interface AppOpenBannerRedeemProps {
   redeemCode: string;
   endDate: string;
   hasRedeemCode: boolean;
+  userInfo: any;
 }
 
 export default function AppOpenBannerRedeem({
@@ -24,6 +25,7 @@ export default function AppOpenBannerRedeem({
   redeemCode,
   endDate,
   hasRedeemCode,
+  userInfo,
 }: AppOpenBannerRedeemProps) {
   const [showModalAlreadyClaimed, setShowModalAlreadyClaimed] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false); // ✅ State untuk modal konfirmasi
@@ -144,7 +146,10 @@ export default function AppOpenBannerRedeem({
           closeModal={() => setShowConfirmModal(false)}
           classNameModal="max-w-lg"
         >
-          <ContentClaimVoucherModal setShowConfirmModal={setShowConfirmModal} />
+          <ContentClaimVoucherModal
+            userInfo={userInfo}
+            setShowConfirmModal={setShowConfirmModal}
+          />
         </ModalTemplate>
       )}
     </div>

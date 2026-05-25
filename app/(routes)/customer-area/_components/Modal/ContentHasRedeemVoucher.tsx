@@ -45,14 +45,17 @@ function ContentHasRedeemVoucher({
 
           {/* Title */}
           <h1 className="text-center text-xl lg:text-2xl font-bold w-full mx-auto text-gray-900">
-            Voucher Internet Rakyat x Folaplus Bola Gembira 2026 Berhasil
-            Diklaim
+            {/* Voucher Internet Rakyat x Folaplus Bola Gembira 2026 Berhasil
+            Diklaim */}
+            Voucher Bola Gembira Berhasil Diklaim
           </h1>
 
           {/* Description */}
           <p className="mt-4 w-full mx-auto text-center text-gray-600 text-sm leading-relaxed">
-            Selamat! Anda berhasil mendapatkan voucher Internet Rakyat x
-            Folaplus Bola Gembira 2026. Silakan gunakan voucher sebelum{" "}
+            {/* Selamat! Anda berhasil mendapatkan voucher Internet Rakyat x
+            Folaplus Bola Gembira 2026. Silakan gunakan voucher sebelum{" "} */}
+            Selamat! Anda berhasil mendapatkan voucher Bola Gembira. Silakan
+            gunakan voucher sebelum{" "}
             <strong className="text-gray-900">
               {endDate ? moment(endDate).format("DD MMMM YYYY") : "-"}
             </strong>
