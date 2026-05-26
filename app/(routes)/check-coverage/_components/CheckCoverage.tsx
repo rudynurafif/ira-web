@@ -4,11 +4,7 @@ import Image from "next/image";
 import toast from "react-hot-toast";
 import ModalCheckCoverage from "./ModalCheckCoverage";
 import ModalTemplate from "@/app/_components/modal/ModalTemplate";
-import {
-  getCheckCoverage,
-  getLocationSuggest,
-  getLocationRetrieve,
-} from "@/app/_api/Location/Location";
+import { getCheckCoverage } from "@/app/_api/Location/Location";
 import { IoCloseSharp, IoSearchSharp } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
 import RegistrationForm from "../../auth/register/_components/RegistrationForm";
@@ -18,6 +14,8 @@ import FloatingNavbar from "@/app/_components/FloatingNavbar";
 import BannerPrice from "@/public/assets/check-coverage/banner-price.webp";
 import { FaArrowRight, FaXmark } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
+
+const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
 
 function CheckCoverage() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -85,17 +83,19 @@ function CheckCoverage() {
     setIsLoading(true);
 
     // mulai cooldown dan lakukan fetch setelah cooldown selesai
+    // (biar persis pola MapGeoapify kamu)
     startCooldown(10, async () => {
       try {
-        const res = await getLocationSuggest({ search: q });
-        const list = res?.data?.data || [];
-        setPredictions(list);
-        if (list.length === 0) {
-          toast.error("Alamat tidak ditemukan");
-        }
-      } catch (err: any) {
-        console.error("Error fetching location suggest:", err);
-        toastErrorFromAPI(err);
+        const res = await fetch(
+          `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
+            q,
+          )}&filter=countrycode:id&lang=id&apiKey=${GEOAPIFY_KEY}`,
+        );
+        const data = await res.json();
+        setPredictions(data.features || []);
+      } catch (err) {
+        console.error("Error fetching Geoapify autocomplete:", err);
+        toast.error("Gagal memuat saran lokasi");
         setPredictions([]);
       } finally {
         setIsLoading(false);
@@ -114,51 +114,33 @@ function CheckCoverage() {
   };
 
   // pilih alamat dari dropdown
-  const handlePredictionClick = async (feature: any) => {
-    if (isLoading) return;
+  const handlePredictionClick = (feature: any) => {
+    const { properties, geometry } = feature;
+    const formattedAddress = properties.formatted;
+    const lat = geometry.coordinates[1];
+    const lng = geometry.coordinates[0];
 
-    try {
-      setIsLoading(true);
+    setAddress(formattedAddress);
 
-      let apiData = feature;
-
-      // Jika di suggestion tidak ada lat/long, ambil dari retrieve
-      if (!apiData.latitude || !apiData.longitude) {
-        const res = await getLocationRetrieve(feature.id);
-        apiData = res?.data?.data || apiData;
-      }
-
-      if (!apiData.latitude || !apiData.longitude) {
-        toast.error("Gagal mendapatkan koordinat lokasi");
-        return;
-      }
-
-      const formattedAddress = apiData.full_address || apiData.name;
-      const lat = apiData.latitude;
-      const lng = apiData.longitude;
-
-      setAddress(formattedAddress);
-
-      if (inputRef.current) {
-        inputRef.current.value = formattedAddress;
-      }
-
-      const newData = {
-        location: formattedAddress,
-        lat,
-        lng,
-        rawData: apiData,
-      };
-
-      setDataChooseMap(newData);
-      setPredictions([]);
-
-      await checkRadius(newData);
-    } catch (err: any) {
-      toastErrorFromAPI(err);
-    } finally {
-      setIsLoading(false);
+    if (inputRef.current) {
+      inputRef.current.value = formattedAddress;
     }
+
+    const newData = {
+      location: formattedAddress,
+      lat,
+      lng,
+      rawData: feature,
+    };
+
+    setDataChooseMap(newData);
+
+    // ✅ Langsung jalankan check radius setelah pilih prediksi
+    if (!isLoading) {
+      checkRadius(newData);
+    }
+
+    setPredictions([]);
   };
 
   // cek coverage
@@ -333,7 +315,7 @@ function CheckCoverage() {
               <div className="border-2 rounded-lg px-2 py-2 absolute z-50 bg-white max-h-60 overflow-y-auto w-full mt-2">
                 {predictions.map((feature, idx) => (
                   <div
-                    key={feature.id || idx}
+                    key={idx}
                     onClick={() => handlePredictionClick(feature)}
                     className="cursor-pointer max-sm:text-xs text-sm flex gap-2 items-start py-2 hover:bg-gray-100"
                   >
@@ -359,7 +341,7 @@ function CheckCoverage() {
                       </svg>
                     </div>
                     <div className="text-dark-primary">
-                      {feature.full_address || feature.name}
+                      {feature.properties.formatted}
                     </div>
                   </div>
                 ))}
