@@ -47,6 +47,8 @@ import PendingPaymentCard from "./PendingPaymentCard";
 import RegistrationForm from "../../auth/register/_components/RegistrationForm";
 import RegistrationWizard from "../../auth/register/_components/RegistrationWizard";
 import AppOpenBannerRedeem from "./AppOpenBannerRedeem";
+import { getActiveCampaign } from "@/app/_api/Redeem/Redeem";
+import AppOpenBannerRedeemPotensial from "./AppOpenBannerRedeemPotensial";
 
 const PAGE_SIZE = 5;
 
@@ -80,6 +82,37 @@ const PackageAndHistory = () => {
   >();
   const [hasPendingPayment, setHasPendingPayment] = useState(false);
   const [showUpdateAddressForm, setShowUpdateAddressForm] = useState(false);
+
+  // ✅ Hanya 4 state ini yang di-lift ke parent
+  const [dismissedBanner, setDismissedBanner] = useState(true);
+  const [redeemCode, setRedeemCode] = useState<string>("");
+  const [endDate, setEndDate] = useState("");
+  const [hasRedeemCode, setHasRedeemCode] = useState<boolean>(false);
+
+  useEffect(() => {
+    async function showActiveCampaignRedeem() {
+      try {
+        const res_redeem = await getActiveCampaign();
+        if (res_redeem?.data?.statusCode === 200) {
+          if (res_redeem?.data?.code === "0") {
+            setDismissedBanner(false);
+          } else if (res_redeem?.data?.code === "1") {
+            setDismissedBanner(true);
+          } else if (res_redeem?.data?.code === "01") {
+            setDismissedBanner(false);
+            setHasRedeemCode(true);
+            setEndDate(res_redeem?.data?.end_date || "");
+            setRedeemCode(res_redeem?.data?.redeem_code || "-");
+          }
+        }
+      } catch (error: any) {
+        toast.error(
+          error?.response?.data?.message || "Api Get Active Campaign Error",
+        );
+      }
+    }
+    showActiveCampaignRedeem();
+  }, []);
 
   const dispatch = useAppDispatch();
 
@@ -405,7 +438,16 @@ const PackageAndHistory = () => {
 
   return (
     <>
-      <AppOpenBannerRedeem />
+      {/* {userInfo?.is_coverage !== false && (
+        <AppOpenBannerRedeem
+          userInfo={userInfo}
+          dismissed={dismissedBanner}
+          setDismissed={setDismissedBanner}
+          redeemCode={redeemCode}
+          endDate={endDate}
+          hasRedeemCode={hasRedeemCode}
+        />
+      )} */}
 
       {/* MOBILE (< sm) */}
       <div className="sm:hidden space-y-6">
@@ -480,6 +522,17 @@ const PackageAndHistory = () => {
         />
 
         {activePacketData?.package_id && <LatestPackage />}
+
+        {/* {userInfo?.is_coverage === false && ( */}
+        <AppOpenBannerRedeemPotensial
+          userInfo={userInfo}
+          dismissed={dismissedBanner}
+          setDismissed={setDismissedBanner}
+          redeemCode={redeemCode}
+          endDate={endDate}
+          hasRedeemCode={hasRedeemCode}
+        />
+        {/* )} */}
 
         <Image
           src={bannerPanduanMobile}
@@ -567,13 +620,23 @@ const PackageAndHistory = () => {
           {/* Paket terakhir dibeli */}
           {activePacketData?.package_id && <LatestPackage />}
 
+          {/* {userInfo?.is_coverage === false && ( */}
+          <AppOpenBannerRedeemPotensial
+            userInfo={userInfo}
+            dismissed={dismissedBanner}
+            setDismissed={setDismissedBanner}
+            redeemCode={redeemCode}
+            endDate={endDate}
+            hasRedeemCode={hasRedeemCode}
+          />
+          {/* )} */}
+
           <Image
             src={bannerPanduan}
             alt="Banner Panduan"
             className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
             onClick={() => window.open("/panduan-cara-bayar", "_blank")}
           />
-
           <HistorySection />
         </div>
       </div>
