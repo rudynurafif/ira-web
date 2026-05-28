@@ -405,6 +405,14 @@ function Header() {
               IRA
             </Link>
 
+            <Link
+              href="/#apps"
+              className="underline-animation-register"
+              onClick={() => setIsOpenMenu(false)}
+            >
+              Apps
+            </Link>
+
             {!userInfo ||
             userInfo.is_coverage === false ||
             userInfo.status === "canceled-instalation" ? (
