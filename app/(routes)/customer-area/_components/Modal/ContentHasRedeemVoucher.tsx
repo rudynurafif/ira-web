@@ -5,6 +5,8 @@ import moment from "moment";
 import "moment/locale/id";
 import checkIcon from "@/public/assets/Icons/check-icon.svg";
 import toast from "react-hot-toast";
+import { useAppSelector } from "@/app/store/store";
+import { selectEventName } from "@/app/store/slice/campaignSlice";
 
 interface AppOpenBannerRedeemProps {
   setShowModalAlreadyClaimed: (val: boolean) => void;
@@ -17,6 +19,8 @@ function ContentHasRedeemVoucher({
   endDate,
   redeemCode,
 }: AppOpenBannerRedeemProps) {
+  const eventName = useAppSelector(selectEventName);
+
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.95, y: 10 },
     visible: { opacity: 1, scale: 1, y: 0 },
@@ -45,16 +49,12 @@ function ContentHasRedeemVoucher({
 
           {/* Title */}
           <h1 className="text-center text-xl lg:text-2xl font-bold w-full mx-auto text-gray-900">
-            {/* Voucher Internet Rakyat x Folaplus Bola Gembira 2026 Berhasil
-            Diklaim */}
-            Voucher Bola Gembira Berhasil Diklaim
+            Voucher {eventName} Berhasil Diklaim
           </h1>
 
           {/* Description */}
           <p className="mt-4 w-full mx-auto text-center text-gray-600 text-sm leading-relaxed">
-            {/* Selamat! Anda berhasil mendapatkan voucher Internet Rakyat x
-            Folaplus Bola Gembira 2026. Silakan gunakan voucher sebelum{" "} */}
-            Selamat! Anda berhasil mendapatkan voucher Bola Gembira. Silakan
+            Selamat! Anda berhasil mendapatkan voucher {eventName}. Silakan
             gunakan voucher sebelum{" "}
             <strong className="text-gray-900">
               {endDate ? moment(endDate).format("DD MMMM YYYY") : "-"}
