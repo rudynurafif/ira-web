@@ -55,8 +55,14 @@ function MainPage() {
         isStatic: true,
       };
 
-      const apiSlides: SlideData[] = res_banner?.data?.data?.map(
-        (item: any) => ({
+      const apiSlides: SlideData[] = (res_banner?.data?.data ?? [])
+        .slice()
+        .sort(
+          (a: any, b: any) =>
+            (a.desktop_orders ?? Number.MAX_SAFE_INTEGER) -
+            (b.desktop_orders ?? Number.MAX_SAFE_INTEGER),
+        )
+        .map((item: any) => ({
           image: item.web_apps_image
             ? `${process.env.NEXT_PUBLIC_URL_OBS}${item.web_apps_image}`
             : "",
@@ -65,8 +71,7 @@ function MainPage() {
             : "",
           url: item.url,
           isStatic: false,
-        }),
-      );
+        }));
 
       setSlides([staticHero, ...apiSlides]);
     } catch (err: any) {
