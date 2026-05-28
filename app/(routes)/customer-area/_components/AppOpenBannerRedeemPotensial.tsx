@@ -10,6 +10,13 @@ import ModalTemplate from "@/app/_components/modal/ModalTemplate";
 import ContentClaimVoucherModal from "./Modal/ContentClaimVoucherModal";
 import ContentHasRedeemVoucher from "./Modal/ContentHasRedeemVoucher";
 import { FaCheckCircle } from "react-icons/fa";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import {
+  fetchCampaignSettings,
+  selectEventName,
+  selectWebBannerUrl,
+  selectMobileBannerUrl,
+} from "@/app/store/slice/campaignSlice";
 
 interface AppOpenBannerRedeemProps {
   dismissed: boolean;
@@ -31,6 +38,19 @@ export default function AppOpenBannerRedeemPotensial({
   const [showModalAlreadyClaimed, setShowModalAlreadyClaimed] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false); // ✅ State untuk modal konfirmasi
 
+  const dispatch = useAppDispatch();
+  const eventName = useAppSelector(selectEventName);
+  const webBannerUrl = useAppSelector(selectWebBannerUrl);
+  const mobileBannerUrl = useAppSelector(selectMobileBannerUrl);
+
+  // Pakai URL dari setting kalau ada, fallback ke aset statis bundled.
+  const desktopBanner = webBannerUrl || VoucherRedeemDesktopV2;
+  const mobileBanner = mobileBannerUrl || VoucherRedeemDesktopV2Mobile;
+
+  useEffect(() => {
+    dispatch(fetchCampaignSettings());
+  }, [dispatch]);
+
   if (dismissed) return null;
 
   // ✅ Handler saat tombol banner diklik -> tampilkan modal konfirmasi
@@ -51,18 +71,22 @@ export default function AppOpenBannerRedeemPotensial({
       {/* Mobile Banner */}
       <div className="relative w-full md:hidden mb-5">
         <Image
-          src={VoucherRedeemDesktopV2Mobile}
+          src={mobileBanner}
           alt="Voucher Redeem"
-          className="w-full drop-shadow-lg rounded-t-[12px]"
+          width={0}
+          height={0}
+          sizes="100vw"
+          className="w-full h-auto drop-shadow-lg rounded-t-[12px]"
+          unoptimized
         />
 
         <div className="relative bg-[#F1F1F1] h-fit  w-full p-2 rounded-b-[12px]">
-          <div className=" p-1 rounded-[12px] -mt-[110px]">
+          <div className=" p-1 rounded-[12px] -mt-[70px]">
             <div className="bg-white border border-[#B41B1980] rounded-[12px] p-3 text-center">
               {!hasRedeemCode ? (
                 <div>
                   <h1 className="font-bold text-black">
-                    Bola Gembira 2026 Makin Seru, Harga Lebih Murah di Aplikasi
+                    {eventName} 2026 Makin Seru, Harga Lebih Murah di Aplikasi
                     IRA
                   </h1>
 
@@ -86,7 +110,7 @@ export default function AppOpenBannerRedeemPotensial({
                         <FaCheckCircle className="text-[#16A34A]" />
                       </div>
                       <div className="!text-left text-[11px] font-medium">
-                        Akses Bola Gembira
+                        Akses {eventName}
                       </div>
                     </div>
                   </div>
@@ -105,7 +129,7 @@ export default function AppOpenBannerRedeemPotensial({
 
                   <p className="text-xs text-[#333] pt-3">
                     Voucher kamu sudah tersedia. Silakan lihat kode voucher
-                    untuk mulai menikmati akses Bola Gembira 2026.
+                    untuk mulai menikmati akses {eventName} 2026.
                   </p>
                 </div>
               )}
@@ -131,18 +155,22 @@ export default function AppOpenBannerRedeemPotensial({
       {/* Desktop Banner */}
       <div className="relative w-full max-md:hidden mb-5">
         <Image
-          src={VoucherRedeemDesktopV2}
+          src={desktopBanner}
           alt="Voucher Redeem"
-          className="w-full drop-shadow-lg rounded-t-[12px]"
+          width={0}
+          height={0}
+          sizes="100vw"
+          className="w-full h-auto drop-shadow-lg rounded-t-[12px]"
+          unoptimized
         />
 
         <div className="relative bg-[#520201] h-fit  w-full p-3 rounded-b-[12px]">
-          <div className="border border-white p-1 rounded-[12px] -mt-[120px]">
+          <div className="border border-white p-1 rounded-[12px] -mt-[110px]">
             <div className="bg-white rounded-[12px] p-3 text-center">
               {!hasRedeemCode ? (
                 <div>
                   <h1 className="font-bold text-black">
-                    Bola Gembira 2026 Makin Seru, Harga Lebih Murah di Aplikasi
+                    {eventName} 2026 Makin Seru, Harga Lebih Murah di Aplikasi
                     IRA
                   </h1>
 
@@ -166,7 +194,7 @@ export default function AppOpenBannerRedeemPotensial({
                         <FaCheckCircle className="text-[#16A34A]" />
                       </div>
                       <div className="text-[14px] font-medium">
-                        Akses Bola Gembira
+                        Akses {eventName}
                       </div>
                     </div>
                   </div>
@@ -185,7 +213,7 @@ export default function AppOpenBannerRedeemPotensial({
 
                   <p className="text-xs text-[#333] pt-3">
                     Voucher kamu sudah tersedia. Silakan lihat kode voucher
-                    untuk mulai menikmati akses Bola Gembira 2026.
+                    untuk mulai menikmati akses {eventName} 2026.
                   </p>
                 </div>
               )}
