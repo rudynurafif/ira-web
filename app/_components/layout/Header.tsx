@@ -293,7 +293,7 @@ function Header() {
   };
 
   const excludedPaths = [
-    // "/",
+    "/",
     "/auth/register",
     "/check-coverage",
     "/payment-billing",

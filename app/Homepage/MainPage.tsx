@@ -98,12 +98,13 @@ function MainPage() {
       }
       if (typeof (window as any).ttq === "object") {
         (window as any).ttq.track("Lead", {
-          content_name: "Tombol Gratis 1 Bulan - Promo Section",
+          content_name: "Tombol Registrasi - Hero Banner",
         });
       }
     }
 
-    router.push("/auth/register");
+    // Link banner sudah ada dari CMS
+    // router.push("/auth/register");
   };
 
   const FirstSlideContent = () => (
@@ -403,7 +404,10 @@ function MainPage() {
 
             return (
               <SwiperSlide key={`api-${index}`} className="">
-                <div className="relative w-full outline-none text-white">
+                <div
+                  className="relative w-full outline-none text-white"
+                  onClick={index === 0 ? handleClickBanner : undefined}
+                >
                   <Image
                     src={bgImage}
                     alt={`Banner Slide ${index + 1}`}
