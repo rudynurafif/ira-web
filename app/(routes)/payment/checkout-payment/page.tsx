@@ -141,7 +141,10 @@ function Page() {
   const vaPaymentInfo = React.useMemo(() => {
     if (!paymentInfo) return paymentInfo;
     const raw = paymentInfo as any;
-    const channel = paymentInfo.channel_payment_id ?? raw.payment_channel;
+    const channel =
+      paymentInfo.channel_payment_id ??
+      raw.channel_payment ??
+      raw.payment_channel;
     const rootExpiresAt = raw.expires_at ?? raw.expire_at ?? null;
 
     const paymentAttempt = paymentInfo.payment_attempt
