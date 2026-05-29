@@ -55,8 +55,14 @@ function MainPage() {
         isStatic: true,
       };
 
-      const apiSlides: SlideData[] = res_banner?.data?.data?.map(
-        (item: any) => ({
+      const apiSlides: SlideData[] = (res_banner?.data?.data ?? [])
+        .slice()
+        .sort(
+          (a: any, b: any) =>
+            (a.desktop_orders ?? Number.MAX_SAFE_INTEGER) -
+            (b.desktop_orders ?? Number.MAX_SAFE_INTEGER),
+        )
+        .map((item: any) => ({
           image: item.web_apps_image
             ? `${process.env.NEXT_PUBLIC_URL_OBS}${item.web_apps_image}`
             : "",
@@ -65,8 +71,7 @@ function MainPage() {
             : "",
           url: item.url,
           isStatic: false,
-        }),
-      );
+        }));
 
       setSlides([staticHero, ...apiSlides]);
     } catch (err: any) {
@@ -82,9 +87,9 @@ function MainPage() {
     }
   }
 
-  // useEffect(() => {
-  //   getBannerImage();
-  // }, []);
+  useEffect(() => {
+    getBannerImage();
+  }, []);
 
   const handleClickBanner = () => {
     if (typeof window !== "undefined") {
@@ -385,12 +390,12 @@ function MainPage() {
         className=""
       >
         {/* Slide 1: Static Hero */}
-        <SwiperSlide className="">
+        {/* <SwiperSlide className="">
           <FirstSlideContent />
-        </SwiperSlide>
+        </SwiperSlide> */}
 
         {/* Slide 2+: API Banners */}
-        {/* {slides
+        {slides
           .filter((s) => !s.isStatic)
           .map((slide, index) => {
             const bgImage = isMobile ? slide.imageMobile : slide.image;
@@ -398,14 +403,15 @@ function MainPage() {
 
             return (
               <SwiperSlide key={`api-${index}`} className="">
-                <div className="relative w-full h-screen outline-none text-white">
+                <div className="relative w-full outline-none text-white">
                   <Image
                     src={bgImage}
                     alt={`Banner Slide ${index + 1}`}
-                    fill
-                    className="object-cover object-right"
-                    priority={false}
+                    width={0}
+                    height={0}
                     sizes="100vw"
+                    className="w-full h-auto"
+                    priority={false}
                     unoptimized={true}
                   />
 
@@ -419,7 +425,7 @@ function MainPage() {
                 </div>
               </SwiperSlide>
             );
-          })} */}
+          })}
       </Swiper>
     </div>
   );
