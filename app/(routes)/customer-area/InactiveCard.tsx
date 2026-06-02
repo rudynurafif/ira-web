@@ -37,7 +37,7 @@ const InactiveCard = ({ data }: { data?: SubscriptionHistoryAPI | null }) => {
         bawah ini.
       </p>
 
-      {/* Tombol CTA */}
+      {/* Tombol CTA Pelanggan  */}
       <button
         onClick={() => router.push("/reregistration")}
         className="inline-flex justify-center items-center my-4 gradient-box-expired rounded-full cursor-pointer"
