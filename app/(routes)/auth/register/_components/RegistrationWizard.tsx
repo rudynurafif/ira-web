@@ -1661,7 +1661,7 @@ function RegistrationWizard({
         // error konflik 409
         if (error?.response?.data?.statusCode === 409) {
           setOtpStatus("idle");
-          setStep(1);
+          // setStep(1);
           setFormData((prev) => ({ ...prev, otp: "" }));
         }
         toastErrorFromAPI(error, "Gagal melakukan registrasi");
