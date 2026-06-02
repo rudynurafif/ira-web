@@ -42,7 +42,7 @@ devel-job:       # This job runs in the build stage, which runs first.
         - .env.devel
         - .env.stage
         - .env.prod
-        - .gitlab-ci.yml
+        #- .gitlab-ci.yml
       when: never   # Pipeline tidak akan berjalan jika file dalam 'changes' diubah.
     - if: '$CI_COMMIT_BRANCH == "development"'
       when: always # Pipeline akan berjalan jika file ada perubahan.
