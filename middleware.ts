@@ -16,6 +16,7 @@ function handleAuthLogic(req: NextRequest, pathname: string) {
     "/check-coverage",
     "/forgot-password",
     "/panduan-cara-bayar",
+    "/panduan-penggunaan-folaplus",
     "/payment",
     "/payment-billing",
     "/payment/payment-methods",

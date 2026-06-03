@@ -1,7 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
-import imageFailed from "@/public/assets/Images/voucher-modal.webp";
+import imageBanner from "@/public/assets/Images/voucher-modal.webp";
 import Image from "next/image";
+import { useAppSelector } from "@/app/store/store";
+import {
+  selectEventName,
+  selectClaimVoucherBannerUrl,
+} from "@/app/store/slice/campaignSlice";
 
 const ANDROID_STORE =
   "https://play.google.com/store/apps/details?id=com.weave.ira";
@@ -16,6 +21,12 @@ function ContentClaimVoucherModal({
   setShowConfirmModal,
   userInfo,
 }: AppOpenBannerRedeemProps) {
+  const eventName = useAppSelector(selectEventName);
+  const claimVoucherBannerUrl = useAppSelector(selectClaimVoucherBannerUrl);
+
+  // Pakai URL dari setting kalau ada, fallback ke aset statis bundled.
+  const banner = claimVoucherBannerUrl || imageBanner;
+
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.95, y: 10 },
     visible: { opacity: 1, scale: 1, y: 0 },
@@ -86,19 +97,23 @@ function ContentClaimVoucherModal({
         <div className="w-full">
           <Image
             alt="image-status"
-            src={imageFailed}
-            className="w-full rounded-t-2xl"
+            src={banner}
+            width={0}
+            height={0}
+            sizes="100vw"
+            className="w-full h-auto rounded-t-2xl"
+            unoptimized
           />
         </div>
         <div className="px-6 py-5">
           {/* ✅ Wording sesuai request */}
           <h1 className="text-primary text-center text-xl lg:text-2xl font-bold w-full  mx-auto">
-            Klaim Voucher Bola Gembira 2026 Hanya di Aplikasi IRA
+            Klaim Voucher {eventName} 2026 Hanya di Aplikasi IRA
           </h1>
           <p className="mt-3 w-full mx-auto text-center text-gray-600 text-sm leading-relaxed">
-            Voucher Bola Gembira 2026 hanya dapat diklaim melalui aplikasi IRA.
+            Voucher {eventName} 2026 hanya dapat diklaim melalui aplikasi IRA.
             Silakan buka aplikasi IRA dan klaim voucher Anda untuk mendapatkan
-            akses nonton Bola Gembira 2026
+            akses nonton {eventName} 2026
             {/* {userInfo && userInfo?.is_coverage !== false && " Gratis"}. */}
           </p>
           {/* ✅ Tombol aksi */}

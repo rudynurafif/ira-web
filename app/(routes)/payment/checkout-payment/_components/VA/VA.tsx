@@ -205,11 +205,11 @@ function VA({ data }: { data: UnifiedPaymentData }) {
             </div>
           </div>
 
-          {data.payment_attempt?.expires_at && (
+          {(data?.expires_at || data?.expire_at) && (
             <div className="flex justify-between gap-2 w-full pt-3 max-sm:text-sm text-primary">
               <div className="">Bayar Sebelum</div>
               <div className="text-right font-medium">
-                {formatDate(data?.payment_attempt?.expires_at)}
+                {formatDate((data?.expires_at || data?.expire_at) as string)}
               </div>
             </div>
           )}

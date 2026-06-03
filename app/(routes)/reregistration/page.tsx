@@ -7,6 +7,8 @@ import { getProfileInfo } from "@/app/_api/Customer/CustomerArea";
 import { getUser } from "@/app/store/slice/authSlice";
 import Loader from "@/app/_components/Loader";
 import { toastErrorFromAPI } from "@/app/_shared/utils";
+import RegistrationWizard from "../auth/register/_components/RegistrationWizard";
+import { dmSans } from "@/app/_shared/font/font";
 
 function Page() {
   const { userInfo } = useAppSelector((state) => state.auth);
@@ -65,12 +67,29 @@ function Page() {
   }
 
   return (
-    <div className="container mx-auto px-6 lg:px-22 xl:px-42 my-6 sm:my-22">
-      <RegistrationForm
+    <div
+      className={`bg-white min-h-screen w-full relative overflow-x-hidden ${dmSans.className}`}
+    >
+      <div
+        className="absolute top-0 left-0 w-full h-[85vh] bg-cover bg-left bg-no-repeat"
+        style={{ backgroundImage: "url('/assets/Images/bg-register.png')" }}
+      />
+
+      <div className="relative z-10">
+        <div className="px-4 md:px-6 pt-20 md:pt-24 pb-10">
+          <RegistrationWizard
+            title="Reregistrasi IRA"
+            mode="reregister"
+            initialData={initialData!}
+          />
+        </div>
+      </div>
+
+      {/* <RegistrationForm
         title="Registrasi Ulang Internet Rakyat (IRA)"
         mode="reregister"
         initialData={initialData!}
-      />
+      /> */}
     </div>
   );
 }

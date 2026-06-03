@@ -66,6 +66,7 @@ export interface UnifiedPaymentData {
   currency: string;
   status: "pending" | "paid" | "failed" | "expired";
   expires_at?: string | null;
+  expire_at?: string | null;
   xendit_event_id?: string | null;
   reference_id?: string | null;
   failure_code?: string | null;
@@ -74,6 +75,7 @@ export interface UnifiedPaymentData {
 
   va?: string;
   channel_payment_id?: ChannelPayment;
+  payment_channel?: ChannelPayment;
 
   desktop_web_checkout_url?: string | null;
   mobile_web_checkout_url?: string | null;

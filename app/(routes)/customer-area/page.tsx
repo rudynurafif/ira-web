@@ -378,6 +378,7 @@ export default function AreaPelanggan() {
           </div>
         )}
 
+        {/* Banner Pendaftaran Dibatalkan & Button Fitur Berlangganan Kembali */}
         {isCancelled && !isFetching && (
           <div className="max-md:mt-6 px-8 mt-12">
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">

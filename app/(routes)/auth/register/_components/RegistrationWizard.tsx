@@ -128,7 +128,9 @@ function RegistrationWizard({
       .trim();
   }
 
-  const [step, setStep] = useState(mode === "update_address" ? 2 : 1);
+  const [step, setStep] = useState(
+    mode === "update_address" || mode === "reregister" ? 2 : 1,
+  );
   const [formData, setFormData] = useState<FormType>(() => {
     // [OPTIMASI] Mapping awal dari initialData (API) ke FormType
     const base = { ...initialFormData, ...(initialData || {}) };
@@ -249,7 +251,12 @@ function RegistrationWizard({
   const [isMapSyncing, setIsMapSyncing] = useState(false);
 
   // [NEW] Track kode pos terakhir yang BERHASIL sinkron (untuk gate banner)
-  const [lastSyncedPostcode, setLastSyncedPostcode] = useState("");
+  const [lastSyncedPostcode, setLastSyncedPostcode] = useState(
+    (mode === "reregister" || mode === "update_address") &&
+      initialData?.postal_code
+      ? String(initialData.postal_code)
+      : "",
+  );
   const lastSyncedPostcodeRef = useRef("");
   const [isPostcodeNotFound, setIsPostcodeNotFound] = useState(false);
 
@@ -1654,6 +1661,7 @@ function RegistrationWizard({
         // error konflik 409
         if (error?.response?.data?.statusCode === 409) {
           setOtpStatus("idle");
+          setStep(1);
           setFormData((prev) => ({ ...prev, otp: "" }));
         }
         toastErrorFromAPI(error, "Gagal melakukan registrasi");
@@ -3000,7 +3008,9 @@ function RegistrationWizard({
                         ? "Memverifikasi Area Pemasangan..."
                         : mode === "update_address"
                           ? "Simpan Alamat"
-                          : "Berlangganan Sekarang"}
+                          : mode === "reregister"
+                            ? "Berlangganan Kembali"
+                            : "Berlangganan Sekarang"}
                   </button>
                 </div>
               </div>

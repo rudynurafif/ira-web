@@ -309,8 +309,8 @@ function Header() {
       <div
         className={
           pathname === "/"
-            ? `absolute top-0 left-0 right-0 z-50 border-b border-white text-white ${
-                isOpenMenu ? "bg-[#910E04]" : "bg-[rgba(118,18,0,0.5)]"
+            ? `bg-[#910E04] border-b border-white text-white ${
+                isOpenMenu ? "bg-[#910E04]" : "bg-[#910E04]"
               }`
             : "text-black bg-white shadow-sm"
         }
@@ -339,6 +339,10 @@ function Header() {
                 className={`${pathname === "/" ? "font-bold" : ""} underline-animation-register`}
               >
                 IRA
+              </Link>
+
+              <Link href="/#apps" className="underline-animation-register">
+                Apps
               </Link>
 
               {!userInfo ||
@@ -399,6 +403,14 @@ function Header() {
               onClick={() => setIsOpenMenu(false)}
             >
               IRA
+            </Link>
+
+            <Link
+              href="/#apps"
+              className="underline-animation-register"
+              onClick={() => setIsOpenMenu(false)}
+            >
+              Apps
             </Link>
 
             {!userInfo ||
