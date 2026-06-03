@@ -79,6 +79,19 @@ export const createPaymentRequestGopay = async (body: any) => {
   }
 };
 
+export const createPaymentRequestShopeePay = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/airpay/shopeepay",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getEWalletById = async (id: string) => {
   try {
     const data = await FwaAxios({
