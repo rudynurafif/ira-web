@@ -19,7 +19,7 @@ import FloatingContactCS from "./_components/FloatingContactCS";
 export default function Home() {
   const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(false);
-  const { fcmToken } = useAppContext();
+const { fcmToken } = useAppContext();
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -27,6 +27,7 @@ export default function Home() {
     if (registerSource) {
       router.push(`/auth/register?referral_code=${registerSource}`);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useBrowserDetection();
