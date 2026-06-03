@@ -6,7 +6,8 @@
       "package_name": "com.weave.ira",
       "sha256_cert_fingerprints": [
         "D3:A7:66:D0:2F:79:E0:2E:64:10:C9:D0:AB:1F:72:9B:F3:93:CD:63:C2:01:5D:D6:03:0B:A5:4D:10:AF:E4:B3",
-        "CA:78:AB:E7:45:25:E1:42:1C:C7:72:DB:FC:C9:23:42:41:C7:E0:F3:34:AA:10:CF:AF:2C:E4:35:31:64:3A:E0"
+        "CA:78:AB:E7:45:25:E1:42:1C:C7:72:DB:FC:C9:23:42:41:C7:E0:F3:34:AA:10:CF:AF:2C:E4:35:31:64:3A:E0",
+        "8A:84:E0:8C:E4:88:EC:12:A2:61:B3:84:49:8F:77:30:3F:E0:DA:57:A2:82:4B:FC:A1:AA:38:8B:02:E6:78:8F"
       ]
     }
   }
