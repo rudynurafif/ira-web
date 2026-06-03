@@ -736,7 +736,10 @@ function RegistrationWizard({
   // 1. Load data from sessionStorage on Mount
   useEffect(() => {
     // [SAFETY] Jika mode Update Address, prioritaskan initialData daripada sessionStorage (mencegah data user lama nyangkut)
-    if (mode === "update_address" && initialData) {
+    if (
+      (mode === "update_address" || mode === "reregister") &&
+      initialData
+    ) {
       return;
     }
 
@@ -1034,7 +1037,7 @@ function RegistrationWizard({
         } else {
           // [FIX] Hanya paksa ke dropdown jika data manual belum ada (BUKAN saat restore session manual)
           if (
-            mode === "update_address" &&
+            (mode === "update_address" || mode === "reregister") &&
             formData.postal_code &&
             !formData.postal_code_id
           ) {
