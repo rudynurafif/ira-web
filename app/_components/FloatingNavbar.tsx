@@ -20,7 +20,7 @@ const FloatingNavbar = () => {
     >
       {/* Left Section (Red Block with Logo) */}
       <div
-        className={`bg-[#b31b1b] ${isHome ? "sm:bg-[#7A0604]" : "sm:bg-[#b31b1b]"} h-full flex items-center justify-center px-2 sm:pl-3 sm:pr-4 md:pl-5 md:pr-6 border-r-[1.5px] border-white/40`}
+        className={`bg-[#b31b1b] h-full flex items-center justify-center px-2 sm:pl-3 sm:pr-4 md:pl-5 md:pr-6 border-r-[1.5px] border-white/40`}
       >
         <div className="flex items-center gap-1 md:gap-2">
           <Image
@@ -58,7 +58,9 @@ const FloatingNavbar = () => {
       <div className="h-full flex items-center pr-1.5 pl-1.5">
         <button
           className="bg-[#da251c] hover:bg-[#b01e1a] transition-all h-[75%] md:h-[80%] rounded-full flex items-center pl-3 md:pl-6 pr-1 gap-1.5 md:gap-4 shadow-md border border-[#da251c]"
-          onClick={() => router.push(isLoggedIn ? "/customer-area" : "/auth/login")}
+          onClick={() =>
+            router.push(isLoggedIn ? "/customer-area" : "/auth/login")
+          }
         >
           <span className="text-white font-medium text-[13px] md:text-[15px] tracking-wide">
             {isLoggedIn ? "Masuk" : "Login"}
