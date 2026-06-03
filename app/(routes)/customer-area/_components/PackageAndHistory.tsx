@@ -8,6 +8,7 @@ import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
 import bannerPanduanMobile from "@/public/assets/Images/bannerPanduanMobile.png";
+import bannerPanduanFolaplus from "@/public/assets/Images/banner-panduan-folaplus.png";
 import bannerCS from "@/public/assets/Images/bannerCSnew.png";
 import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import bannerCubmu from "@/public/assets/Images/banner-cubmu.png";
@@ -63,7 +64,9 @@ const PackageAndHistory = () => {
   );
   const [isInactive, setIsInactive] = useState<boolean | null>(null);
 
-  const { userInfo, is_coverage } = useAppSelector((state) => state.auth);
+  const { userInfo, isLoggedIn, is_coverage } = useAppSelector(
+    (state) => state.auth,
+  );
   const router = useRouter();
   const [addOns, setAddOns] = useState([]);
 
@@ -88,6 +91,25 @@ const PackageAndHistory = () => {
   const [redeemCode, setRedeemCode] = useState<string>("");
   const [endDate, setEndDate] = useState("");
   const [hasRedeemCode, setHasRedeemCode] = useState<boolean>(false);
+
+  const [showPanduanFolaplusBanner, setShowPanduanFolaplusBanner] =
+    useState(false);
+
+  const checkShowPanduan = async () => {
+    try {
+      const res = await getSetting("show_panduan_folaplus");
+
+      if (res.data && res.data.data.value === "true") {
+        setShowPanduanFolaplusBanner(true);
+      }
+    } catch (e: any) {
+    } finally {
+    }
+  };
+
+  useEffect(() => {
+    checkShowPanduan();
+  }, []);
 
   useEffect(() => {
     async function showActiveCampaignRedeem() {
@@ -541,8 +563,20 @@ const PackageAndHistory = () => {
           onClick={() => window.open("/panduan-cara-bayar", "_blank")}
         />
 
+        {!dismissedBanner && showPanduanFolaplusBanner && (
+          <Image
+            src={bannerPanduanFolaplus}
+            alt="Banner Panduan Folaplus"
+            className="w-full drop-shadow-lg cursor-pointer hover:scale-105 transition-transform"
+            onClick={() =>
+              window.open("/panduan-penggunaan-folaplus", "_blank")
+            }
+          />
+        )}
+
         <HistorySection />
       </div>
+
       {/* DESKTOP (≥ sm) */}
       <div className="hidden sm:grid grid-cols-12 gap-6">
         <div className="lg:col-span-5 col-span-12 space-y-5">

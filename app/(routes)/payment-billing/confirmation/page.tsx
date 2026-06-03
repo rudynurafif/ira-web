@@ -30,7 +30,7 @@ function Page() {
 
     if (!raw) {
       toast.error("Data tidak ditemukan. Silakan ulangi.");
-      router.replace("/payment-billing");
+      router.back();
       return;
     }
 
@@ -54,7 +54,7 @@ function Page() {
         {/* Header row */}
         <div className="relative flex items-center mb-6">
           <button
-            onClick={() => router.push("/payment-billing")}
+            onClick={() => router.back()}
             className="flex items-center gap-1 text-sm hover:text-primary transition-colors"
           >
             ← <span className="hidden md:block">Kembali</span>
@@ -118,7 +118,7 @@ function Page() {
         {/* Package Card */}
         <div className="border border-gray-200 rounded-2xl p-5 mb-6 shadow-lg">
           <h2 className="font-bold text-base text-gray-900 mb-4">
-            Paket yang Terakhir Dibeli
+            Daftar Paket yang Tersedia
           </h2>
           {listPackage.length > 0 ? (
             <div className="space-y-3">

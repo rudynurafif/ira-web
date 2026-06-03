@@ -53,9 +53,9 @@ export const Notification = ({ body, mode }: { body: any; mode: FcmMode }) => {
 
   return (
     <div className="z-9999 w-full overflow-hidden">
-      {/* {token && (
+      {/* {fcmToken && (
         <div className="p-4 bg-green-100 text-green-700 rounded mb-4">
-          FCM Token: {token}
+          FCM Token: {fcmToken} (FCM is supported and token is available)
         </div>
       )} */}
 

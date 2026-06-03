@@ -330,12 +330,15 @@ export default function NotifikasiDrawerContent({
               onClick={() => {
                 setSelectedItem(null);
                 fetchAllCounts(true);
+                fetchNotifications(page, activeTab, undefined);
               }}
               className=""
             >
               <IoIosArrowBack size={20} />
             </button>
-            <h2 className="text-xl font-bold ">Detail Notifikasi</h2>
+            <h2 className="text-xl font-bold ">
+              Detail <span className="capitalize">{activeTab}</span>
+            </h2>
           </div>
         </div>
 

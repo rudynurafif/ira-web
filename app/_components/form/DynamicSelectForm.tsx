@@ -14,6 +14,7 @@ type Props = {
   error: string;
   [key: string]: any;
   isDisabled?: boolean;
+  isLoading?: boolean;
 };
 
 function DynamicSelectForm({
@@ -25,6 +26,7 @@ function DynamicSelectForm({
   onChange,
   error,
   isDisabled,
+  isLoading,
   ...props
 }: Props) {
   const selectStyles: StylesConfig = {
@@ -74,6 +76,7 @@ function DynamicSelectForm({
         // KUNCI: set ID stabil
         instanceId={instanceId}
         isDisabled={isDisabled}
+        isLoading={isLoading}
         inputId={inputId}
         name={name}
         aria-labelledby={labelId}

@@ -13,8 +13,6 @@ import FloatingContactCS from "@/app/_components/FloatingContactCS";
 function Page() {
   const { userInfo } = useAppSelector((state) => state.auth);
 
-  useBrowserDetection();
-
   return (
     <div className={dmSans.className}>
       <CheckCoverage />
