@@ -2,7 +2,16 @@
 import React, { FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { FaCheckCircle } from "react-icons/fa";
-import MapGeoapify from "@/app/_components/form/MapGeoapify";
+import dynamic from "next/dynamic";
+
+const MapLeaflet = dynamic(() => import("@/app/_components/form/MapLeaflet"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-gray-100 animate-pulse flex items-center justify-center">
+      <span className="text-xs text-gray-400">Memuat Peta...</span>
+    </div>
+  ),
+});
 import { PackageData } from "@/app/_shared/types/customer-area";
 import {
   getPackagesRegister,
@@ -375,13 +384,10 @@ const RegistrationSummary: React.FC<RegistrationSummaryProps> = ({
       {/* Peta */}
       <div className="mb-6">
         <div className="border border-gray-200 rounded-xl overflow-hidden h-62.5 sm:h-75">
-          <MapGeoapify
-            mode="reregister"
+          <MapLeaflet
             initialLatitude={Number(initialData?.latitude)}
             initialLongitude={Number(initialData?.longitude)}
-            onPlaceChange={() => {}}
-            getAddress={() => {}}
-            isInteractive={false} // Set to false untuk mode summary
+            isInteractive={false}
           />
         </div>
       </div>
