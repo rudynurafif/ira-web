@@ -712,7 +712,7 @@ function RegistrationWizard({
               setIsPostalCodeManual(false);
               setLastSyncedPostcode(String(pcId));
             } else if (
-              mode === "update_address" &&
+              (mode === "update_address" || mode === "reregister") &&
               d.postal_code &&
               !d.postal_code_id
             ) {
