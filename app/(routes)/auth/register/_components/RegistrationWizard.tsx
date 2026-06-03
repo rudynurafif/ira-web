@@ -736,10 +736,7 @@ function RegistrationWizard({
   // 1. Load data from sessionStorage on Mount
   useEffect(() => {
     // [SAFETY] Jika mode Update Address, prioritaskan initialData daripada sessionStorage (mencegah data user lama nyangkut)
-    if (
-      (mode === "update_address" || mode === "reregister") &&
-      initialData
-    ) {
+    if ((mode === "update_address" || mode === "reregister") && initialData) {
       return;
     }
 
@@ -1899,9 +1896,10 @@ function RegistrationWizard({
       {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-[1536px] rounded-3xl md:rounded-[40px] bg-[#a80f0f] shadow-[0_20px_60px_rgba(164,18,18,0.4)] overflow-visible relative flex flex-col lg:flex-row h-auto lg:h-[70vh] min-h-[500px] border-2 border-white mb-10"
+        className="w-full max-w-[1536px] rounded-3xl md:rounded-[40px] bg-[#a80f0f] shadow-[0_20px_60px_rgba(164,18,18,0.4)] overflow-hidden relative flex flex-col lg:flex-row h-auto lg:h-[70vh] min-h-[500px] border-2 border-white mb-10"
       >
         {/* Person */}
+        {/* [LEGACY] Versi lama (per-step PNG dengan scale & translate manual, sebelum diganti web-reg-mobile/desktop):
         <div
           className="w-full lg:w-[60%] left-[4%] sm:left-[3%] relative flex justify-center items-end min-h-[250px] md:min-h-[300px] lg:min-h-[500px] max-lg:mt-40"
           style={{ clipPath: "inset(-200% -200% 0 -200%)" }}
@@ -1916,10 +1914,30 @@ function RegistrationWizard({
             />
           </div>
         </div>
+        */}
+        <div className="w-full aspect-287/358 sm:aspect-2736/2469 lg:aspect-auto lg:w-1/2 lg:h-full relative">
+          <Image
+            src="/assets/Images/web-reg-mobile.webp"
+            alt="Registrasi IRA"
+            fill
+            className="object-cover object-bottom sm:hidden"
+            priority
+          />
+          <Image
+            src="/assets/Images/web-reg-desktop.webp"
+            alt="Registrasi IRA"
+            fill
+            className="object-cover object-bottom hidden sm:block"
+            priority
+          />
+        </div>
 
+        {/* [LEGACY] Versi lama (overlap white box ke atas image via negative margin di mobile):
         <div
           className={`w-full ${step === 2 ? "max-sm:mt-[-10%]" : "max-sm:mt-[-25%]"} lg:w-[60%] xl:w-[58%] 2xl:w-[55%] flex justify-center items-start p-6 max-lg:pt-0 z-25 relative`}
         >
+        */}
+        <div className="w-full lg:w-[60%] xl:w-[58%] 2xl:w-[55%] flex justify-center items-start p-6 z-25 relative">
           <div className="bg-white rounded-[24px] md:rounded-[32px] w-full max-h-full min-h-[400px] shadow-2xl p-4 sm:p-6 flex flex-col justify-start relative border border-white/50 overflow-y-auto custom-scrollbar">
             {step === 1 && (
               <div className="animate-in fade-in duration-500 w-full h-full flex flex-col justify-between">
