@@ -26,8 +26,6 @@ const ButtonChannel: React.FC<ButtonChannelProps> = ({
     !Logo.startsWith("http") &&
     !Logo.startsWith("/_next");
 
-  console.log("logo : ", Logo);
-
   return (
     <button
       onClick={() => handleClick(channel.id)}

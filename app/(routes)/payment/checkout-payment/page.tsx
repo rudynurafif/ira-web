@@ -49,7 +49,10 @@ function Page() {
       if (isLoggedIn) {
         router.push("/customer-area");
       } else {
-        router.push("/payment-billing");
+        const nextPath = salesId
+          ? `/payment-billing?sales_id=${salesId}`
+          : "/payment-billing";
+        router.replace(nextPath);
       }
     }
   };
@@ -76,7 +79,10 @@ function Page() {
         if (isLoggedIn) {
           router.push("/payment");
         } else {
-          router.push("/payment-billing");
+          const nextPath = salesId
+            ? `/payment-billing?sales_id=${salesId}`
+            : "/payment-billing";
+          router.push(nextPath);
         }
         return;
       }
@@ -117,17 +123,49 @@ function Page() {
   };
 
   useEffect(() => {
-    // Jalankan jika sudah tahu status loginnya (isLoggedIn) atau jika terdeteksi data microsite
-    if (isLoggedIn || sessionStorage.getItem("customer_code")) {
+    // Pastikan customer_code sudah siap sebelum hit API
+    const customerCodeReady = isLoggedIn
+      ? !!userInfo?.customer_code
+      : !!sessionStorage.getItem("customer_code");
+
+    if (customerCodeReady) {
       getCurrentPaymentData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, userInfo]);
 
-  const bankFee =
-    paymentInfo && "channel_payment_id" in paymentInfo
-      ? parseInt((paymentInfo as any).channel_payment_id?.fee_flat ?? "0")
-      : 0;
+  // Normalize agar komponen VA tetap pakai satu shape:
+  // - Xendit: pakai `channel_payment_id`, `va`, expiry di root `expire_at`
+  // - Midtrans (Danamon): pakai `payment_channel`, `payment_number`, expiry di root `expires_at`
+  // Expiry selalu diambil dari root (di Xendit `payment_attempt.expires_at` null).
+  const vaPaymentInfo = React.useMemo(() => {
+    if (!paymentInfo) return paymentInfo;
+    const raw = paymentInfo as any;
+    const channel =
+      paymentInfo.channel_payment_id ??
+      raw.channel_payment ??
+      raw.payment_channel;
+    const rootExpiresAt = raw.expires_at ?? raw.expire_at ?? null;
+
+    const paymentAttempt = paymentInfo.payment_attempt
+      ? { ...paymentInfo.payment_attempt, expires_at: rootExpiresAt }
+      : ({
+          expires_at: rootExpiresAt,
+          reference_id: raw.reference_id,
+          payment_number: raw.payment_number,
+        } as any);
+
+    return {
+      ...paymentInfo,
+      channel_payment_id: channel,
+      payment_attempt: paymentAttempt,
+      va: paymentInfo.va ?? raw.payment_number,
+    } as UnifiedPaymentData;
+  }, [paymentInfo]);
+
+  const bankFee = vaPaymentInfo?.channel_payment_id?.fee_flat
+    ? parseInt(vaPaymentInfo.channel_payment_id.fee_flat)
+    : 0;
 
   const bankFeeBackup =
     (typeof paymentInfo?.amount === "string"
@@ -193,8 +231,8 @@ function Page() {
             <QRIS data={paymentInfo as UnifiedPaymentData} />
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "va" ? (
-            paymentInfo ? (
-              <VA data={paymentInfo as UnifiedPaymentData} />
+            vaPaymentInfo ? (
+              <VA data={vaPaymentInfo} />
             ) : null
           ) : params.get("type") &&
             params.get("type")?.toLowerCase() === "otc" ? (
@@ -211,7 +249,9 @@ function Page() {
             onClick={handleCancelPayment}
             className="cursor-pointer underline sm:mt-10 mt-3 rounded-lg font-bold text-primary hover:text-dark-primary-2 w-full max-sm:text-sm py-3"
           >
-            {isLoggedIn ? "Kembali Ke Area Pelanggan" : "Kembali ke Halaman Billing"}
+            {isLoggedIn
+              ? "Kembali Ke Area Pelanggan"
+              : "Kembali ke Halaman Billing"}
           </button>
         </div>
       </div>

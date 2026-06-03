@@ -5,7 +5,7 @@ import MainPage from "./Homepage/MainPage";
 import WhyFWAPage from "./Homepage/WhyFWAPage";
 import { verifyOtp } from "@/app/_api/Auth/Auth";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import CookieHandler from "./_components/CookieHandler";
 import DownloadApp from "./Homepage/DownloadApp";
 import { Notification } from "./_components/Notification";
@@ -20,6 +20,15 @@ export default function Home() {
   const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(false);
   const { fcmToken } = useAppContext();
+  // const searchParams = useSearchParams();
+
+  // useEffect(() => {
+  //   const registerSource = searchParams.get("referral_code");
+  //   if (registerSource) {
+  //     router.push(`/auth/register?referral_code=${registerSource}`);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   useBrowserDetection();
 

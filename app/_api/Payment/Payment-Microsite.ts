@@ -68,6 +68,19 @@ export const createPaymentRequestVAMicrosite = async (body: any) => {
   }
 };
 
+export const createPaymentRequestVAMidtransMicrosite = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/midtrans/va-bank-microsite",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getVaById = async (id: string) => {
   try {
     const data = await FwaAxios({
@@ -85,6 +98,19 @@ export const createPaymentRequestEWalletMicrosite = async (body: any) => {
   try {
     const data = await FwaAxios({
       url: "/app/transaction/create-ewallet-microsite",
+      method: "POST",
+      data: body,
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createPaymentRequestGopayMicrosite = async (body: any) => {
+  try {
+    const data = await FwaAxios({
+      url: "/app/midtrans/gopay-microsite",
       method: "POST",
       data: body,
     });

@@ -41,9 +41,12 @@ function Page() {
       const raw = sessionStorage.getItem("paymentSuccessData");
       const customerCode = sessionStorage.getItem("customer_code");
 
+      const finalSalesId = salesIdFromUrl || (raw ? JSON.parse(raw).salesId : null);
+      const backUrl = finalSalesId ? `/payment-billing?sales_id=${finalSalesId}` : "/payment-billing";
+
       if (!raw) {
         toast.error("Data pembayaran tidak ditemukan");
-        router.push("/payment-billing");
+        router.push(backUrl);
         return;
       }
 
@@ -57,7 +60,7 @@ function Page() {
         if (parsedData.expiry && now > parsedData.expiry) {
           sessionStorage.removeItem("paymentSuccessData");
           toast.error("Sesi pembayaran telah berakhir.");
-          router.push("/payment-billing");
+          router.push(backUrl);
           return;
         }
 
@@ -71,7 +74,7 @@ function Page() {
 
           if (isPaid !== true) {
             toast.error("Pembayaran Anda belum terverifikasi oleh sistem");
-            router.push("/payment-billing");
+            router.push(backUrl);
             return;
           }
         }
@@ -88,7 +91,7 @@ function Page() {
         setData(parsedData);
       } catch (error) {
         console.error("Gagal verifikasi pembayaran:", error);
-        router.push("/payment-billing");
+        router.push(backUrl);
       } finally {
         setIsLoading(false);
       }

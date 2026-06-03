@@ -32,6 +32,7 @@ const DeliveryTracking = ({
   const router = useRouter();
   const [showQRModal, setShowQRModal] = useState(false);
   const [showActivationModal, setShowActivationModal] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const [packageData, setPackageData] = useState<Shipment>();
   const { userInfo, isLoggedIn, shipmentStatus } = useAppSelector(
     (state) => state.auth,
@@ -211,11 +212,16 @@ const DeliveryTracking = ({
                 className="w-64 h-64 object-contain"
               /> */}
               <Image
-                src={`${process.env.NEXT_PUBLIC_URL_OBS}${packageData?.code_url}`}
+                src={
+                  imgError
+                    ? "/assets/images/image-404.png"
+                    : `${process.env.NEXT_PUBLIC_URL_OBS}${packageData?.code_url}`
+                }
                 alt="QR Code"
                 width={256}
                 height={256}
                 className="w-64 h-64 object-contain"
+                onError={() => setImgError(true)}
                 // unoptimized
               />
             </div>
@@ -245,7 +251,7 @@ const DeliveryTracking = ({
 
             <div className="my-5 border border-b border-gray-border"></div>
 
-            <div className="w-full flex justify-center gap-4 items-center py-3 px-4 bg-[#FEFCE8] border border-[#A16207] rounded-lg text-sm text-[#A16207]">
+            <div className="w-full flex justify-center gap-4 items-center py-3 px-4 bg-yellow-warning border border-brown-primary rounded-lg text-sm text-brown-primary">
               <BsExclamationTriangle size={38} />
               <p className="text-start">
                 Tips Keamanan: Jangan bagikan Kode Booking ke pihak lain selain

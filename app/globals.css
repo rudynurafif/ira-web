@@ -15,6 +15,8 @@
   --green-2: #3fc700;
   --green-3: #008e19;
   --nokia-blue: #0168ff;
+  --brown-primary: #a16207;
+  --yellow-warning: #fefce8;
   --yellow: #ffc026;
   --orange: #f46600;
   --purple: #d640c4;
@@ -52,6 +54,8 @@
   --color-green-2: var(--green-2);
   --color-green-3: var(--green-3);
   --color-nokia-blue: var(--nokia-blue);
+  --color-brown-primary: var(--brown-primary);
+  --color-yellow-warning: var(--yellow-warning);
   --color-yellow: var(--yellow);
   --color-orange: var(--orange);
   --color-purple: var(--purple);
@@ -658,4 +662,3 @@ input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
   display: none;
 }
-

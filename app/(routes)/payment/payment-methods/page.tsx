@@ -9,6 +9,8 @@ import {
   createPaymentRequestQRIS,
   createPaymentRequestOTC,
   getPaymentChannel,
+  createPaymentRequestGopay,
+  createPaymentRequestVAMidtrans,
 } from "@/app/_api/Payment/Payment";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PaymentChannel } from "@/app/_shared/types/payment";
@@ -26,9 +28,11 @@ import limitImage from "@/public/assets/Images/limit-images.png";
 import {
   checkPackageMicrosite,
   createPaymentRequestEWalletMicrosite,
+  createPaymentRequestGopayMicrosite,
   createPaymentRequestOTCMicrosite,
   createPaymentRequestQRISMicrosite,
   createPaymentRequestVAMicrosite,
+  createPaymentRequestVAMidtransMicrosite,
 } from "@/app/_api/Payment/Payment-Microsite";
 
 // Mapping code API -> gambar lokal
@@ -44,6 +48,10 @@ const PaymentMehods = () => {
       setSalesId(id);
     }
   }, [searchParams]);
+
+  const backToBillingUrl = salesId
+    ? `/payment-billing?sales_id=${salesId}`
+    : "/payment-billing";
 
   const [isLoading, setIsLoading] = useState(true);
   const [paymentChannels, setPaymentChannels] = useState<PaymentChannel[]>([]);
@@ -98,9 +106,10 @@ const PaymentMehods = () => {
       if (isLoggedIn) {
         router.push("/payment");
       } else {
-        router.push("/payment-billing");
+        router.replace(backToBillingUrl);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, router, selectedPackage]);
 
   const handleCheckPackage = async (): Promise<boolean> => {
@@ -109,9 +118,11 @@ const PaymentMehods = () => {
         ? userInfo?.customer_code
         : sessionStorage.getItem("customer_code");
 
-      if (!code || code === "-") {
-        toast.error("Identitas pelanggan tidak ditemukan. Silakan isi ulang data.");
-        router.push("/payment-billing");
+      if (!isLoggedIn && (!code || code === "-")) {
+        toast.error(
+          "Identitas pelanggan tidak ditemukan. Silakan isi ulang data.",
+        );
+        router.replace(backToBillingUrl);
         return false;
       }
 
@@ -141,14 +152,16 @@ const PaymentMehods = () => {
         // Mencegah double fetch saat inisialisasi awal (jika data sudah ada atau sedang fetch)
         if (paymentChannels.length > 0) return;
 
-        await handleCheckPackage();
-        getPaymentMethods();
+        const isAllowed = await handleCheckPackage();
+        if (isAllowed) {
+          await getPaymentMethods();
+        }
       }
     };
 
     initPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, userInfo]);
+  }, [isLoggedIn]);
 
   // Filter by category
   const virtualAccounts = paymentChannels.filter(
@@ -162,7 +175,7 @@ const PaymentMehods = () => {
   );
   const qrisChannels = paymentChannels.filter(
     (ch) => ch.category === "qris" && ch.is_active,
-  );
+  ); 
   const outlets = paymentChannels.filter(
     (ch) => ch.category === "otc" && ch.is_active,
   );
@@ -199,12 +212,12 @@ const PaymentMehods = () => {
     }
 
     setIsCreatePayment(true);
+    let navigated = false;
 
     try {
       // Pengecekan keamanan terakhir sebelum hit API bayar
       const isAllowed = await handleCheckPackage();
       if (!isAllowed) {
-        setIsCreatePayment(false);
         return;
       }
 
@@ -215,8 +228,11 @@ const PaymentMehods = () => {
         : sessionStorage.getItem("customer_code");
 
       if (!code || code === "-") {
-        toast.error("Identitas pelanggan tidak ditemukan. Silakan isi ulang data.");
-        router.push("/payment-billing");
+        toast.error(
+          "Identitas pelanggan tidak ditemukan. Silakan isi ulang data.",
+        );
+        router.replace(backToBillingUrl);
+        navigated = true;
         return;
       }
 
@@ -224,37 +240,55 @@ const PaymentMehods = () => {
         package_id: selectedPackage?.id,
         payment_channel_id: selectedChannel?.id,
         customer_code: code,
-        ...(salesId && { mitra_user_id: salesId }),
+        ...(!isLoggedIn && salesId && { mitra_user_id: salesId }),
       };
 
-      switch (selectedChannel.category) {
-        case "va":
-          createRes = isLoggedIn
-            ? createPaymentRequestVA(payload)
-            : createPaymentRequestVAMicrosite(payload);
-          break;
-        case "ewallet":
-          createRes = isLoggedIn
-            ? createPaymentRequestEWallet(payload)
-            : createPaymentRequestEWalletMicrosite(payload);
-          break;
-        case "qris":
-          createRes = isLoggedIn
-            ? createPaymentRequestQRIS(payload)
-            : createPaymentRequestQRISMicrosite(payload);
-          break;
-        case "otc":
-          createRes = isLoggedIn
-            ? createPaymentRequestOTC(payload)
-            : createPaymentRequestOTCMicrosite(payload);
-          break;
-        case "card":
-          toast.error(
-            `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`,
-          );
-          return;
-        default:
-          throw new Error("Metode Pembayaran Tidak Didukung");
+      // Khusus untuk channel yang menggunakan gateway MIDTRANS
+      if (selectedChannel.payment_gateway_id?.code === "MIDTRANS") {
+        switch (selectedChannel.category) {
+          case "va":
+            createRes = isLoggedIn
+              ? createPaymentRequestVAMidtrans(payload)
+              : createPaymentRequestVAMidtransMicrosite(payload);
+            break;
+          case "ewallet":
+            createRes = isLoggedIn
+              ? createPaymentRequestGopay(payload)
+              : createPaymentRequestGopayMicrosite(payload);
+            break;
+          default:
+            throw new Error("Metode Pembayaran MIDTRANS Tidak Didukung");
+        }
+      } else {
+        switch (selectedChannel.category) {
+          case "va":
+            createRes = isLoggedIn
+              ? createPaymentRequestVA(payload)
+              : createPaymentRequestVAMicrosite(payload);
+            break;
+          case "ewallet":
+            createRes = isLoggedIn
+              ? createPaymentRequestEWallet(payload)
+              : createPaymentRequestEWalletMicrosite(payload);
+            break;
+          case "qris":
+            createRes = isLoggedIn
+              ? createPaymentRequestQRIS(payload)
+              : createPaymentRequestQRISMicrosite(payload);
+            break;
+          case "otc":
+            createRes = isLoggedIn
+              ? createPaymentRequestOTC(payload)
+              : createPaymentRequestOTCMicrosite(payload);
+            break;
+          case "card":
+            toast.error(
+              `Metode ${selectedChannel.category} belum tersedia. Gunakan Virtual Account atau QRIS untuk sekarang.`,
+            );
+            return;
+          default:
+            throw new Error("Metode Pembayaran Tidak Didukung");
+        }
       }
 
       const paymentReqID = (await createRes)?.data?.data?.id;
@@ -281,12 +315,13 @@ const PaymentMehods = () => {
           }
 
           router.push(nextPath);
+          navigated = true;
         } else if (selectedChannel.category === "ewallet" && url) {
           // ─── GUEST FLOW SUCCESS DATA ──────────────────────────────────────────
           // Simpan data pembayaran ke sessionStorage sebelum redirect ke Xendit.
           // Ini digunakan oleh interseptor di /auth/login untuk meneruskan user
           // non-login langsung ke halaman sukses pembayaran (/payment-billing/success).
-          if (!userInfo) {
+          if (!isLoggedIn) {
             const cid = sessionStorage.getItem("customer_code") || "-";
             sessionStorage.setItem(
               "paymentSuccessData",
@@ -304,9 +339,12 @@ const PaymentMehods = () => {
           }
 
           window.location.href = url;
+          navigated = true;
           // window.open(url, "_blank");
         } else {
-          toast.error("Terjadi kesalahan, silakan coba metode pembayaran lain");
+          toast.error(
+            "Terjadi kesalahan, gagal mendapatkan checkout URL e-wallet",
+          );
         }
       }
 
@@ -315,9 +353,10 @@ const PaymentMehods = () => {
       }
     } catch (error: any) {
       toastErrorFromAPI(error, "Terjadi kesalahan saat memproses pembayaran");
-      setIsCreatePayment(false);
     } finally {
-      setIsCreatePayment(false);
+      if (!navigated) {
+        setIsCreatePayment(false);
+      }
     }
   };
 
@@ -511,7 +550,7 @@ const PaymentMehods = () => {
             if (isLoggedIn) {
               router.push("/customer-area");
             } else {
-              router.push("/payment-billing");
+              router.replace(backToBillingUrl);
             }
           }}
         >
@@ -542,7 +581,7 @@ const PaymentMehods = () => {
                 if (isLoggedIn) {
                   router.push("/customer-area");
                 } else {
-                  router.push("/payment-billing");
+                  router.replace(backToBillingUrl);
                 }
               }}
             >
