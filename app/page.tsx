@@ -15,20 +15,24 @@ import FloatingNavbar from "./_components/FloatingNavbar";
 import Testimony from "./Homepage/Testimony";
 import { dmSans } from "./_shared/font/font";
 import FloatingContactCS from "./_components/FloatingContactCS";
+import ModalTemplate from "./_components/modal/ModalTemplate";
+import ContentOpenAppModal from "./_components/ContentOpenAppModal";
 
 export default function Home() {
   const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(false);
   const { fcmToken } = useAppContext();
-  // const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
+  const [openModalOpenApp, setOpenModalOpenApp] = useState(false);
 
-  // useEffect(() => {
-  //   const registerSource = searchParams.get("referral_code");
-  //   if (registerSource) {
-  //     router.push(`/auth/register?referral_code=${registerSource}`);
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+  useEffect(() => {
+    const registerSource = searchParams.get("referral_code");
+    if (registerSource) {
+      setOpenModalOpenApp(true);
+      // router.push(`/auth/register?referral_code=${registerSource}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useBrowserDetection();
 
@@ -121,6 +125,22 @@ export default function Home() {
       </div>
 
       <FloatingContactCS />
+
+      {openModalOpenApp && (
+        <ModalTemplate
+          // isCloseButton={false}
+          closeModal={() => {
+            setOpenModalOpenApp(false);
+            const registerSource = searchParams.get("referral_code");
+            if (registerSource) {
+              window.location.href = `/auth/register?referral_code=${registerSource}`;
+            }
+          }}
+          classNameModal="p-4 max-w-160 w-full mx-2 text-center !bg-[linear-gradient(136deg,#9C1816_2.93%,#D7201D_83.81%)]"
+        >
+          <ContentOpenAppModal setOpenModalOpenApp={setOpenModalOpenApp} />
+        </ModalTemplate>
+      )}
     </div>
   );
 }
