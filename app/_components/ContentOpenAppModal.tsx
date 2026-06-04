@@ -197,7 +197,7 @@ function ContentOpenAppModal({
           <button
             type="button"
             onClick={handleGoToRegister}
-            className="w-full border-2 max-sm:text-sm rounded-full border-[#D7201D] hover:bg-dark-primary-2 text-primary hover:text-white font-bold py-3 px-6  transition-colors mt-3"
+            className="w-full border-2 max-sm:text-xs rounded-full border-[#D7201D] hover:bg-dark-primary-2 text-primary hover:text-white font-bold py-3 px-6  transition-colors mt-3"
           >
             Lanjutkan Pendaftaran di Website
           </button>
