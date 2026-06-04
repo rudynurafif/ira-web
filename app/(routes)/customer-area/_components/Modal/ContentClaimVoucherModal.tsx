@@ -41,13 +41,6 @@ function ContentClaimVoucherModal({
     const isIOS = /iPhone|iPad|iPod/i.test(ua);
     const isMac = /Macintosh|MacIntel|MacPPC|Mac68K/i.test(platform);
 
-    // ✅ Detect domain secara dinamis dari browser
-    const currentOrigin =
-      typeof window !== "undefined" ? window.location.origin : "";
-    const universalLinkPath = "/launch"; // ✅ Path sesuai AASA
-    const universalLink = `${currentOrigin}${universalLinkPath}`;
-    // console.log(universalLink);
-
     if (isAndroid) {
       const intentUrl = `intent://launch#Intent;scheme=ira;package=com.weave.ira;S.browser_fallback_url=${encodeURIComponent(ANDROID_STORE)};end`;
       window.location.href = intentUrl;
@@ -58,8 +51,8 @@ function ContentClaimVoucherModal({
       };
       document.addEventListener("visibilitychange", onVisibilityChange);
 
-      // ✅ Gunakan universal link dengan domain dinamis
-      window.location.href = universalLink;
+      // ✅ Gunakan URL scheme untuk iOS
+      window.location.href = "ira://launch";
 
       setTimeout(() => {
         document.removeEventListener("visibilitychange", onVisibilityChange);
