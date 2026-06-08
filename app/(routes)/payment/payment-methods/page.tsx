@@ -11,6 +11,7 @@ import {
   getPaymentChannel,
   createPaymentRequestGopay,
   createPaymentRequestVAMidtrans,
+  createPaymentRequestShopeePay,
 } from "@/app/_api/Payment/Payment";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PaymentChannel } from "@/app/_shared/types/payment";
@@ -31,6 +32,7 @@ import {
   createPaymentRequestGopayMicrosite,
   createPaymentRequestOTCMicrosite,
   createPaymentRequestQRISMicrosite,
+  createPaymentRequestShopeePayMicrosite,
   createPaymentRequestVAMicrosite,
   createPaymentRequestVAMidtransMicrosite,
 } from "@/app/_api/Payment/Payment-Microsite";
@@ -109,7 +111,7 @@ const PaymentMehods = () => {
         router.replace(backToBillingUrl);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, router, selectedPackage]);
 
   const handleCheckPackage = async (): Promise<boolean> => {
@@ -175,7 +177,7 @@ const PaymentMehods = () => {
   );
   const qrisChannels = paymentChannels.filter(
     (ch) => ch.category === "qris" && ch.is_active,
-  ); 
+  );
   const outlets = paymentChannels.filter(
     (ch) => ch.category === "otc" && ch.is_active,
   );
@@ -259,7 +261,17 @@ const PaymentMehods = () => {
           default:
             throw new Error("Metode Pembayaran MIDTRANS Tidak Didukung");
         }
-      } else {
+      } else if (selectedChannel.payment_gateway_id?.code === "AIRPAY") {
+        switch (selectedChannel.category) {
+          case "ewallet":
+            createRes = isLoggedIn
+              ? createPaymentRequestShopeePay(payload)
+              : createPaymentRequestShopeePayMicrosite(payload);
+            break;
+          default:
+            throw new Error("Metode Pembayaran AIRPAY Tidak Didukung");
+        }
+      } else if (selectedChannel.payment_gateway_id?.code === "XENDIT") {
         switch (selectedChannel.category) {
           case "va":
             createRes = isLoggedIn
@@ -289,6 +301,8 @@ const PaymentMehods = () => {
           default:
             throw new Error("Metode Pembayaran Tidak Didukung");
         }
+      } else {
+        throw new Error("Gateway Pembayaran Tidak Didukung");
       }
 
       const paymentReqID = (await createRes)?.data?.data?.id;
