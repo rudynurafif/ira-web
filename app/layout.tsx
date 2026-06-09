@@ -71,7 +71,7 @@ export default function RootLayout({
             fbq('track', 'PageView');
           `}
         </Script>
-        <noscript>
+        {/* <noscript>
           <img
             height="1"
             width="1"
@@ -79,7 +79,7 @@ export default function RootLayout({
             src="https://www.facebook.com/tr?id=1232054002088314&ev=PageView&noscript=1"
             alt=""
           />
-        </noscript>
+        </noscript> */}
 
         <Script id="tiktok-pixel" strategy="afterInteractive">
           {`

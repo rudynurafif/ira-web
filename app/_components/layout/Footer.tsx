@@ -12,70 +12,65 @@ import Image from "next/image";
 
 // image
 import iraIcon from "@/public/assets/Icons/IraIconFooter.png";
-import moment from "moment";
 import { getSetting } from "@/app/_api/Settings/Settings";
 import googlePlay from "@/public/assets/Images/GooglePlayBlack.png";
 import appStore from "@/public/assets/Images/AppStoreBlack.png";
-import { BsTelephone } from "react-icons/bs";
 import { MdOutlineMail } from "react-icons/md";
 import SkeletonBase from "../skeletons/SkeletonBase";
 import { handleDownloadClick } from "@/app/_shared/utils";
 
 function Footer() {
   const [phoneCS, setPhoneCS] = useState<string | null>("");
-  const [phoneCSTel, setPhoneCSTel] = useState<string | null>("");
   const [mail, setMail] = useState<string | null>("");
   const [address, setAddress] = useState<string | null>("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
+
+  // ✅ Ganti moment() dengan native Date (hemat bundle size)
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
-    setIsMounted(true);
-    try {
-      setIsLoading(true);
+    const fetchSettings = async () => {
+      try {
+        setIsLoading(true);
 
-      const getOfficeAddress = async () => {
-        const resSetting = await getSetting("office_address");
+        // ✅ Gabungkan semua API calls dengan Promise.all (lebih cepat)
+        const [addressRes, phoneRes, mailRes] = await Promise.all([
+          getSetting("office_address"),
+          getSetting("cs_phone"),
+          getSetting("cs_email"),
+        ]);
+
         setAddress(
-          resSetting.data?.data?.value ||
+          addressRes.data?.data?.value ||
             process.env.NEXT_PUBLIC_ADDRESS ||
             "Jalan Tiang Bendera V No.20 Roa Malaka, Tambora, Jakarta Barat",
         );
-      };
 
-      const getPhoneCS = async () => {
-        const resSetting = await getSetting("cs_phone");
         setPhoneCS(
-          resSetting.data?.data?.value ||
+          phoneRes.data?.data?.value ||
             process.env.NEXT_PUBLIC_PHONE_CS ||
             "6281110689111",
         );
-      };
 
-      // const getCSTel = async () => {
-      //   const resSetting = await getSetting("cs_phone_tel");
-      //   setPhoneCSTel(resSetting.data?.data?.value || null);
-      // };
-
-      const getCSMail = async () => {
-        const resSetting = await getSetting("cs_email");
         setMail(
-          resSetting.data?.data?.value ||
+          mailRes.data?.data?.value ||
             process.env.NEXT_PUBLIC_EMAIL_CS ||
             "cs@internetrakyat.id",
         );
-      };
+      } catch (err: any) {
+        console.error(err?.response?.data?.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      getOfficeAddress();
-      getPhoneCS();
-      // getCSTel();
-      getCSMail();
-    } catch (err: any) {
-      console.error(err?.response?.data?.message);
-    } finally {
-      setIsLoading(false);
-    }
+    fetchSettings();
   }, []);
+
+  // const getCSTel = async () => {
+  //   const resSetting = await getSetting("cs_phone_tel");
+  //   setPhoneCSTel(resSetting.data?.data?.value || null);
+  // };
 
   return (
     <div className="bg-white text-xs">
@@ -144,6 +139,7 @@ function Footer() {
                   href={"https://www.instagram.com/internetrakyat.id"}
                   target="_blank"
                   className="hover:cursor-pointer"
+                  aria-label="Instagram" // ✅ Tambahkan aria-label
                 >
                   <FaInstagram size={24} />
                 </Link>
@@ -151,6 +147,7 @@ function Footer() {
                   href={"https://www.youtube.com/@internetrakyat.official"}
                   target="_blank"
                   className="hover:cursor-pointer"
+                  aria-label="YouTube" // ✅ Tambahkan aria-label
                 >
                   <FaYoutube size={24} />
                 </Link>
@@ -158,6 +155,7 @@ function Footer() {
                   href={"https://www.linkedin.com/company/internet-rakyat"}
                   target="_blank"
                   className="hover:cursor-pointer"
+                  aria-label="LinkedIn" // ✅ Tambahkan aria-label
                 >
                   <FaLinkedin size={24} />
                 </Link>
@@ -165,6 +163,7 @@ function Footer() {
                   href={"https://www.tiktok.com/@internetrakyat.id"}
                   target="_blank"
                   className="hover:cursor-pointer"
+                  aria-label="TikTok" // ✅ Tambahkan aria-label
                 >
                   <FaTiktok size={24} />
                 </Link>
@@ -172,32 +171,50 @@ function Footer() {
 
               <h5 className="font-bold mb-2.5 mt-5">Download Aplikasi IRA</h5>
               <div className="mt-2 flex flex-row gap-2">
-                <div
+                <button
                   className="cursor-pointer"
                   onClick={() => handleDownloadClick("google")}
+                  aria-label="Download di Google Play" // ✅ Tambahkan aria-label
                 >
                   <Image
                     src={googlePlay}
                     alt="Google Play"
-                    className="w-24 hover:scale-105"
+                    width={96} // ✅ Tambahkan width
+                    height={32} // ✅ Tambahkan height
+                    className="w-24 h-auto hover:scale-105 transition-transform"
+                    sizes="96px" // ✅ Tambahkan sizes
+                    loading="lazy" // ✅ Tambahkan (below fold)
                   />
-                </div>
-                <div
+                </button>
+                <button
                   className="cursor-pointer"
                   onClick={() => handleDownloadClick("apple")}
+                  aria-label="Download di App Store" // ✅ Tambahkan aria-label
                 >
                   <Image
                     src={appStore}
                     alt="App Store"
-                    className="w-24 hover:scale-105"
+                    width={96} // ✅ Tambahkan width
+                    height={32} // ✅ Tambahkan height
+                    className="w-24 h-auto hover:scale-105 transition-transform"
+                    sizes="96px" // ✅ Tambahkan sizes
+                    loading="lazy" // ✅ Tambahkan (below fold)
                   />
-                </div>
+                </button>
               </div>
             </div>
           </div>
           <div className="text-left lg:text-right w-full md:w-[30%] lg:mt-0 mt-5">
             <div className="flex justify-start lg:justify-end gap-5 items-center mb-3">
-              <Image src={iraIcon} alt="weave" className="w-25" />
+              <Image
+                src={iraIcon}
+                alt="IRA Icon"
+                width={100} // ✅ Tambahkan width
+                height={100} // ✅ Tambahkan height
+                className="w-25 h-auto"
+                sizes="100px" // ✅ Tambahkan sizes
+                loading="lazy" // ✅ Tambahkan (below fold)
+              />
             </div>
             <p className="mb-3 ">
               <span>
@@ -220,16 +237,14 @@ function Footer() {
             </p>
             <p className="" suppressHydrationWarning>
               <span>
-                Copyright © {moment().year()} PT. Telemedia Komunikasi Pratama
+                Copyright © {currentYear} PT. Telemedia Komunikasi Pratama
               </span>
             </p>
           </div>
         </div>
 
-        {isMounted && (
-          // VERSION
-          <div className="text-center text-[10px] mt-5">ver. 1.0806.12</div>
-        )}
+        {/* ✅ Hapus isMounted state, langsung render */}
+        <div className="text-center text-[10px] mt-5">ver. 1.0906.14</div>
       </div>
     </div>
   );

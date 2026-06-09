@@ -55,6 +55,9 @@ const Testimony = () => {
                     alt={video.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 768px) 240px, 320px"
+                    loading="lazy"
+                    quality={90}
                   />
                   {/* Overlay & Play Button */}
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />

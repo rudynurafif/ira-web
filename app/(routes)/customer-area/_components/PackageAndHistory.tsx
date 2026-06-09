@@ -8,7 +8,7 @@ import SkeletonLoadingCard from "@/app/_components/SkeletonLoadingCard";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import bannerPanduan from "@/public/assets/Images/bannerPanduan.png";
 import bannerPanduanMobile from "@/public/assets/Images/bannerPanduanMobile.png";
-import bannerPanduanFolaplus from "@/public/assets/Images/banner-panduan-folaplus.png";
+import bannerPanduanFolaplus from "@/public/assets/Images/banner-panduan-folaplus.webp";
 import bannerCS from "@/public/assets/Images/bannerCSnew.png";
 import bannerCSMobile from "@/public/assets/Images/bannerCSmobile.png";
 import bannerCubmu from "@/public/assets/Images/banner-cubmu.png";

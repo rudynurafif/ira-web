@@ -81,7 +81,8 @@ const DownloadApp = () => {
               width={1920}
               height={600}
               className="w-full h-auto object-cover"
-              priority
+              priority // ✅ Sudah benar (above the fold)
+              sizes="100vw" // ✅ Tambahkan ini
             />
 
             {/* Download Box Overlay — Desktop Only */}
@@ -96,6 +97,7 @@ const DownloadApp = () => {
                         alt="Logo IRA"
                         fill
                         className="object-contain"
+                        sizes="(max-width: 768px) 48px, (max-width: 1024px) 56px, (max-width: 1280px) 64px, 96px" // ✅ Tambahkan
                       />
                     </div>
                     <span className="text-white font-black text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs 2xl:text-lg mt-1">
@@ -119,6 +121,7 @@ const DownloadApp = () => {
                       width={220}
                       height={65}
                       className="w-28 md:w-32 lg:w-36 xl:w-44 2xl:w-62 h-auto rounded"
+                      sizes="(max-width: 768px) 112px, (max-width: 1024px) 128px, (max-width: 1280px) 144px, 176px" // ✅ Tambahkan
                     />
                   </button>
                   <button
@@ -134,6 +137,7 @@ const DownloadApp = () => {
                       width={220}
                       height={65}
                       className="w-28 md:w-32 lg:w-36 xl:w-44 2xl:w-62 h-auto rounded"
+                      sizes="(max-width: 768px) 112px, (max-width: 1024px) 128px, (max-width: 1280px) 144px, 176px" // ✅ Tambahkan
                     />
                   </button>
                 </div>
@@ -149,7 +153,8 @@ const DownloadApp = () => {
               width={786}
               height={978}
               className="w-full h-auto object-cover"
-              priority
+              priority // ✅ Sudah benar (above the fold)
+              sizes="100vw" // ✅ Tambahkan ini
             />
 
             {/* Mobile Overlay — Text + Download Box */}
@@ -178,6 +183,7 @@ const DownloadApp = () => {
                         alt="Logo IRA"
                         fill
                         className="object-contain"
+                        sizes="(max-width: 640px) 96px, 160px" // ✅ Tambahkan
                       />
                     </div>
                     <span className="text-white text-center font-black text-[9px] sm:text-[12px] mt-1 leading-none">
@@ -201,6 +207,7 @@ const DownloadApp = () => {
                       width={220}
                       height={65}
                       className="w-32 sm:w-60 h-auto rounded"
+                      sizes="(max-width: 640px) 128px, 240px" // ✅ Tambahkan
                     />
                   </button>
                   <button
@@ -216,6 +223,7 @@ const DownloadApp = () => {
                       width={220}
                       height={65}
                       className="w-32 sm:w-60 h-auto rounded"
+                      sizes="(max-width: 640px) 128px, 240px" // ✅ Tambahkan
                     />
                   </button>
                 </div>

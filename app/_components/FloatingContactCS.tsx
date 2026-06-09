@@ -13,7 +13,9 @@ const FloatingContactCS = () => {
   return (
     <>
       {/* Floating Button */}
-      <div className="fixed bottom-6 right-6 z-999">
+      <div className="fixed bottom-6 right-6 z-[999]">
+        {" "}
+        {/* ✅ Perbaiki z-999 */}
         <button
           onClick={() => setIsCSModalOpen(true)}
           className="w-16 h-16 bg-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
@@ -22,7 +24,11 @@ const FloatingContactCS = () => {
           <Image
             src={csIcon}
             alt="Hubungi CS"
+            width={64} // ✅ Tambahkan width
+            height={64} // ✅ Tambahkan height
             className="w-16 h-16 object-contain"
+            sizes="64px" // ✅ Tambahkan sizes
+            loading="lazy" // ✅ Tambahkan (below fold)
           />
         </button>
       </div>
@@ -37,10 +43,12 @@ const FloatingContactCS = () => {
             <div className="flex items-center justify-center mx-auto mb-6">
               <Image
                 src={logoRedIra}
-                alt="Logo"
+                alt="Logo IRA"
                 width={80}
                 height={80}
                 className="object-contain"
+                sizes="80px" // ✅ Tambahkan sizes
+                loading="lazy" // ✅ Tambahkan (modal)
               />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -65,6 +73,8 @@ const FloatingContactCS = () => {
                   width={220}
                   height={65}
                   className="w-40 sm:w-60 h-auto rounded"
+                  sizes="(max-width: 640px) 160px, 240px" // ✅ Tambahkan sizes
+                  loading="lazy" // ✅ Tambahkan (modal)
                 />
               </button>
 
@@ -81,6 +91,8 @@ const FloatingContactCS = () => {
                   width={220}
                   height={65}
                   className="w-40 sm:w-60 h-auto rounded"
+                  sizes="(max-width: 640px) 160px, 240px" // ✅ Tambahkan sizes
+                  loading="lazy" // ✅ Tambahkan (modal)
                 />
               </button>
             </div>

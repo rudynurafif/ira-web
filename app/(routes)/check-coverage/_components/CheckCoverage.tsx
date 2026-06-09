@@ -238,8 +238,12 @@ function CheckCoverage() {
               <div className="w-[40%] sm:w-1/2">
                 <Image
                   src={BannerPrice}
-                  alt="Banner"
-                  className="w-full mx-auto"
+                  alt="Banner Promo Harga"
+                  width={400} // ✅ Tambahkan width
+                  height={200} // ✅ Tambahkan height
+                  className="w-full h-auto mx-auto"
+                  sizes="(max-width: 640px) 40vw, (max-width: 768px) 50vw, 66vw" // ✅ Tambahkan sizes
+                  priority // ✅ Tambahkan (above the fold)
                 />
               </div>
               <div className="w-[60%] sm:w-1/2">
@@ -294,9 +298,16 @@ function CheckCoverage() {
                   }
                 }}
                 disabled={isLoading}
+                aria-label="Cari alamat" // ✅ Tambahkan aria-label
+                aria-busy={isLoading} // ✅ Tambahkan aria-busy
               />
               {address && (
-                <button type="button" onClick={clearInput}>
+                <button
+                  type="button"
+                  onClick={clearInput}
+                  aria-label="Hapus input" // ✅ Tambahkan aria-label
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors" // ✅ Tambahkan styling
+                >
                   <IoCloseSharp color="#d7201d" size={20} />
                 </button>
               )}
@@ -310,7 +321,8 @@ function CheckCoverage() {
                   }
                 }}
                 disabled={isLoading}
-                className="w-[40px] h-[40px] rounded-full bg-red-500 flex justify-center items-center active:scale-98 transition-transform duration-150 ease-out"
+                className="w-[40px] h-[40px] rounded-full bg-red-500 flex justify-center items-center active:scale-98 transition-transform duration-150 ease-out disabled:opacity-50" // ✅ Tambahkan disabled state
+                aria-label="Cari lokasi" // ✅ Tambahkan aria-label
               >
                 <IoSearchSharp size={26} color="white" />
               </button>
@@ -318,7 +330,11 @@ function CheckCoverage() {
 
             {/* Loading + cooldown counter */}
             {isLoading && (
-              <div className="border-2 rounded-lg px-4 py-2 w-full block absolute z-50 bg-white mt-2">
+              <div
+                className="border-2 rounded-lg px-4 py-2 w-full block absolute z-50 bg-white mt-2"
+                role="status" // ✅ Tambahkan role
+                aria-live="polite" // ✅ Tambahkan aria-live
+              >
                 <span>Mencari lokasi... </span>
                 {cooldownCount > 0 && (
                   <span className="text-primary font-semibold">
@@ -330,12 +346,24 @@ function CheckCoverage() {
 
             {/* Prediksi */}
             {!isLoading && predictions.length > 0 && (
-              <div className="border-2 rounded-lg px-2 py-2 absolute z-50 bg-white max-h-60 overflow-y-auto w-full mt-2">
+              <div
+                className="border-2 rounded-lg px-2 py-2 absolute z-50 bg-white max-h-60 overflow-y-auto w-full mt-2"
+                role="listbox" // ✅ Tambahkan role
+                aria-label="Hasil pencarian alamat" // ✅ Tambahkan aria-label
+              >
                 {predictions.map((feature, idx) => (
                   <div
                     key={feature.id || idx}
                     onClick={() => handlePredictionClick(feature)}
-                    className="cursor-pointer max-sm:text-xs text-sm flex gap-2 items-start py-2 hover:bg-gray-100"
+                    className="cursor-pointer max-sm:text-xs text-sm flex gap-2 items-start py-2 hover:bg-gray-100 rounded px-2 transition-colors" // ✅ Tambahkan transition
+                    role="option" // ✅ Tambahkan role
+                    tabIndex={0} // ✅ Tambahkan tabIndex untuk keyboard navigation
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handlePredictionClick(feature);
+                      }
+                    }}
                   >
                     <div>
                       <svg
@@ -358,7 +386,9 @@ function CheckCoverage() {
                         />
                       </svg>
                     </div>
-                    <div className="text-dark-primary">
+                    <div className="text-dark-primary break-words">
+                      {" "}
+                      {/* ✅ Tambahkan break-words */}
                       {feature.full_address || feature.name}
                     </div>
                   </div>

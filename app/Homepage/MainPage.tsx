@@ -402,6 +402,9 @@ function MainPage() {
             const bgImage = isMobile ? slide.imageMobile : slide.image;
             if (!bgImage) return null;
 
+            // OPTIMASI: Slide pertama dapat priority=true
+            const isFirstChild = index === 0;
+
             return (
               <SwiperSlide key={`api-${index}`} className="">
                 <div
@@ -411,12 +414,13 @@ function MainPage() {
                   <Image
                     src={bgImage}
                     alt={`Banner Slide ${index + 1}`}
-                    width={0}
-                    height={0}
-                    sizes="100vw"
+                    width={1920} // Tambahkan width eksplisit
+                    height={1080} // Tambahkan height eksplisit
+                    sizes="(max-width: 768px) 100vw, 100vw" // Sesuaikan dengan layout
                     className="w-full h-auto"
-                    priority={false}
-                    unoptimized={true}
+                    priority={isFirstChild} // OPTIMASI: Hanya slide pertama
+                    // HAPUS: unoptimized={true}
+                    quality={85} // OPTIMASI: Kualitas gambar (default 75)
                   />
 
                   {slide.url && (

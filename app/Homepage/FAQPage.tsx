@@ -45,10 +45,18 @@ function FAQPage() {
         {/* Desktop */}
         <div className="max-lg:hidden grid grid-cols-2 items-center gap-5">
           <div className="col-span-1">
-            <Image src={faqImage} alt="faq" className="max-w-sm mx-auto" />
+            <Image
+              src={faqImage}
+              alt="FAQ illustration"
+              className="max-w-sm mx-auto"
+              width={400} // ✅ Tambahkan width
+              height={400} // ✅ Tambahkan height
+              sizes="(max-width: 1024px) 50vw, 400px" // ✅ Optimasi sizes
+              loading="lazy" // ✅ Lazy load (karena below the fold)
+            />
           </div>
           <div className="col-span-1">
-            <h1 className="text-3xl  font-bold mb-8">
+            <h1 className="text-3xl font-bold mb-8">
               Frequently Asked Questions (FAQ)
             </h1>
             {isLoading ? <FAQLoading /> : <FAQAccordion faqs={faqs} />}
