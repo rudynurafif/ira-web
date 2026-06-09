@@ -244,7 +244,7 @@ function Footer() {
         </div>
 
         {/* ✅ Hapus isMounted state, langsung render */}
-        <div className="text-center text-[10px] mt-5">ver. 1.0906.14</div>
+        <div className="text-center text-[10px] mt-5">ver. 1.0906.15</div>
       </div>
     </div>
   );
