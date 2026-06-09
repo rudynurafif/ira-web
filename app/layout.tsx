@@ -93,6 +93,20 @@ export default function RootLayout({
             }(window, document, 'ttq');
           `}
         </Script>
+
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-F6NHZSR4ML"
+        />
+        <Script id="google-tag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-F6NHZSR4ML');
+          `}
+        </Script>
       </body>
       {/* <GoogleAnalytics gaId={"G-F36SCC718L"} /> */}
     </html>
