@@ -17,6 +17,7 @@ import { dmSans } from "./_shared/font/font";
 import FloatingContactCS from "./_components/FloatingContactCS";
 import ModalTemplate from "./_components/modal/ModalTemplate";
 import ContentOpenAppModal from "./_components/ContentOpenAppModal";
+import BannerRedeemCode from "./Homepage/BannerRedeemCode";
 
 export default function Home() {
   const router = useRouter();
@@ -110,6 +111,9 @@ export default function Home() {
       )}
 
       <MainPage />
+
+      <BannerRedeemCode />
+
       {/* <WhyFWAPage /> */}
       <div id="apps">
         <DownloadApp />

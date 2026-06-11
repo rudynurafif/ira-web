@@ -109,6 +109,7 @@ type RegistrationFormProps = {
   title: string;
   showCancelButton?: boolean;
   showBannerCovered?: boolean;
+  redeemCode?: string;
 };
 
 function RegistrationWizard({
@@ -118,6 +119,7 @@ function RegistrationWizard({
   title = "Registrasi Internet Rakyat (IRA)",
   showCancelButton = false,
   showBannerCovered = false,
+  redeemCode = "",
 }: RegistrationFormProps) {
   // Clean up notes from initialData
   let defaultNotes = initialData?.notes || "";
@@ -826,9 +828,16 @@ function RegistrationWizard({
       const popupUrl =
         mode === "update_address"
           ? "/customer-area/update-address"
-          : "/auth/register/popup";
+          : redeemCode
+            ? `/redeem-code/popup`
+            : "/auth/register/popup";
+
       const normalUrl =
-        mode === "update_address" ? "/customer-area" : "/auth/register";
+        mode === "update_address"
+          ? "/customer-area"
+          : redeemCode
+            ? `/redeem-code`
+            : "/auth/register";
 
       // Masukkan ke history buat GA tracking
       window.history.pushState(null, "", popupUrl);
@@ -1606,6 +1615,7 @@ function RegistrationWizard({
           ...(formData.notes && { notes: formData.notes }),
           // ...(formData.voucher_code && { voucher_code: formData.voucher_code }),
           ...(registerSource && { referral_code: registerSource }),
+          ...(redeemCode && { redeem_code_register: redeemCode }),
         };
 
         let res;

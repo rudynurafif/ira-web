@@ -261,17 +261,19 @@ const PaymentMehods = () => {
           default:
             throw new Error("Metode Pembayaran MIDTRANS Tidak Didukung");
         }
-      } else if (selectedChannel.payment_gateway_id?.code === "AIRPAY") {
-        switch (selectedChannel.category) {
-          case "ewallet":
-            createRes = isLoggedIn
-              ? createPaymentRequestShopeePay(payload)
-              : createPaymentRequestShopeePayMicrosite(payload);
-            break;
-          default:
-            throw new Error("Metode Pembayaran AIRPAY Tidak Didukung");
-        }
-      } else if (selectedChannel.payment_gateway_id?.code === "XENDIT") {
+      }
+      // else if (selectedChannel.payment_gateway_id?.code === "AIRPAY") {
+      //   switch (selectedChannel.category) {
+      //     case "ewallet":
+      //       createRes = isLoggedIn
+      //         ? createPaymentRequestShopeePay(payload)
+      //         : createPaymentRequestShopeePayMicrosite(payload);
+      //       break;
+      //     default:
+      //       throw new Error("Metode Pembayaran AIRPAY Tidak Didukung");
+      //   }
+      // }
+      else if (selectedChannel.payment_gateway_id?.code === "XENDIT") {
         switch (selectedChannel.category) {
           case "va":
             createRes = isLoggedIn
