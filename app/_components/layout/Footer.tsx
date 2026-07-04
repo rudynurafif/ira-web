@@ -27,6 +27,8 @@ function Footer() {
   const [mail, setMail] = useState<string | null>("");
   const [address, setAddress] = useState<string | null>("");
   const [isLoading, setIsLoading] = useState(true);
+
+  const APP_VERSION = "ver. 1.0507.01";
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -226,10 +228,8 @@ function Footer() {
           </div>
         </div>
 
-        {isMounted && (
-          // VERSION
-          <div className="text-center text-[10px] mt-5">ver. 1.0406.11</div>
-        )}
+        {/* ✅ Hapus isMounted state, langsung render */}
+        <div className="text-center text-[10px] mt-5">{APP_VERSION}</div>
       </div>
     </div>
   );
