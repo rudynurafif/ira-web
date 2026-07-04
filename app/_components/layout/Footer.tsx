@@ -25,6 +25,8 @@ function Footer() {
   const [address, setAddress] = useState<string | null>("");
   const [isLoading, setIsLoading] = useState(true);
 
+  const APP_VERSION = "ver. 1.0507.01";
+
   // ✅ Ganti moment() dengan native Date (hemat bundle size)
   const currentYear = new Date().getFullYear();
 
@@ -244,7 +246,7 @@ function Footer() {
         </div>
 
         {/* ✅ Hapus isMounted state, langsung render */}
-        <div className="text-center text-[10px] mt-5">ver. 1.1106.17</div>
+        <div className="text-center text-[10px] mt-5">{APP_VERSION}</div>
       </div>
     </div>
   );
