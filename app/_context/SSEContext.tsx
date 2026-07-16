@@ -35,6 +35,8 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     let es: EventSource | null = null;
     let retryTimeout: NodeJS.Timeout;
     let isFirstConnect = true;
+    let retryCount = 0;
+    let isCleanedUp = false;
 
     const connect = () => {
       es = new EventSourcePolyfill(
@@ -50,6 +52,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       );
 
       es.onopen = () => {
+        retryCount = 0;
         if (isFirstConnect) {
           console.log("🟢 [SSE] Connected");
           isFirstConnect = false;
@@ -59,18 +62,24 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       };
 
       es.onmessage = (event) => {
-        const payload: SSEPayload = JSON.parse(event.data);
-        setLastEvent(payload);
-        console.log(payload);
-
-        // const data = JSON.parse(event.data);
-        // console.log(data);
+        try {
+          const payload: SSEPayload = JSON.parse(event.data);
+          setLastEvent(payload);
+          console.log(payload);
+        } catch (e) {
+          console.error("[SSE] Parse error", e);
+        }
       };
 
       es.onerror = () => {
-        console.log("🔴 [SSE] Disconnected, retrying in 3s...");
         es?.close();
-        retryTimeout = setTimeout(connect, 3000);
+        if (isCleanedUp) return;
+
+        // Exponential backoff: 3s, 6s, 12s, ... maksimal 60s
+        const delay = Math.min(3_000 * 2 ** retryCount, 60_000);
+        retryCount += 1;
+        console.log(`🔴 [SSE] Disconnected, retrying in ${delay / 1000}s...`);
+        retryTimeout = setTimeout(connect, delay);
       };
     };
 
@@ -78,6 +87,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       console.log("⚪ [SSE] Connection closed (cleanup)");
+      isCleanedUp = true;
       es?.close();
       if (retryTimeout) clearTimeout(retryTimeout);
     };

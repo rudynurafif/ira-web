@@ -28,7 +28,7 @@ function Footer() {
   const [address, setAddress] = useState<string | null>("");
   const [isLoading, setIsLoading] = useState(true);
 
-  const APP_VERSION = "ver. 1.0507.01";
+  const APP_VERSION = "ver. 1.1607.01";
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
